@@ -27,7 +27,12 @@ export const HeroSection = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end mb-8">
-              <Button variant="secondary" size="lg" className="text-lg">
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="text-lg"
+                onClick={() => window.location.href = '/dashboard'}
+              >
                 ابدأ مجاناً
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>

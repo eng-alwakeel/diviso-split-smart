@@ -33,8 +33,12 @@ export const Header = () => {
             <Button variant="ghost" size="sm" className="hidden md:flex">
               تسجيل الدخول
             </Button>
-            <Button variant="hero" size="sm">
-              ابدأ مجاناً
+            <Button 
+              variant="hero" 
+              size="sm"
+              onClick={() => window.location.href = '/dashboard'}
+            >
+              الدخول للتطبيق
             </Button>
             
             {/* Mobile menu button */}
