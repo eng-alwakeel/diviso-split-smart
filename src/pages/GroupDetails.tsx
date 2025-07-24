@@ -223,63 +223,63 @@ const GroupDetails = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
+          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-total-card-foreground">
-                  <p className="text-sm font-medium opacity-90">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold">{mockGroup.totalExpenses}</p>
-                  <p className="text-xs opacity-75 mt-1">{mockGroup.currencySymbol}</p>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
+                  <p className="text-2xl font-bold text-accent">{mockGroup.totalExpenses}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{mockGroup.currencySymbol}</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Receipt className="w-6 h-6 text-total-card-foreground" />
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                  <Receipt className="w-6 h-6 text-accent" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300">
+          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-expense-light-foreground">
-                  <p className="text-sm font-medium">رصيدي</p>
-                  <p className="text-2xl font-bold">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">رصيدي</p>
+                  <p className="text-2xl font-bold text-accent">
                     {mockGroup.myBalance >= 0 ? '+' : ''}{mockGroup.myBalance}
                   </p>
-                  <p className="text-xs opacity-75 mt-1">{mockGroup.currencySymbol}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{mockGroup.currencySymbol}</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-expense-light-foreground" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-group-card-foreground">
-                  <p className="text-sm font-medium opacity-90">الميزانية</p>
-                  <p className="text-2xl font-bold">{budgetProgress.toFixed(0)}%</p>
-                  <p className="text-xs opacity-75 mt-1">مستخدم</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-group-card-foreground" />
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-accent" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
+          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-group-card-foreground">
-                  <p className="text-sm font-medium opacity-90">الأعضاء</p>
-                  <p className="text-2xl font-bold">{mockMembers.length}</p>
-                  <p className="text-xs opacity-75 mt-1">أعضاء</p>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
+                  <p className="text-2xl font-bold text-accent">{budgetProgress.toFixed(0)}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">مستخدم</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-group-card-foreground" />
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                  <Target className="w-6 h-6 text-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">الأعضاء</p>
+                  <p className="text-2xl font-bold text-accent">{mockMembers.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">أعضاء</p>
+                </div>
+                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-accent" />
                 </div>
               </div>
             </CardContent>
