@@ -87,21 +87,15 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-secondary': 'var(--gradient-secondary)',
-				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-card': 'var(--gradient-card)',
-				'gradient-expense': 'var(--gradient-expense)',
-				'gradient-group': 'var(--gradient-group)',
-				'gradient-total': 'var(--gradient-total)',
+				'gradient-accent': 'var(--gradient-accent)',
 				'gradient-dark': 'var(--gradient-dark)'
 			},
 			boxShadow: {
 				'primary': 'var(--shadow-primary)',
 				'card': 'var(--shadow-card)',
 				'elevated': 'var(--shadow-elevated)',
-				'expense': 'var(--shadow-expense)',
-				'group': 'var(--shadow-group)',
-				'total': 'var(--shadow-total)'
+				'accent': 'var(--shadow-accent)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

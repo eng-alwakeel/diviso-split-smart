@@ -94,77 +94,77 @@ const Dashboard = () => {
   const budgetProgress = (currentSpending / monthlyBudget) * 100;
 
   return (
-    <div className="min-h-screen bg-dark-background">
+    <div className="min-h-screen bg-background">
       <AppHeader />
       
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">مرحباً بك في ديفيزو!</h1>
-          <p className="text-dark-background-foreground/80">إدارة ذكية للمصاريف المشتركة</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">مرحباً بك في ديفيزو!</h1>
+          <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
         </div>
 
         {/* Quick Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {/* Total Expenses Card */}
-          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300 cursor-pointer">
+          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-total-card-foreground">
-                  <p className="text-sm font-medium opacity-90">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold">12,450 ر.س</p>
-                  <p className="text-xs opacity-75 mt-1">هذا الشهر</p>
+                <div className="text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
+                  <p className="text-2xl font-bold text-primary">12,450 ر.س</p>
+                  <p className="text-xs text-muted-foreground mt-1">هذا الشهر</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-total-card-foreground" />
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Active Groups Card */}
-          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300 cursor-pointer">
+          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-group-card-foreground">
-                  <p className="text-sm font-medium opacity-90">المجموعات النشطة</p>
-                  <p className="text-2xl font-bold">{mockGroups.length}</p>
-                  <p className="text-xs opacity-75 mt-1">مجموعات</p>
+                <div className="text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">المجموعات النشطة</p>
+                  <p className="text-2xl font-bold text-primary">{mockGroups.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">مجموعات</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-group-card-foreground" />
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Recent Expenses Card */}
-          <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300 cursor-pointer">
+          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-expense-light-foreground">
-                  <p className="text-sm font-medium">المصاريف الأخيرة</p>
-                  <p className="text-2xl font-bold">8</p>
-                  <p className="text-xs opacity-75 mt-1">خلال الأسبوع</p>
+                <div className="text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">المصاريف الأخيرة</p>
+                  <p className="text-2xl font-bold text-primary">8</p>
+                  <p className="text-xs text-muted-foreground mt-1">خلال الأسبوع</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Receipt className="w-6 h-6 text-expense-light-foreground" />
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                  <Receipt className="w-6 h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Referrals Card */}
-          <Card className="bg-gradient-primary border-0 shadow-primary hover:shadow-xl transition-all duration-300 cursor-pointer">
+          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div className="text-primary-foreground">
-                  <p className="text-sm font-medium opacity-90">الإحالات</p>
-                  <p className="text-2xl font-bold">5</p>
-                  <p className="text-xs opacity-75 mt-1">إحالات ناجحة</p>
+                <div className="text-foreground">
+                  <p className="text-sm font-medium text-muted-foreground">الإحالات</p>
+                  <p className="text-2xl font-bold text-primary">5</p>
+                  <p className="text-xs text-muted-foreground mt-1">إحالات ناجحة</p>
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <Share2 className="w-6 h-6 text-primary-foreground" />
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                  <Share2 className="w-6 h-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -176,8 +176,11 @@ const Dashboard = () => {
           {/* Groups Section */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-white">مجموعاتي</h2>
-              <Button onClick={() => navigate('/create-group')} className="bg-group-card hover:bg-group-card/90 text-group-card-foreground">
+              <h2 className="text-xl font-semibold text-foreground">مجموعاتي</h2>
+              <Button 
+                onClick={() => navigate('/create-group')} 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
                 <Plus className="w-4 h-4 ml-2" />
                 إنشاء مجموعة جديدة
               </Button>
@@ -187,18 +190,18 @@ const Dashboard = () => {
               {mockGroups.map((group) => (
                 <Card 
                   key={group.id} 
-                  className="bg-group-card border-0 shadow-group hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                  className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer group rounded-2xl"
                   onClick={() => navigate(`/group/${group.id}`)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                          <Users className="w-8 h-8 text-group-card-foreground" />
+                        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                          <Users className="w-8 h-8 text-primary" />
                         </div>
-                        <div className="text-group-card-foreground">
+                        <div className="text-foreground">
                           <h3 className="font-bold text-lg mb-1">{group.name}</h3>
-                          <div className="flex items-center gap-4 text-sm opacity-90">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Users className="w-4 h-4" />
                               {group.members} عضو
@@ -208,16 +211,16 @@ const Dashboard = () => {
                               {group.expenses} مصروف
                             </span>
                           </div>
-                          <p className="text-xs opacity-75 mt-2">{group.category}</p>
+                          <p className="text-xs text-muted-foreground mt-2">{group.category}</p>
                         </div>
                       </div>
-                      <div className="text-left text-group-card-foreground">
-                        <p className="text-2xl font-bold">{group.totalExpenses.toLocaleString()}</p>
-                        <p className="text-sm opacity-90">ر.س</p>
+                      <div className="text-left text-foreground">
+                        <p className="text-2xl font-bold text-primary">{group.totalExpenses.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">ر.س</p>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="mt-3 bg-white/20 border-white/30 text-group-card-foreground hover:bg-white/30 group-hover:scale-105 transition-transform"
+                          className="mt-3 border-border hover:bg-secondary group-hover:scale-105 transition-transform"
                         >
                           عرض التفاصيل
                         </Button>
@@ -232,29 +235,29 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Recent Expenses */}
-            <Card className="bg-gradient-expense border-0 shadow-expense">
+            <Card className="bg-card border border-border rounded-2xl">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
-                  <Receipt className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Receipt className="w-5 h-5 text-primary" />
                   المصاريف الأخيرة
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {mockExpenses.slice(0, 3).map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-                    <div className="text-expense-light-foreground">
+                  <div key={expense.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
+                    <div className="text-foreground">
                       <p className="font-medium text-sm">{expense.description}</p>
-                      <p className="text-xs opacity-75">{expense.group}</p>
+                      <p className="text-xs text-muted-foreground">{expense.group}</p>
                     </div>
-                    <div className="text-right text-expense-light-foreground">
-                      <p className="font-bold">{expense.amount} ر.س</p>
-                      <p className="text-xs opacity-75">{expense.date}</p>
+                    <div className="text-right text-foreground">
+                      <p className="font-bold text-primary">{expense.amount} ر.س</p>
+                      <p className="text-xs text-muted-foreground">{expense.date}</p>
                     </div>
                   </div>
                 ))}
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white/10 border-white/30 text-expense-light-foreground hover:bg-white/20"
+                  className="w-full border-border hover:bg-secondary"
                   onClick={() => navigate('/add-expense')}
                 >
                   <Plus className="w-4 h-4 ml-2" />
@@ -263,17 +266,17 @@ const Dashboard = () => {
               </CardContent>
             </Card>
             {/* Quick Actions */}
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card border border-border rounded-2xl">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
-                  <Target className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Target className="w-5 h-5 text-primary" />
                   إجراءات سريعة
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
+                  className="w-full border-border hover:bg-secondary justify-start"
                   onClick={() => navigate('/financial-plan')}
                 >
                   <BarChart3 className="w-4 h-4 ml-2" />
@@ -281,7 +284,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
+                  className="w-full border-border hover:bg-secondary justify-start"
                   onClick={() => navigate('/referral-center')}
                 >
                   <Share2 className="w-4 h-4 ml-2" />
@@ -289,7 +292,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
+                  className="w-full border-border hover:bg-secondary justify-start"
                   onClick={() => navigate('/settings')}
                 >
                   <Settings className="w-4 h-4 ml-2" />
