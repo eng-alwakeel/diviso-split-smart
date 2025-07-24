@@ -307,30 +307,30 @@ const GroupDetails = () => {
             
             <div className="space-y-4">
               {mockExpenses.map((expense) => (
-                <Card key={expense.id} className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300 cursor-pointer">
+                <Card key={expense.id} className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                          <Receipt className="w-8 h-8 text-expense-light-foreground" />
+                        <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
+                          <Receipt className="w-8 h-8 text-accent" />
                         </div>
-                       <div className="flex-1 text-expense-light-foreground">
+                       <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-lg">{expense.description}</h3>
+                            <h3 className="font-bold text-lg text-foreground">{expense.description}</h3>
                             {getStatusBadge(expense.status)}
                           </div>
-                          <p className="text-sm opacity-90">
+                          <p className="text-sm text-muted-foreground">
                             {expense.category} • دفع بواسطة {expense.paidBy}
                           </p>
-                          <p className="text-sm font-medium opacity-75">
+                          <p className="text-sm font-medium text-muted-foreground">
                             مقسم بين {expense.splitBetween.length} أشخاص
                           </p>
                         </div>
                       </div>
-                      <div className="text-left text-expense-light-foreground">
-                        <p className="text-2xl font-bold">{expense.amount}</p>
-                        <p className="text-sm opacity-90">{mockGroup.currencySymbol}</p>
-                        <p className="text-xs opacity-75 mt-1">{expense.date}</p>
+                      <div className="text-left">
+                        <p className="text-2xl font-bold text-accent">{expense.amount}</p>
+                        <p className="text-sm text-muted-foreground">{mockGroup.currencySymbol}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{expense.date}</p>
                         
                         {expense.status === "pending" && canApprove && (
                           <div className="flex gap-1 mt-2">
@@ -341,7 +341,7 @@ const GroupDetails = () => {
                                 e.stopPropagation();
                                 handleExpenseApproval(expense.id, "approve");
                               }}
-                              className="bg-white/20 border-white/30 text-expense-light-foreground hover:bg-white/30"
+                              className="bg-accent/20 border-accent/30 text-accent hover:bg-accent/30"
                             >
                               <CheckCircle className="w-3 h-3" />
                             </Button>
@@ -352,7 +352,7 @@ const GroupDetails = () => {
                                 e.stopPropagation();
                                 handleExpenseApproval(expense.id, "reject");
                               }}
-                              className="bg-white/20 border-white/30 text-expense-light-foreground hover:bg-white/30"
+                              className="bg-destructive/20 border-destructive/30 text-destructive hover:bg-destructive/30"
                             >
                               <XCircle className="w-3 h-3" />
                             </Button>
