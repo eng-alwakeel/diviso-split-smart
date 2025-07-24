@@ -225,10 +225,10 @@ const CreateGroup = () => {
         {currentStep === 2 && (
           <div className="space-y-6">
             {/* Phone Numbers */}
-            <Card className="bg-gradient-expense border-0 shadow-expense">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
-                  <Phone className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Phone className="w-5 h-5 text-accent" />
                   دعوة عبر رقم الجوال
                 </CardTitle>
               </CardHeader>
@@ -239,14 +239,14 @@ const CreateGroup = () => {
                       placeholder="966xxxxxxxxx"
                       value={phone}
                       onChange={(e) => handlePhoneChange(index, e.target.value)}
-                      className="text-left"
+                      className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                       dir="ltr"
                     />
                     <Button
                       variant="outline"
                       disabled={!phone.trim()}
                       onClick={() => sendWhatsAppInvite(phone)}
-                      className="bg-green-500 hover:bg-green-600 text-white"
+                      className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                     >
                       إرسال
                     </Button>
@@ -255,6 +255,7 @@ const CreateGroup = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleRemovePhone(index)}
+                        className="border-border text-foreground hover:bg-accent/20"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -265,7 +266,7 @@ const CreateGroup = () => {
                 <Button
                   variant="outline"
                   onClick={handleAddPhone}
-                  className="w-full"
+                  className="w-full border-border text-foreground hover:bg-accent/20"
                 >
                   <Plus className="w-4 h-4 ml-2" />
                   إضافة رقم آخر
@@ -274,10 +275,10 @@ const CreateGroup = () => {
             </Card>
 
             {/* Invite Link */}
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
-                  <LinkIcon className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <LinkIcon className="w-5 h-5 text-accent" />
                   رابط الدعوة
                 </CardTitle>
               </CardHeader>
@@ -290,12 +291,13 @@ const CreateGroup = () => {
                   <Input
                     value={inviteLink}
                     readOnly
-                    className="text-left"
+                    className="text-left bg-background/50 border-border text-foreground"
                     dir="ltr"
                   />
                   <Button
                     variant="outline"
                     onClick={() => copyToClipboard(inviteLink)}
+                    className="border-border text-foreground hover:bg-accent/20"
                   >
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -309,6 +311,7 @@ const CreateGroup = () => {
                         });
                       }
                     }}
+                    className="border-border text-foreground hover:bg-accent/20"
                   >
                     <Share2 className="w-4 h-4" />
                   </Button>
