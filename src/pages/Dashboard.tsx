@@ -14,9 +14,12 @@ import {
   DollarSign,
   Target,
   ArrowUpCircle,
-  ArrowDownCircle
+  ArrowDownCircle,
+  Share2,
+  BarChart3,
+  Settings
 } from "lucide-react";
-import { Header } from "@/components/Header";
+import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 
 // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
@@ -27,7 +30,9 @@ const mockGroups = [
     members: 4,
     totalExpenses: 2400,
     myBalance: -200,
-    avatar: "ر"
+    avatar: "ر",
+    category: "رحلة",
+    expenses: 12
   },
   {
     id: 2,
@@ -35,7 +40,9 @@ const mockGroups = [
     members: 3,
     totalExpenses: 1800,
     myBalance: 150,
-    avatar: "س"
+    avatar: "س",
+    category: "سكن",
+    expenses: 8
   },
   {
     id: 3,
@@ -43,7 +50,9 @@ const mockGroups = [
     members: 6,
     totalExpenses: 3200,
     myBalance: 0,
-    avatar: "م"
+    avatar: "م",
+    category: "عمل",
+    expenses: 15
   }
 ];
 
@@ -85,259 +94,206 @@ const Dashboard = () => {
   const budgetProgress = (currentSpending / monthlyBudget) * 100;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <Header />
+    <div className="min-h-screen bg-dark-background">
+      <AppHeader />
       
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">مرحباً، أحمد! 👋</h1>
-          <p className="text-muted-foreground">إليك ملخص نشاطك المالي اليوم</p>
+          <h1 className="text-3xl font-bold text-white mb-2">مرحباً بك في ديفيزو!</h1>
+          <p className="text-dark-background-foreground/80">إدارة ذكية للمصاريف المشتركة</p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-card shadow-card">
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {/* Total Expenses Card */}
+          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المجموعات</p>
+                <div className="text-total-card-foreground">
+                  <p className="text-sm font-medium opacity-90">إجمالي المصاريف</p>
+                  <p className="text-2xl font-bold">12,450 ر.س</p>
+                  <p className="text-xs opacity-75 mt-1">هذا الشهر</p>
+                </div>
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-total-card-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Groups Card */}
+          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-group-card-foreground">
+                  <p className="text-sm font-medium opacity-90">المجموعات النشطة</p>
                   <p className="text-2xl font-bold">{mockGroups.length}</p>
+                  <p className="text-xs opacity-75 mt-1">مجموعات</p>
                 </div>
-                <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-card shadow-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">مدين لي</p>
-                  <p className="text-2xl font-bold text-secondary">{Math.abs(totalOwing)} ريال</p>
-                </div>
-                <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center">
-                  <ArrowUpCircle className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-group-card-foreground" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card shadow-card">
+          {/* Recent Expenses Card */}
+          <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">مدين لآخرين</p>
-                  <p className="text-2xl font-bold text-destructive">{Math.abs(totalOwed)} ريال</p>
+                <div className="text-expense-light-foreground">
+                  <p className="text-sm font-medium">المصاريف الأخيرة</p>
+                  <p className="text-2xl font-bold">8</p>
+                  <p className="text-xs opacity-75 mt-1">خلال الأسبوع</p>
                 </div>
-                <div className="w-12 h-12 bg-destructive rounded-xl flex items-center justify-center">
-                  <ArrowDownCircle className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Receipt className="w-6 h-6 text-expense-light-foreground" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card shadow-card">
+          {/* Referrals Card */}
+          <Card className="bg-gradient-primary border-0 shadow-primary hover:shadow-xl transition-all duration-300 cursor-pointer">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الميزانية الشهرية</p>
-                  <p className="text-2xl font-bold">{budgetProgress.toFixed(0)}%</p>
+                <div className="text-primary-foreground">
+                  <p className="text-sm font-medium opacity-90">الإحالات</p>
+                  <p className="text-2xl font-bold">5</p>
+                  <p className="text-xs opacity-75 mt-1">إحالات ناجحة</p>
                 </div>
-                <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Share2 className="w-6 h-6 text-primary-foreground" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column */}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Groups Section */}
           <div className="lg:col-span-2 space-y-6">
-            {/* My Groups */}
-            <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  مجموعاتي
-                </CardTitle>
-                <Button 
-                  variant="hero" 
-                  size="sm"
-                  onClick={() => navigate('/create-group')}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-white">مجموعاتي</h2>
+              <Button onClick={() => navigate('/create-group')} className="bg-group-card hover:bg-group-card/90 text-group-card-foreground">
+                <Plus className="w-4 h-4 ml-2" />
+                إنشاء مجموعة جديدة
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {mockGroups.map((group) => (
+                <Card 
+                  key={group.id} 
+                  className="bg-group-card border-0 shadow-group hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                  onClick={() => navigate(`/group/${group.id}`)}
                 >
-                  <Plus className="w-4 h-4 ml-2" />
-                  إنشاء مجموعة
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mockGroups.map((group) => (
-                  <Card 
-                    key={group.id} 
-                    className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => navigate(`/group/${group.id}`)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="w-12 h-12">
-                            <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
-                              {group.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="font-semibold text-lg">{group.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {group.members} أعضاء
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                              إجمالي المصاريف: {group.totalExpenses} ريال
-                            </p>
-                          </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                          <Users className="w-8 h-8 text-group-card-foreground" />
                         </div>
-                        <div className="text-left">
-                          <Badge 
-                            variant={group.myBalance > 0 ? "secondary" : group.myBalance < 0 ? "destructive" : "outline"}
-                            className="text-sm px-3 py-1"
-                          >
-                            {group.myBalance === 0 ? "متساوي" : 
-                             group.myBalance > 0 ? `+${group.myBalance} ريال` : 
-                             `${group.myBalance} ريال`}
-                          </Badge>
+                        <div className="text-group-card-foreground">
+                          <h3 className="font-bold text-lg mb-1">{group.name}</h3>
+                          <div className="flex items-center gap-4 text-sm opacity-90">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {group.members} عضو
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Receipt className="w-4 h-4" />
+                              {group.expenses} مصروف
+                            </span>
+                          </div>
+                          <p className="text-xs opacity-75 mt-2">{group.category}</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
+                      <div className="text-left text-group-card-foreground">
+                        <p className="text-2xl font-bold">{group.totalExpenses.toLocaleString()}</p>
+                        <p className="text-sm opacity-90">ر.س</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-3 bg-white/20 border-white/30 text-group-card-foreground hover:bg-white/30 group-hover:scale-105 transition-transform"
+                        >
+                          عرض التفاصيل
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
 
+          {/* Sidebar */}
+          <div className="space-y-6">
             {/* Recent Expenses */}
-            <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-gradient-expense border-0 shadow-expense">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
                   <Receipt className="w-5 h-5" />
                   المصاريف الأخيرة
                 </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {mockExpenses.slice(0, 3).map((expense) => (
+                  <div key={expense.id} className="flex items-center justify-between p-3 bg-white/10 rounded-lg backdrop-blur-sm">
+                    <div className="text-expense-light-foreground">
+                      <p className="font-medium text-sm">{expense.description}</p>
+                      <p className="text-xs opacity-75">{expense.group}</p>
+                    </div>
+                    <div className="text-right text-expense-light-foreground">
+                      <p className="font-bold">{expense.amount} ر.س</p>
+                      <p className="text-xs opacity-75">{expense.date}</p>
+                    </div>
+                  </div>
+                ))}
                 <Button 
                   variant="outline" 
-                  size="sm"
+                  className="w-full bg-white/10 border-white/30 text-expense-light-foreground hover:bg-white/20"
                   onClick={() => navigate('/add-expense')}
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  إضافة مصروف
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mockExpenses.map((expense) => (
-                  <Card key={expense.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                            <Receipt className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-lg">{expense.description}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {expense.group}
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                              دفع بواسطة: {expense.paidBy}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xl font-bold text-primary">{expense.amount} ريال</p>
-                          <p className="text-sm text-muted-foreground">{expense.date}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-6">
-            {/* Budget Progress */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  الميزانية الشهرية
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{currentSpending} ريال</p>
-                  <p className="text-sm text-muted-foreground">من {monthlyBudget} ريال</p>
-                </div>
-                <Progress value={budgetProgress} className="w-full" />
-                <p className="text-sm text-center text-muted-foreground">
-                  متبقي {monthlyBudget - currentSpending} ريال هذا الشهر
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Referral Center */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="w-5 h-5" />
-                  مركز الإحالة
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-gradient-hero rounded-lg p-4 text-white text-center">
-                  <h3 className="font-semibold mb-1">7 أيام مجانية</h3>
-                  <p className="text-sm text-blue-100">متبقية من الإحالات</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate('/referral')}
-                >
-                  <Gift className="w-4 h-4 ml-2" />
-                  إدارة الإحالات
+                  إضافة مصروف جديد
                 </Button>
               </CardContent>
             </Card>
-
             {/* Quick Actions */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>إجراءات سريعة</CardTitle>
+            <Card className="bg-gradient-total border-0 shadow-total">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
+                  <Target className="w-5 h-5" />
+                  إجراءات سريعة
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/add-expense')}
-                >
-                  <Receipt className="w-4 h-4 ml-2" />
-                  إضافة مصروف جديد
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => navigate('/create-group')}
-                >
-                  <Users className="w-4 h-4 ml-2" />
-                  إنشاء مجموعة جديدة
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
                   onClick={() => navigate('/financial-plan')}
                 >
-                  <TrendingUp className="w-4 h-4 ml-2" />
+                  <BarChart3 className="w-4 h-4 ml-2" />
                   عرض الخطة المالية
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
+                  onClick={() => navigate('/referral-center')}
+                >
+                  <Share2 className="w-4 h-4 ml-2" />
+                  مركز الإحالة
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-white/10 border-white/30 text-total-card-foreground hover:bg-white/20 justify-start"
+                  onClick={() => navigate('/settings')}
+                >
+                  <Settings className="w-4 h-4 ml-2" />
+                  الإعدادات
                 </Button>
               </CardContent>
             </Card>

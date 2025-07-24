@@ -53,6 +53,23 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// New card design system colors
+				'expense-light': {
+					DEFAULT: 'hsl(var(--expense-light))',
+					foreground: 'hsl(var(--expense-light-foreground))'
+				},
+				'group-card': {
+					DEFAULT: 'hsl(var(--group-card))',
+					foreground: 'hsl(var(--group-card-foreground))'
+				},
+				'total-card': {
+					DEFAULT: 'hsl(var(--total-card))',
+					foreground: 'hsl(var(--total-card-foreground))'
+				},
+				'dark-background': {
+					DEFAULT: 'hsl(var(--dark-background))',
+					foreground: 'hsl(var(--dark-background-foreground))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -68,12 +85,19 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-secondary': 'var(--gradient-secondary)',
 				'gradient-hero': 'var(--gradient-hero)',
-				'gradient-card': 'var(--gradient-card)'
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-expense': 'var(--gradient-expense)',
+				'gradient-group': 'var(--gradient-group)',
+				'gradient-total': 'var(--gradient-total)',
+				'gradient-dark': 'var(--gradient-dark)'
 			},
 			boxShadow: {
 				'primary': 'var(--shadow-primary)',
 				'card': 'var(--shadow-card)',
-				'elevated': 'var(--shadow-elevated)'
+				'elevated': 'var(--shadow-elevated)',
+				'expense': 'var(--shadow-expense)',
+				'group': 'var(--shadow-group)',
+				'total': 'var(--shadow-total)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

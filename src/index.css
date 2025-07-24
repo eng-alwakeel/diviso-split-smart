@@ -37,16 +37,38 @@ All colors MUST be HSL.
     --input: 220 13% 96%;
     --ring: 200 95% 45%;
 
+    /* Card Design System Colors */
+    --expense-light: 62 70% 64%;     /* Succulent Lime #ddde68 */
+    --expense-light-foreground: 220 13% 18%;
+    
+    --group-card: 229 68% 73%;       /* Wondrous Wisteria #a5b2eb */
+    --group-card-foreground: 0 0% 100%;
+    
+    --total-card: 27 71% 59%;        /* Persian Orange #da935d */
+    --total-card-foreground: 0 0% 100%;
+    
+    --dark-background: 221 14% 23%;  /* Black Rock #2b2d3b */
+    --dark-background-foreground: 0 0% 100%;
+
+    /* Enhanced gradients for new design */
+    --gradient-expense: linear-gradient(135deg, hsl(62 70% 64%), hsl(60 75% 68%));
+    --gradient-group: linear-gradient(135deg, hsl(229 68% 73%), hsl(229 68% 78%));
+    --gradient-total: linear-gradient(135deg, hsl(27 71% 59%), hsl(27 71% 64%));
+    --gradient-dark: linear-gradient(135deg, hsl(221 14% 23%), hsl(221 14% 28%));
+    
     /* Financial app gradients */
     --gradient-primary: linear-gradient(135deg, hsl(200 95% 45%), hsl(180 90% 50%));
     --gradient-secondary: linear-gradient(135deg, hsl(145 100% 41%), hsl(120 100% 35%));
     --gradient-hero: linear-gradient(135deg, hsl(200 95% 45%) 0%, hsl(180 90% 50%) 50%, hsl(145 100% 41%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
     
-    /* Shadows */
+    /* Enhanced shadows for new design */
     --shadow-primary: 0 10px 40px -10px hsl(200 95% 45% / 0.3);
     --shadow-card: 0 4px 20px -2px hsl(220 13% 18% / 0.1);
     --shadow-elevated: 0 20px 60px -15px hsl(200 95% 45% / 0.4);
+    --shadow-expense: 0 8px 32px -8px hsl(62 70% 64% / 0.3);
+    --shadow-group: 0 8px 32px -8px hsl(229 68% 73% / 0.3);
+    --shadow-total: 0 8px 32px -8px hsl(27 71% 59% / 0.3);
 
     --radius: 0.5rem;
 
