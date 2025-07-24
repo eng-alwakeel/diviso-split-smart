@@ -141,42 +141,44 @@ const CreateGroup = () => {
 
         {/* Step 1: Group Information */}
         {currentStep === 1 && (
-          <Card className="bg-gradient-group border-0 shadow-group">
+          <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-group-card-foreground">
-                <Users className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <Users className="w-5 h-5 text-accent" />
                 معلومات المجموعة
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="groupName">اسم المجموعة</Label>
+                <Label htmlFor="groupName" className="text-foreground">اسم المجموعة</Label>
                 <Input
                   id="groupName"
                   placeholder="مثال: رحلة الصيف 2024"
                   value={groupData.name}
                   onChange={(e) => setGroupData({...groupData, name: e.target.value})}
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">الوصف (اختياري)</Label>
+                <Label htmlFor="description" className="text-foreground">الوصف (اختياري)</Label>
                 <Textarea
                   id="description"
                   placeholder="وصف قصير عن المجموعة..."
                   value={groupData.description}
                   onChange={(e) => setGroupData({...groupData, description: e.target.value})}
+                  className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="space-y-3">
-                <Label>نوع المجموعة</Label>
+                <Label className="text-foreground">نوع المجموعة</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {categories.map((category) => (
                     <Badge
                       key={category}
                       variant={groupData.category === category ? "default" : "outline"}
-                      className="cursor-pointer justify-center py-2 hover:bg-accent"
+                      className="cursor-pointer justify-center py-2 hover:bg-accent/20 text-foreground"
                       onClick={() => setGroupData({...groupData, category})}
                     >
                       {category}
@@ -186,14 +188,14 @@ const CreateGroup = () => {
               </div>
 
               <div className="space-y-3">
-                <Label>العملة الرئيسية</Label>
+                <Label className="text-foreground">العملة الرئيسية</Label>
                 <Select value={groupData.currency} onValueChange={(value) => setGroupData({...groupData, currency: value})}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full bg-background/50 border-border text-foreground">
                     <SelectValue placeholder="اختر العملة" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border z-50">
                     {currencies.map((currency) => (
-                      <SelectItem key={currency.code} value={currency.code}>
+                      <SelectItem key={currency.code} value={currency.code} className="text-foreground hover:bg-accent/20">
                         <div className="flex items-center gap-2">
                           <Coins className="w-4 h-4" />
                           <span>{currency.name} ({currency.symbol})</span>

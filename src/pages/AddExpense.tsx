@@ -239,24 +239,24 @@ const AddExpense = () => {
             </Card>
 
             {/* Expense Details */}
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
-                  <Receipt className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Receipt className="w-5 h-5 text-accent" />
                   تفاصيل المصروف
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="group">المجموعة</Label>
+                    <Label htmlFor="group" className="text-foreground">المجموعة</Label>
                     <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue placeholder="اختر المجموعة" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         {mockGroups.map(group => (
-                          <SelectItem key={group.id} value={group.id.toString()}>
+                          <SelectItem key={group.id} value={group.id.toString()} className="text-foreground hover:bg-accent/20">
                             {group.name}
                           </SelectItem>
                         ))}
@@ -265,7 +265,7 @@ const AddExpense = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount">
+                    <Label htmlFor="amount" className="text-foreground">
                       المبلغ ({currentGroup?.currencySymbol || "ريال"})
                     </Label>
                     <Input
@@ -274,32 +274,33 @@ const AddExpense = () => {
                       placeholder="0.00"
                       value={expense.amount}
                       onChange={(e) => setExpense({...expense, amount: e.target.value})}
-                      className="text-left"
+                      className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                       dir="ltr"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">وصف المصروف</Label>
+                  <Label htmlFor="description" className="text-foreground">وصف المصروف</Label>
                   <Input
                     id="description"
                     placeholder="مثال: عشاء في المطعم"
                     value={expense.description}
                     onChange={(e) => setExpense({...expense, description: e.target.value})}
+                    className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">الفئة</Label>
+                    <Label htmlFor="category" className="text-foreground">الفئة</Label>
                     <Select value={expense.category} onValueChange={(value) => setExpense({...expense, category: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue placeholder="اختر الفئة" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         {expenseCategories.map(category => (
-                          <SelectItem key={category} value={category}>
+                          <SelectItem key={category} value={category} className="text-foreground hover:bg-accent/20">
                             {category}
                           </SelectItem>
                         ))}
@@ -308,13 +309,13 @@ const AddExpense = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="date">التاريخ</Label>
+                    <Label htmlFor="date" className="text-foreground">التاريخ</Label>
                     <Input
                       id="date"
                       type="date"
                       value={expense.date}
                       onChange={(e) => setExpense({...expense, date: e.target.value})}
-                      className="text-left"
+                      className="text-left bg-background/50 border-border text-foreground"
                       dir="ltr"
                     />
                   </div>
@@ -322,14 +323,14 @@ const AddExpense = () => {
 
                 {currentGroup && (
                   <div className="space-y-2">
-                    <Label>دفع بواسطة</Label>
+                    <Label className="text-foreground">دفع بواسطة</Label>
                     <Select value={expense.paidBy} onValueChange={(value) => setExpense({...expense, paidBy: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         {currentGroup.members.map(member => (
-                          <SelectItem key={member} value={member}>
+                          <SelectItem key={member} value={member} className="text-foreground hover:bg-accent/20">
                             {member}
                           </SelectItem>
                         ))}
