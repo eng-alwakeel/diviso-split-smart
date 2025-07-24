@@ -301,28 +301,28 @@ const Settings = () => {
 
           {/* Payment Methods Tab */}
           <TabsContent value="payments" className="space-y-6">
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
-                  <CreditCard className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <CreditCard className="w-5 h-5 text-accent" />
                   طرق الدفع
                 </CardTitle>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/20">
                   <Plus className="w-4 h-4 ml-2" />
                   إضافة بطاقة
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockPaymentMethods.map((method) => (
-                  <Card key={method.id} className="bg-gradient-subtle border-0">
+                  <Card key={method.id} className="bg-background/50 border border-border/30">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                            <CreditCard className="w-6 h-6 text-background" />
                           </div>
                           <div>
-                            <p className="font-medium">**** **** **** {method.last4}</p>
+                            <p className="font-medium text-foreground">**** **** **** {method.last4}</p>
                             <p className="text-sm text-muted-foreground">
                               {method.type.toUpperCase()} • ينتهي في {method.expiryDate}
                             </p>
@@ -330,9 +330,9 @@ const Settings = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {method.isDefault && (
-                            <Badge variant="secondary">افتراضي</Badge>
+                            <Badge variant="outline" className="border-border text-foreground">افتراضي</Badge>
                           )}
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/20">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -346,22 +346,22 @@ const Settings = () => {
 
           {/* Language & Currency Tab */}
           <TabsContent value="language" className="space-y-6">
-            <Card className="bg-gradient-group border-0 shadow-group">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-group-card-foreground">
-                  <Globe className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Globe className="w-5 h-5 text-accent" />
                   اللغة والعملة
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>اللغة</Label>
+                    <Label className="text-foreground">اللغة</Label>
                     <Select 
                       value={settings.language} 
                       onValueChange={(value) => setSettings({...settings, language: value})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -372,12 +372,12 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>العملة الافتراضية</Label>
+                    <Label className="text-foreground">العملة الافتراضية</Label>
                     <Select 
                       value={settings.currency} 
                       onValueChange={(value) => setSettings({...settings, currency: value})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -400,10 +400,10 @@ const Settings = () => {
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="bg-gradient-expense border-0 shadow-expense">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
-                  <Bell className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Bell className="w-5 h-5 text-accent" />
                   إعدادات الإشعارات
                 </CardTitle>
               </CardHeader>
@@ -411,7 +411,7 @@ const Settings = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">إشعارات البريد الإلكتروني</p>
+                      <p className="font-medium text-foreground">إشعارات البريد الإلكتروني</p>
                       <p className="text-sm text-muted-foreground">استقبال الإشعارات عبر البريد</p>
                     </div>
                     <Switch
@@ -422,7 +422,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">الإشعارات الفورية</p>
+                      <p className="font-medium text-foreground">الإشعارات الفورية</p>
                       <p className="text-sm text-muted-foreground">إشعارات على الهاتف</p>
                     </div>
                     <Switch
@@ -433,7 +433,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">تذكير المصاريف</p>
+                      <p className="font-medium text-foreground">تذكير المصاريف</p>
                       <p className="text-sm text-muted-foreground">تذكيرات لإدخال المصاريف</p>
                     </div>
                     <Switch
@@ -444,7 +444,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">التقارير الأسبوعية</p>
+                      <p className="font-medium text-foreground">التقارير الأسبوعية</p>
                       <p className="text-sm text-muted-foreground">ملخص أسبوعي للمصاريف</p>
                     </div>
                     <Switch
@@ -464,10 +464,10 @@ const Settings = () => {
 
           {/* Privacy & Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
-                  <Shield className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Shield className="w-5 h-5 text-accent" />
                   الخصوصية والأمان
                 </CardTitle>
               </CardHeader>
@@ -475,7 +475,7 @@ const Settings = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">المصادقة الثنائية</p>
+                      <p className="font-medium text-foreground">المصادقة الثنائية</p>
                       <p className="text-sm text-muted-foreground">حماية إضافية لحسابك</p>
                     </div>
                     <Switch
@@ -486,7 +486,7 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">الوضع المظلم</p>
+                      <p className="font-medium text-foreground">الوضع المظلم</p>
                       <p className="text-sm text-muted-foreground">تغيير مظهر التطبيق</p>
                     </div>
                     <Switch
@@ -504,7 +504,7 @@ const Settings = () => {
                     حفظ الإعدادات
                   </Button>
 
-                  <Button onClick={logout} variant="outline" className="w-full">
+                  <Button onClick={logout} variant="outline" className="w-full border-border text-foreground hover:bg-accent/20">
                     <LogOut className="w-4 h-4 ml-2" />
                     تسجيل الخروج
                   </Button>
