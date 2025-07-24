@@ -378,36 +378,36 @@ const GroupDetails = () => {
             
             <div className="space-y-4">
               {mockMembers.map((member) => (
-                <Card key={member.id} className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
+                <Card key={member.id} className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                          <span className="text-2xl font-bold text-group-card-foreground">{member.avatar}</span>
+                        <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
+                          <span className="text-2xl font-bold text-accent">{member.avatar}</span>
                         </div>
-                        <div className="text-group-card-foreground">
+                        <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-lg">{member.name}</h3>
+                            <h3 className="font-bold text-lg text-foreground">{member.name}</h3>
                             {member.isAdmin && (
-                              <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-white/20 text-group-card-foreground border-white/30">
+                              <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-accent/20 text-accent border-accent/30">
                                 <Shield className="w-3 h-3" />
                                 مدير
                               </Badge>
                             )}
                             {mockGroup.approvers.includes(member.name) && !member.isAdmin && (
-                              <Badge variant="outline" className="text-xs bg-white/20 text-group-card-foreground border-white/30">معتمد</Badge>
+                              <Badge variant="outline" className="text-xs bg-accent/20 text-accent border-accent/30">معتمد</Badge>
                             )}
                           </div>
-                          <p className="text-sm opacity-90">{member.phone}</p>
+                          <p className="text-sm text-muted-foreground">{member.phone}</p>
+                          <p className="text-xs text-muted-foreground mt-1">عضو في المجموعة</p>
                         </div>
                       </div>
                       <div className="text-left">
-                        <p className="text-xl font-bold text-group-card-foreground">
-                          {member.balance === 0 ? "متساوي" : 
-                           member.balance > 0 ? `+${member.balance}` : 
-                           `${member.balance}`}
+                        <p className="text-2xl font-bold text-accent">{member.balance > 0 ? '+' : ''}{member.balance}</p>
+                        <p className="text-sm text-muted-foreground">{mockGroup.currencySymbol}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {member.balance > 0 ? 'مدين له' : member.balance < 0 ? 'عليه دين' : 'متوازن'}
                         </p>
-                        <p className="text-sm opacity-90 text-group-card-foreground">{mockGroup.currencySymbol}</p>
                       </div>
                     </div>
                   </CardContent>
