@@ -64,6 +64,17 @@ const CreateGroup = () => {
     });
   };
 
+  const sendWhatsAppInvite = (phoneNumber: string) => {
+    const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupData.name}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${inviteLink}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "تم فتح واتس اب!",
+      description: "تم توجيهك لإرسال الدعوة عبر واتس اب",
+    });
+  };
+
   const handleCreateGroup = () => {
     // في التطبيق الحقيقي، سترسل البيانات لقاعدة البيانات
     toast({
@@ -189,12 +200,20 @@ const CreateGroup = () => {
                 {phoneNumbers.map((phone, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
-                      placeholder="05xxxxxxxx"
+                      placeholder="966xxxxxxxxx"
                       value={phone}
                       onChange={(e) => handlePhoneChange(index, e.target.value)}
                       className="text-left"
                       dir="ltr"
                     />
+                    <Button
+                      variant="outline"
+                      disabled={!phone.trim()}
+                      onClick={() => sendWhatsAppInvite(phone)}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      إرسال
+                    </Button>
                     {phoneNumbers.length > 1 && (
                       <Button
                         variant="outline"
