@@ -176,7 +176,11 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockGroups.map((group) => (
-                  <Card key={group.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
+                  <Card 
+                    key={group.id} 
+                    className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => navigate(`/group/${group.id}`)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -330,9 +334,10 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
+                  onClick={() => navigate('/financial-plan')}
                 >
                   <TrendingUp className="w-4 h-4 ml-2" />
-                  عرض التقارير
+                  عرض الخطة المالية
                 </Button>
               </CardContent>
             </Card>

@@ -1,0 +1,412 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { 
+  ArrowRight,
+  Users, 
+  Receipt, 
+  MessageCircle,
+  Target,
+  Plus,
+  Settings,
+  Calendar,
+  DollarSign,
+  Send,
+  MoreHorizontal,
+  UserPlus,
+  Edit
+} from "lucide-react";
+import { Header } from "@/components/Header";
+import { useNavigate, useParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+// Mock data
+const mockGroup = {
+  id: 1,
+  name: "رحلة جدة",
+  description: "رحلة عائلية لمدة أسبوع",
+  category: "رحلة",
+  currency: "ريال سعودي",
+  totalExpenses: 2400,
+  myBalance: -200,
+  avatar: "ر",
+  createdDate: "2024-01-01"
+};
+
+const mockMembers = [
+  { id: 1, name: "أحمد محمد", phone: "05xxxxxxx12", avatar: "أ", balance: 150, isAdmin: true },
+  { id: 2, name: "فاطمة أحمد", phone: "05xxxxxxx34", avatar: "ف", balance: -200, isAdmin: false },
+  { id: 3, name: "خالد علي", phone: "05xxxxxxx56", avatar: "خ", balance: 50, isAdmin: false },
+  { id: 4, name: "سارة محمد", phone: "05xxxxxxx78", avatar: "س", balance: 0, isAdmin: false }
+];
+
+const mockExpenses = [
+  {
+    id: 1,
+    description: "عشاء في المطعم",
+    amount: 240,
+    category: "طعام",
+    date: "2024-01-20",
+    paidBy: "أحمد محمد",
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"]
+  },
+  {
+    id: 2,
+    description: "حجز الفندق",
+    amount: 800,
+    category: "إقامة",
+    date: "2024-01-19",
+    paidBy: "خالد علي",
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي", "سارة محمد"]
+  },
+  {
+    id: 3,
+    description: "وقود السيارة",
+    amount: 150,
+    category: "مواصلات",
+    date: "2024-01-18",
+    paidBy: "فاطمة أحمد",
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"]
+  }
+];
+
+const mockBudgetPlan = {
+  totalBudget: 3000,
+  categories: [
+    { name: "طعام", budget: 800, spent: 240, color: "bg-blue-500" },
+    { name: "إقامة", budget: 1200, spent: 800, color: "bg-green-500" },
+    { name: "مواصلات", budget: 500, spent: 150, color: "bg-yellow-500" },
+    { name: "ترفيه", budget: 500, spent: 0, color: "bg-purple-500" }
+  ]
+};
+
+const mockMessages = [
+  { id: 1, sender: "أحمد محمد", message: "مرحباً بالجميع في مجموعة الرحلة!", time: "10:30", isMe: true },
+  { id: 2, sender: "فاطمة أحمد", message: "شكراً لك! متحمسة للرحلة", time: "10:35", isMe: false },
+  { id: 3, sender: "خالد علي", message: "هل حددنا موعد المغادرة؟", time: "10:40", isMe: false },
+  { id: 4, sender: "أحمد محمد", message: "نعم، السبت الساعة 8 صباحاً", time: "10:45", isMe: true }
+];
+
+const GroupDetails = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { id } = useParams();
+  const [newMessage, setNewMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("expenses");
+
+  const sendMessage = () => {
+    if (!newMessage.trim()) return;
+    
+    toast({
+      title: "تم إرسال الرسالة!",
+      description: "تم إرسال رسالتك لأعضاء المجموعة",
+    });
+    setNewMessage("");
+  };
+
+  const totalSpent = mockBudgetPlan.categories.reduce((sum, cat) => sum + cat.spent, 0);
+  const budgetProgress = (totalSpent / mockBudgetPlan.totalBudget) * 100;
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <Header />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/dashboard')}
+            className="mb-4"
+          >
+            <ArrowRight className="w-4 h-4 ml-2" />
+            العودة للوحة التحكم
+          </Button>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16">
+                <AvatarFallback className="bg-gradient-primary text-white text-2xl font-bold">
+                  {mockGroup.avatar}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-3xl font-bold">{mockGroup.name}</h1>
+                <p className="text-muted-foreground">{mockGroup.description}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline">{mockGroup.category}</Badge>
+                  <Badge variant="outline">{mockMembers.length} أعضاء</Badge>
+                  <Badge variant="outline">{mockGroup.totalExpenses} {mockGroup.currency}</Badge>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 ml-2" />
+                إعدادات
+              </Button>
+              <Button variant="hero" size="sm" onClick={() => navigate('/add-expense')}>
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة مصروف
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
+                  <p className="text-2xl font-bold text-primary">{mockGroup.totalExpenses}</p>
+                </div>
+                <Receipt className="w-8 h-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">رصيدي</p>
+                  <p className={`text-2xl font-bold ${mockGroup.myBalance >= 0 ? 'text-secondary' : 'text-destructive'}`}>
+                    {mockGroup.myBalance >= 0 ? '+' : ''}{mockGroup.myBalance}
+                  </p>
+                </div>
+                <DollarSign className="w-8 h-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
+                  <p className="text-2xl font-bold text-primary">{budgetProgress.toFixed(0)}%</p>
+                </div>
+                <Target className="w-8 h-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">الأعضاء</p>
+                  <p className="text-2xl font-bold text-primary">{mockMembers.length}</p>
+                </div>
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="expenses">المصاريف</TabsTrigger>
+            <TabsTrigger value="members">الأعضاء</TabsTrigger>
+            <TabsTrigger value="budget">الميزانية</TabsTrigger>
+            <TabsTrigger value="chat">الدردشة</TabsTrigger>
+          </TabsList>
+
+          {/* Expenses Tab */}
+          <TabsContent value="expenses" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">المصاريف</h2>
+              <Button onClick={() => navigate('/add-expense')} variant="hero">
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة مصروف جديد
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {mockExpenses.map((expense) => (
+                <Card key={expense.id} className="shadow-card bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
+                          <Receipt className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{expense.description}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {expense.category} • دفع بواسطة {expense.paidBy}
+                          </p>
+                          <p className="text-sm font-medium text-foreground">
+                            مقسم بين {expense.splitBetween.length} أشخاص
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xl font-bold text-primary">{expense.amount} ريال</p>
+                        <p className="text-sm text-muted-foreground">{expense.date}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* Members Tab */}
+          <TabsContent value="members" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">الأعضاء</h2>
+              <Button variant="outline">
+                <UserPlus className="w-4 h-4 ml-2" />
+                دعوة عضو جديد
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {mockMembers.map((member) => (
+                <Card key={member.id} className="shadow-card bg-gradient-subtle border-0">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
+                            {member.avatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg">{member.name}</h3>
+                            {member.isAdmin && (
+                              <Badge variant="secondary" className="text-xs">مدير</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{member.phone}</p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <Badge 
+                          variant={member.balance > 0 ? "secondary" : member.balance < 0 ? "destructive" : "outline"}
+                          className="text-sm px-3 py-1"
+                        >
+                          {member.balance === 0 ? "متساوي" : 
+                           member.balance > 0 ? `+${member.balance} ريال` : 
+                           `${member.balance} ريال`}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* Budget Tab */}
+          <TabsContent value="budget" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">خطة الميزانية</h2>
+              <Button variant="outline">
+                <Edit className="w-4 h-4 ml-2" />
+                تعديل الميزانية
+              </Button>
+            </div>
+            
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>نظرة عامة على الميزانية</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold">{totalSpent} ريال</p>
+                  <p className="text-muted-foreground">من {mockBudgetPlan.totalBudget} ريال</p>
+                  <Progress value={budgetProgress} className="w-full mt-4" />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    متبقي {mockBudgetPlan.totalBudget - totalSpent} ريال
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  {mockBudgetPlan.categories.map((category, index) => {
+                    const categoryProgress = (category.spent / category.budget) * 100;
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{category.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {category.spent} / {category.budget} ريال
+                          </span>
+                        </div>
+                        <Progress value={categoryProgress} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Chat Tab */}
+          <TabsContent value="chat" className="space-y-4">
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  دردشة المجموعة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="h-96 overflow-y-auto space-y-3 p-4 bg-muted/50 rounded-lg">
+                  {mockMessages.map((message) => (
+                    <div 
+                      key={message.id} 
+                      className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div 
+                        className={`max-w-xs p-3 rounded-lg ${
+                          message.isMe 
+                            ? 'bg-primary text-white' 
+                            : 'bg-white border'
+                        }`}
+                      >
+                        {!message.isMe && (
+                          <p className="text-xs font-medium text-muted-foreground mb-1">
+                            {message.sender}
+                          </p>
+                        )}
+                        <p className="text-sm">{message.message}</p>
+                        <p className={`text-xs mt-1 ${message.isMe ? 'text-blue-100' : 'text-muted-foreground'}`}>
+                          {message.time}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="اكتب رسالتك..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  />
+                  <Button onClick={sendMessage} variant="hero">
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default GroupDetails;
