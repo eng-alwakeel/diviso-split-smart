@@ -161,10 +161,10 @@ const Settings = () => {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card className="bg-gradient-group border-0 shadow-group">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-group-card-foreground">
-                  <User className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <User className="w-5 h-5 text-accent" />
                   المعلومات الشخصية
                 </CardTitle>
               </CardHeader>
@@ -172,7 +172,7 @@ const Settings = () => {
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <Avatar className="w-24 h-24">
-                      <AvatarFallback className="bg-gradient-primary text-white text-2xl font-bold">
+                      <AvatarFallback className="bg-accent text-background text-2xl font-bold">
                         {profile.avatar}
                       </AvatarFallback>
                     </Avatar>
@@ -185,9 +185,9 @@ const Settings = () => {
                     </Button>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold">{profile.name}</h3>
+                    <h3 className="text-xl font-semibold text-foreground">{profile.name}</h3>
                     <p className="text-muted-foreground">{profile.email}</p>
-                    <Badge variant="outline" className="mt-2">خطة {profile.plan}</Badge>
+                    <Badge variant="outline" className="mt-2 border-border text-foreground">خطة {profile.plan}</Badge>
                   </div>
                 </div>
 
@@ -195,38 +195,40 @@ const Settings = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">الاسم الكامل</Label>
+                    <Label htmlFor="name" className="text-foreground">الاسم الكامل</Label>
                     <Input
                       id="name"
                       value={profile.name}
                       onChange={(e) => setProfile({...profile, name: e.target.value})}
+                      className="bg-background/50 border-border text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Label htmlFor="email" className="text-foreground">البريد الإلكتروني</Label>
                     <Input
                       id="email"
                       type="email"
                       value={profile.email}
                       onChange={(e) => setProfile({...profile, email: e.target.value})}
+                      className="bg-background/50 border-border text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">رقم الجوال</Label>
+                    <Label htmlFor="phone" className="text-foreground">رقم الجوال</Label>
                     <Input
                       id="phone"
                       value={profile.phone}
                       onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                      className="text-left"
+                      className="text-left bg-background/50 border-border text-foreground"
                       dir="ltr"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>تاريخ الانضمام</Label>
-                    <Input value={profile.joinDate} disabled />
+                    <Label className="text-foreground">تاريخ الانضمام</Label>
+                    <Input value={profile.joinDate} disabled className="bg-background/30 border-border text-muted-foreground" />
                   </div>
                 </div>
 
@@ -237,28 +239,29 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-expense border-0 shadow-expense">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
-                  <Key className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Key className="w-5 h-5 text-accent" />
                   تغيير كلمة المرور
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                  <Label htmlFor="currentPassword" className="text-foreground">كلمة المرور الحالية</Label>
                   <div className="relative">
                     <Input
                       id="currentPassword"
                       type={showPassword ? "text" : "password"}
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                      className="bg-background/50 border-border text-foreground"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute left-0 top-0 h-full px-3"
+                      className="absolute left-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -267,26 +270,28 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                  <Label htmlFor="newPassword" className="text-foreground">كلمة المرور الجديدة</Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    className="bg-background/50 border-border text-foreground"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                  <Label htmlFor="confirmPassword" className="text-foreground">تأكيد كلمة المرور</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    className="bg-background/50 border-border text-foreground"
                   />
                 </div>
 
-                <Button onClick={changePassword} variant="outline">
+                <Button onClick={changePassword} variant="outline" className="border-border text-foreground hover:bg-accent/20">
                   <Save className="w-4 h-4 ml-2" />
                   تغيير كلمة المرور
                 </Button>
