@@ -19,7 +19,11 @@ import {
   Send,
   MoreHorizontal,
   UserPlus,
-  Edit
+  Edit,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Shield
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,11 +35,15 @@ const mockGroup = {
   name: "رحلة جدة",
   description: "رحلة عائلية لمدة أسبوع",
   category: "رحلة",
-  currency: "ريال سعودي",
+  currency: "SAR",
+  currencyName: "ريال سعودي",
+  currencySymbol: "ر.س",
   totalExpenses: 2400,
   myBalance: -200,
   avatar: "ر",
-  createdDate: "2024-01-01"
+  createdDate: "2024-01-01",
+  admin: "أحمد محمد",
+  approvers: ["أحمد محمد"]
 };
 
 const mockMembers = [
@@ -53,7 +61,8 @@ const mockExpenses = [
     category: "طعام",
     date: "2024-01-20",
     paidBy: "أحمد محمد",
-    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"]
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"],
+    status: "approved"
   },
   {
     id: 2,
@@ -62,7 +71,8 @@ const mockExpenses = [
     category: "إقامة",
     date: "2024-01-19",
     paidBy: "خالد علي",
-    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي", "سارة محمد"]
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي", "سارة محمد"],
+    status: "pending"
   },
   {
     id: 3,
@@ -71,7 +81,18 @@ const mockExpenses = [
     category: "مواصلات",
     date: "2024-01-18",
     paidBy: "فاطمة أحمد",
-    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"]
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي"],
+    status: "approved"
+  },
+  {
+    id: 4,
+    description: "سوبر ماركت",
+    amount: 320,
+    category: "طعام",
+    date: "2024-01-17",
+    paidBy: "سارة محمد",
+    splitBetween: ["أحمد محمد", "فاطمة أحمد", "خالد علي", "سارة محمد"],
+    status: "rejected"
   }
 ];
 
@@ -98,6 +119,7 @@ const GroupDetails = () => {
   const { id } = useParams();
   const [newMessage, setNewMessage] = useState("");
   const [activeTab, setActiveTab] = useState("expenses");
+  const currentUser = "أحمد محمد"; // In real app, get from auth
 
   const sendMessage = () => {
     if (!newMessage.trim()) return;
@@ -108,6 +130,47 @@ const GroupDetails = () => {
     });
     setNewMessage("");
   };
+
+  const handleExpenseApproval = (expenseId: number, action: "approve" | "reject") => {
+    const expense = mockExpenses.find(e => e.id === expenseId);
+    if (!expense) return;
+
+    toast({
+      title: action === "approve" ? "تم اعتماد المصروف!" : "تم رفض المصروف!",
+      description: `تم ${action === "approve" ? "اعتماد" : "رفض"} مصروف "${expense.description}"`,
+      variant: action === "reject" ? "destructive" : "default"
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return (
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            معتمد
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            قيد الانتظار
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <XCircle className="w-3 h-3" />
+            مرفوض
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const canApprove = mockGroup.approvers.includes(currentUser);
 
   const totalSpent = mockBudgetPlan.categories.reduce((sum, cat) => sum + cat.spent, 0);
   const budgetProgress = (totalSpent / mockBudgetPlan.totalBudget) * 100;
@@ -141,7 +204,7 @@ const GroupDetails = () => {
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="outline">{mockGroup.category}</Badge>
                   <Badge variant="outline">{mockMembers.length} أعضاء</Badge>
-                  <Badge variant="outline">{mockGroup.totalExpenses} {mockGroup.currency}</Badge>
+                  <Badge variant="outline">{mockGroup.totalExpenses} {mockGroup.currencySymbol}</Badge>
                 </div>
               </div>
             </div>
@@ -239,8 +302,11 @@ const GroupDetails = () => {
                         <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
                           <Receipt className="w-6 h-6 text-white" />
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{expense.description}</h3>
+                       <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-lg">{expense.description}</h3>
+                            {getStatusBadge(expense.status)}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {expense.category} • دفع بواسطة {expense.paidBy}
                           </p>
@@ -250,8 +316,35 @@ const GroupDetails = () => {
                         </div>
                       </div>
                       <div className="text-left">
-                        <p className="text-xl font-bold text-primary">{expense.amount} ريال</p>
+                        <p className="text-xl font-bold text-primary">{expense.amount} {mockGroup.currencySymbol}</p>
                         <p className="text-sm text-muted-foreground">{expense.date}</p>
+                        
+                        {expense.status === "pending" && canApprove && (
+                          <div className="flex gap-1 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExpenseApproval(expense.id, "approve");
+                              }}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleExpenseApproval(expense.id, "reject");
+                              }}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <XCircle className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -285,7 +378,13 @@ const GroupDetails = () => {
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold text-lg">{member.name}</h3>
                             {member.isAdmin && (
-                              <Badge variant="secondary" className="text-xs">مدير</Badge>
+                              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                <Shield className="w-3 h-3" />
+                                مدير
+                              </Badge>
+                            )}
+                            {mockGroup.approvers.includes(member.name) && !member.isAdmin && (
+                              <Badge variant="outline" className="text-xs">معتمد</Badge>
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">{member.phone}</p>
@@ -297,8 +396,8 @@ const GroupDetails = () => {
                           className="text-sm px-3 py-1"
                         >
                           {member.balance === 0 ? "متساوي" : 
-                           member.balance > 0 ? `+${member.balance} ريال` : 
-                           `${member.balance} ريال`}
+                           member.balance > 0 ? `+${member.balance} ${mockGroup.currencySymbol}` : 
+                           `${member.balance} ${mockGroup.currencySymbol}`}
                         </Badge>
                       </div>
                     </div>
@@ -323,14 +422,14 @@ const GroupDetails = () => {
                 <CardTitle>نظرة عامة على الميزانية</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold">{totalSpent} ريال</p>
-                  <p className="text-muted-foreground">من {mockBudgetPlan.totalBudget} ريال</p>
-                  <Progress value={budgetProgress} className="w-full mt-4" />
-                  <p className="text-sm text-muted-foreground mt-2">
-                    متبقي {mockBudgetPlan.totalBudget - totalSpent} ريال
-                  </p>
-                </div>
+                 <div className="text-center">
+                   <p className="text-3xl font-bold">{totalSpent} {mockGroup.currencySymbol}</p>
+                   <p className="text-muted-foreground">من {mockBudgetPlan.totalBudget} {mockGroup.currencySymbol}</p>
+                   <Progress value={budgetProgress} className="w-full mt-4" />
+                   <p className="text-sm text-muted-foreground mt-2">
+                     متبقي {mockBudgetPlan.totalBudget - totalSpent} {mockGroup.currencySymbol}
+                   </p>
+                 </div>
                 
                 <div className="space-y-4">
                   {mockBudgetPlan.categories.map((category, index) => {
@@ -339,9 +438,9 @@ const GroupDetails = () => {
                       <div key={index} className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="font-medium">{category.name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {category.spent} / {category.budget} ريال
-                          </span>
+                           <span className="text-sm text-muted-foreground">
+                             {category.spent} / {category.budget} {mockGroup.currencySymbol}
+                           </span>
                         </div>
                         <Progress value={categoryProgress} className="h-2" />
                       </div>

@@ -13,8 +13,10 @@ import {
   Share2, 
   Copy,
   Phone,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Coins
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/Header";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +28,8 @@ const CreateGroup = () => {
   const [groupData, setGroupData] = useState({
     name: "",
     description: "",
-    category: ""
+    category: "",
+    currency: ""
   });
   const [phoneNumbers, setPhoneNumbers] = useState([""]);
   const [inviteLink, setInviteLink] = useState("");
@@ -34,6 +37,15 @@ const CreateGroup = () => {
   const categories = [
     "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
     "هدية جماعية", "حفلة", "رياضة", "أخرى"
+  ];
+
+  const currencies = [
+    { code: "SAR", name: "ريال سعودي", symbol: "ر.س" },
+    { code: "USD", name: "دولار أمريكي", symbol: "$" },
+    { code: "EUR", name: "يورو", symbol: "€" },
+    { code: "AED", name: "درهم إماراتي", symbol: "د.إ" },
+    { code: "KWD", name: "دينار كويتي", symbol: "د.ك" },
+    { code: "QAR", name: "ريال قطري", symbol: "ر.ق" }
   ];
 
   const handleAddPhone = () => {
@@ -173,9 +185,31 @@ const CreateGroup = () => {
                 </div>
               </div>
 
+              <div className="space-y-3">
+                <Label>العملة الرئيسية</Label>
+                <Select value={groupData.currency} onValueChange={(value) => setGroupData({...groupData, currency: value})}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="اختر العملة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currencies.map((currency) => (
+                      <SelectItem key={currency.code} value={currency.code}>
+                        <div className="flex items-center gap-2">
+                          <Coins className="w-4 h-4" />
+                          <span>{currency.name} ({currency.symbol})</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ لا يمكن تغيير العملة بعد إنشاء المجموعة
+                </p>
+              </div>
+
               <Button 
                 onClick={nextStep}
-                disabled={!groupData.name}
+                disabled={!groupData.name || !groupData.currency}
                 className="w-full"
                 variant="hero"
               >

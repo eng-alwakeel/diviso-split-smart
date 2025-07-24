@@ -27,9 +27,33 @@ import { useToast } from "@/hooks/use-toast";
 
 // Mock data
 const mockGroups = [
-  { id: 1, name: "رحلة جدة", members: ["أحمد", "فاطمة", "خالد", "نورا"] },
-  { id: 2, name: "سكن مشترك", members: ["أحمد", "محمد", "سارة"] },
-  { id: 3, name: "مشروع العمل", members: ["أحمد", "علي", "هند", "يوسف", "مريم", "عبدالله"] }
+  { 
+    id: 1, 
+    name: "رحلة جدة", 
+    members: ["أحمد", "فاطمة", "خالد", "نورا"],
+    currency: "SAR",
+    currencySymbol: "ر.س",
+    admin: "أحمد",
+    approvers: ["أحمد"]
+  },
+  { 
+    id: 2, 
+    name: "سكن مشترك", 
+    members: ["أحمد", "محمد", "سارة"],
+    currency: "USD",
+    currencySymbol: "$",
+    admin: "أحمد",
+    approvers: ["أحمد", "محمد"]
+  },
+  { 
+    id: 3, 
+    name: "مشروع العمل", 
+    members: ["أحمد", "علي", "هند", "يوسف", "مريم", "عبدالله"],
+    currency: "EUR",
+    currencySymbol: "€",
+    admin: "أحمد",
+    approvers: ["أحمد"]
+  }
 ];
 
 const expenseCategories = [
@@ -46,7 +70,8 @@ const AddExpense = () => {
     amount: "",
     category: "",
     paidBy: "أحمد", // Current user
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    status: "pending" // pending, approved, rejected
   });
   const [splitType, setSplitType] = useState("equal");
   const [customSplits, setCustomSplits] = useState({});
@@ -114,9 +139,14 @@ const AddExpense = () => {
     }
 
     // في التطبيق الحقيقي، سترسل البيانات لقاعدة البيانات
+    const isApprover = currentGroup?.approvers.includes(expense.paidBy);
+    const status = isApprover ? "approved" : "pending";
+    
     toast({
-      title: "تم حفظ المصروف!",
-      description: `تم إضافة مصروف "${expense.description}" بنجاح`,
+      title: isApprover ? "تم حفظ واعتماد المصروف!" : "تم حفظ المصروف!",
+      description: isApprover 
+        ? `تم إضافة واعتماد مصروف "${expense.description}" بنجاح`
+        : `تم إضافة مصروف "${expense.description}" وهو بانتظار الاعتماد`,
     });
     navigate('/dashboard');
   };
@@ -235,7 +265,9 @@ const AddExpense = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount">المبلغ (ريال)</Label>
+                    <Label htmlFor="amount">
+                      المبلغ ({currentGroup?.currencySymbol || "ريال"})
+                    </Label>
                     <Input
                       id="amount"
                       type="number"
@@ -348,7 +380,7 @@ const AddExpense = () => {
                               <span>{member}</span>
                             </div>
                             <Badge variant="outline">
-                              {expense.amount ? (parseFloat(expense.amount) / currentGroup.members.length).toFixed(2) : "0.00"} ريال
+                              {expense.amount ? (parseFloat(expense.amount) / currentGroup.members.length).toFixed(2) : "0.00"} {currentGroup.currencySymbol}
                             </Badge>
                           </div>
                         ))}
@@ -384,7 +416,7 @@ const AddExpense = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">المبلغ الإجمالي:</span>
-                    <span className="font-medium">{expense.amount || "0.00"} ريال</span>
+                    <span className="font-medium">{expense.amount || "0.00"} {currentGroup?.currencySymbol || "ريال"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">عدد الأعضاء:</span>
@@ -396,19 +428,29 @@ const AddExpense = () => {
                       {currentGroup && expense.amount ? 
                         (parseFloat(expense.amount) / currentGroup.members.length).toFixed(2) : 
                         "0.00"
-                      } ريال
+                      } {currentGroup?.currencySymbol || "ريال"}
                     </span>
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleSaveExpense}
-                  className="w-full"
-                  variant="hero"
-                  disabled={!selectedGroup || !expense.description || !expense.amount}
-                >
-                  حفظ المصروف
-                </Button>
+                <div className="space-y-3">
+                  {currentGroup && !currentGroup.approvers.includes(expense.paidBy) && (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ هذا المصروف سيحتاج لاعتماد من مدير المجموعة
+                      </p>
+                    </div>
+                  )}
+                  
+                  <Button 
+                    onClick={handleSaveExpense}
+                    className="w-full"
+                    variant="hero"
+                    disabled={!selectedGroup || !expense.description || !expense.amount}
+                  >
+                    {currentGroup?.approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
