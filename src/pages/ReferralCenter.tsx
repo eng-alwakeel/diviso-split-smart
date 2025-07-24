@@ -266,27 +266,34 @@ const ReferralCenter = () => {
               <CardContent>
                 <div className="space-y-4">
                   {referralHistory.map((referral) => (
-                    <div key={referral.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                          <Users className="w-5 h-5 text-white" />
+                    <Card key={referral.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
+                              <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{referral.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {referral.phone}
+                              </p>
+                              <p className="text-sm font-medium text-foreground">
+                                تاريخ الانضمام: {referral.joinDate}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left flex flex-col items-end gap-2">
+                            {getStatusBadge(referral.status)}
+                            {referral.daysEarned > 0 && (
+                              <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+                                +{referral.daysEarned} أيام
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium">{referral.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {referral.phone} • {referral.joinDate}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-left flex items-center gap-3">
-                        {getStatusBadge(referral.status)}
-                        {referral.daysEarned > 0 && (
-                          <Badge variant="outline" className="bg-secondary/10 text-secondary">
-                            +{referral.daysEarned} أيام
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </CardContent>

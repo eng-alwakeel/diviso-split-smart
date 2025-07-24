@@ -176,28 +176,38 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockGroups.map((group) => (
-                  <div key={group.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback className="bg-gradient-primary text-white">
-                          {group.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{group.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {group.members} أعضاء • {group.totalExpenses} ريال
-                        </p>
+                  <Card key={group.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-12 h-12">
+                            <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
+                              {group.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold text-lg">{group.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {group.members} أعضاء
+                            </p>
+                            <p className="text-sm font-medium text-foreground">
+                              إجمالي المصاريف: {group.totalExpenses} ريال
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <Badge 
+                            variant={group.myBalance > 0 ? "secondary" : group.myBalance < 0 ? "destructive" : "outline"}
+                            className="text-sm px-3 py-1"
+                          >
+                            {group.myBalance === 0 ? "متساوي" : 
+                             group.myBalance > 0 ? `+${group.myBalance} ريال` : 
+                             `${group.myBalance} ريال`}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <Badge 
-                      variant={group.myBalance > 0 ? "secondary" : group.myBalance < 0 ? "destructive" : "outline"}
-                    >
-                      {group.myBalance === 0 ? "متساوي" : 
-                       group.myBalance > 0 ? `+${group.myBalance} ريال` : 
-                       `${group.myBalance} ريال`}
-                    </Badge>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </CardContent>
             </Card>
@@ -220,23 +230,30 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {mockExpenses.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                        <Receipt className="w-5 h-5 text-white" />
+                  <Card key={expense.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
+                            <Receipt className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{expense.description}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {expense.group}
+                            </p>
+                            <p className="text-sm font-medium text-foreground">
+                              دفع بواسطة: {expense.paidBy}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xl font-bold text-primary">{expense.amount} ريال</p>
+                          <p className="text-sm text-muted-foreground">{expense.date}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium">{expense.description}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {expense.group} • دفع بواسطة {expense.paidBy}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">{expense.amount} ريال</p>
-                      <p className="text-sm text-muted-foreground">{expense.date}</p>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </CardContent>
             </Card>
