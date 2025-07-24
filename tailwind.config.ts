@@ -66,6 +66,10 @@ export default {
 					DEFAULT: 'hsl(var(--total-card))',
 					foreground: 'hsl(var(--total-card-foreground))'
 				},
+				'referral-card': {
+					DEFAULT: 'hsl(var(--referral-card))',
+					foreground: 'hsl(var(--referral-card-foreground))'
+				},
 				'dark-background': {
 					DEFAULT: 'hsl(var(--dark-background))',
 					foreground: 'hsl(var(--dark-background-foreground))'

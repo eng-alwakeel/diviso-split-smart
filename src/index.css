@@ -37,7 +37,7 @@ All colors MUST be HSL.
     --input: 220 13% 96%;
     --ring: 200 95% 45%;
 
-    /* Card Design System Colors */
+    /* Card Design System Colors - Updated with exact hex values */
     --expense-light: 62 70% 64%;     /* Succulent Lime #ddde68 */
     --expense-light-foreground: 220 13% 18%;
     
@@ -46,6 +46,9 @@ All colors MUST be HSL.
     
     --total-card: 27 71% 59%;        /* Persian Orange #da935d */
     --total-card-foreground: 0 0% 100%;
+    
+    --referral-card: 27 71% 59%;     /* Persian Orange #da935d for referrals */
+    --referral-card-foreground: 0 0% 100%;
     
     --dark-background: 221 14% 23%;  /* Black Rock #2b2d3b */
     --dark-background-foreground: 0 0% 100%;

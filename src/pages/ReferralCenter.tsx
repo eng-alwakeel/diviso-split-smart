@@ -145,7 +145,7 @@ const ReferralCenter = () => {
   const successRate = (referralData.successfulReferrals / referralData.totalReferrals) * 100;
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -167,44 +167,44 @@ const ReferralCenter = () => {
           {/* Left Column - Stats & Actions */}
           <div className="lg:col-span-2 space-y-6">
             {/* Overview Stats */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="bg-gradient-card shadow-card">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-6 h-6 text-total-card-foreground" />
                   </div>
-                  <p className="text-2xl font-bold">{referralData.totalReferrals}</p>
-                  <p className="text-sm text-muted-foreground">إجمالي الإحالات</p>
+                  <p className="text-2xl font-bold text-total-card-foreground">{referralData.totalReferrals}</p>
+                  <p className="text-sm text-total-card-foreground/80">إجمالي الإحالات</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-card shadow-card">
+              <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6 text-group-card-foreground" />
                   </div>
-                  <p className="text-2xl font-bold">{referralData.successfulReferrals}</p>
-                  <p className="text-sm text-muted-foreground">إحالات مكتملة</p>
+                  <p className="text-2xl font-bold text-group-card-foreground">{referralData.successfulReferrals}</p>
+                  <p className="text-sm text-group-card-foreground/80">إحالات مكتملة</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-card shadow-card">
+              <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Gift className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Gift className="w-6 h-6 text-total-card-foreground" />
                   </div>
-                  <p className="text-2xl font-bold">{referralData.freeDaysEarned}</p>
-                  <p className="text-sm text-muted-foreground">أيام مكتسبة</p>
+                  <p className="text-2xl font-bold text-total-card-foreground">{referralData.freeDaysEarned}</p>
+                  <p className="text-sm text-total-card-foreground/80">أيام مكتسبة</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-card shadow-card">
+              <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Calendar className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-6 h-6 text-expense-light-foreground" />
                   </div>
-                  <p className="text-2xl font-bold">{referralData.freeDaysRemaining}</p>
-                  <p className="text-sm text-muted-foreground">أيام متبقية</p>
+                  <p className="text-2xl font-bold text-expense-light-foreground">{referralData.freeDaysRemaining}</p>
+                  <p className="text-sm text-expense-light-foreground/80">أيام متبقية</p>
                 </CardContent>
               </Card>
             </div>
@@ -266,19 +266,19 @@ const ReferralCenter = () => {
               <CardContent>
                 <div className="space-y-4">
                   {referralHistory.map((referral) => (
-                    <Card key={referral.id} className="bg-gradient-subtle border-0 hover:shadow-md transition-all">
-                      <CardContent className="p-4">
+                    <Card key={referral.id} className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
+                      <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                              <Users className="w-6 h-6 text-white" />
+                            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                              <Users className="w-8 h-8 text-total-card-foreground" />
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-lg">{referral.name}</h3>
-                              <p className="text-sm text-muted-foreground">
+                            <div className="text-total-card-foreground">
+                              <h3 className="font-bold text-lg">{referral.name}</h3>
+                              <p className="text-sm opacity-90">
                                 {referral.phone}
                               </p>
-                              <p className="text-sm font-medium text-foreground">
+                              <p className="text-sm font-medium opacity-75">
                                 تاريخ الانضمام: {referral.joinDate}
                               </p>
                             </div>
@@ -286,7 +286,7 @@ const ReferralCenter = () => {
                           <div className="text-left flex flex-col items-end gap-2">
                             {getStatusBadge(referral.status)}
                             {referral.daysEarned > 0 && (
-                              <Badge variant="secondary" className="bg-secondary/10 text-secondary">
+                              <Badge variant="secondary" className="bg-white/20 text-total-card-foreground border-white/30">
                                 +{referral.daysEarned} أيام
                               </Badge>
                             )}

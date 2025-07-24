@@ -131,7 +131,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -161,9 +161,9 @@ const Settings = () => {
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-group border-0 shadow-group">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-group-card-foreground">
                   <User className="w-5 h-5" />
                   المعلومات الشخصية
                 </CardTitle>
@@ -237,9 +237,9 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-card">
+            <Card className="bg-gradient-expense border-0 shadow-expense">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
                   <Key className="w-5 h-5" />
                   تغيير كلمة المرور
                 </CardTitle>
@@ -296,9 +296,9 @@ const Settings = () => {
 
           {/* Payment Methods Tab */}
           <TabsContent value="payments" className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-total border-0 shadow-total">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
                   <CreditCard className="w-5 h-5" />
                   طرق الدفع
                 </CardTitle>
@@ -341,9 +341,9 @@ const Settings = () => {
 
           {/* Language & Currency Tab */}
           <TabsContent value="language" className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-group border-0 shadow-group">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-group-card-foreground">
                   <Globe className="w-5 h-5" />
                   اللغة والعملة
                 </CardTitle>
@@ -395,9 +395,9 @@ const Settings = () => {
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-expense border-0 shadow-expense">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
                   <Bell className="w-5 h-5" />
                   إعدادات الإشعارات
                 </CardTitle>
@@ -459,9 +459,9 @@ const Settings = () => {
 
           {/* Privacy & Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-total border-0 shadow-total">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
                   <Shield className="w-5 h-5" />
                   الخصوصية والأمان
                 </CardTitle>

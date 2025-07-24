@@ -104,7 +104,7 @@ const CreateGroup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -141,9 +141,9 @@ const CreateGroup = () => {
 
         {/* Step 1: Group Information */}
         {currentStep === 1 && (
-          <Card className="shadow-card">
+          <Card className="bg-gradient-group border-0 shadow-group">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-group-card-foreground">
                 <Users className="w-5 h-5" />
                 معلومات المجموعة
               </CardTitle>
@@ -223,9 +223,9 @@ const CreateGroup = () => {
         {currentStep === 2 && (
           <div className="space-y-6">
             {/* Phone Numbers */}
-            <Card className="shadow-card">
+            <Card className="bg-gradient-expense border-0 shadow-expense">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
                   <Phone className="w-5 h-5" />
                   دعوة عبر رقم الجوال
                 </CardTitle>
@@ -272,9 +272,9 @@ const CreateGroup = () => {
             </Card>
 
             {/* Invite Link */}
-            <Card className="shadow-card">
+            <Card className="bg-gradient-total border-0 shadow-total">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
                   <LinkIcon className="w-5 h-5" />
                   رابط الدعوة
                 </CardTitle>

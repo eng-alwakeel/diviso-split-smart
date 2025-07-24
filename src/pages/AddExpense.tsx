@@ -152,7 +152,7 @@ const AddExpense = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -174,9 +174,9 @@ const AddExpense = () => {
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Receipt Scanner */}
-            <Card className="shadow-card">
+            <Card className="bg-gradient-expense border-0 shadow-expense">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
                   <Camera className="w-5 h-5" />
                   مسح الإيصال (اختياري)
                 </CardTitle>
@@ -239,9 +239,9 @@ const AddExpense = () => {
             </Card>
 
             {/* Expense Details */}
-            <Card className="shadow-card">
+            <Card className="bg-gradient-total border-0 shadow-total">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-total-card-foreground">
                   <Receipt className="w-5 h-5" />
                   تفاصيل المصروف
                 </CardTitle>
@@ -342,9 +342,9 @@ const AddExpense = () => {
 
             {/* Split Options */}
             {currentGroup && (
-              <Card className="shadow-card">
+              <Card className="bg-gradient-group border-0 shadow-group">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-group-card-foreground">
                     <Calculator className="w-5 h-5" />
                     تقسيم المصروف
                   </CardTitle>
@@ -408,9 +408,9 @@ const AddExpense = () => {
 
           {/* Summary Sidebar */}
           <div className="space-y-6">
-            <Card className="shadow-card">
+            <Card className="bg-gradient-total border-0 shadow-total">
               <CardHeader>
-                <CardTitle>ملخص المصروف</CardTitle>
+                <CardTitle className="text-total-card-foreground">ملخص المصروف</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">

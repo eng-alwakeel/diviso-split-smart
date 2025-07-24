@@ -129,7 +129,7 @@ const FinancialPlan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -159,51 +159,63 @@ const FinancialPlan = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="shadow-card bg-gradient-card">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي الميزانيات</p>
-                  <p className="text-2xl font-bold text-primary">{getTotalBudget()}</p>
+                <div className="text-total-card-foreground">
+                  <p className="text-sm font-medium opacity-90">إجمالي الميزانيات</p>
+                  <p className="text-2xl font-bold">{getTotalBudget()}</p>
+                  <p className="text-xs opacity-75 mt-1">ريال</p>
                 </div>
-                <Target className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Target className="w-6 h-6 text-total-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
+          <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصروف</p>
-                  <p className="text-2xl font-bold text-destructive">{getTotalSpent()}</p>
+                <div className="text-expense-light-foreground">
+                  <p className="text-sm font-medium">إجمالي المصروف</p>
+                  <p className="text-2xl font-bold">{getTotalSpent()}</p>
+                  <p className="text-xs opacity-75 mt-1">ريال</p>
                 </div>
-                <TrendingDown className="w-8 h-8 text-destructive" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <TrendingDown className="w-6 h-6 text-expense-light-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
+          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">المتبقي</p>
-                  <p className="text-2xl font-bold text-secondary">{getTotalBudget() - getTotalSpent()}</p>
+                <div className="text-group-card-foreground">
+                  <p className="text-sm font-medium opacity-90">المتبقي</p>
+                  <p className="text-2xl font-bold">{getTotalBudget() - getTotalSpent()}</p>
+                  <p className="text-xs opacity-75 mt-1">ريال</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-secondary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-group-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
+          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">نسبة الإنفاق</p>
-                  <p className="text-2xl font-bold text-primary">{getOverallProgress().toFixed(0)}%</p>
+                <div className="text-total-card-foreground">
+                  <p className="text-sm font-medium opacity-90">نسبة الإنفاق</p>
+                  <p className="text-2xl font-bold">{getOverallProgress().toFixed(0)}%</p>
+                  <p className="text-xs opacity-75 mt-1">مستخدم</p>
                 </div>
-                <PieChart className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <PieChart className="w-6 h-6 text-total-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>

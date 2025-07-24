@@ -176,7 +176,7 @@ const GroupDetails = () => {
   const budgetProgress = (totalSpent / mockBudgetPlan.totalBudget) * 100;
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-dark-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -222,53 +222,65 @@ const GroupDetails = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="shadow-card bg-gradient-card">
-            <CardContent className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-total border-0 shadow-total hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold text-primary">{mockGroup.totalExpenses}</p>
+                <div className="text-total-card-foreground">
+                  <p className="text-sm font-medium opacity-90">إجمالي المصاريف</p>
+                  <p className="text-2xl font-bold">{mockGroup.totalExpenses}</p>
+                  <p className="text-xs opacity-75 mt-1">{mockGroup.currencySymbol}</p>
                 </div>
-                <Receipt className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Receipt className="w-6 h-6 text-total-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">رصيدي</p>
-                  <p className={`text-2xl font-bold ${mockGroup.myBalance >= 0 ? 'text-secondary' : 'text-destructive'}`}>
+                <div className="text-expense-light-foreground">
+                  <p className="text-sm font-medium">رصيدي</p>
+                  <p className="text-2xl font-bold">
                     {mockGroup.myBalance >= 0 ? '+' : ''}{mockGroup.myBalance}
                   </p>
+                  <p className="text-xs opacity-75 mt-1">{mockGroup.currencySymbol}</p>
                 </div>
-                <DollarSign className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-expense-light-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
-                  <p className="text-2xl font-bold text-primary">{budgetProgress.toFixed(0)}%</p>
+                <div className="text-group-card-foreground">
+                  <p className="text-sm font-medium opacity-90">الميزانية</p>
+                  <p className="text-2xl font-bold">{budgetProgress.toFixed(0)}%</p>
+                  <p className="text-xs opacity-75 mt-1">مستخدم</p>
                 </div>
-                <Target className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Target className="w-6 h-6 text-group-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card bg-gradient-card">
-            <CardContent className="p-4">
+          <Card className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الأعضاء</p>
-                  <p className="text-2xl font-bold text-primary">{mockMembers.length}</p>
+                <div className="text-group-card-foreground">
+                  <p className="text-sm font-medium opacity-90">الأعضاء</p>
+                  <p className="text-2xl font-bold">{mockMembers.length}</p>
+                  <p className="text-xs opacity-75 mt-1">أعضاء</p>
                 </div>
-                <Users className="w-8 h-8 text-primary" />
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-group-card-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -295,29 +307,30 @@ const GroupDetails = () => {
             
             <div className="space-y-4">
               {mockExpenses.map((expense) => (
-                <Card key={expense.id} className="shadow-card bg-gradient-subtle border-0 hover:shadow-md transition-all cursor-pointer">
+                <Card key={expense.id} className="bg-gradient-expense border-0 shadow-expense hover:shadow-xl transition-all duration-300 cursor-pointer">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
-                          <Receipt className="w-6 h-6 text-white" />
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                          <Receipt className="w-8 h-8 text-expense-light-foreground" />
                         </div>
-                       <div className="flex-1">
+                       <div className="flex-1 text-expense-light-foreground">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">{expense.description}</h3>
+                            <h3 className="font-bold text-lg">{expense.description}</h3>
                             {getStatusBadge(expense.status)}
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm opacity-90">
                             {expense.category} • دفع بواسطة {expense.paidBy}
                           </p>
-                          <p className="text-sm font-medium text-foreground">
+                          <p className="text-sm font-medium opacity-75">
                             مقسم بين {expense.splitBetween.length} أشخاص
                           </p>
                         </div>
                       </div>
-                      <div className="text-left">
-                        <p className="text-xl font-bold text-primary">{expense.amount} {mockGroup.currencySymbol}</p>
-                        <p className="text-sm text-muted-foreground">{expense.date}</p>
+                      <div className="text-left text-expense-light-foreground">
+                        <p className="text-2xl font-bold">{expense.amount}</p>
+                        <p className="text-sm opacity-90">{mockGroup.currencySymbol}</p>
+                        <p className="text-xs opacity-75 mt-1">{expense.date}</p>
                         
                         {expense.status === "pending" && canApprove && (
                           <div className="flex gap-1 mt-2">
@@ -328,7 +341,7 @@ const GroupDetails = () => {
                                 e.stopPropagation();
                                 handleExpenseApproval(expense.id, "approve");
                               }}
-                              className="text-green-600 hover:text-green-700"
+                              className="bg-white/20 border-white/30 text-expense-light-foreground hover:bg-white/30"
                             >
                               <CheckCircle className="w-3 h-3" />
                             </Button>
@@ -339,7 +352,7 @@ const GroupDetails = () => {
                                 e.stopPropagation();
                                 handleExpenseApproval(expense.id, "reject");
                               }}
-                              className="text-red-600 hover:text-red-700"
+                              className="bg-white/20 border-white/30 text-expense-light-foreground hover:bg-white/30"
                             >
                               <XCircle className="w-3 h-3" />
                             </Button>
@@ -365,40 +378,36 @@ const GroupDetails = () => {
             
             <div className="space-y-4">
               {mockMembers.map((member) => (
-                <Card key={member.id} className="shadow-card bg-gradient-subtle border-0">
+                <Card key={member.id} className="bg-gradient-group border-0 shadow-group hover:shadow-xl transition-all duration-300">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
-                            {member.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">{member.name}</h3>
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                          <span className="text-2xl font-bold text-group-card-foreground">{member.avatar}</span>
+                        </div>
+                        <div className="text-group-card-foreground">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-lg">{member.name}</h3>
                             {member.isAdmin && (
-                              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                              <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-white/20 text-group-card-foreground border-white/30">
                                 <Shield className="w-3 h-3" />
                                 مدير
                               </Badge>
                             )}
                             {mockGroup.approvers.includes(member.name) && !member.isAdmin && (
-                              <Badge variant="outline" className="text-xs">معتمد</Badge>
+                              <Badge variant="outline" className="text-xs bg-white/20 text-group-card-foreground border-white/30">معتمد</Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{member.phone}</p>
+                          <p className="text-sm opacity-90">{member.phone}</p>
                         </div>
                       </div>
                       <div className="text-left">
-                        <Badge 
-                          variant={member.balance > 0 ? "secondary" : member.balance < 0 ? "destructive" : "outline"}
-                          className="text-sm px-3 py-1"
-                        >
+                        <p className="text-xl font-bold text-group-card-foreground">
                           {member.balance === 0 ? "متساوي" : 
-                           member.balance > 0 ? `+${member.balance} ${mockGroup.currencySymbol}` : 
-                           `${member.balance} ${mockGroup.currencySymbol}`}
-                        </Badge>
+                           member.balance > 0 ? `+${member.balance}` : 
+                           `${member.balance}`}
+                        </p>
+                        <p className="text-sm opacity-90 text-group-card-foreground">{mockGroup.currencySymbol}</p>
                       </div>
                     </div>
                   </CardContent>
