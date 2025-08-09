@@ -10,9 +10,7 @@ export const Header = () => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
-            <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Diviso
-            </h1>
+            <span className="sr-only">Diviso</span>
           </div>
 
           {/* Desktop Navigation */}

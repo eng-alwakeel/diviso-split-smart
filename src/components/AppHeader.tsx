@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import appIcon from "@/assets/app-icon.png";
+const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 interface AppHeaderProps {
   showNavigation?: boolean;
@@ -17,10 +17,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <img src={appIcon} alt="Diviso" className="w-8 h-8" />
-            <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Diviso
-            </h1>
+            <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
           </div>
 
           {/* Navigation */}
