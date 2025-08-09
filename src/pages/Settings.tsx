@@ -152,12 +152,12 @@ const Settings = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="payments">طرق الدفع</TabsTrigger>
-            <TabsTrigger value="language">اللغة</TabsTrigger>
-            <TabsTrigger value="notifications">الإشعارات</TabsTrigger>
-            <TabsTrigger value="privacy">الخصوصية</TabsTrigger>
+          <TabsList className="flex w-full gap-2 overflow-x-auto whitespace-nowrap px-1 py-1 [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
+            <TabsTrigger value="profile" className="whitespace-nowrap">الملف الشخصي</TabsTrigger>
+            <TabsTrigger value="payments" className="whitespace-nowrap">طرق الدفع</TabsTrigger>
+            <TabsTrigger value="language" className="whitespace-nowrap">اللغة</TabsTrigger>
+            <TabsTrigger value="notifications" className="whitespace-nowrap">الإشعارات</TabsTrigger>
+            <TabsTrigger value="privacy" className="whitespace-nowrap">الخصوصية</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
