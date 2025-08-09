@@ -152,7 +152,7 @@ const Settings = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full gap-2 overflow-x-auto whitespace-nowrap px-1 py-1 [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
+          <TabsList className="flex w-full gap-2 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
             <TabsTrigger value="profile" className="whitespace-nowrap">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="payments" className="whitespace-nowrap">طرق الدفع</TabsTrigger>
             <TabsTrigger value="language" className="whitespace-nowrap">اللغة</TabsTrigger>
