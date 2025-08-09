@@ -19,6 +19,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/Header";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 
 const CreateGroup = () => {
@@ -339,6 +340,8 @@ const CreateGroup = () => {
           </div>
         )}
       </div>
+      <div className="h-16 md:hidden" />
+      <BottomNav />
     </div>
   );
 };

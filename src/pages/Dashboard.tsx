@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 
 // Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
 const mockGroups = [
@@ -303,6 +304,8 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <div className="h-16 md:hidden" />
+      <BottomNav />
     </div>
   );
 };

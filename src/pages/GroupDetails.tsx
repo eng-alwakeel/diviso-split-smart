@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useNavigate, useParams } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data
@@ -513,6 +514,8 @@ const GroupDetails = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <div className="h-16 md:hidden" />
+      <BottomNav />
     </div>
   );
 };

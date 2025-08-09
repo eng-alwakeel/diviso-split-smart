@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { useNavigate } from "react-router-dom";
+import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 
 // Mock data
@@ -402,8 +403,10 @@ const ReferralCenter = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
       </div>
+      </div>
+      <div className="h-16 md:hidden" />
+      <BottomNav />
     </div>
   );
 };
