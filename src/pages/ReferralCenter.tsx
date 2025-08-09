@@ -404,6 +404,7 @@ const ReferralCenter = () => {
             </Card>
           </div>
       </div>
+      </div>
       <div className="h-16 md:hidden" />
       <BottomNav />
     </div>
