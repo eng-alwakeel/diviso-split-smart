@@ -21,7 +21,7 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
-import { Header } from "@/components/Header";
+import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
@@ -131,7 +131,7 @@ const FinancialPlan = () => {
 
   return (
     <div className="min-h-screen bg-dark-background">
-      <Header />
+      <AppHeader />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
