@@ -153,11 +153,11 @@ const Settings = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex w-full gap-2 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
-            <TabsTrigger value="profile" className="whitespace-nowrap">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="payments" className="whitespace-nowrap">طرق الدفع</TabsTrigger>
-            <TabsTrigger value="language" className="whitespace-nowrap">اللغة</TabsTrigger>
-            <TabsTrigger value="notifications" className="whitespace-nowrap">الإشعارات</TabsTrigger>
-            <TabsTrigger value="privacy" className="whitespace-nowrap">الخصوصية</TabsTrigger>
+            <TabsTrigger value="profile" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">الملف الشخصي</TabsTrigger>
+            <TabsTrigger value="payments" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">طرق الدفع</TabsTrigger>
+            <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">اللغة</TabsTrigger>
+            <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">الإشعارات</TabsTrigger>
+            <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">الخصوصية</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}

@@ -323,9 +323,9 @@ const FinancialPlan = () => {
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex w-full gap-2 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
-            <TabsTrigger value="overview" className="whitespace-nowrap">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="budgets" className="whitespace-nowrap">الميزانيات</TabsTrigger>
-            <TabsTrigger value="analytics" className="whitespace-nowrap">التحليلات</TabsTrigger>
+            <TabsTrigger value="overview" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">نظرة عامة</TabsTrigger>
+            <TabsTrigger value="budgets" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">الميزانيات</TabsTrigger>
+            <TabsTrigger value="analytics" className="shrink-0 whitespace-nowrap text-xs md:text-sm px-3 py-2 h-9">التحليلات</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
