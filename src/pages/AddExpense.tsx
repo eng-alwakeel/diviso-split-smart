@@ -175,20 +175,20 @@ const AddExpense = () => {
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Receipt Scanner */}
-            <Card className="bg-gradient-expense border-0 shadow-expense">
+            <Card className="bg-card border border-border shadow-card rounded-2xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-expense-light-foreground">
-                  <Camera className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Camera className="w-5 h-5 text-primary" />
                   مسح الإيصال (اختياري)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {ocrResults ? (
                   <div className="space-y-4">
-                    <div className="bg-gradient-secondary/10 border border-secondary/20 rounded-lg p-4">
+                    <div className="bg-muted/50 border border-border/30 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                          <Brain className="w-5 h-5 text-white" />
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <Brain className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium text-secondary mb-2">تم استخراج المعلومات بنجاح!</h3>
@@ -213,8 +213,8 @@ const AddExpense = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Camera className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <Camera className="w-8 h-8 text-primary" />
                     </div>
                     <h3 className="font-medium mb-2">التقط صورة للإيصال</h3>
                     <p className="text-sm text-muted-foreground mb-4">
@@ -344,9 +344,9 @@ const AddExpense = () => {
 
             {/* Split Options */}
             {currentGroup && (
-              <Card className="bg-gradient-group border-0 shadow-group">
+              <Card className="bg-card border border-border shadow-card rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-group-card-foreground">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <Calculator className="w-5 h-5" />
                     تقسيم المصروف
                   </CardTitle>
@@ -410,9 +410,9 @@ const AddExpense = () => {
 
           {/* Summary Sidebar */}
           <div className="space-y-6">
-            <Card className="bg-gradient-total border-0 shadow-total">
+            <Card className="bg-card border border-border shadow-card rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-total-card-foreground">ملخص المصروف</CardTitle>
+                <CardTitle className="text-foreground">ملخص المصروف</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
@@ -466,7 +466,7 @@ const AddExpense = () => {
                     {currentGroup.members.map(member => (
                       <div key={member} className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-xs bg-gradient-primary text-white">
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {member[0]}
                           </AvatarFallback>
                         </Avatar>

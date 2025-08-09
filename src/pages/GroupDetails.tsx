@@ -195,7 +195,7 @@ const GroupDetails = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                <AvatarFallback className="bg-gradient-primary text-white text-2xl font-bold">
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                   {mockGroup.avatar}
                 </AvatarFallback>
               </Avatar>
