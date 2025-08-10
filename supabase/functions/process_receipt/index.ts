@@ -21,7 +21,8 @@ function extractFields(text: string) {
   const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const merchant = lines[0]?.slice(0, 80) || null;
 
-  const totalRegex = /(الإجمالي|المجموع|إجمالي|Total|Grand Total)\s*[:\-]?\s*([0-9]+(?:\.[0-9]{1,2})?)/i;
+  const totalRegex = /(الإجمالي|المجموع|إجمالي|Total|Grand Total)\s*[:\-]?
+\s*([0-9]+(?:\.[0-9]{1,2})?)/i;
   const vatRegex = /(ضريبة(?:\s*القيمة\s*المضافة)?|VAT)\s*[:\-]?\s*([0-9]+(?:\.[0-9]{1,2})?)/i;
   const dateRegex = /(?:(?:\d{1,2}[\/\-\.\s]\d{1,2}[\/\-\.\s]\d{2,4})|(?:\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}))/;
 
