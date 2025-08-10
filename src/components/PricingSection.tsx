@@ -8,47 +8,51 @@ const plans = [
     icon: User,
     price: "0",
     period: "مجاناً إلى الأبد",
-    description: "للإستخدام الحر مع حدود عادلة",
+    description: "مثالي للاستخدام الشخصي البسيط",
     features: [
-      "حتى 2 مجموعة",
-      "حتى 5 أعضاء لكل مجموعة",
-      "200 مصروف/شهر",
-      "50 دعوة/شهر",
-      "10 عمليات OCR/شهر"
+      "حتى 3 مجموعات نشطة",
+      "إضافة المصاريف الأساسية",
+      "تقسيم بالتساوي",
+      "تقارير شهرية",
+      "دعم عبر البريد الإلكتروني"
     ],
     buttonText: "ابدأ مجاناً",
-    code: "free",
     popular: false
   },
   {
-    name: "برو",
+    name: "شخصي",
     icon: Star,
-    price: "19",
-    period: "ريال/شهرياً (أو 169/سنوياً)",
-    description: "مزايا غير محدودة للمستخدم النشط",
+    price: "29",
+    period: "ريال/شهرياً",
+    description: "للأفراد والعائلات النشطة",
     features: [
       "مجموعات غير محدودة",
-      "حتى 50 عضو/مجموعة",
-      "مصاريف غير محدودة",
-      "دعوات و OCR غير محدود"
+      "تقسيم متقدم (نسب ومبالغ)",
+      "مسح الإيصالات بالذكاء الاصطناعي",
+      "تحليلات وتوصيات ذكية",
+      "دردشة المجموعة",
+      "تصدير التقارير",
+      "دعم أولوية"
     ],
     buttonText: "اشترك الآن",
-    code: "pro_monthly",
     popular: true
   },
   {
-    name: "عائلية 5",
+    name: "الشركات",
     icon: Building2,
-    price: "39",
-    period: "ريال/شهرياً (349/سنوياً)",
-    description: "مثالي للعائلات حتى 5 مستخدمين",
+    price: "99",
+    period: "ريال/شهرياً لكل مستخدم",
+    description: "للشركات والمؤسسات",
     features: [
-      "جميع مزايا برو",
-      "مثالي للعائلة",
-      "سعر تفضيلي سنوي"
+      "جميع مزايا الباقة الشخصية",
+      "سياسات إنفاق مخصصة",
+      "تقارير تفصيلية للمديرين",
+      "تكامل مع أنظمة المحاسبة",
+      "لوحة تحكم إدارية",
+      "دعم 24/7",
+      "تدريب وإعداد مخصص"
     ],
-    buttonText: "اشترك الآن",
-    code: "family5_monthly",
+    buttonText: "تواصل معنا",
     popular: false
   }
 ];
@@ -120,12 +124,6 @@ export const PricingSection = () => {
                       variant={plan.popular ? "hero" : "outline"} 
                       className="w-full"
                       size="lg"
-                      onClick={async () => {
-                        const code = plan.code as string;
-                        if (code === 'free') { window.location.href = '/auth'; return; }
-                        const { data, error } = await (await import("@/integrations/supabase/client")).supabase.functions.invoke('neoleap_create', { body: { plan_code: code } });
-                        if (!error && data?.checkout_url) window.location.href = data.checkout_url;
-                      }}
                     >
                       {plan.buttonText}
                     </Button>
