@@ -183,34 +183,37 @@ const GroupDetails = () => {
             العودة للوحة التحكم
           </Button>
           
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="w-16 h-16">
-                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                  {(group?.name || "م").slice(0,1)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold">{group?.name ?? "..."}</h1>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline">{memberCount} أعضاء</Badge>
-                  <Badge variant="outline">{totals.totalExpenses.toLocaleString()} {currencyLabel}</Badge>
+          <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-hidden">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                <Avatar className="w-16 h-16">
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+                    {(group?.name || "م").slice(0,1)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <h1 className="text-2xl md:text-3xl font-extrabold truncate">{group?.name ?? "..."}</h1>
+                  <div className="flex items-center gap-2 mt-2 text-xs md:text-sm text-muted-foreground flex-wrap">
+                    <span>{memberCount} أعضاء</span>
+                    <span className="opacity-40">•</span>
+                    <span>{totals.totalExpenses.toLocaleString()} {currencyLabel}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setReportOpen(true)}>
-                <FileText className="w-4 h-4 ml-2" />
-                تقرير
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
-                <Settings className="w-4 h-4 ml-2" />
-                إعدادات
-              </Button>
-              <Button variant="hero" size="sm" onClick={() => navigate('/add-expense')}>
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة مصروف
-              </Button>
+              <div className="flex gap-2 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)}>
+                  <FileText className="w-4 h-4 ml-2" />
+                  تقرير
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+                  <Settings className="w-4 h-4 ml-2" />
+                  إعدادات
+                </Button>
+                <Button variant="hero" size="sm" onClick={() => navigate('/add-expense')}>
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة مصروف
+                </Button>
+              </div>
             </div>
           </div>
         </div>

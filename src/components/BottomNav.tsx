@@ -18,18 +18,21 @@ export const BottomNav = () => {
     }`;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:hidden">
-      <div className="mx-auto max-w-lg px-2">
-        <ul className="flex items-stretch justify-between">
-          {items.map(({ to, label, icon: Icon }) => (
-            <li key={to} className="flex-1">
-              <NavLink to={to} aria-label={label} className={link => linkCls(isActive(to))} end>
-                <Icon className="h-5 w-5" />
-                <span>{label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+    <nav className="fixed bottom-4 inset-x-0 z-50 md:hidden">
+      <div className="mx-auto max-w-md px-4 pb-[env(safe-area-inset-bottom)]">
+        <div className="rounded-2xl border border-border/60 bg-background/70 backdrop-blur shadow-elevated supports-[backdrop-filter]:bg-background/60">
+          <ul className="flex items-stretch justify-between">
+            {items.map(({ to, label, icon: Icon }) => (
+              <li key={to} className="flex-1">
+                <NavLink to={to} aria-label={label} className={link => linkCls(isActive(to))} end>
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
+                  {isActive(to) && <span className="mt-1 h-1 w-6 rounded-full bg-primary" aria-hidden />}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </nav>
   );

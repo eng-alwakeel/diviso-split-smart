@@ -23,6 +23,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { PassCard } from "@/components/wallet/PassCard";
 
 interface GroupRow {
   id: string;
@@ -169,54 +170,18 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            <div className="space-y-4">
-              {groups.map((group) => (
-                <Card 
-                  key={group.id} 
-                  className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer group rounded-2xl"
-                  onClick={() => navigate(`/group/${group.id}`)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                          <Users className="w-8 h-8 text-primary" />
-                        </div>
-                        <div className="text-foreground">
-                          <h3 className="font-bold text-lg mb-1">{group.name}</h3>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1 bg-secondary/60 px-2 py-1 rounded-full">
-                              <Users className="w-3.5 h-3.5" />
-                              {group.members} عضو
-                            </span>
-                            <span className="inline-flex items-center gap-1 bg-secondary/60 px-2 py-1 rounded-full">
-                              <Receipt className="w-3.5 h-3.5" />
-                              {group.expenses} مصروف
-                            </span>
-                            {group.category && (
-                              <Badge variant="secondary" className="rounded-full px-2 py-0.5">
-                                {group.category}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right text-foreground">
-                        <p className="text-3xl font-extrabold text-primary">
-                          {group.totalExpenses.toLocaleString()} <span className="text-base font-medium text-muted-foreground">ر.س</span>
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-3 border-border hover:bg-secondary group-hover:scale-105 transition-transform"
-                        >
-                          عرض التفاصيل
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="relative">
+              <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-1">
+                {groups.map((group) => (
+                  <PassCard
+                    key={group.id}
+                    title={group.name}
+                    subtitle={`${group.members} أعضاء • ${group.expenses} مصروف`}
+                    amount={group.totalExpenses}
+                    onClick={() => navigate(`/group/${group.id}`)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
