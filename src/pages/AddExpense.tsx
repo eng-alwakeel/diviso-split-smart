@@ -320,100 +320,101 @@ const AddExpense = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-background">
-      <AppHeader />
-      
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/dashboard')}
-            className="mb-4"
-          >
-            <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
-          </Button>
-          <h1 className="text-3xl font-bold mb-2">إضافة مصروف جديد</h1>
-          <p className="text-muted-foreground">أضف مصروف وقسّمه مع أعضاء المجموعة</p>
-        </div>
+    <>
+      <div className="min-h-screen bg-dark-background">
+        <AppHeader />
+        
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          {/* Header */}
+          <div className="mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-4"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              العودة للوحة التحكم
+            </Button>
+            <h1 className="text-3xl font-bold mb-2">إضافة مصروف جديد</h1>
+            <p className="text-muted-foreground">أضف مصروف وقسّمه مع أعضاء المجموعة</p>
+          </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Receipt Scanner */}
-            <Card className="bg-card border border-border shadow-card rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Camera className="w-5 h-5 text-primary" />
-                  مسح الإيصال (اختياري)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {ocrResults ? (
-                  <div className="space-y-4">
-                    <div className="bg-muted/50 border border-border/30 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Brain className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-secondary mb-2">تم استخراج المعلومات بنجاح!</h3>
-                          <div className="space-y-2 text-sm">
-                            <p><strong>الوصف:</strong> {ocrResults.description}</p>
-                            <p><strong>المبلغ:</strong> {ocrResults.amount} ريال</p>
-                            <p><strong>الفئة:</strong> {ocrResults.category}</p>
-                            <p><strong>دقة التحليل:</strong> {Math.round(ocrResults.confidence * 100)}%</p>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Main Form */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Receipt Scanner */}
+              <Card className="bg-card border border-border shadow-card rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <Camera className="w-5 h-5 text-primary" />
+                    مسح الإيصال (اختياري)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {ocrResults ? (
+                    <div className="space-y-4">
+                      <div className="bg-muted/50 border border-border/30 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Brain className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-secondary mb-2">تم استخراج المعلومات بنجاح!</h3>
+                            <div className="space-y-2 text-sm">
+                              <p><strong>الوصف:</strong> {ocrResults.description}</p>
+                              <p><strong>المبلغ:</strong> {ocrResults.amount} ريال</p>
+                              <p><strong>الفئة:</strong> {ocrResults.category}</p>
+                              <p><strong>دقة التحليل:</strong> {Math.round(ocrResults.confidence * 100)}%</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    {previewUrl && (
-                      <div className="mt-4">
-                        <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
-                          <img
-                            src={previewUrl}
-                            alt="صورة الإيصال المرفوعة للتحليل - إيصال بالعربية"
-                            className="w-full h-auto object-contain"
-                            loading="lazy"
-                          />
+                      {previewUrl && (
+                        <div className="mt-4">
+                          <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
+                            <img
+                              src={previewUrl}
+                              alt="صورة الإيصال المرفوعة للتحليل - إيصال بالعربية"
+                              className="w-full h-auto object-contain"
+                              loading="lazy"
+                            />
+                          </div>
                         </div>
+                      )}
+                      <div className="flex gap-3">
+                        <Button onClick={applyOcrResults} variant="secondary" className="flex-1">
+                          <Check className="w-4 h-4 ml-2" />
+                          تطبيق المعلومات
+                        </Button>
+                        <Button onClick={() => setOcrResults(null)} variant="outline">
+                          تجاهل
+                        </Button>
                       </div>
-                    )}
-                    <div className="flex gap-3">
-                      <Button onClick={applyOcrResults} variant="secondary" className="flex-1">
-                        <Check className="w-4 h-4 ml-2" />
-                        تطبيق المعلومات
-                      </Button>
-                      <Button onClick={() => setOcrResults(null)} variant="outline">
-                        تجاهل
-                      </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-                      <Camera className="w-8 h-8 text-primary" />
-                    </div>
-                    <h3 className="font-medium mb-2">التقط صورة للإيصال</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      سيقوم الذكاء الاصطناعي بتحليل الإيصال واستخراج المعلومات
-                    </p>
-                    <div className="flex gap-3 justify-center">
-                      <Button 
-                        onClick={handleReceiptCapture}
-                        disabled={ocrProcessing}
-                        variant="hero"
-                      >
-                        <Camera className="w-4 h-4 ml-2" />
-                        {ocrProcessing ? "جاري التحليل..." : "التقط صورة"}
-                      </Button>
-                      <Button variant="outline" onClick={onPickFile}>
-                        <Upload className="w-4 h-4 ml-2" />
-                        رفع صورة{receiptFile ? " (محددة)" : ""}
-                      </Button>
-                      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFileChange} />
-                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <Camera className="w-8 h-8 text-primary" />
+                      </div>
+                      <h3 className="font-medium mb-2">التقط صورة للإيصال</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        سيقوم الذكاء الاصطناعي بتحليل الإيصال واستخراج المعلومات
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <Button 
+                          onClick={handleReceiptCapture}
+                          disabled={ocrProcessing}
+                          variant="hero"
+                        >
+                          <Camera className="w-4 h-4 ml-2" />
+                          {ocrProcessing ? "جاري التحليل..." : "التقط صورة"}
+                        </Button>
+                        <Button variant="outline" onClick={onPickFile}>
+                          <Upload className="w-4 h-4 ml-2" />
+                          رفع صورة{receiptFile ? " (محددة)" : ""}
+                        </Button>
+                        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFileChange} />
+                      </div>
                       {previewUrl && (
                         <div className="mt-6">
                           <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
@@ -427,271 +428,272 @@ const AddExpense = () => {
                         </div>
                       )}
                     </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Expense Details */}
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Receipt className="w-5 h-5 text-accent" />
-                  تفاصيل المصروف
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="group" className="text-foreground">المجموعة</Label>
-                    <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue placeholder="اختر المجموعة" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border-border">
+              {/* Expense Details */}
+              <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <Receipt className="w-5 h-5 text-accent" />
+                    تفاصيل المصروف
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="group" className="text-foreground">المجموعة</Label>
+                      <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                        <SelectTrigger className="bg-background/50 border-border text-foreground">
+                          <SelectValue placeholder="اختر المجموعة" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border">
 {allGroups.map(group => (
   <SelectItem key={group.id} value={group.id.toString()} className="text-foreground hover:bg-accent/20">
     {group.name}
   </SelectItem>
 ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="amount" className="text-foreground">
+                        المبلغ ({currencySymbol})
+                      </Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="0.00"
+                        value={expense.amount}
+                        onChange={(e) => setExpense({...expense, amount: e.target.value})}
+                        className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
+                        dir="ltr"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="amount" className="text-foreground">
-                      المبلغ ({currencySymbol})
-                    </Label>
+                    <Label htmlFor="description" className="text-foreground">وصف المصروف</Label>
                     <Input
-                      id="amount"
-                      type="number"
-                      placeholder="0.00"
-                      value={expense.amount}
-                      onChange={(e) => setExpense({...expense, amount: e.target.value})}
-                      className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-                      dir="ltr"
+                      id="description"
+                      placeholder="مثال: عشاء في المطعم"
+                      value={expense.description}
+                      onChange={(e) => setExpense({...expense, description: e.target.value})}
+                      className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-foreground">وصف المصروف</Label>
-                  <Input
-                    id="description"
-                    placeholder="مثال: عشاء في المطعم"
-                    value={expense.description}
-                    onChange={(e) => setExpense({...expense, description: e.target.value})}
-                    className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-                  />
-                </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-foreground flex items-center justify-between">
+                        <span>الفئة</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManageCategoriesOpen(true)}
+                          className="ml-2"
+                        >
+                          إدارة الفئات
+                        </Button>
+                      </Label>
+                      <Select value={expense.category} onValueChange={(value) => setExpense({...expense, category: value})}>
+                        <SelectTrigger className="bg-background/50 border-border text-foreground">
+                          <SelectValue placeholder="اختر الفئة" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border">
+                          {categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id} className="text-foreground hover:bg-accent/20">
+                              {cat.name_ar}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-foreground flex items-center justify-between">
-                      <span>الفئة</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setManageCategoriesOpen(true)}
-                        className="ml-2"
-                      >
-                        إدارة الفئات
-                      </Button>
-                    </Label>
-                    <Select value={expense.category} onValueChange={(value) => setExpense({...expense, category: value})}>
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue placeholder="اختر الفئة" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border-border">
-                        {categories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id} className="text-foreground hover:bg-accent/20">
-                            {cat.name_ar}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      <Label htmlFor="date" className="text-foreground">التاريخ</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={expense.date}
+                        onChange={(e) => setExpense({...expense, date: e.target.value})}
+                        className="text-left bg-background/50 border-border text-foreground"
+                        dir="ltr"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="date" className="text-foreground">التاريخ</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={expense.date}
-                      onChange={(e) => setExpense({...expense, date: e.target.value})}
-                      className="text-left bg-background/50 border-border text-foreground"
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
-
-                {selectedGroup && (
-                  <div className="space-y-2">
-                    <Label className="text-foreground">دفع بواسطة</Label>
-                    <Select value={expense.paidBy} onValueChange={(value) => setExpense({...expense, paidBy: value})}>
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border-border">
-                        {userId && (
-                          <SelectItem value={userId} className="text-foreground hover:bg-accent/20">
-                            أنا
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Split Options */}
-                {selectedGroup && (
-              <Card className="bg-card border border-border shadow-card rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Calculator className="w-5 h-5" />
-                    تقسيم المصروف
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={splitType} onValueChange={setSplitType}>
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="equal" className="flex items-center gap-2">
-                        <Equal className="w-4 h-4" />
-                        بالتساوي
-                      </TabsTrigger>
-                      <TabsTrigger value="percentage" className="flex items-center gap-2">
-                        <Percent className="w-4 h-4" />
-                        بالنسبة
-                      </TabsTrigger>
-                      <TabsTrigger value="custom" className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
-                        مخصص
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="equal" className="mt-6">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        سيتم تقسيم المبلغ بالتساوي على جميع الأعضاء
-                      </p>
-                      <div className="space-y-3">
-                        {currentMembers.map(member => (
-                          <div key={member} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-8 h-8">
-                                <AvatarFallback className="text-xs">{member[0]}</AvatarFallback>
-                              </Avatar>
-                              <span>{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
-                            </div>
-                            <Badge variant="outline">
-                              {expense.amount ? (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : "0.00"} {currencySymbol}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="percentage" className="mt-6">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        حدد نسبة كل عضو من إجمالي المبلغ
-                      </p>
-                      {/* محتوى تقسيم بالنسبة */}
-                    </TabsContent>
-
-                    <TabsContent value="custom" className="mt-6">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        حدد مبلغ محدد لكل عضو
-                      </p>
-                      {/* محتوى تقسيم مخصص */}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Summary Sidebar */}
-          <div className="space-y-6">
-            <Card className="bg-card border border-border shadow-card rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-foreground">ملخص المصروف</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">المبلغ الإجمالي:</span>
-                    <span className="font-medium">{expense.amount || "0.00"} {currencySymbol}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">عدد الأعضاء:</span>
-                    <span className="font-medium">{currentMembers.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">نصيب كل عضو:</span>
-                    <span className="font-medium">
-                      {expense.amount && currentMembers.length > 0 ? 
-                        (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : 
-                        "0.00"
-                      } {currencySymbol}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {selectedGroup && !approvers.includes(expense.paidBy) && (
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        ⚠️ هذا المصروف سيحتاج لاعتماد من مدير المجموعة
-                      </p>
+                  {selectedGroup && (
+                    <div className="space-y-2">
+                      <Label className="text-foreground">دفع بواسطة</Label>
+                      <Select value={expense.paidBy} onValueChange={(value) => setExpense({...expense, paidBy: value})}>
+                        <SelectTrigger className="bg-background/50 border-border text-foreground">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border">
+                          {userId && (
+                            <SelectItem value={userId} className="text-foreground hover:bg-accent/20">
+                              أنا
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
-                  
-                  <Button 
-                    onClick={handleSaveExpense}
-                    className="w-full"
-                    variant="hero"
-                    disabled={!selectedGroup || !expense.description || !expense.amount}
-                  >
-                    {approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {selectedGroup && (
-              <Card className="shadow-card">
+              {/* Split Options */}
+              {selectedGroup && (
+                <Card className="bg-card border border-border shadow-card rounded-2xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <Calculator className="w-5 h-5" />
+                      تقسيم المصروف
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs value={splitType} onValueChange={setSplitType}>
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="equal" className="flex items-center gap-2">
+                          <Equal className="w-4 h-4" />
+                          بالتساوي
+                        </TabsTrigger>
+                        <TabsTrigger value="percentage" className="flex items-center gap-2">
+                          <Percent className="w-4 h-4" />
+                          بالنسبة
+                        </TabsTrigger>
+                        <TabsTrigger value="custom" className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4" />
+                          مخصص
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="equal" className="mt-6">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          سيتم تقسيم المبلغ بالتساوي على جميع الأعضاء
+                        </p>
+                        <div className="space-y-3">
+                          {currentMembers.map(member => (
+                            <div key={member} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarFallback className="text-xs">{member[0]}</AvatarFallback>
+                                </Avatar>
+                                <span>{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
+                              </div>
+                              <Badge variant="outline">
+                                {expense.amount ? (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : "0.00"} {currencySymbol}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="percentage" className="mt-6">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          حدد نسبة كل عضو من إجمالي المبلغ
+                        </p>
+                        {/* محتوى تقسيم بالنسبة */}
+                      </TabsContent>
+
+                      <TabsContent value="custom" className="mt-6">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          حدد مبلغ محدد لكل عضو
+                        </p>
+                        {/* محتوى تقسيم مخصص */}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Summary Sidebar */}
+            <div className="space-y-6">
+              <Card className="bg-card border border-border shadow-card rounded-2xl">
                 <CardHeader>
-                  <CardTitle>أعضاء المجموعة</CardTitle>
+                  <CardTitle className="text-foreground">ملخص المصروف</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    {currentMembers.map(member => (
-                      <div key={member} className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {member[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm">{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">المبلغ الإجمالي:</span>
+                      <span className="font-medium">{expense.amount || "0.00"} {currencySymbol}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">عدد الأعضاء:</span>
+                      <span className="font-medium">{currentMembers.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">نصيب كل عضو:</span>
+                      <span className="font-medium">
+                        {expense.amount && currentMembers.length > 0 ? 
+                          (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : 
+                          "0.00"
+                        } {currencySymbol}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {selectedGroup && !approvers.includes(expense.paidBy) && (
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          ⚠️ هذا المصروف سيحتاج لاعتماد من مدير المجموعة
+                        </p>
                       </div>
-                    ))}
+                    )}
+                    
+                    <Button 
+                      onClick={handleSaveExpense}
+                      className="w-full"
+                      variant="hero"
+                      disabled={!selectedGroup || !expense.description || !expense.amount}
+                    >
+                      {approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              {selectedGroup && (
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle>أعضاء المجموعة</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {currentMembers.map(member => (
+                        <div key={member} className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                              {member[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
+        <div className="h-16 md:hidden" />
+        <BottomNav />
       </div>
-      <div className="h-16 md:hidden" />
-      <BottomNav />
-    </div>
 
-    <ManageCategoriesDialog
-      open={manageCategoriesOpen}
-      onOpenChange={setManageCategoriesOpen}
-      currentUserId={userId}
-    />
+      <ManageCategoriesDialog
+        open={manageCategoriesOpen}
+        onOpenChange={setManageCategoriesOpen}
+        currentUserId={userId}
+      />
+    </>
   );
 };
 
