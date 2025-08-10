@@ -88,6 +88,7 @@ const [approvers, setApprovers] = useState<string[]>([]);
 const [categories, setCategories] = useState<Array<{ id: string; name_ar: string }>>([]);
 const currencySymbol = "ر.س";
 const [receiptFile, setReceiptFile] = useState<File | null>(null);
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 const fileInputRef = useRef<HTMLInputElement>(null);
 const onPickFile = () => fileInputRef.current?.click();
 const onFileChange = async (e: any) => {
@@ -123,6 +124,16 @@ const onFileChange = async (e: any) => {
     setOcrProcessing(false);
   }
 };
+
+useEffect(() => {
+  if (receiptFile) {
+    const url = URL.createObjectURL(receiptFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  } else {
+    setPreviewUrl(null);
+  }
+}, [receiptFile]);
 
 useEffect(() => {
   const init = async () => {
@@ -338,6 +349,18 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         </div>
                       </div>
                     </div>
+                    {previewUrl && (
+                      <div className="mt-4">
+                        <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
+                          <img
+                            src={previewUrl}
+                            alt="صورة الإيصال المرفوعة للتحليل - إيصال بالعربية"
+                            className="w-full h-auto object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div className="flex gap-3">
                       <Button onClick={applyOcrResults} variant="secondary" className="flex-1">
                         <Check className="w-4 h-4 ml-2" />
@@ -372,7 +395,19 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                       </Button>
                       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFileChange} />
                     </div>
-                  </div>
+                      {previewUrl && (
+                        <div className="mt-6">
+                          <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
+                            <img
+                              src={previewUrl}
+                              alt="صورة الإيصال المرفوعة للتحليل - إيصال بالعربية"
+                              className="w-full h-auto object-contain"
+                              loading="lazy"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                 )}
               </CardContent>
             </Card>
