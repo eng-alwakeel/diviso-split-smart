@@ -582,6 +582,45 @@ export type Database = {
         }
         Relationships: []
       }
+      receipt_ocr: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          id: string
+          merchant: string | null
+          raw_text: string | null
+          receipt_date: string | null
+          storage_path: string
+          total: number | null
+          vat: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          id?: string
+          merchant?: string | null
+          raw_text?: string | null
+          receipt_date?: string | null
+          storage_path: string
+          total?: number | null
+          vat?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          id?: string
+          merchant?: string | null
+          raw_text?: string | null
+          receipt_date?: string | null
+          storage_path?: string
+          total?: number | null
+          vat?: number | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string

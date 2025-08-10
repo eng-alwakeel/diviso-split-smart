@@ -90,7 +90,39 @@ const currencySymbol = "ر.س";
 const [receiptFile, setReceiptFile] = useState<File | null>(null);
 const fileInputRef = useRef<HTMLInputElement>(null);
 const onPickFile = () => fileInputRef.current?.click();
-const onFileChange = (e: any) => { const f = e.target.files?.[0]; if (f) setReceiptFile(f); };
+const onFileChange = async (e: any) => {
+  const f = e.target.files?.[0];
+  if (!f || !userId) return;
+  setReceiptFile(f);
+  setOcrProcessing(true);
+  try {
+    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const tmpPath = `${userId}/tmp-${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('receipts').upload(tmpPath, f, { contentType: f.type, upsert: true });
+    if (upErr) throw upErr;
+
+    const { data: ocr, error: fnErr } = await supabase.functions.invoke('process_receipt', {
+      body: { file_path: tmpPath },
+    });
+    if (fnErr) throw fnErr as any;
+
+    if (ocr) {
+      setOcrResults(ocr);
+      setExpense((prev) => ({
+        ...prev,
+        description: ocr.merchant || prev.description,
+        amount: ocr.total ? String(ocr.total) : prev.amount,
+        date: ocr.date || prev.date,
+      }));
+      toast({ title: 'تم تحليل الإيصال!', description: 'تم استخراج المعلومات تلقائيًا' });
+    }
+  } catch (err: any) {
+    console.error('OCR error', err);
+    toast({ title: 'تعذر تحليل الإيصال', description: 'يمكنك إدخال البيانات يدويًا', variant: 'destructive' });
+  } finally {
+    setOcrProcessing(false);
+  }
+};
 
 useEffect(() => {
   const init = async () => {
