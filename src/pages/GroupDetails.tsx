@@ -32,6 +32,7 @@ import { InviteByLinkDialog } from "@/components/group/InviteByLinkDialog";
 import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
 import { useGroupData } from "@/hooks/useGroupData";
+import { GroupSettingsDialog } from "@/components/group/GroupSettingsDialog";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const GroupDetails = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { loading, error, group, members, profiles, expenses, balances, totals, refetch } = useGroupData(id);
 
@@ -52,6 +54,8 @@ const GroupDetails = () => {
     const me = members.find(m => m.user_id === currentUserId);
     return me ? (me.role === "admin" || me.role === "owner") : false;
   }, [members, currentUserId]);
+
+  const isOwner = currentUserId != null && group?.owner_id === currentUserId;
 
   const myBalance = useMemo(() => {
     if (!currentUserId) return 0;
@@ -139,6 +143,17 @@ const GroupDetails = () => {
       <AppHeader />
 
       <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} />
+      <GroupSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        groupId={id}
+        groupName={group?.name}
+        isOwner={isOwner}
+        canAdmin={canApprove}
+        onOpenInvite={() => setOpenInvite(true)}
+        onRenamed={() => refetch()}
+        onLeftGroup={() => navigate('/dashboard')}
+      />
 
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -168,7 +183,7 @@ const GroupDetails = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
                 <Settings className="w-4 h-4 ml-2" />
                 إعدادات
               </Button>
