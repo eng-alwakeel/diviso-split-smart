@@ -189,6 +189,11 @@ const GroupDetails = () => {
     toast({ title: 'تم حذف التسوية' });
     refetch();
   };
+  
+  const openReport = () => {
+    console.log('[GroupDetails] open report click');
+    setReportOpen(true);
+  };
 
   const memberCount = members.length;
   const budgetProgress = 0;
@@ -233,7 +238,7 @@ const GroupDetails = () => {
             العودة للوحة التحكم
           </Button>
           
-          <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-hidden">
+          <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-visible md:overflow-hidden">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <Avatar className="w-16 h-16">
@@ -251,7 +256,7 @@ const GroupDetails = () => {
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)} disabled={loading || !!error || !group}>
+                <Button variant="outline" size="sm" onClick={openReport} aria-expanded={reportOpen} disabled={loading || !!error || !group}>
                   <FileText className="w-4 h-4 ml-2" />
                   تقرير
                 </Button>
