@@ -158,6 +158,7 @@ const Settings = () => {
             <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
             <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
+            <TabsTrigger value="ads" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإعلانات</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -459,6 +460,59 @@ const Settings = () => {
                   <Save className="w-4 h-4 ml-2" />
                   حفظ الإعدادات
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Ads Admin Tab */}
+          <TabsContent value="ads" className="space-y-6">
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  إدارة الإعلانات
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">تفعيل الإعلانات لمستخدمي الخطة المجانية</p>
+                    <p className="text-sm text-muted-foreground">ads.enabled.free</p>
+                  </div>
+                  <Switch
+                    onCheckedChange={(checked) => localStorage.setItem('ads.enabled.free', checked ? 'true' : 'false')}
+                    defaultChecked={localStorage.getItem('ads.enabled.free') !== 'false'}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">بانر الصفحة الرئيسية</p>
+                    <p className="text-sm text-muted-foreground">home_banner</p>
+                  </div>
+                  <Switch
+                    onCheckedChange={(checked) => localStorage.setItem('ads.enabled.home_banner', checked ? 'true' : 'false')}
+                    defaultChecked={localStorage.getItem('ads.enabled.home_banner') !== 'false'}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">بطاقة عروض داخلية</p>
+                    <p className="text-sm text-muted-foreground">native_offer_card</p>
+                  </div>
+                  <Switch
+                    onCheckedChange={(checked) => localStorage.setItem('ads.enabled.native_offer_card', checked ? 'true' : 'false')}
+                    defaultChecked={localStorage.getItem('ads.enabled.native_offer_card') !== 'false'}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">لوحة صغيرة أسفل نتائج OCR</p>
+                    <p className="text-sm text-muted-foreground">postocr_tile</p>
+                  </div>
+                  <Switch
+                    onCheckedChange={(checked) => localStorage.setItem('ads.enabled.postocr_tile', checked ? 'true' : 'false')}
+                    defaultChecked={localStorage.getItem('ads.enabled.postocr_tile') !== 'false'}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

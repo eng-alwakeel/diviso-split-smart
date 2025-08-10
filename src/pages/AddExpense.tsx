@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 // Mock data
 const mockGroups = [
@@ -411,6 +412,9 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                 )}
               </CardContent>
             </Card>
+
+            {/* إعلان: أسفل نتائج OCR */}
+            <AdSlot placement="postocr_tile" />
 
             {/* Expense Details */}
             <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">

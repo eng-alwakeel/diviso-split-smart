@@ -1,1 +1,16 @@
 project_id = "iwthriddasxzbjddpzzf"
+
+[functions.neoleap_webhook]
+verify_jwt = false
+
+[functions.neoleap_create]
+verify_jwt = true
+
+[functions.send_invite]
+verify_jwt = true
+
+[functions.join_by_code]
+verify_jwt = true
+
+[functions.admin_upgrade]
+verify_jwt = true

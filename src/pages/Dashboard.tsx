@@ -23,6 +23,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 interface GroupRow {
   id: string;
@@ -219,6 +220,9 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
+
+          {/* Native ad offer card */}
+          <AdSlot placement="native_offer_card" />
 
           {/* Sidebar */}
           <div className="space-y-6">
