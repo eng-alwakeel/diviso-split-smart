@@ -23,7 +23,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
-import { PassCard } from "@/components/wallet/PassCard";
+
 
 interface GroupRow {
   id: string;
@@ -170,18 +170,24 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            <div className="relative">
-              <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 pr-1">
-                {groups.map((group) => (
-                  <PassCard
+            <div className="space-y-3">
+              {groups.length === 0 ? (
+                <div className="p-4 rounded-xl border border-border bg-card text-muted-foreground text-sm">
+                  لا توجد مجموعات حتى الآن.
+                </div>
+              ) : (
+                groups.map((group) => (
+                  <button
                     key={group.id}
-                    title={group.name}
-                    subtitle={`${group.members} أعضاء • ${group.expenses} مصروف`}
-                    amount={group.totalExpenses}
+                    type="button"
                     onClick={() => navigate(`/group/${group.id}`)}
-                  />
-                ))}
-              </div>
+                    className="w-full text-right rounded-xl border border-border bg-card p-4 hover:bg-secondary transition-colors"
+                    aria-label={group.name}
+                  >
+                    <span className="block truncate text-foreground font-medium">{group.name}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
