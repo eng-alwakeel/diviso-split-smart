@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +87,10 @@ const [currentMembers, setCurrentMembers] = useState<string[]>([]);
 const [approvers, setApprovers] = useState<string[]>([]);
 const [categories, setCategories] = useState<Array<{ id: string; name_ar: string }>>([]);
 const currencySymbol = "ر.س";
+const [receiptFile, setReceiptFile] = useState<File | null>(null);
+const fileInputRef = useRef<HTMLInputElement>(null);
+const onPickFile = () => fileInputRef.current?.click();
+const onFileChange = (e: any) => { const f = e.target.files?.[0]; if (f) setReceiptFile(f); };
 
 useEffect(() => {
   const init = async () => {
@@ -234,6 +238,21 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
       }
     }
 
+    // Upload receipt if selected
+    if (receiptFile) {
+      const ext = receiptFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${userId}/${inserted.id}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('receipts')
+        .upload(path, receiptFile, { contentType: receiptFile.type });
+
+      if (!upErr) {
+        await supabase.from('expense_receipts').insert([{ expense_id: inserted.id, storage_path: path }]);
+      } else {
+        toast({ title: "تم حفظ المصروف بدون صورة", description: "تعذر رفع الإيصال", variant: "destructive" });
+      }
+    }
+
     toast({ title: "تم حفظ المصروف", description: "تم إضافة المصروف بنجاح" });
     navigate('/dashboard');
   };
@@ -315,10 +334,11 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         <Camera className="w-4 h-4 ml-2" />
                         {ocrProcessing ? "جاري التحليل..." : "التقط صورة"}
                       </Button>
-                      <Button variant="outline">
+                      <Button variant="outline" onClick={onPickFile}>
                         <Upload className="w-4 h-4 ml-2" />
-                        رفع صورة
+                        رفع صورة{receiptFile ? " (محددة)" : ""}
                       </Button>
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
                     </div>
                   </div>
                 )}

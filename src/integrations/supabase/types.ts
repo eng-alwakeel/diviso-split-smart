@@ -222,6 +222,30 @@ export type Database = {
           },
         ]
       }
+      expense_receipts: {
+        Row: {
+          created_at: string
+          expense_id: string
+          id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          expense_id: string
+          id?: string
+          storage_path: string
+          uploaded_by?: string
+        }
+        Update: {
+          created_at?: string
+          expense_id?: string
+          id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       expense_splits: {
         Row: {
           created_at: string
