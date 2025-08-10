@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Star, Building2, User } from "lucide-react";
-
+import { Check, Star, Users, User } from "lucide-react";
+import { useState } from "react";
 const plans = [
   {
     name: "مجاني",
     icon: User,
-    price: "0",
-    period: "مجاناً إلى الأبد",
+    priceMonthly: "0",
+    priceYearly: "0",
     description: "مثالي للاستخدام الشخصي البسيط",
     features: [
       "حتى 3 مجموعات نشطة",
@@ -22,8 +22,8 @@ const plans = [
   {
     name: "شخصي",
     icon: Star,
-    price: "29",
-    period: "ريال/شهرياً",
+    priceMonthly: "19",
+    priceYearly: "190",
     description: "للأفراد والعائلات النشطة",
     features: [
       "مجموعات غير محدودة",
@@ -38,37 +38,58 @@ const plans = [
     popular: true
   },
   {
-    name: "الشركات",
-    icon: Building2,
-    price: "99",
-    period: "ريال/شهرياً لكل مستخدم",
-    description: "للشركات والمؤسسات",
+    name: "العائلية",
+    icon: Users,
+    priceMonthly: "39",
+    priceYearly: "390",
+    description: "مثالية للعائلات والمجموعات",
     features: [
       "جميع مزايا الباقة الشخصية",
-      "سياسات إنفاق مخصصة",
-      "تقارير تفصيلية للمديرين",
-      "تكامل مع أنظمة المحاسبة",
-      "لوحة تحكم إدارية",
-      "دعم 24/7",
-      "تدريب وإعداد مخصص"
+      "حتى 6 أعضاء في المجموعة",
+      "حدود مشتركة وسياسات إنفاق",
+      "تقارير للعائلة/المجموعة",
+      "موافقة على المصاريف",
+      "دعم أولوية"
     ],
-    buttonText: "تواصل معنا",
+    buttonText: "اشترك الآن",
     popular: false
   }
 ];
 
 export const PricingSection = () => {
+  const [isYearly, setIsYearly] = useState(false);
   return (
     <section id="pricing" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             اختر الباقة 
-            <span className="bg-gradient-primary bg-clip-text text-transparent"> المناسبة لك</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             باقات مرنة تناسب احتياجاتك، من الاستخدام الشخصي إلى إدارة الشركات
           </p>
+        </div>
+        <div className="flex items-center justify-center mb-10">
+          <div className="bg-muted inline-flex p-1 rounded-lg">
+            <Button
+              variant={isYearly ? "ghost" : "default"}
+              size="sm"
+              onClick={() => setIsYearly(false)}
+              className={!isYearly ? "shadow-elevated" : ""}
+              aria-pressed={!isYearly}
+            >
+              شهري
+            </Button>
+            <Button
+              variant={isYearly ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsYearly(true)}
+              className={isYearly ? "shadow-elevated" : ""}
+              aria-pressed={isYearly}
+            >
+              سنوي <span className="ml-2 text-xs text-primary">وفر 20%</span>
+            </Button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -101,10 +122,11 @@ export const PricingSection = () => {
                   <h3 className="text-2xl font-bold">{plan.name}</h3>
                   <p className="text-muted-foreground text-sm">{plan.description}</p>
                   
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground mr-2">{plan.period}</span>
-                  </div>
+                    <div className="mt-4">
+                      <span className="text-4xl font-bold">{isYearly ? plan.priceYearly : plan.priceMonthly}</span>
+                      <span className="text-muted-foreground mr-2">{isYearly ? "ريال/سنوياً" : "ريال/شهرياً"}</span>
+                      {isYearly && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
+                    </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
@@ -121,11 +143,12 @@ export const PricingSection = () => {
 
                   <div className="pt-6">
                     <Button 
+                      asChild
                       variant={plan.popular ? "hero" : "outline"} 
                       className="w-full"
                       size="lg"
                     >
-                      {plan.buttonText}
+                      <a href="/auth" aria-label={`البدء في خطة ${plan.name}`}>{plan.buttonText}</a>
                     </Button>
                   </div>
                 </CardContent>
