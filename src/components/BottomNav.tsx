@@ -7,7 +7,7 @@ export const BottomNav = () => {
     { to: "/dashboard", label: "الرئيسية", icon: Home },
     { to: "/add-expense", label: "مصروف", icon: Receipt },
     { to: "/financial-plan", label: "الخطة", icon: BarChart3 },
-    { to: "/referral", label: "الإحالة", icon: Share2 },
+    { to: "/referral-center", label: "الإحالة", icon: Share2 },
     { to: "/settings", label: "الإعدادات", icon: Settings },
   ];
 
@@ -18,7 +18,7 @@ export const BottomNav = () => {
     }`;
 
   return (
-    <nav className="fixed bottom-4 inset-x-0 z-50 md:hidden">
+    <nav className="fixed bottom-4 inset-x-0 z-50 lg:hidden">
       <div className="mx-auto max-w-md px-4 pb-[env(safe-area-inset-bottom)]">
         <div className="rounded-2xl border border-border/60 bg-background/70 backdrop-blur shadow-elevated supports-[backdrop-filter]:bg-background/60">
           <ul className="flex items-stretch justify-between">

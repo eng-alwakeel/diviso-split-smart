@@ -83,13 +83,13 @@ const Dashboard = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
+        <div className="mb-8 hidden md:block">
           <h1 className="text-3xl font-bold text-foreground mb-2">مرحباً بك في ديفيزو!</h1>
           <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
         </div>
 
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="hidden md:grid md:grid-cols-4 gap-6 mb-8">
           {/* Total Expenses Card */}
           <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
             <CardContent className="p-6">
@@ -256,7 +256,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <div className="h-24 md:hidden" />
+      <div className="h-24 lg:hidden" />
       <BottomNav />
     </div>
   );
