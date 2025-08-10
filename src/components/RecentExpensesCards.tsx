@@ -18,12 +18,13 @@ interface RecentExpensesCardsProps {
 // Stacked, hover-reveal expense cards (up to 10)
 // Uses design system semantic tokens and subtle animations
 const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
-  const palette = [
-    "bg-primary/10",
-    "bg-accent/10",
-    "bg-secondary/20",
-    "bg-muted",
+  const colorClasses = [
+    "bg-group-card text-card-foreground",
+    "bg-total-card text-card-foreground",
+    "bg-referral-card text-card-foreground",
+    "bg-secondary text-secondary-foreground",
   ];
+  const overlap = -24; // match WalletStack overlap
 
   const visible = items.slice(0, 10);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -32,41 +33,30 @@ const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
   return (
     <div aria-label="آخر 10 مصاريف" className="relative">
       {visible.map((item, i) => {
-        const bg = palette[i % palette.length];
+        const color = colorClasses[i % colorClasses.length];
         return (
           <div
             key={item.id}
-            className={cn(
-              "group relative",
-              (selectedId === item.id) ? "" : i === 0 ? "" : "-mt-6 md:-mt-8"
-            )}
-            style={{ zIndex: (selectedId === item.id) ? 1000 : 10 + i }}
+            className="group relative animate-fade-in"
+            style={{ zIndex: (selectedId === item.id) ? 1000 : 10 + i, marginTop: (selectedId === item.id || i === 0) ? 0 : overlap }}
           >
             <div className={cn(
               "rounded-2xl p-[2px] transition-colors",
               selectedId === item.id ? "bg-primary" : "bg-primary/40 group-hover:bg-primary/60"
             )}>
-              <div
+              <button
+                type="button"
                 className={cn(
-                  "relative rounded-[14px] border border-border shadow-sm p-4 transition-all overflow-hidden",
+                  "w-full text-right relative rounded-[14px] border border-border shadow-sm p-6 transition-all duration-300 overflow-hidden",
                   selectedId === item.id ? "h-40 md:h-48 ring-2 ring-primary scale-[1.03] -translate-y-1" : "h-24 md:h-28",
-                  "hover:scale-[1.01] hover:shadow-md focus-within:scale-[1.01]",
-                  "hover:ring-2 focus:ring-2 ring-primary/40",
+                  "hover:scale-[1.01] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring",
                   "will-change-transform",
-                  bg
+                  color
                 )}
-                role="button"
-                tabIndex={0}
                 aria-label={`${item.title} - ${item.amount.toLocaleString()} ر.س`}
                 aria-pressed={selectedId === item.id}
                 aria-expanded={selectedId === item.id}
                 onClick={() => handleToggle(item.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleToggle(item.id);
-                  }
-                }}
               >
                 {/* Top row */}
                 <div className="flex items-start justify-between text-foreground">
@@ -85,7 +75,7 @@ const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
                 {/* Expanded summary when selected */}
                 {selectedId === item.id && (
                   <div className="mt-4 pt-3 border-t border-border/50">
-                    <div className="grid grid-cols-2 gap-4 text-foreground">
+                    <div className="grid grid-cols-2 gap-4 text-center">
                       <div>
                         <p className="text-[11px] text-muted-foreground">حالتي</p>
                         {item.isPayer ? (
@@ -96,7 +86,7 @@ const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
                           </p>
                         )}
                       </div>
-                      <div className="text-left">
+                      <div>
                         <p className="text-[11px] text-muted-foreground">التفاصيل</p>
                         <p className="text-sm font-medium truncate">{item.title}</p>
                         <p className="text-xs text-muted-foreground truncate mt-0.5">{item.groupName} • {item.date}</p>
@@ -130,7 +120,7 @@ const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
                     </div>
                   </div>
                 )}
-              </div>
+              </button>
             </div>
           </div>
         );
