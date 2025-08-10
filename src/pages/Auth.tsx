@@ -7,10 +7,12 @@ import { AppHeader } from "@/components/AppHeader";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { startTrial } = useSubscription();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,15 +20,38 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const location = window.location;
+    const params = new URLSearchParams(location.search);
+    const trialPlan = params.get("startTrial");
+    const redirectTo = params.get("redirectTo") || "/dashboard";
+
     // Listen first, then get existing session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) navigate("/dashboard");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        if (trialPlan === "personal" || trialPlan === "family") {
+          setTimeout(async () => {
+            try { await startTrial(trialPlan as any); } catch {}
+            navigate(redirectTo, { replace: true });
+          }, 0);
+        } else {
+          navigate("/dashboard");
+        }
+      }
     });
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) navigate("/dashboard");
+      if (data.session?.user) {
+        if (trialPlan === "personal" || trialPlan === "family") {
+          setTimeout(async () => {
+            try { await startTrial(trialPlan as any); } catch {}
+            navigate(redirectTo, { replace: true });
+          }, 0);
+        } else {
+          navigate("/dashboard");
+        }
+      }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, startTrial]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -36,7 +61,6 @@ const Auth = () => {
       toast({ title: "خطأ في تسجيل الدخول", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "تم تسجيل الدخول" });
-      navigate("/dashboard");
     }
   };
 

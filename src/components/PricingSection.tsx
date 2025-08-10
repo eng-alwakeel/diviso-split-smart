@@ -2,6 +2,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Star, Users, User } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
 const plans = [
   {
     name: "مجاني",
@@ -58,6 +61,8 @@ const plans = [
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
+  const { startTrial } = useSubscription();
+  const { toast } = useToast();
   return (
     <section id="pricing" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -142,14 +147,42 @@ export const PricingSection = () => {
                   </ul>
 
                   <div className="pt-6">
-                    <Button 
-                      asChild
-                      variant={plan.popular ? "hero" : "outline"} 
-                      className="w-full"
-                      size="lg"
-                    >
-                      <a href="/auth" aria-label={`البدء في خطة ${plan.name}`}>{plan.buttonText}</a>
-                    </Button>
+                    {plan.name === "مجاني" ? (
+                      <Button 
+                        asChild
+                        variant={plan.popular ? "hero" : "outline"}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <a href="/auth" aria-label={`البدء في خطة ${plan.name}`}>ابدأ مجاناً</a>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={plan.popular ? "hero" : "outline"}
+                        className="w-full"
+                        size="lg"
+                        onClick={async () => {
+                          const planKey = plan.name === "شخصي" ? "personal" : "family";
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session?.user) {
+                            const params = new URLSearchParams({ startTrial: planKey, redirectTo: "/dashboard" });
+                            window.location.href = `/auth?${params.toString()}`;
+                            return;
+                          }
+                          const res = await startTrial(planKey as any);
+                          if ((res as any).error) {
+                            const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
+                            toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
+                          } else {
+                            toast({ title: "بدأت التجربة المجانية", description: "صالحة لمدة ٧ أيام" });
+                            window.location.href = "/dashboard";
+                          }
+                        }}
+                        aria-label={`ابدأ تجربة ٧ أيام لخطة ${plan.name}`}
+                      >
+                        ابدأ تجربة ٧ أيام
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

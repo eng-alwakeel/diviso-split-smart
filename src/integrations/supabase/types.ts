@@ -711,6 +711,42 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       v_budget_summary: {
@@ -803,6 +839,8 @@ export type Database = {
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
       referral_status: "pending" | "joined" | "blocked"
+      subscription_plan: "personal" | "family"
+      subscription_status: "trialing" | "active" | "expired" | "canceled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -935,6 +973,8 @@ export const Constants = {
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
       referral_status: ["pending", "joined", "blocked"],
+      subscription_plan: ["personal", "family"],
+      subscription_status: ["trialing", "active", "expired", "canceled"],
     },
   },
 } as const
