@@ -199,6 +199,8 @@ const GroupDetails = () => {
   const budgetProgress = 0;
   const currencyLabel = "ر.س";
 
+  const membersLabel = (n: number) => (n === 1 ? "عضو" : n === 2 ? "عضوان" : "أعضاء");
+
   return (
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
@@ -239,32 +241,32 @@ const GroupDetails = () => {
           </Button>
           
           <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-visible md:overflow-hidden">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
-                <Avatar className="w-16 h-16">
+                <Avatar className="w-12 h-12 md:w-16 md:h-16">
                   <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
                     {(group?.name || "م").slice(0,1)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <h1 className="text-2xl md:text-3xl font-extrabold truncate">{group?.name ?? "..."}</h1>
+                  <h1 className="text-xl md:text-3xl font-extrabold break-words">{group?.name ?? "..."}</h1>
                   <div className="flex items-center gap-2 mt-2 text-xs md:text-sm text-muted-foreground flex-wrap">
-                    <span>{memberCount} أعضاء</span>
+                    <span>{memberCount} {membersLabel(memberCount)}</span>
                     <span className="opacity-40">•</span>
                     <span>{totals.totalExpenses.toLocaleString()} {currencyLabel}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Button variant="outline" size="sm" onClick={openReport} aria-expanded={reportOpen} disabled={loading || !!error || !group}>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Button className="flex-1 md:flex-none" variant="outline" size="sm" onClick={openReport} aria-expanded={reportOpen} disabled={loading || !!error || !group}>
                   <FileText className="w-4 h-4 ml-2" />
                   تقرير
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+                <Button className="flex-1 md:flex-none" variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
                   <Settings className="w-4 h-4 ml-2" />
                   إعدادات
                 </Button>
-                <Button variant="hero" size="sm" onClick={() => navigate('/add-expense')}>
+                <Button className="flex-1 md:flex-none" variant="hero" size="sm" onClick={() => navigate('/add-expense')}>
                   <Plus className="w-4 h-4 ml-2" />
                   إضافة مصروف
                 </Button>
