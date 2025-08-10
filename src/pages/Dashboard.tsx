@@ -24,7 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { WalletStack } from "@/components/wallet/WalletStack";
-
+import RecentExpensesCards from "@/components/RecentExpensesCards";
 
 interface GroupRow {
   id: string;
@@ -35,16 +35,19 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("overview");
   const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
-  const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null }>>([]);
+  const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null; payer_id: string | null }>>([]);
   const [myPaid, setMyPaid] = useState(0);
   const [myOwed, setMyOwed] = useState(0);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupPaidMap, setGroupPaidMap] = useState<Record<string, number>>({});
   const [groupOwedMap, setGroupOwedMap] = useState<Record<string, number>>({});
+  const [mySplitByExpense, setMySplitByExpense] = useState<Record<string, number>>({});
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
     const load = async () => {
       const { data: session } = await supabase.auth.getSession();
       const uid = session.session?.user.id;
+      setCurrentUserId(uid ?? null);
       if (!uid) return;
       const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
       const ids = (memberships ?? []).map((m: any) => m.group_id);
@@ -84,6 +87,7 @@ const Dashboard = () => {
 
       let owedTotal = 0;
       const owedByGroup: Record<string, number> = {};
+      const mySplitMap: Record<string, number> = {};
       const expenseIds = (expenseRows ?? []).map((e: any) => e.id);
       if (expenseIds.length) {
         const { data: mySplits } = await supabase
@@ -93,12 +97,14 @@ const Dashboard = () => {
           .in('expense_id', expenseIds);
         (mySplits ?? []).forEach((sp: any) => {
           const gid = expenseIdToGroup[sp.expense_id];
+          mySplitMap[sp.expense_id] = Number(sp.share_amount || 0);
           if (gid) {
             owedByGroup[gid] = (owedByGroup[gid] || 0) + Number(sp.share_amount || 0);
             owedTotal += Number(sp.share_amount || 0);
           }
         });
       }
+      setMySplitByExpense(mySplitMap);
       setMyPaid(paidTotal);
       setMyOwed(owedTotal);
       setGroupPaidMap(paidByGroup);
@@ -124,10 +130,10 @@ const Dashboard = () => {
 
       const { data: latest } = await supabase
         .from('expenses')
-        .select('id, description, amount, group_id, spent_at, created_at')
+        .select('id, description, amount, group_id, spent_at, created_at, payer_id')
         .in('group_id', ids)
         .order('spent_at', { ascending: false })
-        .limit(3);
+        .limit(10);
       setRecentExpenses(latest ?? []);
     };
     load();
@@ -295,18 +301,17 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {recentExpenses.map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
-                    <div className="text-foreground">
-                      <p className="font-medium text-sm">{expense.description ?? 'مصروف'}</p>
-                      <p className="text-xs text-muted-foreground">{groups.find(g => g.id === expense.group_id)?.name ?? ''}</p>
-                    </div>
-                    <div className="text-right text-foreground">
-                      <p className="font-bold text-primary">{Number(expense.amount).toLocaleString()} ر.س</p>
-                      <p className="text-xs text-muted-foreground">{(expense.spent_at ?? expense.created_at ?? '').toString().slice(0,10)}</p>
-                    </div>
-                  </div>
-                ))}
+                <RecentExpensesCards
+                  items={recentExpenses.map((e) => ({
+                    id: e.id,
+                    title: e.description ?? 'مصروف',
+                    amount: Number(e.amount ?? 0),
+                    date: (e.spent_at ?? e.created_at ?? '').toString().slice(0, 10),
+                    groupName: groups.find(g => g.id === e.group_id)?.name ?? '',
+                    myShare: mySplitByExpense[e.id],
+                    isPayer: !!(e.payer_id && currentUserId && e.payer_id === currentUserId),
+                  }))}
+                />
                 <Button 
                   variant="outline" 
                   className="w-full border-border hover:bg-secondary"
