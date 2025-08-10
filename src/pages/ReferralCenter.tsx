@@ -23,28 +23,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Dynamic referral data based on current user
-const [userId, setUserId] = useState<string | null>(null);
-useEffect(() => {
-  supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-}, []);
+// NOTE: Removed invalid hook calls at module scope.
+// Keep only plain constants outside components.
 
-const referralLink = useMemo(
-  () => (userId ? `${window.location.origin}/auth?startTrial=personal&ref=${userId}` : "")
-, [userId]);
-const referralCode = useMemo(
-  () => (userId ? userId.slice(0, 8).toUpperCase() : "------")
-, [userId]);
-
-const referralData = {
-  totalReferrals: 0,
-  successfulReferrals: 0,
-  freeDaysEarned: 0,
-  freeDaysRemaining: 0,
-  referralCode,
-  referralLink,
-};
-
+// Static referral history can remain at module scope
 const referralHistory = [
   {
     id: 1,
@@ -117,6 +99,31 @@ const ReferralCenter = () => {
   const { toast } = useToast();
   const [newReferralPhone, setNewReferralPhone] = useState("");
 
+  // Moved: Dynamic referral data based on current user (hooks must be inside component)
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
+
+  const referralLink = useMemo(
+    () => (userId ? `${window.location.origin}/auth?startTrial=personal&ref=${userId}` : ""),
+    [userId]
+  );
+
+  const referralCode = useMemo(
+    () => (userId ? userId.slice(0, 8).toUpperCase() : "------"),
+    [userId]
+  );
+
+  const referralData = {
+    totalReferrals: 0,
+    successfulReferrals: 0,
+    freeDaysEarned: 0,
+    freeDaysRemaining: 0,
+    referralCode,
+    referralLink,
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -156,7 +163,10 @@ const ReferralCenter = () => {
     }
   };
 
-  const successRate = (referralData.successfulReferrals / referralData.totalReferrals) * 100;
+  // Guard against division by zero to avoid NaN
+  const successRate = referralData.totalReferrals > 0
+    ? (referralData.successfulReferrals / referralData.totalReferrals) * 100
+    : 0;
 
   return (
     <div className="min-h-screen bg-dark-background">
