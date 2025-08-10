@@ -17,16 +17,9 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
   groupsCount,
   recentCount,
 }) => {
-  const data = [
-    { name: "مدفوع", value: Math.max(0, Math.round(paid)), fill: "var(--color-مدفوع)" },
-    { name: "مستحق", value: Math.max(0, Math.round(owed)), fill: "var(--color-مستحق)" },
-  ];
-
   const net = Math.round(paid - owed);
-  const totalPie = Math.max(1, data.reduce((s, d) => s + d.value, 0));
-
-  const paidPct = Math.round((Math.max(0, paid) / totalPie) * 100);
-  const owedPct = 100 - paidPct;
+  const total = Math.max(1, Math.max(0, paid) + Math.max(0, owed));
+  const paidPct = Math.round((Math.max(0, paid) / total) * 100);
 
   return (
     <Card className="bg-card border border-border rounded-2xl">
@@ -34,28 +27,9 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
         <CardTitle className="text-foreground text-base">الملخص</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="relative">
-          <div className="h-6 rounded-2xl bg-muted border border-border overflow-hidden flex">
-            <div
-              className="h-full bg-accent"
-              style={{ width: `${paidPct}%` }}
-              aria-label={`مدفوع ${paidPct}%`}
-            />
-            <div
-              className="h-full bg-destructive/80"
-              style={{ width: `${owedPct}%` }}
-              aria-label={`مستحق ${owedPct}%`}
-            />
-          </div>
-          {/* Center label */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground">الصافي</div>
-              <div className="text-lg font-bold text-foreground">
-                {net.toLocaleString()} ر.س
-              </div>
-            </div>
-          </div>
+        <div className="text-sm text-foreground">
+          <span className="text-muted-foreground">الصافي:</span>{" "}
+          <span className="font-bold">{net.toLocaleString()} ر.س</span>
         </div>
 
         {/* Stats grid */}
@@ -103,7 +77,7 @@ const MobileSummary: React.FC<MobileSummaryProps> = ({
               <div>
                 <div className="text-xs text-muted-foreground">نسبة المدفوع</div>
                 <div className="text-sm font-bold text-foreground">
-                  {Math.round((Math.max(0, paid) / totalPie) * 100)}%
+                  {paidPct}%
                 </div>
               </div>
                 <div className="w-9 h-9 rounded-xl bg-accent/20 flex items-center justify-center">
