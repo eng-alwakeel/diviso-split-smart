@@ -41,7 +41,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
               <NavLink to="/financial-plan" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
                 الخطة
               </NavLink>
-              <NavLink to="/referral-center" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
+              <NavLink to="/referral" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
                 الإحالة
               </NavLink>
               <NavLink to="/settings" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>

@@ -238,7 +238,7 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   className="w-full border-border hover:bg-secondary justify-start"
-                  onClick={() => navigate('/referral-center')}
+                  onClick={() => navigate('/referral')}
                 >
                   <Share2 className="w-4 h-4 ml-2" />
                   مركز الإحالة

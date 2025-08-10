@@ -7,7 +7,7 @@ export const BottomNav = () => {
     { to: "/dashboard", label: "الرئيسية", icon: Home },
     { to: "/add-expense", label: "مصروف", icon: Receipt },
     { to: "/financial-plan", label: "الخطة", icon: BarChart3 },
-    { to: "/referral-center", label: "الإحالة", icon: Share2 },
+    { to: "/referral", label: "الإحالة", icon: Share2 },
     { to: "/settings", label: "الإعدادات", icon: Settings },
   ];
 
