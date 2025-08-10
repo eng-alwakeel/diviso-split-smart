@@ -66,6 +66,9 @@ All colors MUST be HSL.
     --shadow-elevated: 0 20px 60px -15px hsl(73 66% 71% / 0.3);
     --shadow-accent: 0 8px 32px -8px hsl(73 66% 71% / 0.25);
 
+    /* Header */
+    --header-background: 165 10% 16%;
+
     --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;

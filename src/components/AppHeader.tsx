@@ -11,7 +11,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-secondary border-b border-border sticky top-0 z-50">
+    <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
           {/* Left: Notifications */}
