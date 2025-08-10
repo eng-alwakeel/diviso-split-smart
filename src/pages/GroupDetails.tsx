@@ -43,7 +43,7 @@ import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog"
 const GroupDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { id } = useParams();
+  const { id: rawId } = useParams();
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -52,6 +52,17 @@ const GroupDetails = () => {
   const [settleOpen, setSettleOpen] = useState(false);
   const [prefillTo, setPrefillTo] = useState<string | undefined>(undefined);
   const [prefillAmount, setPrefillAmount] = useState<number | undefined>(undefined);
+
+  // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
+  const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+  const id = rawId && rawId !== ":id" && isValidUUID(rawId) ? rawId : undefined;
+
+  useEffect(() => {
+    if (rawId && (rawId === ":id" || !isValidUUID(rawId))) {
+      toast({ title: "معرّف المجموعة غير صالح", description: "تمت إعادتك للوحة التحكم.", variant: "destructive" });
+      navigate('/dashboard');
+    }
+  }, [rawId, navigate, toast]);
 
   const { loading, error, group, members, profiles, expenses, balances, settlements, totals, refetch } = useGroupData(id);
 
@@ -240,7 +251,7 @@ const GroupDetails = () => {
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)} disabled={loading}>
+                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)} disabled={loading || !!error || !group}>
                   <FileText className="w-4 h-4 ml-2" />
                   تقرير
                 </Button>

@@ -65,7 +65,12 @@ const [balances, setBalances] = useState<BalanceRow[]>([]);
 const [settlements, setSettlements] = useState<SettlementRow[]>([]);
 
   const load = async () => {
-    if (!groupId) return;
+    const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+    if (!groupId || !isValidUUID(groupId)) {
+      setError("Invalid group id");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     console.log("[useGroupData] loading for group:", groupId);
