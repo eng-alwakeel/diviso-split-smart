@@ -4,6 +4,8 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 export interface WalletItem {
   id: string;
   name: string;
+  totalPaid?: number;
+  totalOwed?: number;
 }
 
 interface WalletStackProps {
@@ -62,18 +64,38 @@ export const WalletStack: React.FC<WalletStackProps> = ({ items, selectedId, onS
               key={item.id}
               role="listitem"
               className="relative animate-fade-in"
-              style={{ zIndex: z, marginTop: negativeOffset }}
+              style={{ zIndex: isSelected ? 1000 : z, marginTop: isSelected ? 0 : negativeOffset }}
             >
               <div className={`rounded-2xl p-[2px] ${isSelected ? "bg-primary" : "bg-primary/40"}`}>
                 <button
                   type="button"
                   aria-label={item.name}
                   aria-pressed={isSelected}
+                  aria-expanded={isSelected}
                   onClick={() => onSelect?.(item.id)}
-                  className={`w-full text-right rounded-[14px] border border-border ${color} p-6 h-24 md:h-28 shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring hover:scale-[1.01] ${isSelected ? "ring-2 ring-primary scale-[1.02]" : ""}`}
+                  className={`w-full text-right rounded-[14px] border border-border ${color} p-6 ${isSelected ? "h-40 md:h-48" : "h-24 md:h-28"} shadow-sm transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring hover:scale-[1.01] ${isSelected ? "ring-2 ring-primary scale-[1.03] -translate-y-1" : ""}`}
                 >
                   <span className="block truncate text-foreground/70 text-xs mb-1">المجموعة</span>
                   <span className="block truncate text-xl font-semibold text-foreground">{item.name}</span>
+
+                  {isSelected && (typeof item.totalPaid === "number" || typeof item.totalOwed === "number") && (
+                    <div className="mt-4 pt-3 border-t border-border/50">
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                          <p className="text-xs text-muted-foreground">دفعت</p>
+                          <p className="text-lg font-bold text-primary">
+                            {(item.totalPaid ?? 0).toLocaleString()} ر.س
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">عليّ</p>
+                          <p className="text-lg font-bold text-primary">
+                            {(item.totalOwed ?? 0).toLocaleString()} ر.س
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </button>
               </div>
             </div>

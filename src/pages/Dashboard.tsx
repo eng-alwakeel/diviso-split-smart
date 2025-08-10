@@ -267,35 +267,6 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            {/* Summary above the stack */}
-            <Card
-              className="bg-card border border-border rounded-2xl cursor-pointer transition-colors hover:bg-secondary/40 focus:outline-none focus:ring-2 focus:ring-ring"
-              role="button"
-              tabIndex={0}
-              onClick={navigateToSelectedGroup}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  navigateToSelectedGroup();
-                }
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="grid grid-cols-2 gap-4 text-center text-foreground">
-                  <div>
-                    <p className="text-xs text-muted-foreground">دفعت</p>
-                    <p className="text-lg font-bold text-primary">{selectedPaid.toLocaleString()} ر.س</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">عليّ</p>
-                    <p className="text-lg font-bold text-primary">{selectedOwed.toLocaleString()} ر.س</p>
-                  </div>
-                </div>
-                {selectedGroupId && (
-                  <p className="mt-3 text-center text-xs text-muted-foreground">اضغط لعرض تفاصيل المجموعة</p>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Wallet-style stacked group cards */}
             <div className="mt-4">
@@ -305,7 +276,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <WalletStack
-                  items={groups.map((g) => ({ id: g.id, name: g.name }))}
+                  items={groups.map((g) => ({ id: g.id, name: g.name, totalPaid: groupPaidMap[g.id] ?? 0, totalOwed: groupOwedMap[g.id] ?? 0 }))}
                   selectedId={selectedGroupId ?? undefined}
                   onSelect={selectGroup}
                   onPrev={goPrev}
