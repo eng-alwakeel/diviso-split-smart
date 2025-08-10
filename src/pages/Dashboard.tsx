@@ -23,6 +23,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { WalletStack } from "@/components/wallet/WalletStack";
 
 
 interface GroupRow {
@@ -170,23 +171,37 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            <div className="space-y-3">
+            {/* Summary above the stack */}
+            <Card className="bg-card border border-border rounded-2xl">
+              <CardContent className="p-4">
+                <div className="grid grid-cols-3 gap-4 text-center text-foreground">
+                  <div>
+                    <p className="text-xs text-muted-foreground">المجموعات</p>
+                    <p className="text-lg font-bold text-primary">{groups.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">إجمالي المصروفات</p>
+                    <p className="text-lg font-bold text-primary">{currentSpending.toLocaleString()} ر.س</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">المصاريف الأخيرة</p>
+                    <p className="text-lg font-bold text-primary">{recentExpenses.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Wallet-style stacked group cards */}
+            <div className="mt-4">
               {groups.length === 0 ? (
                 <div className="p-4 rounded-xl border border-border bg-card text-muted-foreground text-sm">
                   لا توجد مجموعات حتى الآن.
                 </div>
               ) : (
-                groups.map((group) => (
-                  <button
-                    key={group.id}
-                    type="button"
-                    onClick={() => navigate(`/group/${group.id}`)}
-                    className="w-full text-right rounded-xl border border-border bg-card p-4 hover:bg-secondary transition-colors"
-                    aria-label={group.name}
-                  >
-                    <span className="block truncate text-foreground font-medium">{group.name}</span>
-                  </button>
-                ))
+                <WalletStack
+                  items={groups.map((g) => ({ id: g.id, name: g.name }))}
+                  onSelect={(id) => navigate(`/group/${id}`)}
+                />
               )}
             </div>
           </div>
