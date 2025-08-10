@@ -26,6 +26,8 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ManageCategoriesDialog } from "@/components/categories/ManageCategoriesDialog";
+import { useCategories } from "@/hooks/useCategories";
 
 // Mock data
 const mockGroups = [
@@ -79,112 +81,123 @@ const AddExpense = () => {
   const [customSplits, setCustomSplits] = useState({});
   const [receiptImage, setReceiptImage] = useState(null);
   const [ocrProcessing, setOcrProcessing] = useState(false);
-const [ocrResults, setOcrResults] = useState(null);
-const [userId, setUserId] = useState<string | null>(null);
-const [userGroups, setUserGroups] = useState<Array<{ id: string; name: string }>>([]);
-const [loadingGroups, setLoadingGroups] = useState(false);
-const [currentMembers, setCurrentMembers] = useState<string[]>([]);
-const [approvers, setApprovers] = useState<string[]>([]);
-const [categories, setCategories] = useState<Array<{ id: string; name_ar: string }>>([]);
-const currencySymbol = "ر.س";
-const [receiptFile, setReceiptFile] = useState<File | null>(null);
-const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-const fileInputRef = useRef<HTMLInputElement>(null);
-const onPickFile = () => fileInputRef.current?.click();
-const onFileChange = async (e: any) => {
-  const f = e.target.files?.[0];
-  if (!f || !userId) return;
-  setReceiptFile(f);
-  setOcrProcessing(true);
-  try {
-    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const tmpPath = `${userId}/tmp-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from('receipts').upload(tmpPath, f, { contentType: f.type, upsert: true });
-    if (upErr) throw upErr;
+  const [ocrResults, setOcrResults] = useState(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userGroups, setUserGroups] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [currentMembers, setCurrentMembers] = useState<string[]>([]);
+  const [approvers, setApprovers] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name_ar: string }>>([]);
+  const currencySymbol = "ر.س";
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const onPickFile = () => fileInputRef.current?.click();
+  const onFileChange = async (e: any) => {
+    const f = e.target.files?.[0];
+    if (!f || !userId) return;
+    setReceiptFile(f);
+    setOcrProcessing(true);
+    try {
+      const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const tmpPath = `${userId}/tmp-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('receipts').upload(tmpPath, f, { contentType: f.type, upsert: true });
+      if (upErr) throw upErr;
 
-    const { data: ocr, error: fnErr } = await supabase.functions.invoke('process_receipt', {
-      body: { file_path: tmpPath },
-    });
-    if (fnErr) throw fnErr as any;
+      const { data: ocr, error: fnErr } = await supabase.functions.invoke('process_receipt', {
+        body: { file_path: tmpPath },
+      });
+      if (fnErr) throw fnErr as any;
 
-    if (ocr) {
-      setOcrResults(ocr);
-      setExpense((prev) => ({
-        ...prev,
-        description: ocr.merchant || prev.description,
-        amount: ocr.total ? String(ocr.total) : prev.amount,
-        date: ocr.date || prev.date,
-      }));
-      toast({ title: 'تم تحليل الإيصال!', description: 'تم استخراج المعلومات تلقائيًا' });
+      if (ocr) {
+        setOcrResults(ocr);
+        setExpense((prev) => ({
+          ...prev,
+          description: ocr.merchant || prev.description,
+          amount: ocr.total ? String(ocr.total) : prev.amount,
+          date: ocr.date || prev.date,
+        }));
+        toast({ title: 'تم تحليل الإيصال!', description: 'تم استخراج المعلومات تلقائيًا' });
+      }
+    } catch (err: any) {
+      console.error('OCR error', err);
+      toast({ title: 'تعذر تحليل الإيصال', description: 'يمكنك إدخال البيانات يدويًا', variant: 'destructive' });
+    } finally {
+      setOcrProcessing(false);
     }
-  } catch (err: any) {
-    console.error('OCR error', err);
-    toast({ title: 'تعذر تحليل الإيصال', description: 'يمكنك إدخال البيانات يدويًا', variant: 'destructive' });
-  } finally {
-    setOcrProcessing(false);
-  }
-};
+  };
 
-useEffect(() => {
-  if (receiptFile) {
-    const url = URL.createObjectURL(receiptFile);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  } else {
-    setPreviewUrl(null);
-  }
-}, [receiptFile]);
-
-useEffect(() => {
-  const init = async () => {
-    setLoadingGroups(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoadingGroups(false); return; }
-    setUserId(user.id);
-    setExpense(prev => ({ ...prev, paidBy: user.id }));
-
-    const { data: memberships } = await supabase
-      .from('group_members')
-      .select('group_id')
-      .eq('user_id', user.id);
-
-    const ids = (memberships || []).map((m: any) => m.group_id);
-    if (ids.length > 0) {
-      const { data: groupsData } = await supabase
-        .from('groups')
-        .select('id,name')
-        .in('id', ids);
-      const mapped = (groupsData || []).map((g: any) => ({ id: g.id as string, name: g.name as string }));
-      setUserGroups(mapped);
-      if (!selectedGroup && mapped.length > 0) setSelectedGroup(mapped[0].id);
+  // مزامنة الفئات عبر React Query حتى تنعكس الإضافات/التعديلات فوراً
+  const { categories: allCategories } = useCategories();
+  useEffect(() => {
+    if (allCategories && allCategories.length >= 0) {
+      setCategories(allCategories.map(c => ({ id: c.id, name_ar: c.name_ar })));
     }
+  }, [allCategories]);
 
-    const { data: cats } = await supabase.from('categories').select('id,name_ar');
-    setCategories(cats || []);
-    setLoadingGroups(false);
-  };
-  init();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
+  // فتح/إغلاق إدارة الفئات
+  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
 
-useEffect(() => {
-  const loadMembers = async () => {
-    if (!selectedGroup) { setCurrentMembers([]); setApprovers([]); return; }
-    const { data: members } = await supabase
-      .from('group_members')
-      .select('user_id, role')
-      .eq('group_id', selectedGroup);
+  useEffect(() => {
+    if (receiptFile) {
+      const url = URL.createObjectURL(receiptFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [receiptFile]);
 
-    const memberIds = (members || []).map((m: any) => m.user_id as string);
-    const approverIds = (members || []).filter((m: any) => ['admin','owner'].includes(m.role)).map((m: any) => m.user_id as string);
-    setCurrentMembers(memberIds);
-    setApprovers(approverIds);
-  };
-  loadMembers();
-}, [selectedGroup]);
+  useEffect(() => {
+    const init = async () => {
+      setLoadingGroups(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoadingGroups(false); return; }
+      setUserId(user.id);
+      setExpense(prev => ({ ...prev, paidBy: user.id }));
 
-const allGroups = userGroups;
-const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
+      const { data: memberships } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', user.id);
+
+      const ids = (memberships || []).map((m: any) => m.group_id);
+      if (ids.length > 0) {
+        const { data: groupsData } = await supabase
+          .from('groups')
+          .select('id,name')
+          .in('id', ids);
+        const mapped = (groupsData || []).map((g: any) => ({ id: g.id as string, name: g.name as string }));
+        setUserGroups(mapped);
+        if (!selectedGroup && mapped.length > 0) setSelectedGroup(mapped[0].id);
+      }
+
+      const { data: cats } = await supabase.from('categories').select('id,name_ar');
+      setCategories(cats || []);
+      setLoadingGroups(false);
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      if (!selectedGroup) { setCurrentMembers([]); setApprovers([]); return; }
+      const { data: members } = await supabase
+        .from('group_members')
+        .select('user_id, role')
+        .eq('group_id', selectedGroup);
+
+      const memberIds = (members || []).map((m: any) => m.user_id as string);
+      const approverIds = (members || []).filter((m: any) => ['admin','owner'].includes(m.role)).map((m: any) => m.user_id as string);
+      setCurrentMembers(memberIds);
+      setApprovers(approverIds);
+    };
+    loadMembers();
+  }, [selectedGroup]);
+
+  const allGroups = userGroups;
+  const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
 
   const handleReceiptCapture = () => {
     // في التطبيق الحقيقي، ستفتح الكاميرا أو اختيار ملف
@@ -207,12 +220,18 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
   };
 
   const applyOcrResults = () => {
-    setExpense({
-      ...expense,
-      description: ocrResults.description,
-      amount: ocrResults.amount,
-      category: ocrResults.category
-    });
+    // عند توفر نتائج OCR نحاول مطابقة اسم الفئة مع القائمة الحالية للحصول على المعرّف
+    const matched = ocrResults?.category
+      ? categories.find((c) => c.name_ar === ocrResults.category)
+      : undefined;
+
+    setExpense((prev) => ({
+      ...prev,
+      description: ocrResults?.description ?? prev.description,
+      amount: ocrResults?.amount ?? prev.amount,
+      // إن لم نجد مطابقة، نُبقي الفئة كما هي لتجنّب تمرير نص بدل UUID
+      category: matched ? matched.id : prev.category,
+    }));
     setOcrResults(null);
   };
 
@@ -467,7 +486,18 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category" className="text-foreground">الفئة</Label>
+                    <Label htmlFor="category" className="text-foreground flex items-center justify-between">
+                      <span>الفئة</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setManageCategoriesOpen(true)}
+                        className="ml-2"
+                      >
+                        إدارة الفئات
+                      </Button>
+                    </Label>
                     <Select value={expense.category} onValueChange={(value) => setExpense({...expense, category: value})}>
                       <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue placeholder="اختر الفئة" />
@@ -656,6 +686,12 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
       <div className="h-16 md:hidden" />
       <BottomNav />
     </div>
+
+    <ManageCategoriesDialog
+      open={manageCategoriesOpen}
+      onOpenChange={setManageCategoriesOpen}
+      currentUserId={userId}
+    />
   );
 };
 
