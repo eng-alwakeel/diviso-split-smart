@@ -284,12 +284,9 @@ const Dashboard = () => {
                 />
               )}
             </div>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Recent Expenses */}
-            <Card className="bg-card border border-border rounded-2xl">
+            {/* Recent Expenses - moved to full width under groups */}
+            <Card className="bg-card border border-border rounded-2xl mt-6">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Receipt className="w-5 h-5 text-primary" />
@@ -318,6 +315,11 @@ const Dashboard = () => {
                 </Button>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Recent Expenses moved to main content */}
             {/* Quick Actions */}
             <Card className="bg-card border border-border rounded-2xl">
               <CardHeader className="pb-3">
