@@ -735,7 +735,7 @@ export type Database = {
       budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"
       expense_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
-      member_role: "admin" | "member"
+      member_role: "owner" | "admin" | "member"
       referral_status: "pending" | "joined" | "blocked"
     }
     CompositeTypes: {
@@ -867,7 +867,7 @@ export const Constants = {
       budget_period: ["weekly", "monthly", "quarterly", "yearly", "custom"],
       expense_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
-      member_role: ["admin", "member"],
+      member_role: ["owner", "admin", "member"],
       referral_status: ["pending", "joined", "blocked"],
     },
   },

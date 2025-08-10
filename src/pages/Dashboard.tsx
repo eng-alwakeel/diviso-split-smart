@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,76 +22,58 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data - في التطبيق الحقيقي ستأتي من قاعدة البيانات
-const mockGroups = [
-  {
-    id: 1,
-    name: "رحلة جدة",
-    members: 4,
-    totalExpenses: 2400,
-    myBalance: -200,
-    avatar: "ر",
-    category: "رحلة",
-    expenses: 12
-  },
-  {
-    id: 2,
-    name: "سكن مشترك",
-    members: 3,
-    totalExpenses: 1800,
-    myBalance: 150,
-    avatar: "س",
-    category: "سكن",
-    expenses: 8
-  },
-  {
-    id: 3,
-    name: "مشروع العمل",
-    members: 6,
-    totalExpenses: 3200,
-    myBalance: 0,
-    avatar: "م",
-    category: "عمل",
-    expenses: 15
-  }
-];
-
-const mockExpenses = [
-  {
-    id: 1,
-    description: "عشاء في المطعم",
-    amount: 240,
-    group: "رحلة جدة",
-    date: "2024-01-20",
-    paidBy: "أحمد"
-  },
-  {
-    id: 2,
-    description: "فاتورة الكهرباء",
-    amount: 180,
-    group: "سكن مشترك",
-    date: "2024-01-19",
-    paidBy: "أنت"
-  },
-  {
-    id: 3,
-    description: "قرطاسية مكتبية",
-    amount: 85,
-    group: "مشروع العمل",
-    date: "2024-01-18",
-    paidBy: "سارة"
-  }
-];
+interface GroupRow {
+  id: string;
+  name: string;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("overview");
+  const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
+  const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null }>>([]);
 
-  const totalOwed = mockGroups.reduce((sum, group) => sum + Math.min(0, group.myBalance), 0);
-  const totalOwing = mockGroups.reduce((sum, group) => sum + Math.max(0, group.myBalance), 0);
+  useEffect(() => {
+    const load = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const uid = session.session?.user.id;
+      if (!uid) return;
+      const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
+      const ids = (memberships ?? []).map((m: any) => m.group_id);
+      if (!ids.length) { setGroups([]); setRecentExpenses([]); return; }
+      const { data: groupsData } = await supabase.from('groups').select('id,name').in('id', ids);
+      const { data: memberRows } = await supabase.from('group_members').select('group_id').in('group_id', ids);
+      const memberCount: Record<string, number> = {};
+      (memberRows ?? []).forEach((r: any) => { memberCount[r.group_id] = (memberCount[r.group_id] || 0) + 1; });
+      const { data: expenseRows } = await supabase.from('expenses').select('group_id, amount').in('group_id', ids);
+      const totals: Record<string, number> = {}; const counts: Record<string, number> = {};
+      (expenseRows ?? []).forEach((e: any) => { totals[e.group_id] = (totals[e.group_id] || 0) + Number(e.amount || 0); counts[e.group_id] = (counts[e.group_id] || 0) + 1; });
+      const mapped = (groupsData ?? []).map((g: GroupRow) => ({
+        id: g.id,
+        name: g.name,
+        members: memberCount[g.id] || 0,
+        expenses: counts[g.id] || 0,
+        totalExpenses: totals[g.id] || 0,
+        category: undefined,
+      }));
+      setGroups(mapped);
+      const { data: latest } = await supabase
+        .from('expenses')
+        .select('id, description, amount, group_id, spent_at, created_at')
+        .in('group_id', ids)
+        .order('spent_at', { ascending: false })
+        .limit(3);
+      setRecentExpenses(latest ?? []);
+    };
+    load();
+  }, []);
+
+  const totalOwed = 0;
+  const totalOwing = 0;
   const monthlyBudget = 2000;
-  const currentSpending = 1450;
+  const currentSpending = groups.reduce((s, g) => s + g.totalExpenses, 0);
   const budgetProgress = (currentSpending / monthlyBudget) * 100;
 
   return (
@@ -129,7 +111,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">المجموعات النشطة</p>
-                  <p className="text-2xl font-bold text-primary">{mockGroups.length}</p>
+                  <p className="text-2xl font-bold text-primary">{groups.length}</p>
                   <p className="text-xs text-muted-foreground mt-1">مجموعات</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
@@ -188,7 +170,7 @@ const Dashboard = () => {
             </div>
             
             <div className="space-y-4">
-              {mockGroups.map((group) => (
+              {groups.map((group) => (
                 <Card 
                   key={group.id} 
                   className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer group rounded-2xl"
@@ -211,9 +193,11 @@ const Dashboard = () => {
                               <Receipt className="w-3.5 h-3.5" />
                               {group.expenses} مصروف
                             </span>
-                            <Badge variant="secondary" className="rounded-full px-2 py-0.5">
-                              {group.category}
-                            </Badge>
+                            {group.category && (
+                              <Badge variant="secondary" className="rounded-full px-2 py-0.5">
+                                {group.category}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -247,15 +231,15 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockExpenses.slice(0, 3).map((expense) => (
+                {recentExpenses.map((expense) => (
                   <div key={expense.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-xl">
                     <div className="text-foreground">
-                      <p className="font-medium text-sm">{expense.description}</p>
-                      <p className="text-xs text-muted-foreground">{expense.group}</p>
+                      <p className="font-medium text-sm">{expense.description ?? 'مصروف'}</p>
+                      <p className="text-xs text-muted-foreground">{groups.find(g => g.id === expense.group_id)?.name ?? ''}</p>
                     </div>
                     <div className="text-right text-foreground">
-                      <p className="font-bold text-primary">{expense.amount} ر.س</p>
-                      <p className="text-xs text-muted-foreground">{expense.date}</p>
+                      <p className="font-bold text-primary">{Number(expense.amount).toLocaleString()} ر.س</p>
+                      <p className="text-xs text-muted-foreground">{(expense.spent_at ?? expense.created_at ?? '').toString().slice(0,10)}</p>
                     </div>
                   </div>
                 ))}

@@ -21,6 +21,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -88,13 +89,30 @@ const CreateGroup = () => {
     });
   };
 
-  const handleCreateGroup = () => {
-    // في التطبيق الحقيقي، سترسل البيانات لقاعدة البيانات
-    toast({
-      title: "تم إنشاء المجموعة!",
-      description: `تم إنشاء مجموعة "${groupData.name}" بنجاح`,
-    });
-    navigate('/dashboard');
+  const handleCreateGroup = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      toast({ title: "يلزم تسجيل الدخول", variant: "destructive" });
+      return;
+    }
+    try {
+      const { data: groupInsert, error: groupErr } = await supabase
+        .from('groups')
+        .insert({ name: groupData.name, owner_id: user.id })
+        .select('id')
+        .single();
+      if (groupErr) throw groupErr;
+      const groupId = groupInsert.id;
+      const { error: memberErr } = await supabase
+        .from('group_members')
+        .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
+      if (memberErr) throw memberErr;
+      toast({ title: 'تم إنشاء المجموعة!', description: `تم إنشاء مجموعة "${groupData.name}" بنجاح` });
+      navigate(`/group/${groupId}`);
+    } catch (e: any) {
+      toast({ title: 'فشل إنشاء المجموعة', description: e.message, variant: 'destructive' });
+    }
   };
 
   const nextStep = () => {
