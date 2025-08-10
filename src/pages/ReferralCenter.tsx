@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,28 +21,15 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
-// Dynamic referral data based on current user
-const [userId, setUserId] = useState<string | null>(null);
-useEffect(() => {
-  supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-}, []);
-
-const referralLink = useMemo(
-  () => (userId ? `${window.location.origin}/auth?startTrial=personal&ref=${userId}` : "")
-, [userId]);
-const referralCode = useMemo(
-  () => (userId ? userId.slice(0, 8).toUpperCase() : "------")
-, [userId]);
-
+// Mock data
 const referralData = {
-  totalReferrals: 0,
-  successfulReferrals: 0,
-  freeDaysEarned: 0,
-  freeDaysRemaining: 0,
-  referralCode,
-  referralLink,
+  totalReferrals: 8,
+  successfulReferrals: 5,
+  freeDaysEarned: 35,
+  freeDaysRemaining: 7,
+  referralCode: "AHMED2024",
+  referralLink: "https://diviso.app/join/AHMED2024"
 };
 
 const referralHistory = [
