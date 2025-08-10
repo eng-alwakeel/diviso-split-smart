@@ -1,44 +1,42 @@
 import { Button } from "@/components/ui/button";
-import { Menu, User, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 export const Header = () => {
   return (
-    <header className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+    <header className="bg-gradient-dark backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
-            <span className="sr-only">Diviso</span>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              المزايا
-            </a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-              الباقات
-            </a>
-            <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-              حول التطبيق
-            </a>
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="hidden md:flex">
-              تسجيل الدخول
-            </Button>
+        <div className="grid grid-cols-3 items-center">
+          {/* Left: Actions */}
+          <div className="justify-self-start flex items-center gap-2">
             <Button 
               variant="hero" 
               size="sm"
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => (window.location.href = '/dashboard')}
             >
-              الدخول للتطبيق
+              دخول
             </Button>
-            
+          </div>
+
+          {/* Center: Logo */}
+          <a href="/" className="justify-self-center inline-flex items-center gap-3">
+            <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+            <span className="sr-only">Diviso</span>
+          </a>
+
+          {/* Right: Navigation / Menu */}
+          <div className="justify-self-end flex items-center gap-3">
+            <nav className="hidden md:flex items-center gap-6">
+              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                المزايا
+              </a>
+              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                الباقات
+              </a>
+              <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+                حول التطبيق
+              </a>
+            </nav>
             {/* Mobile menu button */}
             <Button variant="ghost" size="sm" className="md:hidden">
               <Menu className="w-4 h-4" />
