@@ -17,7 +17,7 @@ interface WalletStackProps {
 // Apple Wallet-style stacked cards with reversed order (last item on top)
 export const WalletStack: React.FC<WalletStackProps> = ({ items, selectedId, onSelect, onPrev, onNext }) => {
   const reversed = [...items].reverse(); // show last on top
-  const overlap = -28; // px overlap between cards
+  const overlap = -24; // px overlap between cards
 
   const colorClasses = [
     "bg-group-card text-card-foreground",
@@ -61,19 +61,21 @@ export const WalletStack: React.FC<WalletStackProps> = ({ items, selectedId, onS
             <div
               key={item.id}
               role="listitem"
-              className="relative"
+              className="relative animate-fade-in"
               style={{ zIndex: z, marginTop: negativeOffset }}
             >
-              <button
-                type="button"
-                aria-label={item.name}
-                aria-pressed={isSelected}
-                onClick={() => onSelect?.(item.id)}
-                className={`w-full text-right rounded-2xl border border-border ${color} p-6 h-24 md:h-28 shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring hover:scale-[1.01] ${isSelected ? "ring-2 ring-primary scale-[1.02]" : ""}`}
-              >
-                <span className="block truncate text-foreground/70 text-xs mb-1">المجموعة</span>
-                <span className="block truncate text-xl font-semibold text-foreground">{item.name}</span>
-              </button>
+              <div className={`rounded-2xl p-[2px] ${isSelected ? "bg-primary" : "bg-primary/40"}`}>
+                <button
+                  type="button"
+                  aria-label={item.name}
+                  aria-pressed={isSelected}
+                  onClick={() => onSelect?.(item.id)}
+                  className={`w-full text-right rounded-[14px] border border-border ${color} p-6 h-24 md:h-28 shadow-sm transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring hover:scale-[1.01] ${isSelected ? "ring-2 ring-primary scale-[1.02]" : ""}`}
+                >
+                  <span className="block truncate text-foreground/70 text-xs mb-1">المجموعة</span>
+                  <span className="block truncate text-xl font-semibold text-foreground">{item.name}</span>
+                </button>
+              </div>
             </div>
           );
         })}
