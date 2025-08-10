@@ -49,6 +49,7 @@ type SettlementRow = {
   to_user_id: string;
   amount: number;
   note: string | null;
+  created_by: string;
   created_at: string | null;
 };
 
@@ -134,7 +135,7 @@ setExpenses((exps as ExpenseRow[]) ?? []);
 // 5) التحويلات (التسويات)
 const { data: sets, error: setErr } = await supabase
   .from("settlements")
-  .select("id, group_id, from_user_id, to_user_id, amount, note, created_at")
+  .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at")
   .eq("group_id", groupId)
   .order("created_at", { ascending: false });
 if (setErr) {
