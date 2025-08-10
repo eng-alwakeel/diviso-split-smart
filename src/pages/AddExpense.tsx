@@ -80,52 +80,63 @@ const AddExpense = () => {
   const [receiptImage, setReceiptImage] = useState(null);
   const [ocrProcessing, setOcrProcessing] = useState(false);
 const [ocrResults, setOcrResults] = useState(null);
-const [userGroups, setUserGroups] = useState<Array<{ id: string | number; name: string; members: string[]; currency: string; currencySymbol: string; admin: string; approvers: string[] }>>([]);
+const [userId, setUserId] = useState<string | null>(null);
+const [userGroups, setUserGroups] = useState<Array<{ id: string; name: string }>>([]);
 const [loadingGroups, setLoadingGroups] = useState(false);
+const [currentMembers, setCurrentMembers] = useState<string[]>([]);
+const [approvers, setApprovers] = useState<string[]>([]);
+const [categories, setCategories] = useState<Array<{ id: string; name_ar: string }>>([]);
+const currencySymbol = "ر.س";
 
 useEffect(() => {
-  const loadGroups = async () => {
+  const init = async () => {
     setLoadingGroups(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoadingGroups(false); return; }
+    setUserId(user.id);
+    setExpense(prev => ({ ...prev, paidBy: user.id }));
 
-    const { data: memberships, error: mErr } = await supabase
+    const { data: memberships } = await supabase
       .from('group_members')
       .select('group_id')
       .eq('user_id', user.id);
 
-    if (mErr) { setLoadingGroups(false); return; }
-
     const ids = (memberships || []).map((m: any) => m.group_id);
-    if (ids.length === 0) { setLoadingGroups(false); return; }
-
-    const { data: groupsData, error: gErr } = await supabase
-      .from('groups')
-      .select('id,name')
-      .in('id', ids);
-
-    if (!gErr && groupsData) {
-      const mapped = groupsData.map((g: any) => ({
-        id: g.id,
-        name: g.name,
-        members: ['أنت'],
-        currency: 'SAR',
-        currencySymbol: 'ر.س',
-        admin: 'أنت',
-        approvers: ['أنت'],
-      }));
+    if (ids.length > 0) {
+      const { data: groupsData } = await supabase
+        .from('groups')
+        .select('id,name')
+        .in('id', ids);
+      const mapped = (groupsData || []).map((g: any) => ({ id: g.id as string, name: g.name as string }));
       setUserGroups(mapped);
-      if (!selectedGroup && mapped.length > 0) {
-        setSelectedGroup(mapped[0].id.toString());
-      }
+      if (!selectedGroup && mapped.length > 0) setSelectedGroup(mapped[0].id);
     }
+
+    const { data: cats } = await supabase.from('categories').select('id,name_ar');
+    setCategories(cats || []);
     setLoadingGroups(false);
   };
-  loadGroups();
+  init();
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
-const allGroups = [...userGroups, ...mockGroups];
+useEffect(() => {
+  const loadMembers = async () => {
+    if (!selectedGroup) { setCurrentMembers([]); setApprovers([]); return; }
+    const { data: members } = await supabase
+      .from('group_members')
+      .select('user_id, role')
+      .eq('group_id', selectedGroup);
+
+    const memberIds = (members || []).map((m: any) => m.user_id as string);
+    const approverIds = (members || []).filter((m: any) => ['admin','owner'].includes(m.role)).map((m: any) => m.user_id as string);
+    setCurrentMembers(memberIds);
+    setApprovers(approverIds);
+  };
+  loadMembers();
+}, [selectedGroup]);
+
+const allGroups = userGroups;
 const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
 
   const handleReceiptCapture = () => {
@@ -159,42 +170,71 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
   };
 
   const calculateSplit = () => {
-    if (!currentGroup || !expense.amount) return {};
-    
+    if (!selectedGroup || !expense.amount || currentMembers.length === 0) return {};
     const amount = parseFloat(expense.amount);
-    const members = currentGroup.members;
-    
     if (splitType === "equal") {
-      const perPerson = amount / members.length;
-      return members.reduce((acc, member) => {
+      const perPerson = amount / currentMembers.length;
+      return currentMembers.reduce((acc: Record<string, string>, member) => {
         acc[member] = perPerson.toFixed(2);
         return acc;
-      }, {});
+      }, {} as Record<string, string>);
     }
-    
     return customSplits;
   };
 
-  const handleSaveExpense = () => {
+  const handleSaveExpense = async () => {
     if (!selectedGroup || !expense.description || !expense.amount) {
-      toast({
-        title: "خطأ",
-        description: "يرجى ملء جميع الحقول المطلوبة",
-        variant: "destructive"
-      });
+      toast({ title: "خطأ", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" });
+      return;
+    }
+    if (!userId) {
+      toast({ title: "خطأ", description: "المستخدم غير مسجل الدخول", variant: "destructive" });
       return;
     }
 
-    // في التطبيق الحقيقي، سترسل البيانات لقاعدة البيانات
-    const isApprover = currentGroup?.approvers.includes(expense.paidBy);
-    const status = isApprover ? "approved" : "pending";
-    
-    toast({
-      title: isApprover ? "تم حفظ واعتماد المصروف!" : "تم حفظ المصروف!",
-      description: isApprover 
-        ? `تم إضافة واعتماد مصروف "${expense.description}" بنجاح`
-        : `تم إضافة مصروف "${expense.description}" وهو بانتظار الاعتماد`,
-    });
+    const amt = parseFloat(expense.amount);
+    if (isNaN(amt) || amt <= 0) {
+      toast({ title: "خطأ", description: "المبلغ غير صالح", variant: "destructive" });
+      return;
+    }
+
+    const payload: any = {
+      group_id: selectedGroup,
+      created_by: userId,
+      payer_id: expense.paidBy || userId,
+      amount: amt,
+      description: expense.description,
+      spent_at: new Date(expense.date).toISOString(),
+    };
+    if (expense.category) payload.category_id = expense.category;
+
+    const { data: inserted, error } = await supabase
+      .from('expenses')
+      .insert([payload])
+      .select('id')
+      .maybeSingle();
+
+    if (error || !inserted) {
+      toast({ title: "خطأ", description: "تعذر حفظ المصروف", variant: "destructive" });
+      return;
+    }
+
+    if (currentMembers.length > 0) {
+      const per = +(amt / currentMembers.length).toFixed(2);
+      const rows = currentMembers.map((uid) => ({
+        expense_id: inserted.id,
+        member_id: uid,
+        share_amount: per,
+      }));
+      const { error: splitErr } = await supabase.from('expense_splits').insert(rows);
+      if (splitErr) {
+        toast({ title: "تم حفظ المصروف بدون التقسيم", description: "تعذر حفظ التقسيم، تحقق من الصلاحيات", variant: "destructive" });
+        navigate('/dashboard');
+        return;
+      }
+    }
+
+    toast({ title: "تم حفظ المصروف", description: "تم إضافة المصروف بنجاح" });
     navigate('/dashboard');
   };
 
@@ -313,7 +353,7 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
 
                   <div className="space-y-2">
                     <Label htmlFor="amount" className="text-foreground">
-                      المبلغ ({currentGroup?.currencySymbol || "ريال"})
+                      المبلغ ({currencySymbol})
                     </Label>
                     <Input
                       id="amount"
@@ -346,9 +386,9 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         <SelectValue placeholder="اختر الفئة" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border-border">
-                        {expenseCategories.map(category => (
-                          <SelectItem key={category} value={category} className="text-foreground hover:bg-accent/20">
-                            {category}
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id} className="text-foreground hover:bg-accent/20">
+                            {cat.name_ar}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -368,7 +408,7 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                   </div>
                 </div>
 
-                {currentGroup && (
+                {selectedGroup && (
                   <div className="space-y-2">
                     <Label className="text-foreground">دفع بواسطة</Label>
                     <Select value={expense.paidBy} onValueChange={(value) => setExpense({...expense, paidBy: value})}>
@@ -376,11 +416,11 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-background border-border">
-                        {currentGroup.members.map(member => (
-                          <SelectItem key={member} value={member} className="text-foreground hover:bg-accent/20">
-                            {member}
+                        {userId && (
+                          <SelectItem value={userId} className="text-foreground hover:bg-accent/20">
+                            أنا
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -389,7 +429,7 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
             </Card>
 
             {/* Split Options */}
-            {currentGroup && (
+                {selectedGroup && (
               <Card className="bg-card border border-border shadow-card rounded-2xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
@@ -419,16 +459,16 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         سيتم تقسيم المبلغ بالتساوي على جميع الأعضاء
                       </p>
                       <div className="space-y-3">
-                        {currentGroup.members.map(member => (
+                        {currentMembers.map(member => (
                           <div key={member} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-8 h-8">
                                 <AvatarFallback className="text-xs">{member[0]}</AvatarFallback>
                               </Avatar>
-                              <span>{member}</span>
+                              <span>{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
                             </div>
                             <Badge variant="outline">
-                              {expense.amount ? (parseFloat(expense.amount) / currentGroup.members.length).toFixed(2) : "0.00"} {currentGroup.currencySymbol}
+                              {expense.amount ? (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : "0.00"} {currencySymbol}
                             </Badge>
                           </div>
                         ))}
@@ -464,25 +504,25 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">المبلغ الإجمالي:</span>
-                    <span className="font-medium">{expense.amount || "0.00"} {currentGroup?.currencySymbol || "ريال"}</span>
+                    <span className="font-medium">{expense.amount || "0.00"} {currencySymbol}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">عدد الأعضاء:</span>
-                    <span className="font-medium">{currentGroup?.members.length || 0}</span>
+                    <span className="font-medium">{currentMembers.length}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">نصيب كل عضو:</span>
                     <span className="font-medium">
-                      {currentGroup && expense.amount ? 
-                        (parseFloat(expense.amount) / currentGroup.members.length).toFixed(2) : 
+                      {expense.amount && currentMembers.length > 0 ? 
+                        (parseFloat(expense.amount) / currentMembers.length).toFixed(2) : 
                         "0.00"
-                      } {currentGroup?.currencySymbol || "ريال"}
+                      } {currencySymbol}
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  {currentGroup && !currentGroup.approvers.includes(expense.paidBy) && (
+                  {selectedGroup && !approvers.includes(expense.paidBy) && (
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-sm text-yellow-800">
                         ⚠️ هذا المصروف سيحتاج لاعتماد من مدير المجموعة
@@ -496,27 +536,27 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                     variant="hero"
                     disabled={!selectedGroup || !expense.description || !expense.amount}
                   >
-                    {currentGroup?.approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
+                    {approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {currentGroup && (
+            {selectedGroup && (
               <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle>أعضاء المجموعة</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {currentGroup.members.map(member => (
+                    {currentMembers.map(member => (
                       <div key={member} className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {member[0]}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm">{member}</span>
+                        <span className="text-sm">{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
                       </div>
                     ))}
                   </div>
