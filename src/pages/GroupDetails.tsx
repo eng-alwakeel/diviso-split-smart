@@ -200,6 +200,16 @@ const GroupDetails = () => {
         onLeftGroup={() => navigate('/dashboard')}
       />
 
+      <GroupReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        groupName={group?.name}
+        profiles={profiles}
+        expenses={expenses}
+        balances={balances}
+        totalExpenses={totals.totalExpenses}
+      />
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -230,7 +240,7 @@ const GroupDetails = () => {
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
-                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)}>
+                <Button variant="outline" size="sm" onClick={() => setReportOpen(true)} disabled={loading}>
                   <FileText className="w-4 h-4 ml-2" />
                   تقرير
                 </Button>
