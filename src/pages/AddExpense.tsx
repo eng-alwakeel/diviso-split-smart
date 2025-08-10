@@ -370,7 +370,7 @@ const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
                         <Upload className="w-4 h-4 ml-2" />
                         رفع صورة{receiptFile ? " (محددة)" : ""}
                       </Button>
-                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+                      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFileChange} />
                     </div>
                   </div>
                 )}
