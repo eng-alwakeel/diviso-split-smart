@@ -19,13 +19,13 @@ export const Footer = () => {
         {/* Newsletter Section */}
         <div className="bg-gradient-hero rounded-2xl p-8 text-white text-center mb-16">
           <h3 className="text-2xl font-bold mb-2">ابق على اطلاع</h3>
-          <p className="text-blue-100 mb-6">
+          <p className="text-muted-foreground mb-6">
             اشترك في نشرتنا البريدية للحصول على آخر التحديثات والنصائح المالية
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <Input 
               placeholder="بريدك الإلكتروني" 
-              className="bg-white/10 border-white/20 text-white placeholder:text-blue-100"
+              className="bg-white/10 border-white/20 text-white placeholder:text-muted-foreground"
             />
             <Button variant="secondary">اشتراك</Button>
           </div>

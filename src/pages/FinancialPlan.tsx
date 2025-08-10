@@ -37,7 +37,7 @@ const mockBudgets = [
     startDate: "2024-01-01",
     endDate: "2024-01-31",
     categories: [
-      { name: "طعام", budget: 1500, spent: 1200, color: "bg-blue-500" },
+      { name: "طعام", budget: 1500, spent: 1200, color: "bg-primary" },
       { name: "مواصلات", budget: 800, spent: 600, color: "bg-green-500" },
       { name: "ترفيه", budget: 700, spent: 500, color: "bg-yellow-500" },
       { name: "تسوق", budget: 1000, spent: 900, color: "bg-purple-500" },
@@ -54,7 +54,7 @@ const mockBudgets = [
     startDate: "2024-01-15",
     endDate: "2024-01-22",
     categories: [
-      { name: "إقامة", budget: 1200, spent: 800, color: "bg-blue-500" },
+      { name: "إقامة", budget: 1200, spent: 800, color: "bg-primary" },,
       { name: "طعام", budget: 800, spent: 600, color: "bg-green-500" },
       { name: "مواصلات", budget: 500, spent: 400, color: "bg-yellow-500" },
       { name: "ترفيه", budget: 500, spent: 600, color: "bg-purple-500" }

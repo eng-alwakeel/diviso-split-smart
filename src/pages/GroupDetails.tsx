@@ -100,7 +100,7 @@ const mockExpenses = [
 const mockBudgetPlan = {
   totalBudget: 3000,
   categories: [
-    { name: "طعام", budget: 800, spent: 240, color: "bg-blue-500" },
+    { name: "طعام", budget: 800, spent: 240, color: "bg-primary" },,
     { name: "إقامة", budget: 1200, spent: 800, color: "bg-green-500" },
     { name: "مواصلات", budget: 500, spent: 150, color: "bg-yellow-500" },
     { name: "ترفيه", budget: 500, spent: 0, color: "bg-purple-500" }
@@ -498,7 +498,7 @@ const GroupDetails = () => {
                           </p>
                         )}
                         <p className="text-sm">{message.message}</p>
-                        <p className={`text-xs mt-1 ${message.isMe ? 'text-blue-100' : 'text-muted-foreground'}`}>
+                        <p className={`text-xs mt-1 ${message.isMe ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                           {message.time}
                         </p>
                       </div>
