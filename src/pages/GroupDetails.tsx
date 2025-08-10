@@ -309,53 +309,61 @@ const GroupDetails = () => {
             <div className="space-y-4">
               {mockExpenses.map((expense) => (
                 <Card key={expense.id} className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
-                          <Receipt className="w-8 h-8 text-accent" />
-                        </div>
-                       <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-lg text-foreground">{expense.description}</h3>
-                            {getStatusBadge(expense.status)}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {expense.category} • دفع بواسطة {expense.paidBy}
-                          </p>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            مقسم بين {expense.splitBetween.length} أشخاص
-                          </p>
-                        </div>
+                  <CardContent className="p-5 md:p-6">
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Icon */}
+                      <div className="w-14 h-14 md:w-16 md:h-16 bg-accent/20 rounded-2xl flex items-center justify-center shrink-0">
+                        <Receipt className="w-7 h-7 md:w-8 md:h-8 text-accent" />
                       </div>
-                      <div className="text-left">
-                        <p className="text-2xl font-bold text-accent">{expense.amount}</p>
-                        <p className="text-sm text-muted-foreground">{mockGroup.currencySymbol}</p>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="font-extrabold text-lg md:text-xl text-foreground leading-snug line-clamp-2">
+                            {expense.description}
+                          </h3>
+                          {getStatusBadge(expense.status)}
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                          <span>{expense.category}</span>
+                          <span>•</span>
+                          <span>دفع بواسطة {expense.paidBy}</span>
+                        </div>
+                        <p className="text-xs md:text-sm font-medium text-muted-foreground mt-1">
+                          مقسم بين {expense.splitBetween.length} أشخاص
+                        </p>
+                      </div>
+
+                      {/* Amount & Actions */}
+                      <div className="text-right shrink-0">
+                        <div className="flex items-center justify-end gap-2 mb-1">
+                          {/* Show status on small screens above amount */}
+                          <div className="md:hidden">{getStatusBadge(expense.status)}</div>
+                        </div>
+                        <p className="text-3xl md:text-4xl font-black text-accent leading-none">
+                          {expense.amount.toLocaleString()} <span className="text-base md:text-lg font-semibold text-muted-foreground align-middle">ر.س</span>
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">{expense.date}</p>
-                        
+
                         {expense.status === "pending" && canApprove && (
-                          <div className="flex gap-1 mt-2">
+                          <div className="flex gap-2 mt-3 justify-end">
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleExpenseApproval(expense.id, "approve");
-                              }}
-                              className="bg-accent/20 border-accent/30 text-accent hover:bg-accent/30"
+                              onClick={(e) => { e.stopPropagation(); handleExpenseApproval(expense.id, "approve"); }}
+                              className="bg-accent/20 border-accent/30 text-accent hover:bg-accent/30 rounded-full h-8 w-8 p-0"
+                              aria-label="اعتماد"
                             >
-                              <CheckCircle className="w-3 h-3" />
+                              <CheckCircle className="w-4 h-4" />
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleExpenseApproval(expense.id, "reject");
-                              }}
-                              className="bg-destructive/20 border-destructive/30 text-destructive hover:bg-destructive/30"
+                              onClick={(e) => { e.stopPropagation(); handleExpenseApproval(expense.id, "reject"); }}
+                              className="bg-destructive/20 border-destructive/30 text-destructive hover:bg-destructive/30 rounded-full h-8 w-8 p-0"
+                              aria-label="رفض"
                             >
-                              <XCircle className="w-3 h-3" />
+                              <XCircle className="w-4 h-4" />
                             </Button>
                           </div>
                         )}
