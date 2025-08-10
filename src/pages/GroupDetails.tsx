@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowRight,
   Users, 
@@ -22,7 +24,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  Shield
+  Shield,
+  FileText
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams } from "react-router-dom";
@@ -33,6 +36,7 @@ import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
 import { useGroupData } from "@/hooks/useGroupData";
 import { GroupSettingsDialog } from "@/components/group/GroupSettingsDialog";
+import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -41,13 +45,25 @@ const GroupDetails = () => {
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
-  const { loading, error, group, members, profiles, expenses, balances, totals, refetch } = useGroupData(id);
+  // تسوية: حقول الإدخال
+  const [toUserId, setToUserId] = useState<string>("");
+  const [amountStr, setAmountStr] = useState<string>("");
+  const [note, setNote] = useState<string>("");
+
+  const { loading, error, group, members, profiles, expenses, balances, settlements, totals, refetch } = useGroupData(id);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setCurrentUserId(data.session?.user?.id ?? null));
   }, []);
+
+  useEffect(() => {
+    if (group?.name) {
+      document.title = `${group.name} - تفاصيل المجموعة`;
+    }
+  }, [group?.name]);
 
   const canApprove = useMemo(() => {
     if (!currentUserId) return false;
@@ -183,6 +199,10 @@ const GroupDetails = () => {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setReportOpen(true)}>
+                <FileText className="w-4 h-4 ml-2" />
+                تقرير
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
                 <Settings className="w-4 h-4 ml-2" />
                 إعدادات
@@ -262,9 +282,10 @@ const GroupDetails = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="expenses">المصاريف</TabsTrigger>
             <TabsTrigger value="members">الأعضاء</TabsTrigger>
+            <TabsTrigger value="settlements">التسويات</TabsTrigger>
             <TabsTrigger value="budget">الميزانية</TabsTrigger>
             <TabsTrigger value="chat">الدردشة</TabsTrigger>
           </TabsList>

@@ -42,15 +42,26 @@ type BalanceRow = {
   net_balance: number | null;
 };
 
+type SettlementRow = {
+  id: string;
+  group_id: string;
+  from_user_id: string;
+  to_user_id: string;
+  amount: number;
+  note: string | null;
+  created_at: string | null;
+};
+
 export const useGroupData = (groupId?: string) => {
   const [loading, setLoading] = useState<boolean>(!!groupId);
   const [error, setError] = useState<string | null>(null);
 
-  const [group, setGroup] = useState<GroupRow | null>(null);
-  const [members, setMembers] = useState<MemberRow[]>([]);
-  const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
-  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
-  const [balances, setBalances] = useState<BalanceRow[]>([]);
+const [group, setGroup] = useState<GroupRow | null>(null);
+const [members, setMembers] = useState<MemberRow[]>([]);
+const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
+const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+const [balances, setBalances] = useState<BalanceRow[]>([]);
+const [settlements, setSettlements] = useState<SettlementRow[]>([]);
 
   const load = async () => {
     if (!groupId) return;
@@ -106,31 +117,45 @@ export const useGroupData = (groupId?: string) => {
     }
     setProfiles(profilesMap);
 
-    // 4) المصاريف
-    const { data: exps, error: expErr } = await supabase
-      .from("expenses")
-      .select("id, group_id, description, amount, spent_at, created_at, payer_id, status, currency")
-      .eq("group_id", groupId)
-      .order("spent_at", { ascending: false });
-    if (expErr) {
-      console.error("[useGroupData] expenses error", expErr);
-      setError(expErr.message);
-      setLoading(false);
-      return;
-    }
-    setExpenses((exps as ExpenseRow[]) ?? []);
+// 4) المصاريف
+const { data: exps, error: expErr } = await supabase
+  .from("expenses")
+  .select("id, group_id, description, amount, spent_at, created_at, payer_id, status, currency")
+  .eq("group_id", groupId)
+  .order("spent_at", { ascending: false });
+if (expErr) {
+  console.error("[useGroupData] expenses error", expErr);
+  setError(expErr.message);
+  setLoading(false);
+  return;
+}
+setExpenses((exps as ExpenseRow[]) ?? []);
 
-    // 5) الأرصدة (الدالة التجميعية)
-    const { data: bal, error: balErr } = await supabase.rpc("get_group_balance", { p_group_id: groupId });
-    if (balErr) {
-      console.error("[useGroupData] balance rpc error", balErr);
-      // ليست حرجة لعرض الصفحة؛ نكمّل بدونها
-      setBalances([]);
-    } else {
-      setBalances((bal as BalanceRow[]) ?? []);
-    }
+// 5) التحويلات (التسويات)
+const { data: sets, error: setErr } = await supabase
+  .from("settlements")
+  .select("id, group_id, from_user_id, to_user_id, amount, note, created_at")
+  .eq("group_id", groupId)
+  .order("created_at", { ascending: false });
+if (setErr) {
+  console.error("[useGroupData] settlements error", setErr);
+  // لا نوقف التحميل؛ نعرض الصفحة بدون التسويات
+  setSettlements([]);
+} else {
+  setSettlements((sets as SettlementRow[]) ?? []);
+}
 
-    setLoading(false);
+// 6) الأرصدة (الدالة التجميعية)
+const { data: bal, error: balErr } = await supabase.rpc("get_group_balance", { p_group_id: groupId });
+if (balErr) {
+  console.error("[useGroupData] balance rpc error", balErr);
+  // ليست حرجة لعرض الصفحة؛ نكمّل بدونها
+  setBalances([]);
+} else {
+  setBalances((bal as BalanceRow[]) ?? []);
+}
+
+setLoading(false);
   };
 
   useEffect(() => {
@@ -144,15 +169,16 @@ export const useGroupData = (groupId?: string) => {
     return { totalExpenses };
   }, [expenses]);
 
-  return {
-    loading,
-    error,
-    group,
-    members,
-    profiles,
-    expenses,
-    balances,
-    totals,
-    refetch: load,
-  };
+return {
+  loading,
+  error,
+  group,
+  members,
+  profiles,
+  expenses,
+  balances,
+  settlements,
+  totals,
+  refetch: load,
+};
 };
