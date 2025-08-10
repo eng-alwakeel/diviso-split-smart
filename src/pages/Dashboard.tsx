@@ -139,7 +139,18 @@ const Dashboard = () => {
     load();
   }, []);
 
+  const navigateToSelectedGroup = () => {
+    if (selectedGroupId) {
+      navigate(`/group/${selectedGroupId}`);
+    }
+  };
+
   const selectGroup = (id: string) => {
+    if (id === selectedGroupId) {
+      // If user clicks the same selected group again, navigate to its details
+      navigate(`/group/${id}`);
+      return;
+    }
     setSelectedGroupId(id);
     localStorage.setItem('selectedGroupId', id);
   };
@@ -257,7 +268,18 @@ const Dashboard = () => {
             </div>
             
             {/* Summary above the stack */}
-            <Card className="bg-card border border-border rounded-2xl">
+            <Card
+              className="bg-card border border-border rounded-2xl cursor-pointer transition-colors hover:bg-secondary/40 focus:outline-none focus:ring-2 focus:ring-ring"
+              role="button"
+              tabIndex={0}
+              onClick={navigateToSelectedGroup}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigateToSelectedGroup();
+                }
+              }}
+            >
               <CardContent className="p-4">
                 <div className="grid grid-cols-2 gap-4 text-center text-foreground">
                   <div>
@@ -269,6 +291,9 @@ const Dashboard = () => {
                     <p className="text-lg font-bold text-primary">{selectedOwed.toLocaleString()} ر.س</p>
                   </div>
                 </div>
+                {selectedGroupId && (
+                  <p className="mt-3 text-center text-xs text-muted-foreground">اضغط لعرض تفاصيل المجموعة</p>
+                )}
               </CardContent>
             </Card>
 
