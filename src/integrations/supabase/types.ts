@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      budget_categories: {
+        Row: {
+          allocated_amount: number
+          budget_id: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          allocated_amount?: number
+          budget_id: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          allocated_amount?: number
+          budget_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "v_budget_summary"
+            referencedColumns: ["budget_id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_date: string | null
+          group_id: string
+          id: string
+          name: string
+          period: Database["public"]["Enums"]["budget_period"]
+          start_date: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          group_id: string
+          id?: string
+          name: string
+          period?: Database["public"]["Enums"]["budget_period"]
+          start_date?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          group_id?: string
+          id?: string
+          name?: string
+          period?: Database["public"]["Enums"]["budget_period"]
+          start_date?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_approvals: {
         Row: {
           approved_at: string
@@ -43,6 +139,42 @@ export type Database = {
           },
           {
             foreignKeyName: "expense_approvals_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_category_links: {
+        Row: {
+          budget_category_id: string
+          created_at: string
+          expense_id: string
+          id: string
+        }
+        Insert: {
+          budget_category_id: string
+          created_at?: string
+          expense_id: string
+          id?: string
+        }
+        Update: {
+          budget_category_id?: string
+          created_at?: string
+          expense_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_category_links_budget_category_id_fkey"
+            columns: ["budget_category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_category_links_expense_id_fkey"
             columns: ["expense_id"]
             isOneToOne: false
             referencedRelation: "expenses"
@@ -289,6 +421,29 @@ export type Database = {
       }
     }
     Views: {
+      v_budget_summary: {
+        Row: {
+          budget_id: string | null
+          categories_count: number | null
+          end_date: string | null
+          group_id: string | null
+          name: string | null
+          period: Database["public"]["Enums"]["budget_period"] | null
+          start_date: string | null
+          total_allocated: number | null
+          total_amount: number | null
+          total_spent: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_member_balance: {
         Row: {
           amount_owed: number | null
@@ -328,6 +483,7 @@ export type Database = {
       }
     }
     Enums: {
+      budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"
       expense_status: "pending" | "approved" | "rejected"
       member_role: "admin" | "member"
     }
@@ -457,6 +613,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      budget_period: ["weekly", "monthly", "quarterly", "yearly", "custom"],
       expense_status: ["pending", "approved", "rejected"],
       member_role: ["admin", "member"],
     },
