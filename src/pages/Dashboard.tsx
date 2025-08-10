@@ -38,6 +38,9 @@ const Dashboard = () => {
   const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null }>>([]);
   const [myPaid, setMyPaid] = useState(0);
   const [myOwed, setMyOwed] = useState(0);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupPaidMap, setGroupPaidMap] = useState<Record<string, number>>({});
+  const [groupOwedMap, setGroupOwedMap] = useState<Record<string, number>>({});
   useEffect(() => {
     const load = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -45,18 +48,42 @@ const Dashboard = () => {
       if (!uid) return;
       const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
       const ids = (memberships ?? []).map((m: any) => m.group_id);
-      if (!ids.length) { setGroups([]); setRecentExpenses([]); setMyPaid(0); setMyOwed(0); return; }
+      if (!ids.length) { 
+        setGroups([]); 
+        setRecentExpenses([]); 
+        setMyPaid(0); 
+        setMyOwed(0); 
+        setGroupPaidMap({});
+        setGroupOwedMap({});
+        setSelectedGroupId(null);
+        localStorage.removeItem('selectedGroupId');
+        return; 
+      }
       const { data: groupsData } = await supabase.from('groups').select('id,name').in('id', ids);
       const { data: memberRows } = await supabase.from('group_members').select('group_id').in('group_id', ids);
       const memberCount: Record<string, number> = {};
       (memberRows ?? []).forEach((r: any) => { memberCount[r.group_id] = (memberCount[r.group_id] || 0) + 1; });
       const { data: expenseRows } = await supabase.from('expenses').select('id, group_id, amount, payer_id').in('group_id', ids);
       const totals: Record<string, number> = {}; const counts: Record<string, number> = {};
-      (expenseRows ?? []).forEach((e: any) => { totals[e.group_id] = (totals[e.group_id] || 0) + Number(e.amount || 0); counts[e.group_id] = (counts[e.group_id] || 0) + 1; });
+      const expenseIdToGroup: Record<string, string> = {};
+      (expenseRows ?? []).forEach((e: any) => { 
+        totals[e.group_id] = (totals[e.group_id] || 0) + Number(e.amount || 0); 
+        counts[e.group_id] = (counts[e.group_id] || 0) + 1; 
+        expenseIdToGroup[e.id] = e.group_id; 
+      });
 
-      // Totals for current user
-      const paidTotal = (expenseRows ?? []).reduce((s: number, e: any) => s + (e.payer_id === uid ? Number(e.amount || 0) : 0), 0);
+      // Totals for current user (overall and per group)
+      const paidByGroup: Record<string, number> = {};
+      const paidTotal = (expenseRows ?? []).reduce((s: number, e: any) => {
+        if (e.payer_id === uid) {
+          paidByGroup[e.group_id] = (paidByGroup[e.group_id] || 0) + Number(e.amount || 0);
+          return s + Number(e.amount || 0);
+        }
+        return s;
+      }, 0);
+
       let owedTotal = 0;
+      const owedByGroup: Record<string, number> = {};
       const expenseIds = (expenseRows ?? []).map((e: any) => e.id);
       if (expenseIds.length) {
         const { data: mySplits } = await supabase
@@ -64,10 +91,18 @@ const Dashboard = () => {
           .select('expense_id, share_amount')
           .eq('member_id', uid)
           .in('expense_id', expenseIds);
-        owedTotal = (mySplits ?? []).reduce((s: number, sp: any) => s + Number(sp.share_amount || 0), 0);
+        (mySplits ?? []).forEach((sp: any) => {
+          const gid = expenseIdToGroup[sp.expense_id];
+          if (gid) {
+            owedByGroup[gid] = (owedByGroup[gid] || 0) + Number(sp.share_amount || 0);
+            owedTotal += Number(sp.share_amount || 0);
+          }
+        });
       }
       setMyPaid(paidTotal);
       setMyOwed(owedTotal);
+      setGroupPaidMap(paidByGroup);
+      setGroupOwedMap(owedByGroup);
 
       const mapped = (groupsData ?? []).map((g: GroupRow) => ({
         id: g.id,
@@ -78,6 +113,15 @@ const Dashboard = () => {
         category: undefined,
       }));
       setGroups(mapped);
+
+      // Default selected group: last in array (top of stack) or saved value
+      let defaultSelected = localStorage.getItem('selectedGroupId');
+      const idsSet = new Set(mapped.map((g) => g.id));
+      if (!defaultSelected || !idsSet.has(defaultSelected)) {
+        defaultSelected = mapped.length ? mapped[mapped.length - 1].id : null as any;
+      }
+      setSelectedGroupId(defaultSelected);
+
       const { data: latest } = await supabase
         .from('expenses')
         .select('id, description, amount, group_id, spent_at, created_at')
@@ -89,8 +133,26 @@ const Dashboard = () => {
     load();
   }, []);
 
-  const totalOwed = 0;
-  const totalOwing = 0;
+  const selectGroup = (id: string) => {
+    setSelectedGroupId(id);
+    localStorage.setItem('selectedGroupId', id);
+  };
+  const goPrev = () => {
+    if (!groups.length) return;
+    const idx = groups.findIndex((g) => g.id === (selectedGroupId ?? ""));
+    const prevIdx = idx <= 0 ? groups.length - 1 : idx - 1;
+    selectGroup(groups[prevIdx].id);
+  };
+  const goNext = () => {
+    if (!groups.length) return;
+    const idx = groups.findIndex((g) => g.id === (selectedGroupId ?? ""));
+    const nextIdx = idx === -1 || idx >= groups.length - 1 ? 0 : idx + 1;
+    selectGroup(groups[nextIdx].id);
+  };
+
+  const selectedPaid = selectedGroupId ? (groupPaidMap[selectedGroupId] ?? 0) : myPaid;
+  const selectedOwed = selectedGroupId ? (groupOwedMap[selectedGroupId] ?? 0) : myOwed;
+
   const monthlyBudget = 2000;
   const currentSpending = groups.reduce((s, g) => s + g.totalExpenses, 0);
   const budgetProgress = (currentSpending / monthlyBudget) * 100;
@@ -194,11 +256,11 @@ const Dashboard = () => {
                 <div className="grid grid-cols-2 gap-4 text-center text-foreground">
                   <div>
                     <p className="text-xs text-muted-foreground">دفعت</p>
-                    <p className="text-lg font-bold text-primary">{myPaid.toLocaleString()} ر.س</p>
+                    <p className="text-lg font-bold text-primary">{selectedPaid.toLocaleString()} ر.س</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">عليّ</p>
-                    <p className="text-lg font-bold text-primary">{myOwed.toLocaleString()} ر.س</p>
+                    <p className="text-lg font-bold text-primary">{selectedOwed.toLocaleString()} ر.س</p>
                   </div>
                 </div>
               </CardContent>
@@ -213,7 +275,10 @@ const Dashboard = () => {
               ) : (
                 <WalletStack
                   items={groups.map((g) => ({ id: g.id, name: g.name }))}
-                  onSelect={(id) => navigate(`/group/${id}`)}
+                  selectedId={selectedGroupId ?? undefined}
+                  onSelect={selectGroup}
+                  onPrev={goPrev}
+                  onNext={goNext}
                 />
               )}
             </div>
