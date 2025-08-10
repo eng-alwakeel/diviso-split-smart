@@ -24,30 +24,42 @@ const Auth = () => {
     const params = new URLSearchParams(location.search);
     const trialPlan = params.get("startTrial");
     const redirectTo = params.get("redirectTo") || "/dashboard";
+    const ref = params.get("ref");
 
     // Listen first, then get existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        if (trialPlan === "personal" || trialPlan === "family") {
-          setTimeout(async () => {
-            try { await startTrial(trialPlan as any); } catch {}
-            navigate(redirectTo, { replace: true });
-          }, 0);
-        } else {
+        setTimeout(async () => {
+          try {
+            if (ref) {
+              await supabase.functions.invoke("redeem-referral", { body: { ref } });
+            }
+            if (trialPlan === "personal" || trialPlan === "family") {
+              await startTrial(trialPlan as any);
+              navigate(redirectTo, { replace: true });
+              return;
+            }
+          } catch {}
           navigate("/dashboard");
-        }
+        }, 0);
       }
     });
+
     supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) {
-        if (trialPlan === "personal" || trialPlan === "family") {
-          setTimeout(async () => {
-            try { await startTrial(trialPlan as any); } catch {}
-            navigate(redirectTo, { replace: true });
-          }, 0);
-        } else {
+        setTimeout(async () => {
+          try {
+            if (ref) {
+              await supabase.functions.invoke("redeem-referral", { body: { ref } });
+            }
+            if (trialPlan === "personal" || trialPlan === "family") {
+              await startTrial(trialPlan as any);
+              navigate(redirectTo, { replace: true });
+              return;
+            }
+          } catch {}
           navigate("/dashboard");
-        }
+        }, 0);
       }
     });
     return () => subscription.unsubscribe();
