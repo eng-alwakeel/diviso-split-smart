@@ -58,6 +58,8 @@ export type Database = {
       }
       budgets: {
         Row: {
+          amount_limit: number | null
+          category_id: string | null
           created_at: string
           created_by: string
           end_date: string | null
@@ -66,10 +68,13 @@ export type Database = {
           name: string
           period: Database["public"]["Enums"]["budget_period"]
           start_date: string
+          starts_on: string | null
           total_amount: number
           updated_at: string
         }
         Insert: {
+          amount_limit?: number | null
+          category_id?: string | null
           created_at?: string
           created_by: string
           end_date?: string | null
@@ -78,10 +83,13 @@ export type Database = {
           name: string
           period?: Database["public"]["Enums"]["budget_period"]
           start_date?: string
+          starts_on?: string | null
           total_amount: number
           updated_at?: string
         }
         Update: {
+          amount_limit?: number | null
+          category_id?: string | null
           created_at?: string
           created_by?: string
           end_date?: string | null
@@ -90,10 +98,18 @@ export type Database = {
           name?: string
           period?: Database["public"]["Enums"]["budget_period"]
           start_date?: string
+          starts_on?: string | null
           total_amount?: number
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "budgets_created_by_fkey"
             columns: ["created_by"]
@@ -109,6 +125,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          name_ar: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name_ar: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       expense_approvals: {
         Row: {
@@ -182,38 +222,96 @@ export type Database = {
           },
         ]
       }
+      expense_splits: {
+        Row: {
+          created_at: string
+          expense_id: string
+          member_id: string
+          share_amount: number
+        }
+        Insert: {
+          created_at?: string
+          expense_id: string
+          member_id: string
+          share_amount: number
+        }
+        Update: {
+          created_at?: string
+          expense_id?: string
+          member_id?: string
+          share_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_splits_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_splits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
+          category_id: string | null
           created_at: string | null
           created_by: string
+          currency: string
           description: string | null
           group_id: string
           id: string
+          note_ar: string | null
+          payer_id: string | null
+          spent_at: string
           status: Database["public"]["Enums"]["expense_status"]
           updated_at: string | null
         }
         Insert: {
           amount: number
+          category_id?: string | null
           created_at?: string | null
           created_by: string
+          currency?: string
           description?: string | null
           group_id: string
           id?: string
+          note_ar?: string | null
+          payer_id?: string | null
+          spent_at?: string
           status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string | null
         }
         Update: {
           amount?: number
+          category_id?: string | null
           created_at?: string | null
           created_by?: string
+          currency?: string
           description?: string | null
           group_id?: string
           id?: string
+          note_ar?: string | null
+          payer_id?: string | null
+          spent_at?: string
           status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_created_by_fkey"
             columns: ["created_by"]
@@ -226,6 +324,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -301,6 +406,51 @@ export type Database = {
           },
         ]
       }
+      invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_id: string
+          id: string
+          phone_or_email: string
+          status: Database["public"]["Enums"]["invite_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_id: string
+          id?: string
+          phone_or_email: string
+          status?: Database["public"]["Enums"]["invite_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_id?: string
+          id?: string
+          phone_or_email?: string
+          status?: Database["public"]["Enums"]["invite_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -340,12 +490,51 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          read_at: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          read_at?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          read_at?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          name: string | null
           updated_at: string
         }
         Insert: {
@@ -353,6 +542,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          name?: string | null
           updated_at?: string
         }
         Update: {
@@ -360,9 +550,45 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          name?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_phone: string
+          inviter_id: string
+          joined_at: string | null
+          status: Database["public"]["Enums"]["referral_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_phone: string
+          inviter_id: string
+          joined_at?: string | null
+          status?: Database["public"]["Enums"]["referral_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_phone?: string
+          inviter_id?: string
+          joined_at?: string | null
+          status?: Database["public"]["Enums"]["referral_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       settlements: {
         Row: {
@@ -473,6 +699,25 @@ export type Database = {
       }
     }
     Functions: {
+      get_group_balance: {
+        Args: { p_group_id: string }
+        Returns: {
+          user_id: string
+          amount_paid: number
+          amount_owed: number
+          settlements_in: number
+          settlements_out: number
+          net_balance: number
+        }[]
+      }
+      get_user_dashboard: {
+        Args: { p_user_id: string }
+        Returns: {
+          groups_count: number
+          total_spent_30d: number
+          unread_notifications: number
+        }[]
+      }
       is_group_admin: {
         Args: { p_group_id: string }
         Returns: boolean
@@ -481,11 +726,17 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      seed_demo_for_user: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"
       expense_status: "pending" | "approved" | "rejected"
+      invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "admin" | "member"
+      referral_status: "pending" | "joined" | "blocked"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -615,7 +866,9 @@ export const Constants = {
     Enums: {
       budget_period: ["weekly", "monthly", "quarterly", "yearly", "custom"],
       expense_status: ["pending", "approved", "rejected"],
+      invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["admin", "member"],
+      referral_status: ["pending", "joined", "blocked"],
     },
   },
 } as const
