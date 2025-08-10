@@ -412,6 +412,7 @@ export type Database = {
           created_by: string
           group_id: string
           id: string
+          invited_role: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
           status: Database["public"]["Enums"]["invite_status"]
           updated_at: string
@@ -421,6 +422,7 @@ export type Database = {
           created_by: string
           group_id: string
           id?: string
+          invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
           status?: Database["public"]["Enums"]["invite_status"]
           updated_at?: string
@@ -430,6 +432,7 @@ export type Database = {
           created_by?: string
           group_id?: string
           id?: string
+          invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email?: string
           status?: Database["public"]["Enums"]["invite_status"]
           updated_at?: string
