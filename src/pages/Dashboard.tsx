@@ -202,25 +202,28 @@ const Dashboard = () => {
                         </div>
                         <div className="text-foreground">
                           <h3 className="font-bold text-lg mb-1">{group.name}</h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Users className="w-4 h-4" />
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center gap-1 bg-secondary/60 px-2 py-1 rounded-full">
+                              <Users className="w-3.5 h-3.5" />
                               {group.members} عضو
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Receipt className="w-4 h-4" />
+                            <span className="inline-flex items-center gap-1 bg-secondary/60 px-2 py-1 rounded-full">
+                              <Receipt className="w-3.5 h-3.5" />
                               {group.expenses} مصروف
                             </span>
+                            <Badge variant="secondary" className="rounded-full px-2 py-0.5">
+                              {group.category}
+                            </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-2">{group.category}</p>
                         </div>
                       </div>
-                      <div className="text-left text-foreground">
-                        <p className="text-2xl font-bold text-primary">{group.totalExpenses.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">ر.س</p>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                      <div className="text-right text-foreground">
+                        <p className="text-3xl font-extrabold text-primary">
+                          {group.totalExpenses.toLocaleString()} <span className="text-base font-medium text-muted-foreground">ر.س</span>
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="mt-3 border-border hover:bg-secondary group-hover:scale-105 transition-transform"
                         >
                           عرض التفاصيل
@@ -304,7 +307,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <div className="h-16 md:hidden" />
+      <div className="h-24 md:hidden" />
       <BottomNav />
     </div>
   );
