@@ -25,6 +25,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { WalletStack } from "@/components/wallet/WalletStack";
 import RecentExpensesCards from "@/components/RecentExpensesCards";
+import MobileSummary from "@/components/MobileSummary";
 
 interface GroupRow {
   id: string;
@@ -185,6 +186,16 @@ const Dashboard = () => {
           <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
         </div>
 
+        {/* Mobile Summary */}
+        <div className="md:hidden mb-6">
+          <MobileSummary
+            paid={selectedPaid}
+            owed={selectedOwed}
+            totalExpenses={currentSpending}
+            groupsCount={groups.length}
+            recentCount={recentExpenses.length}
+          />
+        </div>
         {/* Quick Stats Cards */}
         <div className="hidden md:grid md:grid-cols-4 gap-6 mb-8">
           {/* Total Expenses Card */}
