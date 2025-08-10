@@ -78,7 +78,7 @@ export function GroupReportDialog({ open, onOpenChange, groupName, profiles, exp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[min(100vw-1rem,48rem)] md:w-auto md:max-h-[80vh] overflow-y-auto z-[1001]">
+      <DialogContent className="max-w-4xl w-[min(100vw-1rem,48rem)] md:w-auto md:max-h-[80vh] overflow-y-auto no-scrollbar z-[1001]">
         <DialogHeader>
           <DialogTitle>تقرير مصاريف المجموعة</DialogTitle>
         </DialogHeader>

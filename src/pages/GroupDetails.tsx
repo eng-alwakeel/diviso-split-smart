@@ -77,6 +77,14 @@ const GroupDetails = () => {
     }
   }, [group?.name]);
 
+  // إخفاء شريط التمرير أثناء التواجد في صفحة تفاصيل المجموعة
+  useEffect(() => {
+    document.body.classList.add('no-scrollbar');
+    return () => {
+      document.body.classList.remove('no-scrollbar');
+    };
+  }, []);
+
   const canApprove = useMemo(() => {
     if (!currentUserId) return false;
     const me = members.find(m => m.user_id === currentUserId);
@@ -202,7 +210,7 @@ const GroupDetails = () => {
   const membersLabel = (n: number) => (n === 1 ? "عضو" : n === 2 ? "عضوان" : "أعضاء");
 
   return (
-    <div className="min-h-screen bg-dark-background">
+    <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
 
       <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} />
@@ -269,15 +277,26 @@ const GroupDetails = () => {
                   <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
                   تقرير
                 </Button>
-                <Button
-                  className="w-full md:w-auto text-xs md:text-sm"
-                  variant="hero"
-                  size="sm"
-                  onClick={() => navigate('/add-expense')}
-                >
-                  <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                  إضافة مصروف
-                </Button>
+                <div className="w-full md:w-auto">
+                  <Button
+                    variant="hero"
+                    size="icon"
+                    className="w-10 h-10 md:hidden mx-auto"
+                    onClick={() => navigate('/add-expense')}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="sr-only">إضافة مصروف</span>
+                  </Button>
+                  <Button
+                    variant="hero"
+                    size="sm"
+                    className="hidden md:inline-flex text-xs md:text-sm"
+                    onClick={() => navigate('/add-expense')}
+                  >
+                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                    إضافة مصروف
+                  </Button>
+                </div>
                 <Button
                   className="w-full md:w-auto text-xs md:text-sm"
                   variant="outline"
