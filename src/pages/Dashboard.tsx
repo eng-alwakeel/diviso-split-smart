@@ -36,7 +36,8 @@ const Dashboard = () => {
   const [selectedTab, setSelectedTab] = useState("overview");
   const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
   const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null }>>([]);
-
+  const [myPaid, setMyPaid] = useState(0);
+  const [myOwed, setMyOwed] = useState(0);
   useEffect(() => {
     const load = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -44,14 +45,30 @@ const Dashboard = () => {
       if (!uid) return;
       const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
       const ids = (memberships ?? []).map((m: any) => m.group_id);
-      if (!ids.length) { setGroups([]); setRecentExpenses([]); return; }
+      if (!ids.length) { setGroups([]); setRecentExpenses([]); setMyPaid(0); setMyOwed(0); return; }
       const { data: groupsData } = await supabase.from('groups').select('id,name').in('id', ids);
       const { data: memberRows } = await supabase.from('group_members').select('group_id').in('group_id', ids);
       const memberCount: Record<string, number> = {};
       (memberRows ?? []).forEach((r: any) => { memberCount[r.group_id] = (memberCount[r.group_id] || 0) + 1; });
-      const { data: expenseRows } = await supabase.from('expenses').select('group_id, amount').in('group_id', ids);
+      const { data: expenseRows } = await supabase.from('expenses').select('id, group_id, amount, payer_id').in('group_id', ids);
       const totals: Record<string, number> = {}; const counts: Record<string, number> = {};
       (expenseRows ?? []).forEach((e: any) => { totals[e.group_id] = (totals[e.group_id] || 0) + Number(e.amount || 0); counts[e.group_id] = (counts[e.group_id] || 0) + 1; });
+
+      // Totals for current user
+      const paidTotal = (expenseRows ?? []).reduce((s: number, e: any) => s + (e.payer_id === uid ? Number(e.amount || 0) : 0), 0);
+      let owedTotal = 0;
+      const expenseIds = (expenseRows ?? []).map((e: any) => e.id);
+      if (expenseIds.length) {
+        const { data: mySplits } = await supabase
+          .from('expense_splits')
+          .select('expense_id, share_amount')
+          .eq('member_id', uid)
+          .in('expense_id', expenseIds);
+        owedTotal = (mySplits ?? []).reduce((s: number, sp: any) => s + Number(sp.share_amount || 0), 0);
+      }
+      setMyPaid(paidTotal);
+      setMyOwed(owedTotal);
+
       const mapped = (groupsData ?? []).map((g: GroupRow) => ({
         id: g.id,
         name: g.name,
@@ -174,18 +191,14 @@ const Dashboard = () => {
             {/* Summary above the stack */}
             <Card className="bg-card border border-border rounded-2xl">
               <CardContent className="p-4">
-                <div className="grid grid-cols-3 gap-4 text-center text-foreground">
+                <div className="grid grid-cols-2 gap-4 text-center text-foreground">
                   <div>
-                    <p className="text-xs text-muted-foreground">المجموعات</p>
-                    <p className="text-lg font-bold text-primary">{groups.length}</p>
+                    <p className="text-xs text-muted-foreground">دفعت</p>
+                    <p className="text-lg font-bold text-primary">{myPaid.toLocaleString()} ر.س</p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">إجمالي المصروفات</p>
-                    <p className="text-lg font-bold text-primary">{currentSpending.toLocaleString()} ر.س</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">المصاريف الأخيرة</p>
-                    <p className="text-lg font-bold text-primary">{recentExpenses.length}</p>
+                    <p className="text-xs text-muted-foreground">عليّ</p>
+                    <p className="text-lg font-bold text-primary">{myOwed.toLocaleString()} ر.س</p>
                   </div>
                 </div>
               </CardContent>
