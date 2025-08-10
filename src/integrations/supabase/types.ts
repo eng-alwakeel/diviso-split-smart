@@ -845,6 +845,10 @@ export type Database = {
       }
     }
     Functions: {
+      assert_quota: {
+        Args: { p_action: string; p_user_id: string; p_group_id: string }
+        Returns: undefined
+      }
       get_group_balance: {
         Args: { p_group_id: string }
         Returns: {
@@ -863,6 +867,10 @@ export type Database = {
           total_spent_30d: number
           unread_notifications: number
         }[]
+      }
+      increment_usage: {
+        Args: { p_user_id: string; p_action: string }
+        Returns: undefined
       }
       is_group_admin: {
         Args: { p_group_id: string }
