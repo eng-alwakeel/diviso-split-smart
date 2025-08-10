@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data
 const mockGroups = [
@@ -70,7 +71,7 @@ const AddExpense = () => {
     description: "",
     amount: "",
     category: "",
-    paidBy: "أحمد", // Current user
+    paidBy: "أنت", // Current user
     date: new Date().toISOString().split('T')[0],
     status: "pending" // pending, approved, rejected
   });
@@ -78,9 +79,54 @@ const AddExpense = () => {
   const [customSplits, setCustomSplits] = useState({});
   const [receiptImage, setReceiptImage] = useState(null);
   const [ocrProcessing, setOcrProcessing] = useState(false);
-  const [ocrResults, setOcrResults] = useState(null);
+const [ocrResults, setOcrResults] = useState(null);
+const [userGroups, setUserGroups] = useState<Array<{ id: string | number; name: string; members: string[]; currency: string; currencySymbol: string; admin: string; approvers: string[] }>>([]);
+const [loadingGroups, setLoadingGroups] = useState(false);
 
-  const currentGroup = mockGroups.find(g => g.id.toString() === selectedGroup);
+useEffect(() => {
+  const loadGroups = async () => {
+    setLoadingGroups(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoadingGroups(false); return; }
+
+    const { data: memberships, error: mErr } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user.id);
+
+    if (mErr) { setLoadingGroups(false); return; }
+
+    const ids = (memberships || []).map((m: any) => m.group_id);
+    if (ids.length === 0) { setLoadingGroups(false); return; }
+
+    const { data: groupsData, error: gErr } = await supabase
+      .from('groups')
+      .select('id,name')
+      .in('id', ids);
+
+    if (!gErr && groupsData) {
+      const mapped = groupsData.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        members: ['أنت'],
+        currency: 'SAR',
+        currencySymbol: 'ر.س',
+        admin: 'أنت',
+        approvers: ['أنت'],
+      }));
+      setUserGroups(mapped);
+      if (!selectedGroup && mapped.length > 0) {
+        setSelectedGroup(mapped[0].id.toString());
+      }
+    }
+    setLoadingGroups(false);
+  };
+  loadGroups();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+const allGroups = [...userGroups, ...mockGroups];
+const currentGroup = allGroups.find(g => g.id.toString() === selectedGroup);
 
   const handleReceiptCapture = () => {
     // في التطبيق الحقيقي، ستفتح الكاميرا أو اختيار ملف
@@ -256,11 +302,11 @@ const AddExpense = () => {
                         <SelectValue placeholder="اختر المجموعة" />
                       </SelectTrigger>
                       <SelectContent className="bg-background border-border">
-                        {mockGroups.map(group => (
-                          <SelectItem key={group.id} value={group.id.toString()} className="text-foreground hover:bg-accent/20">
-                            {group.name}
-                          </SelectItem>
-                        ))}
+{allGroups.map(group => (
+  <SelectItem key={group.id} value={group.id.toString()} className="text-foreground hover:bg-accent/20">
+    {group.name}
+  </SelectItem>
+))}
                       </SelectContent>
                     </Select>
                   </div>
