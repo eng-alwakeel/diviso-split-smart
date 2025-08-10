@@ -29,6 +29,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { InviteByLinkDialog } from "@/components/group/InviteByLinkDialog";
+import { GroupChat } from "@/components/group/GroupChat";
 
 // Mock data
 const mockGroup = {
@@ -120,6 +122,7 @@ const GroupDetails = () => {
   const { id } = useParams();
   const [newMessage, setNewMessage] = useState("");
   const [activeTab, setActiveTab] = useState("expenses");
+  const [openInvite, setOpenInvite] = useState(false);
   const currentUser = "أحمد محمد"; // In real app, get from auth
 
   const sendMessage = () => {
@@ -179,7 +182,9 @@ const GroupDetails = () => {
   return (
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
-      
+
+      <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} />
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -379,7 +384,7 @@ const GroupDetails = () => {
           <TabsContent value="members" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">الأعضاء</h2>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setOpenInvite(true)}>
                 <UserPlus className="w-4 h-4 ml-2" />
                 دعوة عضو جديد
               </Button>
@@ -479,44 +484,58 @@ const GroupDetails = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="h-96 overflow-y-auto space-y-3 p-4 bg-muted/50 rounded-lg">
-                  {mockMessages.map((message) => (
-                    <div 
-                      key={message.id} 
-                      className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div 
-                        className={`max-w-xs p-3 rounded-lg ${
-                          message.isMe 
-                            ? 'bg-primary text-white' 
-                            : 'bg-white border'
-                        }`}
-                      >
-                        {!message.isMe && (
-                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                            {message.sender}
-                          </p>
-                        )}
-                        <p className="text-sm">{message.message}</p>
-                        <p className={`text-xs mt-1 ${message.isMe ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
-                          {message.time}
-                        </p>
-                      </div>
+                {id ? (
+                  <GroupChat groupId={id} />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">الدردشة</h2>
+                      <Button variant="outline">
+                        <MoreHorizontal className="w-4 h-4 ml-2" />
+                        المزيد من الخيارات
+                      </Button>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="اكتب رسالتك..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  />
-                  <Button onClick={sendMessage} variant="hero">
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+                    
+                    <div className="space-y-4">
+                      {mockMessages.map((message) => (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div 
+                            className={`max-w-xs p-3 rounded-lg ${
+                              message.isMe 
+                                ? 'bg-primary text-white' 
+                                : 'bg-white border'
+                            }`}
+                          >
+                            {!message.isMe && (
+                              <p className="text-xs font-medium text-muted-foreground mb-1">
+                                {message.sender}
+                              </p>
+                            )}
+                            <p className="text-sm">{message.message}</p>
+                            <p className={`text-xs mt-1 ${message.isMe ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                              {message.time}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="اكتب رسالتك..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      />
+                      <Button onClick={sendMessage} variant="hero">
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

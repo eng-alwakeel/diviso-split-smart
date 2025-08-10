@@ -359,6 +359,50 @@ export type Database = {
           },
         ]
       }
+      group_join_tokens: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string
+          group_id: string
+          id: string
+          role: Database["public"]["Enums"]["member_role"]
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          group_id: string
+          id?: string
+          role?: Database["public"]["Enums"]["member_role"]
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          group_id?: string
+          id?: string
+          role?: Database["public"]["Enums"]["member_role"]
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_join_tokens_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -827,6 +871,10 @@ export type Database = {
       is_group_member: {
         Args: { p_group_id: string }
         Returns: boolean
+      }
+      join_group_with_token: {
+        Args: { p_token: string }
+        Returns: string
       }
       seed_demo_for_user: {
         Args: Record<PropertyKey, never>

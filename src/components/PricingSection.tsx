@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useEffect } from "react";
+
 const plans = [
   {
     name: "مجاني",
@@ -63,6 +65,58 @@ export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
   const { startTrial } = useSubscription();
   const { toast } = useToast();
+
+  // معالجة رابط الانضمام عبر ?joinToken=... أو من localStorage
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const urlToken = url.searchParams.get("joinToken");
+    const storedToken = localStorage.getItem("pendingJoinToken");
+    const token = urlToken || storedToken;
+
+    if (!token) return;
+
+    const handleJoin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        // حفظ التوكن مؤقتاً ثم إعادة التوجيه لتسجيل الدخول
+        localStorage.setItem("pendingJoinToken", token);
+        window.location.href = "/auth?redirectTo=/";
+        return;
+      }
+
+      // لدينا مستخدم، ننفذ الانضمام
+      console.log("[PricingSection] joining with token:", token);
+      const { data, error } = await supabase.rpc("join_group_with_token", { p_token: token });
+
+      if (error) {
+        console.error("[PricingSection] join error:", error);
+        toast({
+          title: "تعذر الانضمام للمجموعة",
+          description: error.message || "تحقق من صلاحية الرابط.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "تم الانضمام للمجموعة",
+          description: "يمكنك الآن البدء في الدردشة وإدارة المصاريف.",
+        });
+      }
+
+      // تنظيف التوكن من الرابط وlocalStorage
+      if (url.searchParams.get("joinToken")) {
+        url.searchParams.delete("joinToken");
+        window.history.replaceState({}, "", url.toString());
+      }
+      localStorage.removeItem("pendingJoinToken");
+
+      // إعادة التوجيه البسيطة بعد الانضمام
+      window.location.href = "/dashboard";
+    };
+
+    handleJoin();
+  }, [toast]);
+
   return (
     <section id="pricing" className="py-20 bg-background">
       <div className="container mx-auto px-4">
