@@ -293,7 +293,7 @@ const Dashboard = () => {
                   المصاريف الأخيرة
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-0 sm:p-6">
                 <RecentExpensesCards
                   items={recentExpenses.map((e) => ({
                     id: e.id,
@@ -305,14 +305,16 @@ const Dashboard = () => {
                     isPayer: !!(e.payer_id && currentUserId && e.payer_id === currentUserId),
                   }))}
                 />
-                <Button 
-                  variant="outline" 
-                  className="w-full border-border hover:bg-secondary"
-                  onClick={() => navigate('/add-expense')}
-                >
-                  <Plus className="w-4 h-4 ml-2" />
-                  إضافة مصروف جديد
-                </Button>
+                <div className="p-4 pt-0 sm:p-0">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-border hover:bg-secondary"
+                    onClick={() => navigate('/add-expense')}
+                  >
+                    <Plus className="w-4 h-4 ml-2" />
+                    إضافة مصروف جديد
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
