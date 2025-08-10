@@ -18,9 +18,14 @@ async function fetchCategories(): Promise<Category[]> {
 }
 
 async function insertCategory(name_ar: string): Promise<Category> {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const user = userData?.user;
+  if (!user) throw new Error("Not authenticated");
+
   const { data, error } = await supabase
     .from("categories")
-    .insert([{ name_ar }])
+    .insert([{ name_ar, created_by: user.id }])
     .select("id,name_ar,created_by")
     .maybeSingle();
   if (error) throw error;

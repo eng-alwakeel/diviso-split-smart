@@ -129,6 +129,7 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          created_by: string | null
           icon: string | null
           id: string
           name_ar: string
@@ -136,6 +137,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           icon?: string | null
           id?: string
           name_ar: string
@@ -143,6 +145,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           icon?: string | null
           id?: string
           name_ar?: string
