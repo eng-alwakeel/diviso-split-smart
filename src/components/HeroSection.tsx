@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Users, Calculator, TrendingUp, Shield } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
+import heroImage from "@/assets/hero-illustration.png";
 
 export const HeroSection = () => {
   return (
@@ -59,7 +59,7 @@ export const HeroSection = () => {
             <div className="relative z-10">
               <img 
                 src={heroImage} 
-                alt="Diviso App"
+                alt="صورة توضيحية لإدارة المصاريف وتقسيم الفواتير"
                 className="rounded-2xl shadow-elevated w-full max-w-lg mx-auto"
               />
             </div>
