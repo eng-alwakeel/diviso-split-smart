@@ -1,1 +1,4 @@
 project_id = "iwthriddasxzbjddpzzf"
+
+[functions.revenuecat_webhook]
+verify_jwt = false
