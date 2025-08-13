@@ -59,7 +59,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId }: InviteByLink
     }
 
     const token = data?.token as string;
-    const url = `${window.location.origin}/?joinToken=${token}`;
+    const url = `${window.location.origin}/i/${token}`;
     setLink(url);
     toast({ title: "تم إنشاء رابط الدعوة", description: "انسخ الرابط وشاركه مع الأعضاء." });
   };

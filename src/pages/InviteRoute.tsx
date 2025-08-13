@@ -19,7 +19,7 @@ const InviteRoute = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         localStorage.setItem('joinToken', code);
-        navigate('/auth');
+        navigate('/auth?redirectTo=' + encodeURIComponent(`/i/${code}`));
         return;
       }
 
