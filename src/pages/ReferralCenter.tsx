@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ArrowRight, 
   Gift, 
@@ -15,95 +16,46 @@ import {
   Phone,
   CheckCircle,
   Clock,
-  Link as LinkIcon
+  Link as LinkIcon,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock data
-const referralData = {
-  totalReferrals: 8,
-  successfulReferrals: 5,
-  freeDaysEarned: 35,
-  freeDaysRemaining: 7,
-  referralCode: "AHMED2024",
-  referralLink: "https://diviso.app/join/AHMED2024"
-};
-
-const referralHistory = [
-  {
-    id: 1,
-    name: "فاطمة أحمد",
-    phone: "05xxxxxxx12",
-    status: "مكتمل",
-    joinDate: "2024-01-15",
-    daysEarned: 7
-  },
-  {
-    id: 2,
-    name: "خالد محمد",
-    phone: "05xxxxxxx34",
-    status: "مكتمل",
-    joinDate: "2024-01-10",
-    daysEarned: 7
-  },
-  {
-    id: 3,
-    name: "سارة علي",
-    phone: "05xxxxxxx56",
-    status: "مكتمل",
-    joinDate: "2024-01-08",
-    daysEarned: 7
-  },
-  {
-    id: 4,
-    name: "محمد عبدالله",
-    phone: "05xxxxxxx78",
-    status: "مكتمل",
-    joinDate: "2024-01-05",
-    daysEarned: 7
-  },
-  {
-    id: 5,
-    name: "نورا حسن",
-    phone: "05xxxxxxx90",
-    status: "مكتمل",
-    joinDate: "2024-01-02",
-    daysEarned: 7
-  },
-  {
-    id: 6,
-    name: "عبدالرحمن صالح",
-    phone: "05xxxxxxx11",
-    status: "في الانتظار",
-    joinDate: "2024-01-20",
-    daysEarned: 0
-  },
-  {
-    id: 7,
-    name: "هند ياسر",
-    phone: "05xxxxxxx22",
-    status: "في الانتظار",
-    joinDate: "2024-01-18",
-    daysEarned: 0
-  },
-  {
-    id: 8,
-    name: "يوسف مراد",
-    phone: "05xxxxxxx33",
-    status: "منتهي الصلاحية",
-    joinDate: "2024-01-12",
-    daysEarned: 0
-  }
-];
+import { useReferrals } from "@/hooks/useReferrals";
+import { useReferralRewards } from "@/hooks/useReferralRewards";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 const ReferralCenter = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [newReferralPhone, setNewReferralPhone] = useState("");
+  const [newReferralName, setNewReferralName] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
+  // استخدام البيانات الحقيقية
+  const { 
+    referrals, 
+    referralCode, 
+    loading: referralsLoading, 
+    sendReferralInvite: sendInvite,
+    getReferralLink,
+    getSuccessRate
+  } = useReferrals();
+
+  const { 
+    rewards,
+    totalDaysEarned,
+    remainingDays,
+    loading: rewardsLoading,
+    applyRewardToSubscription,
+    canApplyRewards
+  } = useReferralRewards();
+
+  // وظائف النسخ والمشاركة
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -112,8 +64,9 @@ const ReferralCenter = () => {
     });
   };
 
-  const sendReferralInvite = () => {
-    if (!newReferralPhone) {
+  // إرسال دعوة إحالة حقيقية
+  const handleSendReferralInvite = async () => {
+    if (!newReferralPhone.trim()) {
       toast({
         title: "خطأ",
         description: "يرجى إدخال رقم الجوال",
@@ -122,28 +75,119 @@ const ReferralCenter = () => {
       return;
     }
 
-    // في التطبيق الحقيقي، ستتم إرسال رسالة نصية
-    toast({
-      title: "تم إرسال الدعوة!",
-      description: `تم إرسال دعوة إلى ${newReferralPhone}`,
-    });
-    setNewReferralPhone("");
+    // التحقق من صحة رقم الجوال السعودي
+    const phoneRegex = /^05\d{8}$/;
+    if (!phoneRegex.test(newReferralPhone)) {
+      toast({
+        title: "خطأ",
+        description: "يرجى إدخال رقم جوال سعودي صحيح (05xxxxxxxx)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      await sendInvite(newReferralPhone, newReferralName);
+      toast({
+        title: "تم إرسال الدعوة!",
+        description: `تم إرسال دعوة إلى ${newReferralPhone}`,
+      });
+      setNewReferralPhone("");
+      setNewReferralName("");
+    } catch (error) {
+      toast({
+        title: "خطأ في الإرسال",
+        description: "حدث خطأ أثناء إرسال الدعوة. يرجى المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
+  // تطبيق المكافآت على الاشتراك
+  const handleApplyRewards = async () => {
+    if (!canApplyRewards()) {
+      toast({
+        title: "لا توجد مكافآت",
+        description: "لا توجد مكافآت متاحة للتطبيق حالياً",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // أخذ أول مكافأة غير مطبقة
+      const firstUnusedReward = rewards.find(r => !r.applied_to_subscription);
+      if (firstUnusedReward) {
+        const result = await applyRewardToSubscription(firstUnusedReward.id);
+        if (result.success) {
+          toast({
+            title: "تم تطبيق المكافأة!",
+            description: "تم إضافة الأيام المجانية لاشتراكك بنجاح",
+          });
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ في التطبيق",
+        description: "حدث خطأ أثناء تطبيق المكافأة. يرجى المحاولة مرة أخرى.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // تحديد شارة الحالة
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "مكتمل":
+      case "joined":
         return <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20">مكتمل</Badge>;
-      case "في الانتظار":
+      case "pending":
         return <Badge variant="outline" className="border-orange-300 text-orange-600">في الانتظار</Badge>;
-      case "منتهي الصلاحية":
+      case "expired":
         return <Badge variant="destructive">منتهي الصلاحية</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const successRate = (referralData.successfulReferrals / referralData.totalReferrals) * 100;
+  // تنسيق التاريخ
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: ar });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // حساب الإحصائيات
+  const totalReferrals = referrals.length;
+  const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
+  const successRate = totalReferrals > 0 ? (successfulReferrals / totalReferrals) * 100 : 0;
+  const referralLink = getReferralLink();
+
+  // حالة التحميل
+  if (referralsLoading || rewardsLoading) {
+    return (
+      <div className="min-h-screen bg-dark-background">
+        <AppHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-64" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-32" />
+              ))}
+            </div>
+            <Skeleton className="h-64" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  
 
   return (
     <div className="min-h-screen bg-dark-background">
@@ -174,7 +218,7 @@ const ReferralCenter = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Users className="w-6 h-6 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-primary">{referralData.totalReferrals}</p>
+                  <p className="text-2xl font-bold text-primary">{totalReferrals}</p>
                   <p className="text-sm text-muted-foreground">إجمالي الإحالات</p>
                 </CardContent>
               </Card>
@@ -184,7 +228,7 @@ const ReferralCenter = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <CheckCircle className="w-6 h-6 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-primary">{referralData.successfulReferrals}</p>
+                  <p className="text-2xl font-bold text-primary">{successfulReferrals}</p>
                   <p className="text-sm text-muted-foreground">إحالات مكتملة</p>
                 </CardContent>
               </Card>
@@ -194,7 +238,7 @@ const ReferralCenter = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Gift className="w-6 h-6 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-primary">{referralData.freeDaysEarned}</p>
+                  <p className="text-2xl font-bold text-primary">{totalDaysEarned}</p>
                   <p className="text-sm text-muted-foreground">أيام مكتسبة</p>
                 </CardContent>
               </Card>
@@ -204,7 +248,7 @@ const ReferralCenter = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Calendar className="w-6 h-6 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-primary">{referralData.freeDaysRemaining}</p>
+                  <p className="text-2xl font-bold text-primary">{remainingDays}</p>
                   <p className="text-sm text-muted-foreground">أيام متبقية</p>
                 </CardContent>
               </Card>
@@ -226,7 +270,7 @@ const ReferralCenter = () => {
                   </div>
                   <Progress value={successRate} className="h-3" />
                   <p className="text-sm text-muted-foreground">
-                    {referralData.successfulReferrals} من أصل {referralData.totalReferrals} إحالة تم تفعيلها بنجاح
+                    {successfulReferrals} من أصل {totalReferrals} إحالة تم تفعيلها بنجاح
                   </p>
                 </div>
               </CardContent>
@@ -241,17 +285,35 @@ const ReferralCenter = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-3">
+                <div className="space-y-3">
                   <Input
-                    placeholder="05xxxxxxxx"
-                    value={newReferralPhone}
-                    onChange={(e) => setNewReferralPhone(e.target.value)}
-                    className="text-left"
-                    dir="ltr"
+                    placeholder="الاسم (اختياري)"
+                    value={newReferralName}
+                    onChange={(e) => setNewReferralName(e.target.value)}
                   />
-                  <Button onClick={sendReferralInvite} variant="hero">
-                    إرسال دعوة
-                  </Button>
+                  <div className="flex gap-3">
+                    <Input
+                      placeholder="05xxxxxxxx"
+                      value={newReferralPhone}
+                      onChange={(e) => setNewReferralPhone(e.target.value)}
+                      className="text-left"
+                      dir="ltr"
+                    />
+                    <Button 
+                      onClick={handleSendReferralInvite} 
+                      variant="hero"
+                      disabled={isSending}
+                    >
+                      {isSending ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin ml-2" />
+                          جاري الإرسال
+                        </>
+                      ) : (
+                        "إرسال دعوة"
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   سيتم إرسال رسالة نصية تحتوي على رابط التسجيل الخاص بك
@@ -266,36 +328,49 @@ const ReferralCenter = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {referralHistory.map((referral) => (
-                    <Card key={referral.id} className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                              <Users className="w-8 h-8 text-primary" />
+                  {referrals.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">لم تقم بإرسال أي دعوات بعد</p>
+                      <p className="text-sm text-muted-foreground">ابدأ بدعوة أصدقائك للحصول على أيام مجانية!</p>
+                    </div>
+                  ) : (
+                    referrals.map((referral) => (
+                      <Card key={referral.id} className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                <Users className="w-8 h-8 text-primary" />
+                              </div>
+                              <div className="text-foreground">
+                                <h3 className="font-bold text-lg">
+                                  {referral.invitee_name || "مستخدم جديد"}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {referral.invitee_phone}
+                                </p>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  تاريخ الدعوة: {formatDate(referral.created_at)}
+                                  {referral.joined_at && (
+                                    <span className="block">تاريخ الانضمام: {formatDate(referral.joined_at)}</span>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                            <div className="text-foreground">
-                              <h3 className="font-bold text-lg">{referral.name}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {referral.phone}
-                              </p>
-                              <p className="text-sm font-medium text-muted-foreground">
-                                تاريخ الانضمام: {referral.joinDate}
-                              </p>
+                            <div className="text-left flex flex-col items-end gap-2">
+                              {getStatusBadge(referral.status)}
+                              {referral.status === 'joined' && (
+                                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                                  +{referral.reward_days} أيام
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                          <div className="text-left flex flex-col items-end gap-2">
-                            {getStatusBadge(referral.status)}
-                            {referral.daysEarned > 0 && (
-                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                                +{referral.daysEarned} أيام
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -313,13 +388,23 @@ const ReferralCenter = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">{referralData.freeDaysRemaining}</p>
+                  <p className="text-3xl font-bold text-primary">{remainingDays}</p>
                   <p className="text-sm text-muted-foreground">أيام مجانية متبقية</p>
                 </div>
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="text-sm text-muted-foreground mb-1">الأيام المكتسبة إجمالياً</p>
-                  <p className="text-xl font-bold">{referralData.freeDaysEarned} يوم</p>
+                  <p className="text-xl font-bold">{totalDaysEarned} يوم</p>
                 </div>
+                {canApplyRewards() && (
+                  <Button 
+                    onClick={handleApplyRewards}
+                    variant="hero"
+                    className="w-full"
+                  >
+                    <Gift className="w-4 h-4 ml-2" />
+                    تطبيق المكافآت على الاشتراك
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -332,45 +417,56 @@ const ReferralCenter = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-muted/50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-2">الكود الخاص بك</p>
-                  <p className="text-2xl font-bold tracking-wider">{referralData.referralCode}</p>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Input
-                      value={referralData.referralLink}
-                      readOnly
-                      className="text-left text-xs"
-                      dir="ltr"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(referralData.referralLink)}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
+                {!referralCode ? (
+                  <div className="text-center py-4">
+                    <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">جاري تحميل كود الإحالة...</p>
                   </div>
-                  
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: "انضم إلى Diviso",
-                          text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
-                          url: referralData.referralLink
-                        });
-                      }
-                    }}
-                  >
-                    <Share2 className="w-4 h-4 ml-2" />
-                    مشاركة الرابط
-                  </Button>
-                </div>
+                ) : (
+                  <>
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-2">الكود الخاص بك</p>
+                      <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <Input
+                          value={referralLink}
+                          readOnly
+                          className="text-left text-xs"
+                          dir="ltr"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(referralLink)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: "انضم إلى Diviso",
+                              text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
+                              url: referralLink
+                            });
+                          } else {
+                            copyToClipboard(referralLink);
+                          }
+                        }}
+                      >
+                        <Share2 className="w-4 h-4 ml-2" />
+                        مشاركة الرابط
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
