@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { 
   ArrowRight, 
   Gift, 
@@ -429,42 +431,53 @@ const ReferralCenter = () => {
                       <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
                     </div>
                     
-                    <div className="space-y-3">
-                      <div className="flex gap-2">
-                        <Input
-                          value={referralLink}
-                          readOnly
-                          className="text-left text-xs"
-                          dir="ltr"
-                        />
+                    <Tabs defaultValue="link" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="link">رابط نصي</TabsTrigger>
+                        <TabsTrigger value="qr">رمز QR</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="link" className="space-y-3 mt-4">
+                        <div className="flex gap-2">
+                          <Input
+                            value={referralLink}
+                            readOnly
+                            className="text-left text-xs"
+                            dir="ltr"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(referralLink)}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
                         <Button
                           variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(referralLink)}
+                          className="w-full"
+                          onClick={() => {
+                            if (navigator.share) {
+                              navigator.share({
+                                title: "انضم إلى Diviso",
+                                text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
+                                url: referralLink
+                              });
+                            } else {
+                              copyToClipboard(referralLink);
+                            }
+                          }}
                         >
-                          <Copy className="w-4 h-4" />
+                          <Share2 className="w-4 h-4 ml-2" />
+                          مشاركة الرابط
                         </Button>
-                      </div>
+                      </TabsContent>
                       
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => {
-                          if (navigator.share) {
-                            navigator.share({
-                              title: "انضم إلى Diviso",
-                              text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
-                              url: referralLink
-                            });
-                          } else {
-                            copyToClipboard(referralLink);
-                          }
-                        }}
-                      >
-                        <Share2 className="w-4 h-4 ml-2" />
-                        مشاركة الرابط
-                      </Button>
-                    </div>
+                      <TabsContent value="qr" className="mt-4">
+                        <QRCodeDisplay value={referralLink} size={180} />
+                      </TabsContent>
+                    </Tabs>
                   </>
                 )}
               </CardContent>
