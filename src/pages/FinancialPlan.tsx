@@ -1,477 +1,471 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { AppHeader } from "@/components/AppHeader";
+import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ArrowRight,
-  Target, 
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  DollarSign,
-  PieChart,
-  BarChart3,
-  Save,
-  Edit,
-  Trash2
-} from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
-import { useNavigate } from "react-router-dom";
-import { BottomNav } from "@/components/BottomNav";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PlusCircle, TrendingUp, PieChart, Calendar, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
+import { toast } from "sonner";
+import { useBudgets } from "@/hooks/useBudgets";
+import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { useBudgetAnalytics } from "@/hooks/useBudgetAnalytics";
+import { useGroupData } from "@/hooks/useGroupData";
 
-// Mock data
-const mockBudgets = [
-  {
-    id: 1,
-    name: "ميزانية شهر يناير",
-    totalBudget: 5000,
-    spent: 3200,
-    period: "شهري",
-    startDate: "2024-01-01",
-    endDate: "2024-01-31",
-    categories: [
-      { name: "طعام", budget: 1500, spent: 1200, color: "bg-primary" },
-      { name: "مواصلات", budget: 800, spent: 600, color: "bg-green-500" },
-      { name: "ترفيه", budget: 700, spent: 500, color: "bg-yellow-500" },
-      { name: "تسوق", budget: 1000, spent: 900, color: "bg-purple-500" },
-      { name: "صحة", budget: 500, spent: 0, color: "bg-red-500" },
-      { name: "أخرى", budget: 500, spent: 0, color: "bg-gray-500" }
-    ]
-  },
-  {
-    id: 2,
-    name: "ميزانية رحلة جدة",
-    totalBudget: 3000,
-    spent: 2400,
-    period: "مرة واحدة",
-    startDate: "2024-01-15",
-    endDate: "2024-01-22",
-    categories: [
-      { name: "إقامة", budget: 1200, spent: 800, color: "bg-primary" },,
-      { name: "طعام", budget: 800, spent: 600, color: "bg-green-500" },
-      { name: "مواصلات", budget: 500, spent: 400, color: "bg-yellow-500" },
-      { name: "ترفيه", budget: 500, spent: 600, color: "bg-purple-500" }
-    ]
-  }
-];
-
-const mockGroups = [
-  { id: 1, name: "رحلة جدة", avatar: "ر" },
-  { id: 2, name: "سكن مشترك", avatar: "س" },
-  { id: 3, name: "مشروع العمل", avatar: "م" }
-];
-
-const FinancialPlan = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+export default function FinancialPlan() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreatingBudget, setIsCreatingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState({
     name: "",
-    totalBudget: "",
-    period: "",
+    amount: "",
+    period: "monthly" as "weekly" | "monthly" | "yearly",
     startDate: "",
     endDate: "",
-    groupId: "",
-    categories: []
+    groupId: ""
   });
 
-  const categoryOptions = [
-    "طعام", "مواصلات", "إقامة", "ترفيه", "تسوق", "صحة", "تعليم", "أخرى"
-  ];
+  const { budgets, isLoading: budgetsLoading, error: budgetsError, createBudget, deleteBudget, isCreating, refetch: refetchBudgets } = useBudgets();
+  const { categories } = useBudgetCategories();
+  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useBudgetAnalytics();
+  // Mock groups data for now - will be replaced with real hook later
+  const groups = [{ id: "1", name: "المجموعة الأولى" }, { id: "2", name: "المجموعة الثانية" }];
+  const groupsLoading = false;
 
-  const createBudget = () => {
-    if (!newBudget.name || !newBudget.totalBudget) {
-      toast({
-        title: "خطأ",
-        description: "يرجى ملء الحقول المطلوبة",
-        variant: "destructive"
-      });
+  const isLoading = budgetsLoading || analyticsLoading || groupsLoading;
+  const hasError = budgetsError || analyticsError;
+
+  const createBudgetHandler = async () => {
+    if (!newBudget.name || !newBudget.amount || !newBudget.groupId) {
+      toast.error("يرجى ملء جميع الحقول المطلوبة");
       return;
     }
 
-    toast({
-      title: "تم إنشاء الميزانية!",
-      description: `تم إنشاء ميزانية "${newBudget.name}" بنجاح`,
-    });
-    setIsCreatingBudget(false);
-    setNewBudget({
-      name: "",
-      totalBudget: "",
-      period: "",
-      startDate: "",
-      endDate: "",
-      groupId: "",
-      categories: []
-    });
+    try {
+      await createBudget({
+        name: newBudget.name,
+        total_amount: parseFloat(newBudget.amount),
+        amount_limit: parseFloat(newBudget.amount),
+        start_date: newBudget.startDate || new Date().toISOString().split('T')[0],
+        end_date: newBudget.endDate || undefined,
+        period: newBudget.period,
+        group_id: newBudget.groupId
+      });
+
+      setIsCreatingBudget(false);
+      setNewBudget({
+        name: "",
+        amount: "",
+        period: "monthly",
+        startDate: "",
+        endDate: "",
+        groupId: ""
+      });
+    } catch (error) {
+      console.error("Error creating budget:", error);
+    }
   };
 
-  const addCategoryToBudget = () => {
-    // Function to add category to new budget
+  const handleDeleteBudget = async (budgetId: string) => {
+    if (confirm("هل أنت متأكد من حذف هذه الميزانية؟")) {
+      try {
+        await deleteBudget(budgetId);
+      } catch (error) {
+        console.error("Error deleting budget:", error);
+      }
+    }
   };
 
-  const getTotalSpent = () => {
-    return mockBudgets.reduce((total, budget) => total + budget.spent, 0);
+  const getBudgetProgress = (budget: any) => {
+    if (!analytics) return 0;
+    const spent = analytics.categoryBreakdown
+      .filter(cat => cat.category && budget.category_id)
+      .reduce((sum, cat) => sum + cat.spent, 0);
+    const total = budget.amount_limit || budget.total_amount;
+    return total > 0 ? (spent / total) * 100 : 0;
   };
 
-  const getTotalBudget = () => {
-    return mockBudgets.reduce((total, budget) => total + budget.totalBudget, 0);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
-  const getOverallProgress = () => {
-    return (getTotalSpent() / getTotalBudget()) * 100;
-  };
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="container mx-auto px-4 pt-6 pb-20">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+              <h3 className="text-lg font-semibold mb-2">حدث خطأ في تحميل البيانات</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                تعذر تحميل بيانات الخطة المالية. يرجى المحاولة مرة أخرى.
+              </p>
+              <Button onClick={() => refetchBudgets()} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                إعادة المحاولة
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-dark-background">
+    <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/dashboard')}
-            className="mb-4"
-          >
-            <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
-          </Button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">الخطة المالية</h1>
-              <p className="text-muted-foreground">إدارة الميزانيات والتخطيط المالي</p>
-            </div>
-            <Button 
-              onClick={() => setIsCreatingBudget(true)} 
-              variant="hero"
-            >
-              <Plus className="w-4 h-4 ml-2" />
-              إنشاء ميزانية جديدة
-            </Button>
-          </div>
-        </div>
-
+      <div className="container mx-auto px-4 pt-6 pb-20">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-card border border-border shadow-card rounded-2xl hover:shadow-card transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي الميزانيات</p>
-                  <p className="text-2xl font-bold text-primary">{getTotalBudget()}</p>
-                  <p className="text-xs text-muted-foreground mt-1">ريال</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-primary" />
-                </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-primary">
+                {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalBudget || 0)}
               </div>
+              <p className="text-xs text-muted-foreground">إجمالي الميزانية</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-card border border-border shadow-card rounded-2xl hover:shadow-card transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصروف</p>
-                  <p className="text-2xl font-bold text-primary">{getTotalSpent()}</p>
-                  <p className="text-xs text-muted-foreground mt-1">ريال</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-primary" />
-                </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-destructive">
+                {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalSpent || 0)}
               </div>
+              <p className="text-xs text-muted-foreground">إجمالي المصاريف</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-card border border-border shadow-card rounded-2xl hover:shadow-card transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">المتبقي</p>
-                  <p className="text-2xl font-bold text-primary">{getTotalBudget() - getTotalSpent()}</p>
-                  <p className="text-xs text-muted-foreground mt-1">ريال</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-primary" />
-                </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-600">
+                {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalRemaining || 0)}
               </div>
+              <p className="text-xs text-muted-foreground">المتبقي</p>
             </CardContent>
           </Card>
-
-          <Card className="bg-card border border-border shadow-card rounded-2xl hover:shadow-card transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">نسبة الإنفاق</p>
-                  <p className="text-2xl font-bold text-primary">{getOverallProgress().toFixed(0)}%</p>
-                  <p className="text-xs text-muted-foreground mt-1">مستخدم</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                  <PieChart className="w-6 h-6 text-primary" />
-                </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">
+                {isLoading ? <Skeleton className="h-8 w-16" /> : `${analytics?.spendingPercentage.toFixed(1) || 0}%`}
               </div>
+              <p className="text-xs text-muted-foreground">نسبة الإنفاق</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Create Budget Modal */}
-        {isCreatingBudget && (
-          <Card className="shadow-card mb-8">
-            <CardHeader>
-              <CardTitle>إنشاء ميزانية جديدة</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="budgetName">اسم الميزانية</Label>
+        {/* Create Budget Button */}
+        <div className="mb-6">
+          <Dialog open={isCreatingBudget} onOpenChange={setIsCreatingBudget}>
+            <DialogTrigger asChild>
+              <Button className="w-full md:w-auto">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                إنشاء ميزانية جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>إنشاء ميزانية جديدة</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="budget-name">اسم الميزانية</Label>
                   <Input
-                    id="budgetName"
-                    placeholder="مثال: ميزانية شهر فبراير"
+                    id="budget-name"
                     value={newBudget.name}
-                    onChange={(e) => setNewBudget({...newBudget, name: e.target.value})}
+                    onChange={(e) => setNewBudget({ ...newBudget, name: e.target.value })}
+                    placeholder="مثال: ميزانية شهر يناير"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="totalBudget">إجمالي الميزانية</Label>
+                <div>
+                  <Label htmlFor="budget-amount">المبلغ</Label>
                   <Input
-                    id="totalBudget"
+                    id="budget-amount"
                     type="number"
-                    placeholder="5000"
-                    value={newBudget.totalBudget}
-                    onChange={(e) => setNewBudget({...newBudget, totalBudget: e.target.value})}
+                    value={newBudget.amount}
+                    onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
+                    placeholder="0"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="period">النوع</Label>
-                  <Select onValueChange={(value) => setNewBudget({...newBudget, period: value})}>
+                <div>
+                  <Label htmlFor="budget-group">المجموعة</Label>
+                  <Select value={newBudget.groupId} onValueChange={(value) => setNewBudget({ ...newBudget, groupId: value })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر نوع الميزانية" />
+                      <SelectValue placeholder="اختر المجموعة" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="monthly">شهري</SelectItem>
-                      <SelectItem value="weekly">أسبوعي</SelectItem>
-                      <SelectItem value="yearly">سنوي</SelectItem>
-                      <SelectItem value="event">حدث معين</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="group">ربط بمجموعة (اختياري)</Label>
-                  <Select onValueChange={(value) => setNewBudget({...newBudget, groupId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر مجموعة" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">بدون مجموعة</SelectItem>
-                      {mockGroups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
+                      {groups?.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
                           {group.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="startDate">تاريخ البداية</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={newBudget.startDate}
-                    onChange={(e) => setNewBudget({...newBudget, startDate: e.target.value})}
-                  />
+                <div>
+                  <Label htmlFor="budget-period">الفترة</Label>
+                  <Select value={newBudget.period} onValueChange={(value: "weekly" | "monthly" | "yearly") => setNewBudget({ ...newBudget, period: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">أسبوعية</SelectItem>
+                      <SelectItem value="monthly">شهرية</SelectItem>
+                      <SelectItem value="yearly">سنوية</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endDate">تاريخ النهاية</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={newBudget.endDate}
-                    onChange={(e) => setNewBudget({...newBudget, endDate: e.target.value})}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start-date">تاريخ البداية</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      value={newBudget.startDate}
+                      onChange={(e) => setNewBudget({ ...newBudget, startDate: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end-date">تاريخ النهاية (اختياري)</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={newBudget.endDate}
+                      onChange={(e) => setNewBudget({ ...newBudget, endDate: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button onClick={createBudget} variant="hero">
-                  <Save className="w-4 h-4 ml-2" />
-                  حفظ الميزانية
-                </Button>
                 <Button 
-                  variant="outline" 
-                  onClick={() => setIsCreatingBudget(false)}
+                  onClick={createBudgetHandler} 
+                  className="w-full"
+                  disabled={isCreating}
                 >
-                  إلغاء
+                  {isCreating ? "جاري الإنشاء..." : "إنشاء الميزانية"}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </DialogContent>
+          </Dialog>
+        </div>
 
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full gap-1 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
-            <TabsTrigger value="overview" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="budgets" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الميزانيات</TabsTrigger>
-            <TabsTrigger value="analytics" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">التحليلات</TabsTrigger>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+            <TabsTrigger value="budgets">الميزانيات</TabsTrigger>
+            <TabsTrigger value="analytics">التحليلات</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <Card className="shadow-card">
+          <TabsContent value="overview" className="space-y-4">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  ملخص الميزانيات النشطة
-                </CardTitle>
+                <CardTitle>الميزانيات النشطة</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {mockBudgets.map((budget) => {
-                    const progress = (budget.spent / budget.totalBudget) * 100;
-                    return (
-                      <div key={budget.id} className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-semibold">{budget.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {budget.period} • {budget.startDate} - {budget.endDate}
-                            </p>
-                          </div>
-                          <div className="text-left">
-                            <p className="font-bold">{budget.spent} / {budget.totalBudget} ريال</p>
-                            <p className="text-sm text-muted-foreground">{progress.toFixed(0)}%</p>
-                          </div>
-                        </div>
-                        <Progress value={progress} className="h-2" />
+                {isLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-2 w-full" />
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                ) : budgets.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    لا توجد ميزانيات نشطة. ابدأ بإنشاء ميزانية جديدة.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {budgets.slice(0, 5).map((budget) => {
+                      const progress = getBudgetProgress(budget);
+                      return (
+                        <div key={budget.id} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h4 className="font-semibold">{budget.name}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(budget.amount_limit || budget.total_amount)}
+                              </p>
+                            </div>
+                            <Badge variant={progress > 80 ? "destructive" : progress > 60 ? "secondary" : "default"}>
+                              {progress.toFixed(1)}%
+                            </Badge>
+                          </div>
+                          <Progress value={progress} className="h-2" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Budgets Tab */}
-          <TabsContent value="budgets" className="space-y-6">
-            <div className="space-y-6">
-              {mockBudgets.map((budget) => (
-                <Card key={budget.id} className="shadow-card">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>{budget.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {budget.period} • {budget.startDate} - {budget.endDate}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-primary">{budget.totalBudget}</p>
-                        <p className="text-sm text-muted-foreground">إجمالي الميزانية</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-destructive">{budget.spent}</p>
-                        <p className="text-sm text-muted-foreground">المصروف</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-secondary">{budget.totalBudget - budget.spent}</p>
-                        <p className="text-sm text-muted-foreground">المتبقي</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="font-semibold">تفصيل الفئات</h4>
-                      {budget.categories.map((category, index) => {
-                        const categoryProgress = (category.spent / category.budget) * 100;
-                        return (
-                          <div key={index} className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="font-medium">{category.name}</span>
-                              <span className="text-sm text-muted-foreground">
-                                {category.spent} / {category.budget} ريال
-                              </span>
-                            </div>
-                            <Progress value={categoryProgress} className="h-2" />
-                            {categoryProgress > 100 && (
-                              <p className="text-xs text-destructive">تجاوز الميزانية المحددة!</p>
-                            )}
+          <TabsContent value="budgets" className="space-y-4">
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <Skeleton className="h-6 w-1/2 mb-4" />
+                      <Skeleton className="h-4 w-3/4 mb-2" />
+                      <Skeleton className="h-2 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : budgets.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <PieChart className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">لا توجد ميزانيات</h3>
+                  <p className="text-muted-foreground text-center mb-4">
+                    ابدأ بإنشاء ميزانية لتتبع مصاريفك وتحقيق أهدافك المالية
+                  </p>
+                  <Button onClick={() => setIsCreatingBudget(true)}>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    إنشاء أول ميزانية
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {budgets.map((budget) => {
+                  const progress = getBudgetProgress(budget);
+                  return (
+                    <Card key={budget.id}>
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{budget.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {budget.period === 'weekly' ? 'أسبوعية' : budget.period === 'monthly' ? 'شهرية' : 'سنوية'}
+                              {" • "}
+                              {new Date(budget.start_date).toLocaleDateString('ar-SA')}
+                              {budget.end_date && ` - ${new Date(budget.end_date).toLocaleDateString('ar-SA')}`}
+                            </p>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteBudget(budget.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex justify-between text-sm">
+                            <span>المصروف</span>
+                            <span>{formatCurrency((budget.amount_limit || budget.total_amount) * progress / 100)}</span>
+                          </div>
+                          <Progress value={progress} className="h-3" />
+                          <div className="flex justify-between text-sm text-muted-foreground">
+                            <span>المتبقي: {formatCurrency((budget.amount_limit || budget.total_amount) * (100 - progress) / 100)}</span>
+                            <span>الإجمالي: {formatCurrency(budget.amount_limit || budget.total_amount)}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>الأداء العام</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-primary">{getOverallProgress().toFixed(0)}%</p>
-                    <p className="text-muted-foreground">من إجمالي الميزانيات</p>
-                  </div>
-                  <Progress value={getOverallProgress()} className="h-3" />
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>المصروف: {getTotalSpent()} ريال</span>
-                    <span>الميزانية: {getTotalBudget()} ريال</span>
-                  </div>
-                </CardContent>
-              </Card>
+          <TabsContent value="analytics" className="space-y-4">
+            {isLoading ? (
+              <div className="grid gap-4">
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-1/3" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-64 w-full" />
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      الإنفاق الشهري
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={{}} className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={analytics?.monthlySpending || []}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="amount" fill="hsl(var(--primary))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
 
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>توزيع الفئات</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {categoryOptions.slice(0, 5).map((category, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <span className="text-sm">{category}</span>
-                        <Badge variant="outline">
-                          {Math.floor(Math.random() * 1000)} ريال
-                        </Badge>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>توزيع الإنفاق بالفئات</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analytics?.categoryBreakdown && analytics.categoryBreakdown.length > 0 ? (
+                      <div className="space-y-4">
+                        {analytics.categoryBreakdown.map((category, index) => (
+                          <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
+                            <div>
+                              <h4 className="font-medium">{category.category}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(category.spent)} من {formatCurrency(category.budgeted)}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-medium">
+                                {category.budgeted > 0 ? ((category.spent / category.budgeted) * 100).toFixed(1) : 0}%
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                متبقي: {formatCurrency(category.remaining)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">
+                        لا توجد بيانات كافية لعرض توزيع الإنفاق
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </div>
-      <div className="h-16 md:hidden" />
+
       <BottomNav />
     </div>
   );
-};
-
-export default FinancialPlan;
+}
