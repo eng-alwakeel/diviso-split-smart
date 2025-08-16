@@ -153,6 +153,63 @@ export type Database = {
         }
         Relationships: []
       }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          date: string
+          from_currency: string
+          id: string
+          rate: number
+          to_currency: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          from_currency: string
+          id?: string
+          rate: number
+          to_currency: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          from_currency?: string
+          id?: string
+          rate?: number
+          to_currency?: string
+        }
+        Relationships: []
+      }
       expense_approvals: {
         Row: {
           approved_at: string
@@ -486,6 +543,7 @@ export type Database = {
       groups: {
         Row: {
           created_at: string | null
+          currency: string
           id: string
           name: string
           owner_id: string
@@ -493,6 +551,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          currency?: string
           id?: string
           name: string
           owner_id: string
@@ -500,6 +559,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          currency?: string
           id?: string
           name?: string
           owner_id?: string
