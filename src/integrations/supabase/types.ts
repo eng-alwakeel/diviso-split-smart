@@ -1181,6 +1181,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      verify_user_password: {
+        Args: { current_password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"

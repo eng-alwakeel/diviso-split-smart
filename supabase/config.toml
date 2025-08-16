@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.revenuecat_webhook]
 verify_jwt = false
+
+[functions.verify-password]
+verify_jwt = true

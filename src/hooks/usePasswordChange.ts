@@ -7,10 +7,10 @@ export function usePasswordChange() {
   const [loading, setLoading] = useState(false);
 
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
-    if (!newPassword || newPassword.length < 6) {
+    if (!newPassword || newPassword.length < 8) {
       toast({
         title: "كلمة مرور ضعيفة",
-        description: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        description: "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
         variant: "destructive"
       });
       return false;
@@ -18,19 +18,22 @@ export function usePasswordChange() {
 
     setLoading(true);
     try {
-      // التحقق من كلمة المرور الحالية عبر محاولة تسجيل الدخول
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) {
-        throw new Error('لم يتم العثور على بيانات المستخدم');
-      }
-
-      // محاولة تسجيل الدخول للتحقق من كلمة المرور الحالية
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword
+      // التحقق من كلمة المرور الحالية بشكل آمن عبر edge function
+      const { data: verificationResult, error: verificationError } = await supabase.functions.invoke('verify-password', {
+        body: { currentPassword }
       });
 
-      if (signInError) {
+      if (verificationError) {
+        console.error('Password verification error:', verificationError);
+        toast({
+          title: "خطأ في التحقق",
+          description: "حدث خطأ أثناء التحقق من كلمة المرور",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      if (!verificationResult?.valid) {
         toast({
           title: "كلمة مرور خاطئة",
           description: "كلمة المرور الحالية غير صحيحة",
