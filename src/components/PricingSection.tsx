@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useLifetimeOffer } from "@/hooks/useLifetimeOffer";
 import { useEffect } from "react";
+import { PlanBadge } from "@/components/ui/plan-badge";
+import { usePlanBadge } from "@/hooks/usePlanBadge";
 
 const plans = [
   {
@@ -33,8 +35,8 @@ const plans = [
     priceYearly: "190",
     description: "للأفراد والعائلات النشطة",
     features: [
-      "حتى 10 مجموعات",
-      "حتى 20 عضو في المجموعة",
+      "عدد غير محدود من المجموعات",
+      "عدد غير محدود من الأعضاء في المجموعة",
       "تقسيم متقدم (نسب ومبالغ)",
       "مسح الإيصالات بالذكاء الاصطناعي",
       "تحليلات وتوصيات ذكية",
@@ -89,6 +91,7 @@ export const PricingSection = () => {
   const { startTrial } = useSubscription();
   const { toast } = useToast();
   const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
+  const { getPlanBadgeConfig } = usePlanBadge();
 
   // تمت إزالة معالجة joinToken من هنا - يتم التعامل معها في InviteRoute الآن
 
@@ -147,10 +150,21 @@ export const PricingSection = () => {
                 )}
 
                 <CardHeader className="text-center pb-6">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 ${
-                    plan.popular ? 'bg-gradient-primary' : 'bg-muted'
-                  }`}>
-                    <Icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
+                  <div className="flex flex-col items-center gap-3 mb-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      plan.popular ? 'bg-gradient-primary' : 'bg-muted'
+                    }`}>
+                      <Icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
+                    </div>
+                    <PlanBadge 
+                      config={getPlanBadgeConfig(
+                        plan.name === "مجاني" ? "free" : 
+                        plan.name === "شخصي" ? "personal" : 
+                        plan.name === "العائلية" ? "family" : "lifetime"
+                      )} 
+                      size="lg"
+                      showLabel={true}
+                    />
                   </div>
                   
                   <h3 className="text-2xl font-bold">{plan.name}</h3>

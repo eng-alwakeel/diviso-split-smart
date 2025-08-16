@@ -46,6 +46,8 @@ import { FamilyPlanManagement } from "@/components/family/FamilyPlanManagement";
 import { AcceptFamilyInvite } from "@/components/family/AcceptFamilyInvite";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
+import { PlanBadge } from "@/components/ui/plan-badge";
+import { usePlanBadge } from "@/hooks/usePlanBadge";
 
 const getPlanDisplayName = (plan: string) => {
   switch (plan) {
@@ -81,6 +83,7 @@ const Settings = () => {
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
+  const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState("profile");
@@ -353,9 +356,11 @@ const Settings = () => {
                     <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
                     <p className="text-muted-foreground">{profile.email}</p>
                     <div className="flex gap-2 mt-2">
-                      <Badge variant="outline" className="border-border text-foreground">
-                        خطة {getPlanDisplayName(subscription?.plan || 'free')}
-                      </Badge>
+                      <PlanBadge 
+                        config={getPlanBadgeConfig(currentPlan)} 
+                        size="md"
+                        showLabel={true}
+                      />
                       {isTrialActive && (
                         <Badge variant="outline" className="border-accent text-accent">
                           تجربة مجانية • {daysLeft} أيام متبقية

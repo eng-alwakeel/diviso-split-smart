@@ -49,8 +49,8 @@ export function useQuotaHandler() {
         ocr: 5
       },
       personal: {
-        members: 20,
-        groups: 10,
+        members: -1, // Unlimited
+        groups: -1, // Unlimited
         expenses: 1000,
         invites: 50,
         ocr: 100
