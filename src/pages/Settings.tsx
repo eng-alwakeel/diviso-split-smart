@@ -214,11 +214,9 @@ const Settings = () => {
 
   const deleteAccount = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // حذف الحساب من المصادقة
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST'
+      });
       
       if (error) throw error;
 
@@ -228,11 +226,15 @@ const Settings = () => {
         variant: "destructive"
       });
       
+      // Sign out and redirect
+      await supabase.auth.signOut();
       navigate('/');
     } catch (error) {
+      console.error('Error deleting account:', error);
+      const errorMessage = error.message || 'حدث خطأ أثناء حذف الحساب';
       toast({
         title: "خطأ في حذف الحساب",
-        description: "حدث خطأ أثناء حذف الحساب. تواصل مع الدعم الفني.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
