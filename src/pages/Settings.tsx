@@ -359,7 +359,6 @@ const Settings = () => {
                       <PlanBadge 
                         config={getPlanBadgeConfig(currentPlan)} 
                         size="md"
-                        showLabel={true}
                       />
                       {isTrialActive && (
                         <Badge variant="outline" className="border-accent text-accent">

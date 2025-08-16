@@ -44,6 +44,9 @@ import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { BalanceDashboard } from "@/components/group/BalanceDashboard";
+import { PlanBadge } from "@/components/ui/plan-badge";
+import { usePlanBadge } from "@/hooks/usePlanBadge";
+import { useMemberSubscriptions } from "@/hooks/useMemberSubscriptions";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -77,6 +80,8 @@ const GroupDetails = () => {
 
   const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch } = useGroupData(id);
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
+  const { getPlanBadgeConfig } = usePlanBadge();
+  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id));
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -610,7 +615,7 @@ const GroupDetails = () => {
                             )}
                           </div>
                           <div>
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h3 className="font-bold text-lg text-foreground">{name}</h3>
                               {isUserOnline(member.user_id) && (
                                 <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-600 border-green-500/30">
@@ -623,6 +628,10 @@ const GroupDetails = () => {
                                   مدير
                                 </Badge>
                               )}
+                              <PlanBadge 
+                                config={getPlanBadgeConfig(memberSubscriptions[member.user_id]?.plan || 'free')} 
+                                size="sm"
+                              />
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">عضو في المجموعة</p>
                           </div>

@@ -26,7 +26,7 @@ export function usePlanBadge() {
   const getPlanBadgeConfig = (plan: PlanType): PlanBadgeConfig => {
     const configs: Record<PlanType, PlanBadgeConfig> = {
       free: {
-        badge: "مجاني",
+        badge: "🆓",
         label: "مجاني",
         color: "text-muted-foreground",
         bgColor: "bg-muted"
