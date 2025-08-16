@@ -113,7 +113,12 @@ export const Footer = () => {
 
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© 2024 Diviso. جميع الحقوق محفوظة.</p>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <p>© 2024 Diviso. جميع الحقوق محفوظة.</p>
+            <span className="px-2 py-1 bg-muted/50 rounded text-xs font-mono">
+              v{new Date().toISOString().slice(0, 16).replace('T', '-')}
+            </span>
+          </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-foreground transition-colors">سياسة الخصوصية</a>
             <a href="#" className="hover:text-foreground transition-colors">شروط الاستخدام</a>
