@@ -29,6 +29,7 @@ export function EditBudgetDialog({
     total_amount: "",
     amount_limit: "",
     period: "monthly" as "weekly" | "monthly" | "yearly" | "quarterly" | "custom",
+    budget_type: "monthly" as "monthly" | "trip" | "event" | "project" | "emergency" | "savings",
     start_date: "",
     end_date: "",
     group_id: ""
@@ -41,6 +42,7 @@ export function EditBudgetDialog({
         total_amount: budget.total_amount.toString(),
         amount_limit: budget.amount_limit?.toString() || "",
         period: budget.period,
+        budget_type: budget.budget_type || "monthly",
         start_date: budget.start_date,
         end_date: budget.end_date || "",
         group_id: budget.group_id
@@ -62,6 +64,7 @@ export function EditBudgetDialog({
         total_amount: parseFloat(formData.total_amount),
         amount_limit: formData.amount_limit ? parseFloat(formData.amount_limit) : null,
         period: formData.period,
+        budget_type: formData.budget_type,
         start_date: formData.start_date,
         end_date: formData.end_date || null,
         group_id: formData.group_id

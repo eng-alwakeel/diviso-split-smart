@@ -10,6 +10,7 @@ export type Budget = {
   start_date: string;
   end_date?: string;
   period: 'weekly' | 'monthly' | 'yearly' | 'quarterly' | 'custom';
+  budget_type: 'monthly' | 'trip' | 'event' | 'project' | 'emergency' | 'savings';
   group_id: string;
   created_by: string;
   created_at: string;
@@ -25,6 +26,7 @@ export type CreateBudgetData = {
   start_date: string;
   end_date?: string;
   period: 'weekly' | 'monthly' | 'yearly' | 'quarterly' | 'custom';
+  budget_type: 'monthly' | 'trip' | 'event' | 'project' | 'emergency' | 'savings';
   group_id: string;
   category_id?: string;
 };

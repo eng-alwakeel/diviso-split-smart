@@ -21,20 +21,12 @@ import { useBudgetAnalytics } from "@/hooks/useBudgetAnalytics";
 import { useGroups } from "@/hooks/useGroups";
 import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
 import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
+import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
 
 export default function FinancialPlan() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreatingBudget, setIsCreatingBudget] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
-  const [newBudget, setNewBudget] = useState({
-    name: "",
-    amount: "",
-    amount_limit: "",
-    period: "monthly" as "weekly" | "monthly" | "yearly" | "quarterly" | "custom",
-    startDate: "",
-    endDate: "",
-    groupId: ""
-  });
 
   const { budgets, isLoading: budgetsLoading, error: budgetsError, createBudget, updateBudget, deleteBudget, isCreating, isUpdating, refetch: refetchBudgets } = useBudgets();
   const { categories } = useBudgetCategories();
@@ -44,42 +36,14 @@ export default function FinancialPlan() {
   const isLoading = budgetsLoading || analyticsLoading || groupsLoading;
   const hasError = budgetsError || analyticsError || groupsError;
 
-  const createBudgetHandler = async () => {
-    if (!newBudget.name || !newBudget.amount || !newBudget.groupId) {
-      toast.error("يرجى ملء جميع الحقول المطلوبة");
-      return;
-    }
-
-    if (groups.length === 0) {
-      toast.error("لا توجد مجموعات متاحة. يجب إنشاء مجموعة أولاً");
-      return;
-    }
-
+  const createBudgetHandler = async (budgetData: any) => {
     try {
-      await createBudget({
-        name: newBudget.name,
-        total_amount: parseFloat(newBudget.amount),
-        amount_limit: newBudget.amount_limit ? parseFloat(newBudget.amount_limit) : parseFloat(newBudget.amount),
-        start_date: newBudget.startDate || new Date().toISOString().split('T')[0],
-        end_date: newBudget.endDate || undefined,
-        period: newBudget.period,
-        group_id: newBudget.groupId
-      });
-
-      setIsCreatingBudget(false);
-      setNewBudget({
-        name: "",
-        amount: "",
-        amount_limit: "",
-        period: "monthly",
-        startDate: "",
-        endDate: "",
-        groupId: ""
-      });
+      await createBudget(budgetData);
       toast.success("تم إنشاء الميزانية بنجاح");
     } catch (error: any) {
       console.error("Error creating budget:", error);
       toast.error("فشل في إنشاء الميزانية: " + (error.message || "خطأ غير معروف"));
+      throw error; // Re-throw to let the dialog handle it
     }
   };
 
@@ -194,120 +158,22 @@ export default function FinancialPlan() {
 
         {/* Create Budget Button */}
         <div className="mb-6">
-          <Dialog open={isCreatingBudget} onOpenChange={setIsCreatingBudget}>
-            <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                إنشاء ميزانية جديدة
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>إنشاء ميزانية جديدة</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="budget-name">اسم الميزانية</Label>
-                  <Input
-                    id="budget-name"
-                    value={newBudget.name}
-                    onChange={(e) => setNewBudget({ ...newBudget, name: e.target.value })}
-                    placeholder="مثال: ميزانية شهر يناير"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget-amount">المبلغ الإجمالي</Label>
-                  <Input
-                    id="budget-amount"
-                    type="number"
-                    value={newBudget.amount}
-                    onChange={(e) => setNewBudget({ ...newBudget, amount: e.target.value })}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget-limit">الحد الأقصى للإنفاق (اختياري)</Label>
-                  <Input
-                    id="budget-limit"
-                    type="number"
-                    value={newBudget.amount_limit}
-                    onChange={(e) => setNewBudget({ ...newBudget, amount_limit: e.target.value })}
-                    placeholder="اتركه فارغاً لاستخدام المبلغ الإجمالي"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget-group">المجموعة</Label>
-                  <Select value={newBudget.groupId} onValueChange={(value) => setNewBudget({ ...newBudget, groupId: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر المجموعة" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {groups.length === 0 ? (
-                        <SelectItem value="" disabled>
-                          لا توجد مجموعات متاحة
-                        </SelectItem>
-                      ) : (
-                        groups.map((group) => (
-                          <SelectItem key={group.id} value={group.id}>
-                            <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              <span>{group.name}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {group.member_count} عضو
-                              </Badge>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="budget-period">الفترة</Label>
-                  <Select value={newBudget.period} onValueChange={(value: "weekly" | "monthly" | "yearly" | "quarterly" | "custom") => setNewBudget({ ...newBudget, period: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">أسبوعية</SelectItem>
-                      <SelectItem value="monthly">شهرية</SelectItem>
-                      <SelectItem value="quarterly">ربع سنوية</SelectItem>
-                      <SelectItem value="yearly">سنوية</SelectItem>
-                      <SelectItem value="custom">مخصصة</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="start-date">تاريخ البداية</Label>
-                    <Input
-                      id="start-date"
-                      type="date"
-                      value={newBudget.startDate}
-                      onChange={(e) => setNewBudget({ ...newBudget, startDate: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="end-date">تاريخ النهاية (اختياري)</Label>
-                    <Input
-                      id="end-date"
-                      type="date"
-                      value={newBudget.endDate}
-                      onChange={(e) => setNewBudget({ ...newBudget, endDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <Button 
-                  onClick={createBudgetHandler} 
-                  className="w-full"
-                  disabled={isCreating}
-                >
-                  {isCreating ? "جاري الإنشاء..." : "إنشاء الميزانية"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            className="w-full md:w-auto"
+            onClick={() => setIsCreatingBudget(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            إنشاء ميزانية جديدة
+          </Button>
         </div>
+
+        {/* Create Budget Dialog */}
+        <CreateBudgetDialog
+          open={isCreatingBudget}
+          onOpenChange={setIsCreatingBudget}
+          onCreateBudget={createBudgetHandler}
+          isCreating={isCreating}
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>

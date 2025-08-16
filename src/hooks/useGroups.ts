@@ -16,12 +16,12 @@ async function fetchUserGroups(): Promise<Group[]> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) throw new Error("User not authenticated");
 
-  // Get all groups where user is a member
+  // Get all groups where user is a member with proper join
   const { data: groupMembers, error: membersError } = await supabase
     .from("group_members")
     .select(`
       role,
-      groups!inner (
+      groups (
         id,
         name,
         currency,

@@ -59,6 +59,7 @@ export type Database = {
       budgets: {
         Row: {
           amount_limit: number | null
+          budget_type: Database["public"]["Enums"]["budget_type"] | null
           category_id: string | null
           created_at: string
           created_by: string
@@ -74,6 +75,7 @@ export type Database = {
         }
         Insert: {
           amount_limit?: number | null
+          budget_type?: Database["public"]["Enums"]["budget_type"] | null
           category_id?: string | null
           created_at?: string
           created_by: string
@@ -89,6 +91,7 @@ export type Database = {
         }
         Update: {
           amount_limit?: number | null
+          budget_type?: Database["public"]["Enums"]["budget_type"] | null
           category_id?: string | null
           created_at?: string
           created_by?: string
@@ -1181,6 +1184,13 @@ export type Database = {
     }
     Enums: {
       budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"
+      budget_type:
+        | "monthly"
+        | "trip"
+        | "event"
+        | "project"
+        | "emergency"
+        | "savings"
       expense_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
@@ -1315,6 +1325,14 @@ export const Constants = {
   public: {
     Enums: {
       budget_period: ["weekly", "monthly", "quarterly", "yearly", "custom"],
+      budget_type: [
+        "monthly",
+        "trip",
+        "event",
+        "project",
+        "emergency",
+        "savings",
+      ],
       expense_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
