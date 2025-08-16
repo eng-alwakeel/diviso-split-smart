@@ -95,7 +95,7 @@ const GroupDetails = () => {
   const canApprove = useMemo(() => {
     if (!currentUserId) return false;
     const me = members.find(m => m.user_id === currentUserId);
-    return me ? (me.role === "admin" || me.role === "owner") : false;
+    return me ? (me.role === "admin" || me.role === "owner" || me.can_approve_expenses) : false;
   }, [members, currentUserId]);
 
   const isOwner = currentUserId != null && group?.owner_id === currentUserId;
@@ -329,9 +329,15 @@ const GroupDetails = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold text-accent">{totals.totalExpenses.toLocaleString()}</p>
+                  <p className="text-sm font-medium text-muted-foreground">المصاريف المعتمدة</p>
+                  <p className="text-2xl font-bold text-green-600">{totals.approvedExpenses.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
+                  {totals.pendingExpenses > 0 && (
+                    <p className="text-xs text-amber-600 mt-0.5">معلق: {totals.pendingExpenses.toLocaleString()}</p>
+                  )}
+                  {totals.rejectedExpenses > 0 && (
+                    <p className="text-xs text-red-600 mt-0.5">مرفوض: {totals.rejectedExpenses.toLocaleString()}</p>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
                   <Receipt className="w-6 h-6 text-accent" />

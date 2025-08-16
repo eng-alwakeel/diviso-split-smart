@@ -443,6 +443,7 @@ export type Database = {
       }
       group_members: {
         Row: {
+          can_approve_expenses: boolean
           group_id: string
           id: string
           joined_at: string | null
@@ -450,6 +451,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          can_approve_expenses?: boolean
           group_id: string
           id?: string
           joined_at?: string | null
@@ -457,6 +459,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          can_approve_expenses?: boolean
           group_id?: string
           id?: string
           joined_at?: string | null
@@ -979,6 +982,10 @@ export type Database = {
       assert_quota: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
+      }
+      can_approve_group_expenses: {
+        Args: { p_group_id: string }
+        Returns: boolean
       }
       generate_referral_code: {
         Args: Record<PropertyKey, never>

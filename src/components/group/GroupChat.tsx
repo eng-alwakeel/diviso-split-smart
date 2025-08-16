@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Send } from "lucide-react";
+import { Send, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Message {
   id: string;
@@ -25,6 +26,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [profiles, setProfiles] = useState<Record<string, any>>({});
   const listRef = useRef<HTMLDivElement>(null);
 
   const canUseRealtime = useMemo(() => isUUID(groupId), [groupId]);
@@ -40,21 +42,45 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     console.log("[GroupChat] fetching messages for group:", groupId);
 
     let active = true;
-    supabase
-      .from("messages")
-      .select("*")
-      .eq("group_id", groupId)
-      .order("created_at", { ascending: true })
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) {
-          console.error("[GroupChat] fetch error", error);
-          toast({ title: "تعذر تحميل الرسائل", description: error.message, variant: "destructive" });
-          return;
+    
+    const fetchMessagesAndProfiles = async () => {
+      // Fetch messages
+      const { data: messagesData, error: messagesError } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: true });
+
+      if (!active) return;
+      if (messagesError) {
+        console.error("[GroupChat] fetch error", messagesError);
+        toast({ title: "تعذر تحميل الرسائل", description: messagesError.message, variant: "destructive" });
+        return;
+      }
+
+      setMessages((messagesData as Message[]) || []);
+
+      // Fetch profiles for all message senders
+      if (messagesData && messagesData.length > 0) {
+        const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, display_name, name, avatar_url")
+          .in("id", senderIds);
+
+        if (!profilesError && profilesData) {
+          const profilesMap = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {} as Record<string, any>);
+          setProfiles(profilesMap);
         }
-        setMessages((data as Message[]) || []);
-        scrollToBottom();
-      });
+      }
+
+      scrollToBottom();
+    };
+
+    fetchMessagesAndProfiles();
 
     const channel = supabase
       .channel("schema-db-changes")
@@ -133,7 +159,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
         ref={listRef}
       >
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} />
+          <MessageBubble key={m.id} message={m} profiles={profiles} />
         ))}
         {messages.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">لا توجد رسائل بعد.</p>
@@ -155,7 +181,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
   );
 };
 
-const MessageBubble = ({ message }: { message: Message }) => {
+const MessageBubble = ({ message, profiles }: { message: Message; profiles: Record<string, any> }) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -163,23 +189,41 @@ const MessageBubble = ({ message }: { message: Message }) => {
   }, []);
 
   const isMe = userId && message.sender_id === userId;
+  const senderProfile = profiles[message.sender_id];
+  const senderName = senderProfile?.display_name || senderProfile?.name || 'مستخدم';
+  const senderAvatar = senderProfile?.avatar_url;
 
   return (
-    <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-xs p-3 rounded-lg ${
-          isMe ? "bg-primary text-white" : "bg-white border"
-        }`}
-      >
+    <div className={`flex ${isMe ? "justify-end" : "justify-start"} mb-3`}>
+      <div className={`flex items-start gap-2 max-w-[70%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         {!isMe && (
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            {message.sender_id.slice(0,4)}...
-          </p>
+          <Avatar className="w-8 h-8 mt-1 shrink-0">
+            <AvatarImage src={senderAvatar} alt={senderName} />
+            <AvatarFallback className="text-xs">
+              <User className="w-4 h-4" />
+            </AvatarFallback>
+          </Avatar>
         )}
-        <p className="text-sm">{message.content}</p>
-        <p className={`text-[10px] mt-1 ${isMe ? "text-muted-foreground" : "text-muted-foreground"}`}>
-          {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </p>
+        <div
+          className={`p-3 rounded-lg ${
+            isMe
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted'
+          }`}
+        >
+          {!isMe && (
+            <div className="text-xs font-medium mb-1 text-muted-foreground">
+              {senderName}
+            </div>
+          )}
+          <div className="text-sm leading-relaxed">{message.content}</div>
+          <div className="text-xs opacity-70 mt-1">
+            {new Date(message.created_at).toLocaleTimeString('ar-SA', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

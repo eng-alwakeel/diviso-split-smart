@@ -12,6 +12,7 @@ type GroupRow = {
 type MemberRow = {
   user_id: string;
   role: "owner" | "admin" | "member";
+  can_approve_expenses: boolean;
 };
 
 type ProfileRow = {
@@ -101,7 +102,7 @@ export const useGroupData = (groupId?: string) => {
     // 2) الأعضاء
     const { data: mems, error: memErr } = await supabase
       .from("group_members")
-      .select("user_id, role")
+      .select("user_id, role, can_approve_expenses")
       .eq("group_id", groupId);
     if (memErr) {
       console.error("[useGroupData] members error", memErr);
@@ -249,8 +250,17 @@ export const useGroupData = (groupId?: string) => {
   }, [groupId, realtimeInitialized, expenses]);
 
   const totals = useMemo(() => {
-    const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-    return { totalExpenses };
+    const approvedExpenses = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const pendingExpenses = expenses.filter(e => e.status === 'pending').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const rejectedExpenses = expenses.filter(e => e.status === 'rejected').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const totalExpenses = approvedExpenses; // Only count approved expenses in total
+    
+    return {
+      totalExpenses,
+      approvedExpenses,
+      pendingExpenses,
+      rejectedExpenses,
+    };
   }, [expenses]);
 
 return {
