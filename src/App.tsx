@@ -11,6 +11,7 @@ import ReferralCenter from "./pages/ReferralCenter";
 import GroupDetails from "./pages/GroupDetails";
 import FinancialPlan from "./pages/FinancialPlan";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/financial-plan" element={<ProtectedRoute><FinancialPlan /></ProtectedRoute>} />
           <Route path="/referral" element={<ProtectedRoute><ReferralCenter /></ProtectedRoute>} />
           <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

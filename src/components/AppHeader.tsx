@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { NotificationBell } from "@/components/NotificationBell";
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 interface AppHeaderProps {
@@ -16,9 +16,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
         <div className="grid grid-cols-3 items-center">
           {/* Left: Notifications */}
           <div className="justify-self-start">
-            <Button variant="ghost" size="sm" aria-label="التنبيهات">
-              <Bell className="w-4 h-4" />
-            </Button>
+            <NotificationBell />
           </div>
 
           {/* Center: Logo */}
