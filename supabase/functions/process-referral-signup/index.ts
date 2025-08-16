@@ -1,0 +1,203 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface ReferralSignupRequest {
+  userId: string;
+  referralCode: string;
+  userPhone: string;
+  userName: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    console.log("=== Process Referral Signup Function Started ===");
+    
+    // Initialize Supabase client with service role key
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    // Parse request body
+    const { userId, referralCode, userPhone, userName }: ReferralSignupRequest = await req.json();
+    console.log(`Processing referral signup for user: ${userId} with code: ${referralCode}`);
+
+    if (!userId || !referralCode || !userPhone) {
+      throw new Error("Missing required parameters: userId, referralCode, or userPhone");
+    }
+
+    // Find the referral code owner
+    const { data: referralCodeData, error: codeError } = await supabaseClient
+      .from("user_referral_codes")
+      .select("user_id")
+      .eq("referral_code", referralCode)
+      .maybeSingle();
+
+    if (codeError || !referralCodeData) {
+      console.error("Invalid referral code:", referralCode);
+      throw new Error("Invalid referral code");
+    }
+
+    const inviterId = referralCodeData.user_id;
+    console.log(`Found inviter: ${inviterId}`);
+
+    // Check if there's an existing pending referral
+    const { data: existingReferral, error: referralError } = await supabaseClient
+      .from("referrals")
+      .select("*")
+      .eq("inviter_id", inviterId)
+      .eq("invitee_phone", userPhone)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (referralError) {
+      console.error("Error checking existing referral:", referralError);
+    }
+
+    let referralId: string;
+
+    if (existingReferral) {
+      // Update existing referral
+      console.log("Updating existing referral:", existingReferral.id);
+      
+      const { data: updatedReferral, error: updateError } = await supabaseClient
+        .from("referrals")
+        .update({
+          status: "joined",
+          joined_at: new Date().toISOString(),
+          invitee_name: userName
+        })
+        .eq("id", existingReferral.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error("Error updating referral:", updateError);
+        throw updateError;
+      }
+
+      referralId = updatedReferral.id;
+    } else {
+      // Create new referral record
+      console.log("Creating new referral record");
+      
+      const { data: newReferral, error: insertError } = await supabaseClient
+        .from("referrals")
+        .insert({
+          inviter_id: inviterId,
+          invitee_phone: userPhone,
+          invitee_name: userName,
+          referral_code: referralCode,
+          status: "joined",
+          joined_at: new Date().toISOString(),
+          reward_days: 7
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating referral:", insertError);
+        throw insertError;
+      }
+
+      referralId = newReferral.id;
+    }
+
+    // Create referral reward for the inviter
+    console.log("Creating referral reward for inviter");
+    
+    const { error: rewardError } = await supabaseClient
+      .from("referral_rewards")
+      .insert({
+        user_id: inviterId,
+        referral_id: referralId,
+        days_earned: 7,
+        applied_to_subscription: false
+      });
+
+    if (rewardError) {
+      console.error("Error creating referral reward:", rewardError);
+      // Don't throw here as the main signup should still succeed
+    }
+
+    // Create a free trial subscription for the new user (7 days)
+    console.log("Creating trial subscription for new user");
+    
+    const trialStartDate = new Date();
+    const trialEndDate = new Date(trialStartDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+
+    const { error: subscriptionError } = await supabaseClient
+      .from("user_subscriptions")
+      .insert({
+        user_id: userId,
+        plan: "personal",
+        status: "trialing",
+        started_at: trialStartDate.toISOString(),
+        expires_at: trialEndDate.toISOString()
+      });
+
+    if (subscriptionError) {
+      console.error("Error creating trial subscription:", subscriptionError);
+      // Don't throw here as the referral processing is more important
+    }
+
+    // Send notification to the inviter (optional)
+    const { error: notificationError } = await supabaseClient
+      .from("notifications")
+      .insert({
+        user_id: inviterId,
+        type: "referral_completed",
+        payload: {
+          invitee_name: userName,
+          reward_days: 7,
+          referral_code: referralCode
+        }
+      });
+
+    if (notificationError) {
+      console.error("Error creating notification:", notificationError);
+    }
+
+    console.log("✅ Referral signup processed successfully");
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: "تم معالجة الإحالة بنجاح",
+        referralId,
+        trialDays: 7
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
+
+  } catch (error) {
+    console.error("❌ Error in process-referral-signup function:", error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || "Failed to process referral signup",
+        success: false 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
+  }
+};
+
+serve(handler);

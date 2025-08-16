@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useReferralRewards } from "./useReferralRewards";
 
 export type SubscriptionPlan = "personal" | "family";
 export type SubscriptionStatus = "trialing" | "active" | "expired" | "canceled";
@@ -19,6 +20,7 @@ export interface UserSubscription {
 export function useSubscription() {
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const { remainingDays: freeDaysFromReferrals } = useReferralRewards();
 
   const fetchSubscription = useCallback(async () => {
     setLoading(true);
@@ -87,11 +89,11 @@ export function useSubscription() {
   }, [subscription]);
 
   const daysLeft = useMemo(() => {
-    if (!subscription) return 0;
+    if (!subscription) return freeDaysFromReferrals;
     const exp = new Date(subscription.expires_at).getTime();
     const diff = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
-    return Math.max(0, diff);
-  }, [subscription]);
+    return Math.max(0, diff) + freeDaysFromReferrals;
+  }, [subscription, freeDaysFromReferrals]);
 
   return {
     subscription,
@@ -100,5 +102,6 @@ export function useSubscription() {
     loading,
     refresh: fetchSubscription,
     startTrial,
+    freeDaysFromReferrals,
   };
 }

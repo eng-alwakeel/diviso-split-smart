@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import InviteRoute from "./pages/InviteRoute";
+import ReferralSignup from "./pages/ReferralSignup";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
           <Route path="/i/:code" element={<InviteRoute />} />
+          <Route path="/join/:referralCode" element={<ReferralSignup />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/create-group" element={<ProtectedRoute><CreateGroup /></ProtectedRoute>} />
           <Route path="/group/:id" element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
