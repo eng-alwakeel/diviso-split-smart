@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Diviso',
   webDir: 'dist',
   server: {
-    url: 'https://app.diviso.co',
+    url: 'https://diviso.app',
     cleartext: true,
-    allowNavigation: ['app.diviso.co']
+    allowNavigation: ['diviso.app']
   }
 };
 
