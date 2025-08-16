@@ -28,24 +28,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
           </div>
 
           {/* Right: empty spacer to keep logo centered */}
-          <div className="justify-self-end hidden lg:flex items-center gap-6">
-            <nav className="flex items-center gap-6">
-              <NavLink to="/dashboard" end className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
-                الرئيسية
-              </NavLink>
-              <NavLink to="/add-expense" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
-                مصروف
-              </NavLink>
-              <NavLink to="/financial-plan" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
-                الخطة
-              </NavLink>
-              <NavLink to="/referral" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
-                الإحالة
-              </NavLink>
-              <NavLink to="/settings" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground transition-colors"}>
-                الإعدادات
-              </NavLink>
-            </nav>
+          <div className="justify-self-end">
           </div>
         </div>
       </div>
