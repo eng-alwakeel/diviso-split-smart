@@ -991,6 +991,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_balance_summary: {
+        Args: { p_group_id: string }
+        Returns: {
+          confirmed_net: number
+          confirmed_owed: number
+          confirmed_paid: number
+          pending_net: number
+          pending_owed: number
+          pending_paid: number
+          total_net: number
+          user_id: string
+        }[]
+      }
       get_current_count: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: number
@@ -1003,6 +1016,15 @@ export type Database = {
           net_balance: number
           settlements_in: number
           settlements_out: number
+          user_id: string
+        }[]
+      }
+      get_pending_amounts: {
+        Args: { p_group_id: string }
+        Returns: {
+          pending_net: number
+          pending_owed: number
+          pending_paid: number
           user_id: string
         }[]
       }
