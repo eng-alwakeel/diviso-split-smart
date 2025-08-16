@@ -14,20 +14,21 @@ import {
   Copy,
   Phone,
   Link as LinkIcon,
-  Coins,
   Calculator
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CurrencySelector } from "@/components/ui/currency-selector";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InitialBalancesStep, type MemberBalance } from "@/components/group/InitialBalancesStep";
+import { useCurrencies } from "@/hooks/useCurrencies";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currencies } = useCurrencies();
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
     name: "",
@@ -42,15 +43,6 @@ const CreateGroup = () => {
   const categories = [
     "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
     "هدية جماعية", "حفلة", "رياضة", "أخرى"
-  ];
-
-  const currencies = [
-    { code: "SAR", name: "ريال سعودي", symbol: "ر.س" },
-    { code: "USD", name: "دولار أمريكي", symbol: "$" },
-    { code: "EUR", name: "يورو", symbol: "€" },
-    { code: "AED", name: "درهم إماراتي", symbol: "د.إ" },
-    { code: "KWD", name: "دينار كويتي", symbol: "د.ك" },
-    { code: "QAR", name: "ريال قطري", symbol: "ر.ق" }
   ];
 
   const handleAddPhone = () => {
@@ -355,21 +347,13 @@ const CreateGroup = () => {
 
               <div className="space-y-3">
                 <Label className="text-foreground">العملة الرئيسية</Label>
-                <Select value={groupData.currency} onValueChange={(value) => setGroupData({...groupData, currency: value})}>
-                  <SelectTrigger className="w-full bg-background/50 border-border text-foreground">
-                    <SelectValue placeholder="اختر العملة" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border z-50">
-                    {currencies.map((currency) => (
-                      <SelectItem key={currency.code} value={currency.code} className="text-foreground hover:bg-accent/20">
-                        <div className="flex items-center gap-2">
-                          <Coins className="w-4 h-4" />
-                          <span>{currency.name} ({currency.symbol})</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <CurrencySelector
+                  currencies={currencies}
+                  value={groupData.currency}
+                  onValueChange={(value) => setGroupData({...groupData, currency: value})}
+                  placeholder="اختر العملة..."
+                  className="w-full bg-background/50 border-border text-foreground"
+                />
                 <p className="text-xs text-muted-foreground">
                   ⚠️ لا يمكن تغيير العملة بعد إنشاء المجموعة
                 </p>
