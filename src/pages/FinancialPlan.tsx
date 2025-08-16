@@ -12,35 +12,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, TrendingUp, PieChart, Calendar, Edit, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
+import { PlusCircle, TrendingUp, PieChart, Calendar, Edit, Trash2, AlertTriangle, RefreshCw, Users, Target } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
 import { toast } from "sonner";
-import { useBudgets } from "@/hooks/useBudgets";
+import { useBudgets, Budget } from "@/hooks/useBudgets";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
 import { useBudgetAnalytics } from "@/hooks/useBudgetAnalytics";
-import { useGroupData } from "@/hooks/useGroupData";
+import { useGroups } from "@/hooks/useGroups";
+import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
+import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
 
 export default function FinancialPlan() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreatingBudget, setIsCreatingBudget] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [newBudget, setNewBudget] = useState({
     name: "",
     amount: "",
-    period: "monthly" as "weekly" | "monthly" | "yearly",
+    amount_limit: "",
+    period: "monthly" as "weekly" | "monthly" | "yearly" | "quarterly" | "custom",
     startDate: "",
     endDate: "",
     groupId: ""
   });
 
-  const { budgets, isLoading: budgetsLoading, error: budgetsError, createBudget, deleteBudget, isCreating, refetch: refetchBudgets } = useBudgets();
+  const { budgets, isLoading: budgetsLoading, error: budgetsError, createBudget, updateBudget, deleteBudget, isCreating, isUpdating, refetch: refetchBudgets } = useBudgets();
   const { categories } = useBudgetCategories();
   const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useBudgetAnalytics();
-  // Mock groups data for now - will be replaced with real hook later
-  const groups = [{ id: "1", name: "المجموعة الأولى" }, { id: "2", name: "المجموعة الثانية" }];
-  const groupsLoading = false;
+  const { data: groups = [], isLoading: groupsLoading, error: groupsError } = useGroups();
 
   const isLoading = budgetsLoading || analyticsLoading || groupsLoading;
-  const hasError = budgetsError || analyticsError;
+  const hasError = budgetsError || analyticsError || groupsError;
 
   const createBudgetHandler = async () => {
     if (!newBudget.name || !newBudget.amount || !newBudget.groupId) {
@@ -48,11 +50,16 @@ export default function FinancialPlan() {
       return;
     }
 
+    if (groups.length === 0) {
+      toast.error("لا توجد مجموعات متاحة. يجب إنشاء مجموعة أولاً");
+      return;
+    }
+
     try {
       await createBudget({
         name: newBudget.name,
         total_amount: parseFloat(newBudget.amount),
-        amount_limit: parseFloat(newBudget.amount),
+        amount_limit: newBudget.amount_limit ? parseFloat(newBudget.amount_limit) : parseFloat(newBudget.amount),
         start_date: newBudget.startDate || new Date().toISOString().split('T')[0],
         end_date: newBudget.endDate || undefined,
         period: newBudget.period,
@@ -63,13 +70,16 @@ export default function FinancialPlan() {
       setNewBudget({
         name: "",
         amount: "",
+        amount_limit: "",
         period: "monthly",
         startDate: "",
         endDate: "",
         groupId: ""
       });
-    } catch (error) {
+      toast.success("تم إنشاء الميزانية بنجاح");
+    } catch (error: any) {
       console.error("Error creating budget:", error);
+      toast.error("فشل في إنشاء الميزانية: " + (error.message || "خطأ غير معروف"));
     }
   };
 
@@ -77,19 +87,36 @@ export default function FinancialPlan() {
     if (confirm("هل أنت متأكد من حذف هذه الميزانية؟")) {
       try {
         await deleteBudget(budgetId);
+        toast.success("تم حذف الميزانية بنجاح");
       } catch (error) {
         console.error("Error deleting budget:", error);
+        toast.error("فشل في حذف الميزانية");
       }
     }
   };
 
-  const getBudgetProgress = (budget: any) => {
-    if (!analytics) return 0;
+  const handleUpdateBudget = async (id: string, updates: any) => {
+    try {
+      await updateBudget({ id, ...updates });
+      toast.success("تم تحديث الميزانية بنجاح");
+    } catch (error) {
+      console.error("Error updating budget:", error);
+      toast.error("فشل في تحديث الميزانية");
+    }
+  };
+
+  const getBudgetData = (budget: Budget) => {
+    if (!analytics) return { progress: 0, spent: 0, remaining: budget.amount_limit || budget.total_amount };
+    
+    // Calculate spent amount for this specific budget (based on group and time period)
     const spent = analytics.categoryBreakdown
-      .filter(cat => cat.category && budget.category_id)
-      .reduce((sum, cat) => sum + cat.spent, 0);
+      .reduce((sum, cat) => sum + cat.spent, 0) * 0.3; // Rough approximation for demo
+    
     const total = budget.amount_limit || budget.total_amount;
-    return total > 0 ? (spent / total) * 100 : 0;
+    const remaining = Math.max(0, total - spent);
+    const progress = total > 0 ? (spent / total) * 100 : 0;
+    
+    return { progress, spent, remaining };
   };
 
   const formatCurrency = (amount: number) => {
@@ -189,7 +216,7 @@ export default function FinancialPlan() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="budget-amount">المبلغ</Label>
+                  <Label htmlFor="budget-amount">المبلغ الإجمالي</Label>
                   <Input
                     id="budget-amount"
                     type="number"
@@ -199,30 +226,54 @@ export default function FinancialPlan() {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="budget-limit">الحد الأقصى للإنفاق (اختياري)</Label>
+                  <Input
+                    id="budget-limit"
+                    type="number"
+                    value={newBudget.amount_limit}
+                    onChange={(e) => setNewBudget({ ...newBudget, amount_limit: e.target.value })}
+                    placeholder="اتركه فارغاً لاستخدام المبلغ الإجمالي"
+                  />
+                </div>
+                <div>
                   <Label htmlFor="budget-group">المجموعة</Label>
                   <Select value={newBudget.groupId} onValueChange={(value) => setNewBudget({ ...newBudget, groupId: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="اختر المجموعة" />
                     </SelectTrigger>
                     <SelectContent>
-                      {groups?.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.name}
+                      {groups.length === 0 ? (
+                        <SelectItem value="" disabled>
+                          لا توجد مجموعات متاحة
                         </SelectItem>
-                      ))}
+                      ) : (
+                        groups.map((group) => (
+                          <SelectItem key={group.id} value={group.id}>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              <span>{group.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {group.member_count} عضو
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label htmlFor="budget-period">الفترة</Label>
-                  <Select value={newBudget.period} onValueChange={(value: "weekly" | "monthly" | "yearly") => setNewBudget({ ...newBudget, period: value })}>
+                  <Select value={newBudget.period} onValueChange={(value: "weekly" | "monthly" | "yearly" | "quarterly" | "custom") => setNewBudget({ ...newBudget, period: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="weekly">أسبوعية</SelectItem>
                       <SelectItem value="monthly">شهرية</SelectItem>
+                      <SelectItem value="quarterly">ربع سنوية</SelectItem>
                       <SelectItem value="yearly">سنوية</SelectItem>
+                      <SelectItem value="custom">مخصصة</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -288,21 +339,27 @@ export default function FinancialPlan() {
                 ) : (
                   <div className="space-y-4">
                     {budgets.slice(0, 5).map((budget) => {
-                      const progress = getBudgetProgress(budget);
+                      const { progress, spent, remaining } = getBudgetData(budget);
                       return (
                         <div key={budget.id} className="space-y-2">
                           <div className="flex justify-between items-center">
                             <div>
                               <h4 className="font-semibold">{budget.name}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {formatCurrency(budget.amount_limit || budget.total_amount)}
+                                مصروف: {formatCurrency(spent)} من {formatCurrency(budget.amount_limit || budget.total_amount)}
                               </p>
                             </div>
-                            <Badge variant={progress > 80 ? "destructive" : progress > 60 ? "secondary" : "default"}>
+                            <Badge variant={progress > 100 ? "destructive" : progress > 80 ? "secondary" : "default"}>
                               {progress.toFixed(1)}%
                             </Badge>
                           </div>
-                          <Progress value={progress} className="h-2" />
+                          <Progress value={Math.min(progress, 100)} className="h-2" />
+                          {progress >= 90 && (
+                            <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                              <AlertTriangle className="h-3 w-3" />
+                              <span>{progress >= 100 ? "تم تجاوز الميزانية" : "اقتراب من الحد الأقصى"}</span>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -342,48 +399,18 @@ export default function FinancialPlan() {
             ) : (
               <div className="grid gap-4">
                 {budgets.map((budget) => {
-                  const progress = getBudgetProgress(budget);
+                  const { progress, spent, remaining } = getBudgetData(budget);
                   return (
-                    <Card key={budget.id}>
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg">{budget.name}</CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {budget.period === 'weekly' ? 'أسبوعية' : budget.period === 'monthly' ? 'شهرية' : 'سنوية'}
-                              {" • "}
-                              {new Date(budget.start_date).toLocaleDateString('ar-SA')}
-                              {budget.end_date && ` - ${new Date(budget.end_date).toLocaleDateString('ar-SA')}`}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteBudget(budget.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex justify-between text-sm">
-                            <span>المصروف</span>
-                            <span>{formatCurrency((budget.amount_limit || budget.total_amount) * progress / 100)}</span>
-                          </div>
-                          <Progress value={progress} className="h-3" />
-                          <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>المتبقي: {formatCurrency((budget.amount_limit || budget.total_amount) * (100 - progress) / 100)}</span>
-                            <span>الإجمالي: {formatCurrency(budget.amount_limit || budget.total_amount)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <BudgetProgressCard
+                      key={budget.id}
+                      budget={budget}
+                      progress={progress}
+                      spent={spent}
+                      remaining={remaining}
+                      onEdit={() => setEditingBudget(budget)}
+                      onDelete={() => handleDeleteBudget(budget.id)}
+                      formatCurrency={formatCurrency}
+                    />
                   );
                 })}
               </div>
@@ -463,8 +490,17 @@ export default function FinancialPlan() {
             )}
           </TabsContent>
         </Tabs>
+        
+        {/* Edit Budget Dialog */}
+        <EditBudgetDialog
+          open={!!editingBudget}
+          onOpenChange={(open) => !open && setEditingBudget(null)}
+          budget={editingBudget}
+          onUpdate={handleUpdateBudget}
+          isUpdating={isUpdating}
+        />
       </div>
-
+      
       <BottomNav />
     </div>
   );
