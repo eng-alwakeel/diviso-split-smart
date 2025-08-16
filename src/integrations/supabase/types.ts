@@ -1173,6 +1173,10 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      is_valid_phone: {
+        Args: { phone_input: string }
+        Returns: boolean
+      }
       join_group_with_token: {
         Args: { p_token: string }
         Returns: string
