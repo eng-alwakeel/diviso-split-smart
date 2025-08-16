@@ -13,13 +13,13 @@ export function useQuotaHandler() {
       
       toast.error(quotaMessage, {
         duration: 5000,
-        action: {
-          label: "ترقية الباقة",
-          onClick: () => {
-            // Navigate to pricing/upgrade page
-            window.location.href = '/#pricing';
+          action: {
+            label: "ترقية الباقة",
+            onClick: () => {
+              // Navigate to pricing/upgrade page
+              window.location.href = '/pricing';
+            },
           },
-        },
       });
       
       return true; // Indicates the error was handled

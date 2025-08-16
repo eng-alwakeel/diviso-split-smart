@@ -93,9 +93,16 @@ export function QuotaStatus() {
 
   const getProgressColor = (current: number, limit: number) => {
     const percentage = (current / limit) * 100;
-    if (percentage >= 90) return "bg-destructive";
-    if (percentage >= 75) return "bg-warning";
-    return "bg-primary";
+    if (percentage >= 90) return "hsl(var(--destructive))";
+    if (percentage >= 75) return "hsl(39, 100%, 57%)"; // warning color
+    return "hsl(var(--primary))";
+  };
+
+  const getProgressMessage = (current: number, limit: number, itemType: string) => {
+    const percentage = (current / limit) * 100;
+    if (percentage >= 90) return `تحذير: اقتربت من الحد الأقصى لـ${itemType}`;
+    if (percentage >= 75) return `تنبيه: استخدمت 75% من حد ${itemType}`;
+    return "";
   };
 
   const quotaItems = [
@@ -182,7 +189,15 @@ export function QuotaStatus() {
               <Progress 
                 value={percentage} 
                 className="h-2"
+                style={{
+                  '--progress-background': getProgressColor(item.current, item.limit)
+                } as React.CSSProperties}
               />
+              {getProgressMessage(item.current, item.limit, item.label) && (
+                <p className="text-xs text-orange-600 mt-1">
+                  {getProgressMessage(item.current, item.limit, item.label)}
+                </p>
+              )}
             </div>
           );
         })}
@@ -191,7 +206,7 @@ export function QuotaStatus() {
           <div className="pt-4 border-t">
             <Button 
               className="w-full" 
-              onClick={() => window.location.href = '/#pricing'}
+              onClick={() => window.location.href = '/pricing'}
             >
               ترقية الباقة
             </Button>

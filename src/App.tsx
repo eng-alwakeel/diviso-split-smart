@@ -14,6 +14,7 @@ import MyExpenses from "./pages/MyExpenses";
 import MyGroups from "./pages/MyGroups";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

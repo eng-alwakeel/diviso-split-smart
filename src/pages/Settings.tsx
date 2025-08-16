@@ -576,7 +576,7 @@ const Settings = () => {
                   )}
                   
                   <Button 
-                    onClick={() => navigate('/#pricing')}
+                    onClick={() => navigate('/pricing')}
                     variant="outline"
                     className="border-border text-foreground hover:bg-accent/20"
                   >
