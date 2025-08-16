@@ -14,6 +14,7 @@ import { ExpenseStats } from "@/components/expenses/ExpenseStats";
 import { ExpenseChart } from "@/components/expenses/ExpenseChart";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { MyExpense } from "@/hooks/useMyExpenses";
+import { BottomNav } from "@/components/BottomNav";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
@@ -269,6 +270,12 @@ const MyExpenses = () => {
           </Card>
         </div>
       )}
+      
+      {/* Bottom spacing for mobile navigation */}
+      <div className="h-24 lg:hidden" />
+      
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

@@ -56,9 +56,21 @@ const useMyExpenses = () => {
   const [filters, setFilters] = useState<ExpenseFilters>({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const { toast } = useToast();
 
   const ITEMS_PER_PAGE = 20;
+
+  // Get current user ID for stats calculation
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const fetchExpenses = useCallback(async (reset = false) => {
     try {
@@ -71,7 +83,24 @@ const useMyExpenses = () => {
         return;
       }
 
-      let query = supabase
+      // First, get expenses where user is creator or payer
+      const createdOrPaidQuery = supabase
+        .from('expenses')
+        .select(`
+          *,
+          groups!inner(name, currency),
+          categories(name_ar, icon),
+          expense_splits(
+            member_id,
+            share_amount,
+            profiles(name, display_name)
+          )
+        `)
+        .or(`created_by.eq.${currentUser.data.user.id},payer_id.eq.${currentUser.data.user.id}`)
+        .order('spent_at', { ascending: false });
+
+      // Then, get expenses where user has a split
+      const splitQuery = supabase
         .from('expenses')
         .select(`
           *,
@@ -80,47 +109,68 @@ const useMyExpenses = () => {
           expense_splits!inner(
             member_id,
             share_amount,
-            profiles!inner(name, display_name)
+            profiles(name, display_name)
           )
         `)
-        .or(`created_by.eq.${currentUser.data.user.id},payer_id.eq.${currentUser.data.user.id},expense_splits.member_id.eq.${currentUser.data.user.id}`)
+        .eq('expense_splits.member_id', currentUser.data.user.id)
         .order('spent_at', { ascending: false });
 
-      // Apply filters
-      if (filters.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status);
-      }
+      // Apply filters to both queries
+      const applyFilters = (query: any) => {
+        if (filters.status && filters.status !== 'all') {
+          query = query.eq('status', filters.status);
+        }
+        if (filters.group_id) {
+          query = query.eq('group_id', filters.group_id);
+        }
+        if (filters.date_from) {
+          query = query.gte('spent_at', filters.date_from);
+        }
+        if (filters.date_to) {
+          query = query.lte('spent_at', filters.date_to);
+        }
+        if (filters.min_amount) {
+          query = query.gte('amount', filters.min_amount);
+        }
+        if (filters.max_amount) {
+          query = query.lte('amount', filters.max_amount);
+        }
+        if (filters.search) {
+          query = query.or(`description.ilike.%${filters.search}%,note_ar.ilike.%${filters.search}%`);
+        }
+        return query;
+      };
 
-      if (filters.group_id) {
-        query = query.eq('group_id', filters.group_id);
-      }
-
-      if (filters.date_from) {
-        query = query.gte('spent_at', filters.date_from);
-      }
-
-      if (filters.date_to) {
-        query = query.lte('spent_at', filters.date_to);
-      }
-
-      if (filters.min_amount) {
-        query = query.gte('amount', filters.min_amount);
-      }
-
-      if (filters.max_amount) {
-        query = query.lte('amount', filters.max_amount);
-      }
-
-      if (filters.search) {
-        query = query.or(`description.ilike.%${filters.search}%,note_ar.ilike.%${filters.search}%`);
-      }
-
-      // Pagination
+      // Apply pagination to both queries
       const from = reset ? 0 : (page - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
-      query = query.range(from, to);
 
-      const { data, error, count } = await query;
+      const filteredCreatedOrPaidQuery = applyFilters(createdOrPaidQuery).range(from, to);
+      const filteredSplitQuery = applyFilters(splitQuery).range(from, to);
+
+      // Execute both queries
+      const [createdOrPaidResult, splitResult] = await Promise.all([
+        filteredCreatedOrPaidQuery,
+        filteredSplitQuery
+      ]);
+
+      if (createdOrPaidResult.error) throw createdOrPaidResult.error;
+      if (splitResult.error) throw splitResult.error;
+
+      // Merge and deduplicate results
+      const allExpenses = [...(createdOrPaidResult.data || []), ...(splitResult.data || [])];
+      const uniqueExpenses = allExpenses.reduce((acc, expense) => {
+        if (!acc.find(e => e.id === expense.id)) {
+          acc.push(expense);
+        }
+        return acc;
+      }, [] as any[]);
+
+      // Sort by spent_at
+      uniqueExpenses.sort((a, b) => new Date(b.spent_at).getTime() - new Date(a.spent_at).getTime());
+
+      const data = uniqueExpenses;
+      const count = Math.max(createdOrPaidResult.count || 0, splitResult.count || 0);
 
       if (error) throw error;
 
@@ -189,9 +239,9 @@ const useMyExpenses = () => {
   // Stats calculation
   const stats = useMemo((): ExpenseStats => {
     return expenses.reduce((acc, expense) => {
-      const userSplit = expense.splits.find(split => split.member_id === expense.created_by);
+      const userSplit = expense.splits.find(split => split.member_id === currentUserId);
       const shareAmount = userSplit?.share_amount || 0;
-      const isPayer = expense.payer_id === expense.created_by;
+      const isPayer = expense.payer_id === currentUserId;
 
       acc.total_count++;
 
@@ -221,7 +271,7 @@ const useMyExpenses = () => {
       total_count: 0,
       groups_count: new Set(expenses.map(e => e.group_id)).size
     });
-  }, [expenses]);
+  }, [expenses, currentUserId]);
 
   stats.total_net = stats.total_paid - stats.total_owed;
 
