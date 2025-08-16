@@ -3,18 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppHeader } from "@/components/AppHeader";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Mail, Phone } from "lucide-react";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
   const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
+  const [authType, setAuthType] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
@@ -72,11 +76,13 @@ const Auth = () => {
 
   const handleLogin = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ 
-      phone, 
-      password 
-    });
+    const credentials = authType === "email" 
+      ? { email, password }
+      : { phone, password };
+    
+    const { error } = await supabase.auth.signInWithPassword(credentials);
     setLoading(false);
+    
     if (error) {
       toast({ title: "خطأ في تسجيل الدخول", description: error.message, variant: "destructive" });
     } else {
@@ -86,13 +92,25 @@ const Auth = () => {
 
   const handleSignup = async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      phone,
-      password,
-      options: {
-        data: { name }
-      }
-    });
+    
+    const signUpData = authType === "email" 
+      ? { 
+          email, 
+          password,
+          options: {
+            data: { name },
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        }
+      : { 
+          phone, 
+          password,
+          options: {
+            data: { name }
+          }
+        };
+    
+    const { data, error } = await supabase.auth.signUp(signUpData);
     
     if (error) {
       setLoading(false);
@@ -101,8 +119,19 @@ const Auth = () => {
     }
     
     setLoading(false);
-    setMode("verify");
-    toast({ title: "تم إرسال رمز التحقق", description: "أدخل الرمز المرسل إلى رقم هاتفك" });
+    
+    if (authType === "email") {
+      toast({ 
+        title: "تحقق من بريدك الإلكتروني", 
+        description: "تم إرسال رابط التحقق إلى بريدك الإلكتروني"
+      });
+    } else {
+      setMode("verify");
+      toast({ 
+        title: "تم إرسال رمز التحقق", 
+        description: "أدخل الرمز المرسل إلى رقم هاتفك" 
+      });
+    }
   };
 
   const handleVerifyOtp = async () => {
@@ -128,7 +157,8 @@ const Auth = () => {
         <Card className="bg-card border border-border rounded-2xl">
           <CardHeader>
             <CardTitle className="text-center">
-              {mode === "login" ? "تسجيل الدخول" : mode === "signup" ? "إنشاء حساب" : "تحقق من رقم الهاتف"}
+              {mode === "login" ? "تسجيل الدخول" : mode === "signup" ? "إنشاء حساب" : 
+               authType === "phone" ? "تحقق من رقم الهاتف" : "تحقق من البريد الإلكتروني"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -140,7 +170,7 @@ const Auth = () => {
                     id="otp" 
                     value={otp} 
                     onChange={(e) => setOtp(e.target.value)} 
-                    placeholder="أدخل الرمز المرسل"
+                    placeholder="أدخل الرمز المرسل إلى هاتفك"
                     className="text-center text-lg tracking-widest"
                     maxLength={6}
                   />
@@ -154,28 +184,81 @@ const Auth = () => {
               </>
             ) : (
               <>
-                {mode === "signup" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">الاسم</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك" />
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)} 
-                    placeholder="+966501234567" 
-                    dir="ltr" 
-                    className="text-left" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">كلمة المرور</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-                </div>
+                <Tabs value={authType} onValueChange={(value) => setAuthType(value as "email" | "phone")} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      البريد الإلكتروني
+                    </TabsTrigger>
+                    <TabsTrigger value="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      رقم الهاتف
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="email" className="space-y-4 mt-4">
+                    {mode === "signup" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="name">الاسم</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="email">البريد الإلكتروني</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        placeholder="example@domain.com"
+                        dir="ltr"
+                        className="text-left"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">كلمة المرور</Label>
+                      <Input 
+                        id="password" 
+                        type="password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        placeholder="••••••••" 
+                      />
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="phone" className="space-y-4 mt-4">
+                    {mode === "signup" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="name">الاسم</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">رقم الهاتف</Label>
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)} 
+                        placeholder="+966501234567" 
+                        dir="ltr" 
+                        className="text-left" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">كلمة المرور</Label>
+                      <Input 
+                        id="password" 
+                        type="password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        placeholder="••••••••" 
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
                 <Button className="w-full" onClick={mode === "login" ? handleLogin : handleSignup} disabled={loading}>
                   {loading ? "جاري المعالجة..." : mode === "login" ? "دخول" : "إنشاء حساب"}
                 </Button>
