@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,43 +23,49 @@ import {
   Plus,
   Eye,
   EyeOff,
-  LogOut
+  LogOut,
+  Crown,
+  Calendar,
+  Zap
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { QuotaStatus } from "@/components/QuotaStatus";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data
-const mockProfile = {
-  name: "أحمد محمد",
-  email: "ahmed@example.com",
-  phone: "05xxxxxxx12",
-  avatar: "أ",
-  joinDate: "2024-01-01",
-  plan: "مجاني"
+const getPlanDisplayName = (plan: string) => {
+  switch (plan) {
+    case 'personal':
+      return 'شخصي';
+    case 'family':
+      return 'عائلي';
+    default:
+      return 'مجاني';
+  }
 };
 
-const mockPaymentMethods = [
-  {
-    id: 1,
-    type: "visa",
-    last4: "4242",
-    expiryDate: "12/25",
-    isDefault: true
-  },
-  {
-    id: 2,
-    type: "mastercard",
-    last4: "8888",
-    expiryDate: "08/26",
-    isDefault: false
+const getStatusDisplayName = (status: string) => {
+  switch (status) {
+    case 'trialing':
+      return 'تجربة مجانية';
+    case 'active':
+      return 'نشط';
+    case 'expired':
+      return 'منتهي';
+    case 'canceled':
+      return 'ملغي';
+    default:
+      return 'غير محدد';
   }
-];
+};
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subscription, isTrialActive, daysLeft, loading, refresh, startTrial } = useSubscription();
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
   const [settings, setSettings] = useState({
@@ -73,18 +79,75 @@ const Settings = () => {
     twoFactorAuth: false
   });
 
-  const [profile, setProfile] = useState(mockProfile);
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    avatar: "",
+    joinDate: "",
+    plan: "مجاني"
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
 
-  const saveProfile = () => {
-    toast({
-      title: "تم حفظ البيانات!",
-      description: "تم تحديث معلومات الملف الشخصي بنجاح",
-    });
+  // Load user profile from Supabase
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileData) {
+          setProfile({
+            name: profileData.name || profileData.display_name || "",
+            email: user.email || "",
+            phone: profileData.phone || "",
+            avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || "م",
+            joinDate: new Date(user.created_at).toLocaleDateString('ar-SA'),
+            plan: getPlanDisplayName(subscription?.plan || 'free')
+          });
+        }
+      }
+    };
+    
+    loadProfile();
+  }, [subscription]);
+
+  const saveProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            name: profile.name,
+            display_name: profile.name,
+            phone: profile.phone,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "تم حفظ البيانات!",
+          description: "تم تحديث معلومات الملف الشخصي بنجاح",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حفظ البيانات",
+        variant: "destructive"
+      });
+    }
   };
 
   const changePassword = () => {
@@ -123,12 +186,38 @@ const Settings = () => {
     });
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     toast({
       title: "تم تسجيل الخروج",
       description: "سيتم تحويلك للصفحة الرئيسية",
     });
     navigate('/');
+  };
+
+  const handleStartTrial = async (plan: 'personal' | 'family') => {
+    const result = await startTrial(plan);
+    if (result.error) {
+      if (result.error === 'trial_exists') {
+        toast({
+          title: "تجربة موجودة مسبقاً",
+          description: "لديك تجربة مجانية نشطة بالفعل",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء بدء التجربة المجانية",
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "تم بدء التجربة المجانية!",
+        description: `تم تفعيل باقة ${getPlanDisplayName(plan)} لمدة ${daysLeft} أيام`,
+      });
+      await refresh();
+    }
   };
 
   return (
@@ -154,7 +243,7 @@ const Settings = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex w-full gap-1 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
             <TabsTrigger value="profile" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="payments" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">طرق الدفع</TabsTrigger>
+            <TabsTrigger value="subscription" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الاشتراك</TabsTrigger>
             <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
             <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
@@ -186,9 +275,18 @@ const Settings = () => {
                     </Button>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">{profile.name}</h3>
+                    <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
                     <p className="text-muted-foreground">{profile.email}</p>
-                    <Badge variant="outline" className="mt-2 border-border text-foreground">خطة {profile.plan}</Badge>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="outline" className="border-border text-foreground">
+                        خطة {getPlanDisplayName(subscription?.plan || 'free')}
+                      </Badge>
+                      {isTrialActive && (
+                        <Badge variant="outline" className="border-accent text-accent">
+                          تجربة مجانية • {daysLeft} أيام متبقية
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -300,47 +398,107 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Payment Methods Tab */}
-          <TabsContent value="payments" className="space-y-6">
+          {/* Subscription Tab */}
+          <TabsContent value="subscription" className="space-y-6">
+            {/* Current Plan Status */}
             <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
-                  <CreditCard className="w-5 h-5 text-accent" />
-                  طرق الدفع
+                  <Crown className="w-5 h-5 text-accent" />
+                  الباقة الحالية
                 </CardTitle>
-                <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/20">
-                  <Plus className="w-4 h-4 ml-2" />
-                  إضافة بطاقة
-                </Button>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {mockPaymentMethods.map((method) => (
-                  <Card key={method.id} className="bg-background/50 border border-border/30">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
-                            <CreditCard className="w-6 h-6 text-background" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">**** **** **** {method.last4}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {method.type.toUpperCase()} • ينتهي في {method.expiryDate}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {method.isDefault && (
-                            <Badge variant="outline" className="border-border text-foreground">افتراضي</Badge>
-                          )}
-                          <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent/20">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-background/50 rounded-lg border border-border/30">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                      <Crown className="w-6 h-6 text-background" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        باقة {getPlanDisplayName(subscription?.plan || 'free')}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        الحالة: {getStatusDisplayName(subscription?.status || '')}
+                      </p>
+                      {subscription?.expires_at && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Calendar className="w-3 h-3" />
+                          {isTrialActive 
+                            ? `تنتهي التجربة في ${daysLeft} أيام`
+                            : `تنتهي في: ${new Date(subscription.expires_at).toLocaleDateString('ar-SA')}`
+                          }
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {subscription?.status === 'trialing' && (
+                    <Badge variant="outline" className="border-accent text-accent">
+                      تجربة مجانية
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3">
+                  {(!subscription || subscription.status === 'expired') && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Button 
+                        onClick={() => handleStartTrial('personal')}
+                        variant="hero"
+                        disabled={loading}
+                        className="flex items-center gap-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        تجربة الباقة الشخصية مجاناً
+                      </Button>
+                      <Button 
+                        onClick={() => handleStartTrial('family')}
+                        variant="outline"
+                        disabled={loading}
+                        className="flex items-center gap-2 border-border text-foreground hover:bg-accent/20"
+                      >
+                        <Crown className="w-4 h-4" />
+                        تجربة الباقة العائلية مجاناً
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <Button 
+                    onClick={() => navigate('/#pricing')}
+                    variant="outline"
+                    className="border-border text-foreground hover:bg-accent/20"
+                  >
+                    عرض جميع الباقات والأسعار
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quota Status */}
+            <QuotaStatus />
+
+            {/* Subscription Benefits */}
+            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Zap className="w-5 h-5 text-accent" />
+                  مزايا الاشتراك المدفوع
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <p className="text-foreground">✓ أعضاء أكثر في المجموعات</p>
+                    <p className="text-foreground">✓ مجموعات أكثر</p>
+                    <p className="text-foreground">✓ مصروفات شهرية أكثر</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-foreground">✓ دعوات أكثر</p>
+                    <p className="text-foreground">✓ استخدام OCR أكثر</p>
+                    <p className="text-foreground">✓ دعم فني أولوية</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
