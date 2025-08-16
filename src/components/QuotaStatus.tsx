@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Crown, Users, Building, Receipt, MessageSquare, Eye } from "lucide-react";
+import { Crown, Users, Building, Receipt, MessageSquare, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useQuotaHandler } from "@/hooks/useQuotaHandler";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
 interface QuotaUsage {
   members: number;
@@ -16,13 +15,19 @@ interface QuotaUsage {
 }
 
 export function QuotaStatus() {
-  const { subscription } = useSubscription();
-  const { getCurrentPlan, getPlanLimits, isFreePlan } = useQuotaHandler();
+  const { 
+    limits, 
+    loading: limitsLoading, 
+    currentPlan, 
+    isFreePlan, 
+    formatLimit, 
+    getUsagePercentage, 
+    isNearLimit, 
+    isAtLimit,
+    isUnlimited 
+  } = useSubscriptionLimits();
   const [usage, setUsage] = useState<QuotaUsage>({ members: 0, groups: 0, expenses: 0, invites: 0, ocr: 0 });
-  const [loading, setLoading] = useState(true);
-
-  const currentPlan = getCurrentPlan();
-  const limits = getPlanLimits(currentPlan);
+  const [usageLoading, setUsageLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsage = async () => {
@@ -84,7 +89,7 @@ export function QuotaStatus() {
       } catch (error) {
         console.error("Error fetching usage:", error);
       } finally {
-        setLoading(false);
+        setUsageLoading(false);
       }
     };
 
@@ -92,20 +97,22 @@ export function QuotaStatus() {
   }, []);
 
   const getProgressColor = (current: number, limit: number) => {
-    const percentage = (current / limit) * 100;
+    if (isUnlimited(limit)) return "hsl(var(--primary))";
+    const percentage = getUsagePercentage(current, limit);
     if (percentage >= 90) return "hsl(var(--destructive))";
     if (percentage >= 75) return "hsl(39, 100%, 57%)"; // warning color
     return "hsl(var(--primary))";
   };
 
   const getProgressMessage = (current: number, limit: number, itemType: string) => {
-    const percentage = (current / limit) * 100;
-    if (percentage >= 90) return `تحذير: اقتربت من الحد الأقصى لـ${itemType}`;
-    if (percentage >= 75) return `تنبيه: استخدمت 75% من حد ${itemType}`;
+    if (isUnlimited(limit)) return "";
+    if (isAtLimit(current, limit)) return `تم الوصول للحد الأقصى لـ${itemType}`;
+    if (isNearLimit(current, limit, 90)) return `تحذير: اقتربت من الحد الأقصى لـ${itemType}`;
+    if (isNearLimit(current, limit, 75)) return `تنبيه: استخدمت 75% من حد ${itemType}`;
     return "";
   };
 
-  const quotaItems = [
+  const quotaItems = limits ? [
     { 
       key: "members", 
       label: "الأعضاء في المجموعة", 
@@ -141,13 +148,23 @@ export function QuotaStatus() {
       current: usage.ocr, 
       limit: limits.ocr 
     },
-  ];
+  ] : [];
 
-  if (loading) {
+  if (limitsLoading || usageLoading) {
     return (
       <Card>
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">جاري التحميل...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!limits) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-destructive">خطأ في تحميل حدود الاشتراك</div>
         </CardContent>
       </Card>
     );
@@ -172,8 +189,9 @@ export function QuotaStatus() {
       </CardHeader>
       <CardContent className="space-y-4">
         {quotaItems.map((item) => {
-          const percentage = Math.min((item.current / item.limit) * 100, 100);
+          const percentage = getUsagePercentage(item.current, item.limit);
           const Icon = item.icon;
+          const message = getProgressMessage(item.current, item.limit, item.label);
           
           return (
             <div key={item.key} className="space-y-2">
@@ -181,21 +199,37 @@ export function QuotaStatus() {
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
+                  {isAtLimit(item.current, item.limit) && (
+                    <AlertTriangle className="w-4 h-4 text-destructive" />
+                  )}
                 </div>
                 <span className="font-mono">
-                  {item.current}/{item.limit}
+                  {item.current}/{formatLimit(item.limit)}
                 </span>
               </div>
-              <Progress 
-                value={percentage} 
-                className="h-2"
-                style={{
-                  '--progress-background': getProgressColor(item.current, item.limit)
-                } as React.CSSProperties}
-              />
-              {getProgressMessage(item.current, item.limit, item.label) && (
-                <p className="text-xs text-orange-600 mt-1">
-                  {getProgressMessage(item.current, item.limit, item.label)}
+              {!isUnlimited(item.limit) && (
+                <Progress 
+                  value={percentage} 
+                  className="h-2"
+                  style={{
+                    '--progress-background': getProgressColor(item.current, item.limit)
+                  } as React.CSSProperties}
+                />
+              )}
+              {isUnlimited(item.limit) && (
+                <div className="h-2 bg-secondary rounded-full flex items-center justify-center">
+                  <span className="text-xs text-muted-foreground">∞</span>
+                </div>
+              )}
+              {message && (
+                <p className={`text-xs mt-1 ${
+                  isAtLimit(item.current, item.limit) 
+                    ? 'text-destructive' 
+                    : isNearLimit(item.current, item.limit, 90) 
+                      ? 'text-destructive' 
+                      : 'text-orange-600'
+                }`}>
+                  {message}
                 </p>
               )}
             </div>

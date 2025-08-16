@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useSubscription } from "./useSubscription";
+import { useSubscriptionLimits } from "./useSubscriptionLimits";
 
 export function useQuotaHandler() {
-  const { subscription } = useSubscription();
+  const { limits, currentPlan, isFreePlan } = useSubscriptionLimits();
 
   const handleQuotaError = useCallback((error: any) => {
     const errorMessage = error?.message || error?.toString() || '';
@@ -28,56 +28,20 @@ export function useQuotaHandler() {
     return false; // Error was not a quota error
   }, []);
 
-  const getCurrentPlan = useCallback(() => {
-    if (!subscription) return 'free';
-    
-    if (subscription.status === 'active' || 
-        (subscription.status === 'trialing' && new Date(subscription.expires_at) > new Date())) {
-      return subscription.plan;
-    }
-    
-    return 'free';
-  }, [subscription]);
-
-  const getPlanLimits = useCallback((plan: string) => {
-    const limits = {
-      free: {
-        members: 5,
-        groups: 3,
-        expenses: 100,
-        invites: 10,
-        ocr: 5
-      },
-      personal: {
-        members: -1, // Unlimited
-        groups: -1, // Unlimited
-        expenses: 1000,
-        invites: 50,
-        ocr: 100
-      },
-      family: {
-        members: 5,
-        groups: 25,
-        expenses: 5000,
-        invites: 100,
-        ocr: 500
-      },
-      lifetime: {
-        members: -1, // Unlimited
-        groups: -1, // Unlimited
-        expenses: 2000,
-        invites: 1000,
-        ocr: 2000
-      }
+  const getPlanLimits = useCallback(() => {
+    return limits || {
+      members: 5,
+      groups: 3,
+      expenses: 100,
+      invites: 10,
+      ocr: 5
     };
-    
-    return limits[plan as keyof typeof limits] || limits.free;
-  }, []);
+  }, [limits]);
 
   return {
     handleQuotaError,
-    getCurrentPlan,
+    currentPlan,
     getPlanLimits,
-    isFreePlan: getCurrentPlan() === 'free'
+    isFreePlan
   };
 }
