@@ -1370,6 +1370,14 @@ export type Database = {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined
       }
+      is_family_member_of: {
+        Args: { p_family_owner_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      is_family_owner: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       is_group_admin: {
         Args: { p_group_id: string }
         Returns: boolean
