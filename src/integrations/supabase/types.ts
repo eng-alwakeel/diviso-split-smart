@@ -1209,6 +1209,13 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      check_lifetime_offer_availability: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          available: boolean
+          remaining: number
+        }[]
+      }
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
         Returns: string
