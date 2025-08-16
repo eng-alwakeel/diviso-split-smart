@@ -78,7 +78,8 @@ const AddExpense = () => {
     status: "pending" // pending, approved, rejected
   });
   const [splitType, setSplitType] = useState("equal");
-  const [customSplits, setCustomSplits] = useState({});
+  const [customSplits, setCustomSplits] = useState<Record<string, number>>({});
+  const [percentageSplits, setPercentageSplits] = useState<Record<string, number>>({});
   const [receiptImage, setReceiptImage] = useState(null);
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrResults, setOcrResults] = useState(null);
@@ -238,14 +239,50 @@ const AddExpense = () => {
   const calculateSplit = () => {
     if (!selectedGroup || !expense.amount || currentMembers.length === 0) return {};
     const amount = parseFloat(expense.amount);
+    
     if (splitType === "equal") {
       const perPerson = amount / currentMembers.length;
       return currentMembers.reduce((acc: Record<string, string>, member) => {
         acc[member] = perPerson.toFixed(2);
         return acc;
       }, {} as Record<string, string>);
+    } else if (splitType === "percentage") {
+      return currentMembers.reduce((acc: Record<string, string>, member) => {
+        const percentage = percentageSplits[member] || 0;
+        const memberAmount = (amount * percentage) / 100;
+        acc[member] = memberAmount.toFixed(2);
+        return acc;
+      }, {} as Record<string, string>);
+    } else if (splitType === "custom") {
+      return currentMembers.reduce((acc: Record<string, string>, member) => {
+        const memberAmount = customSplits[member] || 0;
+        acc[member] = memberAmount.toFixed(2);
+        return acc;
+      }, {} as Record<string, string>);
     }
-    return customSplits;
+    return {};
+  };
+
+  const getTotalPercentage = () => {
+    return Object.values(percentageSplits).reduce((sum, val) => sum + (val || 0), 0);
+  };
+
+  const getTotalCustomAmount = () => {
+    return Object.values(customSplits).reduce((sum, val) => sum + (val || 0), 0);
+  };
+
+  const isValidSplit = () => {
+    const amount = parseFloat(expense.amount || "0");
+    if (splitType === "equal") return true;
+    if (splitType === "percentage") {
+      const total = getTotalPercentage();
+      return Math.abs(total - 100) < 0.01; // Allow small floating point errors
+    }
+    if (splitType === "custom") {
+      const total = getTotalCustomAmount();
+      return Math.abs(total - amount) < 0.01; // Allow small floating point errors
+    }
+    return false;
   };
 
   const handleSaveExpense = async () => {
@@ -286,14 +323,15 @@ const AddExpense = () => {
     }
 
     if (currentMembers.length > 0) {
-      const per = +(amt / currentMembers.length).toFixed(2);
+      const splits = calculateSplit();
       const rows = currentMembers.map((uid) => ({
         expense_id: inserted.id,
         member_id: uid,
-        share_amount: per,
+        share_amount: parseFloat(splits[uid] || "0"),
       }));
       const { error: splitErr } = await supabase.from('expense_splits').insert(rows);
       if (splitErr) {
+        console.error("Split error:", splitErr);
         toast({ title: "تم حفظ المصروف بدون التقسيم", description: "تعذر حفظ التقسيم، تحقق من الصلاحيات", variant: "destructive" });
         navigate('/dashboard');
         return;
@@ -595,16 +633,81 @@ const AddExpense = () => {
 
                       <TabsContent value="percentage" className="mt-6">
                         <p className="text-sm text-muted-foreground mb-4">
-                          حدد نسبة كل عضو من إجمالي المبلغ
+                          حدد نسبة كل عضو من إجمالي المبلغ (المجموع يجب أن يساوي 100%)
                         </p>
-                        {/* محتوى تقسيم بالنسبة */}
+                        <div className="space-y-3">
+                          {currentMembers.map(member => (
+                            <div key={member} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarFallback className="text-xs">{member[0]}</AvatarFallback>
+                                </Avatar>
+                                <span>{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  step="0.1"
+                                  value={percentageSplits[member] || ""}
+                                  onChange={(e) => setPercentageSplits(prev => ({
+                                    ...prev,
+                                    [member]: parseFloat(e.target.value) || 0
+                                  }))}
+                                  className="w-20 text-center"
+                                  placeholder="0"
+                                />
+                                <span className="text-sm">%</span>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border">
+                            <span className="font-medium">المجموع:</span>
+                            <span className={`font-medium ${Math.abs(getTotalPercentage() - 100) < 0.01 ? 'text-green-600' : 'text-red-600'}`}>
+                              {getTotalPercentage().toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
                       </TabsContent>
 
                       <TabsContent value="custom" className="mt-6">
                         <p className="text-sm text-muted-foreground mb-4">
-                          حدد مبلغ محدد لكل عضو
+                          حدد مبلغ محدد لكل عضو (المجموع يجب أن يساوي {expense.amount || "0"} {currencySymbol})
                         </p>
-                        {/* محتوى تقسيم مخصص */}
+                        <div className="space-y-3">
+                          {currentMembers.map(member => (
+                            <div key={member} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarFallback className="text-xs">{member[0]}</AvatarFallback>
+                                </Avatar>
+                                <span>{member === userId ? "أنا" : `عضو (${member.slice(0,4)})`}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={customSplits[member] || ""}
+                                  onChange={(e) => setCustomSplits(prev => ({
+                                    ...prev,
+                                    [member]: parseFloat(e.target.value) || 0
+                                  }))}
+                                  className="w-24 text-center"
+                                  placeholder="0.00"
+                                />
+                                <span className="text-sm">{currencySymbol}</span>
+                              </div>
+                            </div>
+                          ))}
+                          <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border">
+                            <span className="font-medium">المجموع:</span>
+                            <span className={`font-medium ${Math.abs(getTotalCustomAmount() - parseFloat(expense.amount || "0")) < 0.01 ? 'text-green-600' : 'text-red-600'}`}>
+                              {getTotalCustomAmount().toFixed(2)} {currencySymbol}
+                            </span>
+                          </div>
+                        </div>
                       </TabsContent>
                     </Tabs>
                   </CardContent>
@@ -648,11 +751,22 @@ const AddExpense = () => {
                       </div>
                     )}
                     
+                    {!isValidSplit() && splitType !== "equal" && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-800">
+                          {splitType === "percentage" ? 
+                            "⚠️ مجموع النسب يجب أن يساوي 100%" : 
+                            "⚠️ مجموع المبالغ المخصصة يجب أن يساوي المبلغ الإجمالي"
+                          }
+                        </p>
+                      </div>
+                    )}
+                    
                     <Button 
                       onClick={handleSaveExpense}
                       className="w-full"
                       variant="hero"
-                      disabled={!selectedGroup || !expense.description || !expense.amount}
+                      disabled={!selectedGroup || !expense.description || !expense.amount || !isValidSplit()}
                     >
                       {approvers.includes(expense.paidBy) ? "حفظ واعتماد المصروف" : "حفظ المصروف"}
                     </Button>
