@@ -262,6 +262,7 @@ const GroupDetails = () => {
         open={reportOpen}
         onOpenChange={setReportOpen}
         groupName={group?.name}
+        groupId={id}
         profiles={profiles}
         expenses={expenses}
         balances={balances}

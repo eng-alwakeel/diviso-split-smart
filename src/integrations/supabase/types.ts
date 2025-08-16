@@ -1260,6 +1260,17 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      check_budget_alerts: {
+        Args: { p_group_id: string }
+        Returns: {
+          alert_type: string
+          budgeted_amount: number
+          category_id: string
+          category_name: string
+          spent_amount: number
+          spent_percentage: number
+        }[]
+      }
       check_lifetime_offer_availability: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1312,6 +1323,19 @@ export type Database = {
           settlements_in: number
           settlements_out: number
           user_id: string
+        }[]
+      }
+      get_group_budget_tracking: {
+        Args: { p_group_id: string }
+        Returns: {
+          budgeted_amount: number
+          category_id: string
+          category_name: string
+          expense_count: number
+          remaining_amount: number
+          spent_amount: number
+          spent_percentage: number
+          status: string
         }[]
       }
       get_pending_amounts: {

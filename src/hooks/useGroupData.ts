@@ -32,6 +32,7 @@ type ExpenseRow = {
   payer_id: string | null;
   status: "pending" | "approved" | "rejected";
   currency: string;
+  category_id: string | null;
   expense_rejections?: Array<{
     rejection_reason: string | null;
     rejected_at: string;
@@ -155,7 +156,7 @@ export const useGroupData = (groupId?: string) => {
     const { data: exps, error: expErr } = await supabase
       .from("expenses")
       .select(`
-        id, group_id, description, amount, spent_at, created_at, payer_id, status, currency,
+        id, group_id, description, amount, spent_at, created_at, payer_id, status, currency, category_id,
         expense_rejections (
           rejection_reason,
           rejected_at,
