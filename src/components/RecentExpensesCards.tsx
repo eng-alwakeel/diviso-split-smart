@@ -26,12 +26,12 @@ const RecentExpensesCards: React.FC<RecentExpensesCardsProps> = ({ items }) => {
   ];
   const overlap = -24; // match WalletStack overlap
 
-  const visible = items.slice(0, 10);
+  const visible = items.slice(0, 5);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const handleToggle = (id: string) => setSelectedId(prev => (prev === id ? null : id));
 
   return (
-    <div aria-label="آخر 10 مصاريف" className="relative">
+    <div aria-label="آخر 5 مصاريف" className="relative">
       {visible.map((item, i) => {
         const color = colorClasses[i % colorClasses.length];
         return (

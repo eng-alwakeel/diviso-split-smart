@@ -155,7 +155,7 @@ const Dashboard = () => {
         .select('id, description, amount, group_id, spent_at, created_at, payer_id')
         .in('group_id', ids)
         .order('spent_at', { ascending: false })
-        .limit(10);
+        .limit(5);
       setRecentExpenses(latest ?? []);
 
       // Calculate monthly total expenses (current month)
@@ -309,7 +309,10 @@ const Dashboard = () => {
         {/* Quick Stats Cards */}
         <div className="hidden md:grid md:grid-cols-4 gap-6 mb-8">
           {/* Total Expenses Card */}
-          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
+          <Card 
+            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
+            onClick={() => navigate('/my-expenses')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
@@ -317,7 +320,7 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-primary">{monthlyTotalExpenses.toLocaleString()} ر.س</p>
                   <p className="text-xs text-muted-foreground mt-1">هذا الشهر</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <DollarSign className="w-6 h-6 text-primary" />
                 </div>
               </div>
@@ -325,15 +328,18 @@ const Dashboard = () => {
           </Card>
 
           {/* Active Groups Card */}
-          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
+          <Card 
+            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
+            onClick={() => navigate('/my-groups')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">المجموعات النشطة</p>
                   <p className="text-2xl font-bold text-primary">{groups.length}</p>
-                  <p className="text-xs text-muted-foreground mt-1">مجموعات</p>
+                  <p className="text-xs text-muted-foreground mt-1">انقر للعرض</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Users className="w-6 h-6 text-primary" />
                 </div>
               </div>
@@ -341,7 +347,10 @@ const Dashboard = () => {
           </Card>
 
           {/* Recent Expenses Card */}
-          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
+          <Card 
+            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
+            onClick={() => navigate('/my-expenses')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
@@ -349,7 +358,7 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold text-primary">{weeklyExpensesCount}</p>
                   <p className="text-xs text-muted-foreground mt-1">خلال الأسبوع</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Receipt className="w-6 h-6 text-primary" />
                 </div>
               </div>
@@ -357,15 +366,18 @@ const Dashboard = () => {
           </Card>
 
           {/* Referrals Card */}
-          <Card className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl">
+          <Card 
+            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
+            onClick={() => navigate('/referral')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">الإحالات</p>
                   <p className="text-2xl font-bold text-primary">{referralsLoading ? '-' : successfulReferrals}</p>
-                  <p className="text-xs text-muted-foreground mt-1">إحالات ناجحة</p>
+                  <p className="text-xs text-muted-foreground mt-1">انقر للعرض</p>
                 </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                   <Share2 className="w-6 h-6 text-primary" />
                 </div>
               </div>
@@ -378,26 +390,43 @@ const Dashboard = () => {
           {/* Groups Section */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-foreground">مجموعاتي</h2>
-              <Button 
-                onClick={() => navigate('/create-group')} 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Plus className="w-4 h-4 ml-2" />
-                إنشاء مجموعة جديدة
-              </Button>
+              <h2 className="text-xl font-semibold text-foreground">آخر 5 مجموعات</h2>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  onClick={() => navigate('/my-groups')} 
+                  className="border-border hover:bg-secondary text-sm"
+                >
+                  عرض الكل
+                </Button>
+                <Button 
+                  onClick={() => navigate('/create-group')} 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Plus className="w-4 h-4 ml-2" />
+                  إنشاء مجموعة
+                </Button>
+              </div>
             </div>
             
 
-            {/* Wallet-style stacked group cards */}
+            {/* Wallet-style stacked group cards - show only last 5 */}
             <div className="mt-4">
               {groups.length === 0 ? (
-                <div className="p-4 rounded-xl border border-border bg-card text-muted-foreground text-sm">
-                  لا توجد مجموعات حتى الآن.
+                <div className="p-6 rounded-xl border border-border bg-card text-center">
+                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">لا توجد مجموعات حتى الآن</p>
+                  <Button 
+                    onClick={() => navigate('/create-group')} 
+                    className="mt-3 bg-primary hover:bg-primary/90"
+                    size="sm"
+                  >
+                    إنشاء أول مجموعة
+                  </Button>
                 </div>
               ) : (
                 <WalletStack
-                  items={groups.map((g) => ({ id: g.id, name: g.name, totalPaid: groupPaidMap[g.id] ?? 0, totalOwed: groupOwedMap[g.id] ?? 0 }))}
+                  items={groups.slice(-5).map((g) => ({ id: g.id, name: g.name, totalPaid: groupPaidMap[g.id] ?? 0, totalOwed: groupOwedMap[g.id] ?? 0 }))}
                   selectedId={selectedGroupId ?? undefined}
                   onSelect={selectGroup}
                   onPrev={goPrev}
@@ -409,33 +438,59 @@ const Dashboard = () => {
             {/* Recent Expenses - moved to full width under groups */}
             <Card className="bg-card border border-border rounded-2xl mt-6">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Receipt className="w-5 h-5 text-primary" />
-                  المصاريف الأخيرة
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <Receipt className="w-5 h-5 text-primary" />
+                    آخر 5 مصاريف
+                  </div>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/my-expenses')} 
+                    className="border-border hover:bg-secondary text-sm"
+                    size="sm"
+                  >
+                    عرض الكل
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-0 sm:p-6">
-                <RecentExpensesCards
-                  items={recentExpenses.map((e) => ({
-                    id: e.id,
-                    title: e.description ?? 'مصروف',
-                    amount: Number(e.amount ?? 0),
-                    date: (e.spent_at ?? e.created_at ?? '').toString().slice(0, 10),
-                    groupName: groups.find(g => g.id === e.group_id)?.name ?? '',
-                    myShare: mySplitByExpense[e.id],
-                    isPayer: !!(e.payer_id && currentUserId && e.payer_id === currentUserId),
-                  }))}
-                />
-                <div className="p-4 pt-0 sm:p-0">
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-border hover:bg-secondary"
-                    onClick={() => navigate('/add-expense')}
-                  >
-                    <Plus className="w-4 h-4 ml-2" />
-                    إضافة مصروف جديد
-                  </Button>
-                </div>
+                {recentExpenses.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground text-sm">لا توجد مصاريف حتى الآن</p>
+                    <Button 
+                      onClick={() => navigate('/add-expense')} 
+                      className="mt-3 bg-primary hover:bg-primary/90"
+                      size="sm"
+                    >
+                      إضافة أول مصروف
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <RecentExpensesCards
+                      items={recentExpenses.map((e) => ({
+                        id: e.id,
+                        title: e.description ?? 'مصروف',
+                        amount: Number(e.amount ?? 0),
+                        date: (e.spent_at ?? e.created_at ?? '').toString().slice(0, 10),
+                        groupName: groups.find(g => g.id === e.group_id)?.name ?? '',
+                        myShare: mySplitByExpense[e.id],
+                        isPayer: !!(e.payer_id && currentUserId && e.payer_id === currentUserId),
+                      }))}
+                    />
+                    <div className="p-4 pt-0 sm:p-0">
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-border hover:bg-secondary"
+                        onClick={() => navigate('/add-expense')}
+                      >
+                        <Plus className="w-4 h-4 ml-2" />
+                        إضافة مصروف جديد
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
