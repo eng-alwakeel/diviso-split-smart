@@ -67,13 +67,15 @@ const [settlements, setSettlements] = useState<SettlementRow[]>([]);
   const load = async () => {
     const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
     if (!groupId || !isValidUUID(groupId)) {
-      setError("Invalid group id");
+      setError("معرف المجموعة غير صالح");
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
     console.log("[useGroupData] loading for group:", groupId);
+
+    try {
 
     // 1) المجموعة
     const { data: grp, error: grpErr } = await supabase
@@ -83,9 +85,10 @@ const [settlements, setSettlements] = useState<SettlementRow[]>([]);
       .maybeSingle();
     if (grpErr) {
       console.error("[useGroupData] groups error", grpErr);
-      setError(grpErr.message);
-      setLoading(false);
-      return;
+      throw new Error(`فشل في جلب بيانات المجموعة: ${grpErr.message}`);
+    }
+    if (!grp) {
+      throw new Error("المجموعة غير موجودة أو ليس لديك صلاحية للوصول إليها");
     }
     setGroup(grp as GroupRow);
 
@@ -96,9 +99,7 @@ const [settlements, setSettlements] = useState<SettlementRow[]>([]);
       .eq("group_id", groupId);
     if (memErr) {
       console.error("[useGroupData] members error", memErr);
-      setError(memErr.message);
-      setLoading(false);
-      return;
+      throw new Error(`فشل في جلب أعضاء المجموعة: ${memErr.message}`);
     }
     const memberRows = (mems as MemberRow[]) ?? [];
     setMembers(memberRows);
@@ -123,45 +124,48 @@ const [settlements, setSettlements] = useState<SettlementRow[]>([]);
     }
     setProfiles(profilesMap);
 
-// 4) المصاريف
-const { data: exps, error: expErr } = await supabase
-  .from("expenses")
-  .select("id, group_id, description, amount, spent_at, created_at, payer_id, status, currency")
-  .eq("group_id", groupId)
-  .order("spent_at", { ascending: false });
-if (expErr) {
-  console.error("[useGroupData] expenses error", expErr);
-  setError(expErr.message);
-  setLoading(false);
-  return;
-}
-setExpenses((exps as ExpenseRow[]) ?? []);
+    // 4) المصاريف
+    const { data: exps, error: expErr } = await supabase
+      .from("expenses")
+      .select("id, group_id, description, amount, spent_at, created_at, payer_id, status, currency")
+      .eq("group_id", groupId)
+      .order("spent_at", { ascending: false });
+    if (expErr) {
+      console.error("[useGroupData] expenses error", expErr);
+      throw new Error(`فشل في جلب المصروفات: ${expErr.message}`);
+    }
+    setExpenses((exps as ExpenseRow[]) ?? []);
 
-// 5) التحويلات (التسويات)
-const { data: sets, error: setErr } = await supabase
-  .from("settlements")
-  .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at")
-  .eq("group_id", groupId)
-  .order("created_at", { ascending: false });
-if (setErr) {
-  console.error("[useGroupData] settlements error", setErr);
-  // لا نوقف التحميل؛ نعرض الصفحة بدون التسويات
-  setSettlements([]);
-} else {
-  setSettlements((sets as SettlementRow[]) ?? []);
-}
+    // 5) التحويلات (التسويات)
+    const { data: sets, error: setErr } = await supabase
+      .from("settlements")
+      .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at")
+      .eq("group_id", groupId)
+      .order("created_at", { ascending: false });
+    if (setErr) {
+      console.error("[useGroupData] settlements error", setErr);
+      // لا نوقف التحميل؛ نعرض الصفحة بدون التسويات
+      setSettlements([]);
+    } else {
+      setSettlements((sets as SettlementRow[]) ?? []);
+    }
 
-// 6) الأرصدة (الدالة التجميعية)
-const { data: bal, error: balErr } = await supabase.rpc("get_group_balance", { p_group_id: groupId });
-if (balErr) {
-  console.error("[useGroupData] balance rpc error", balErr);
-  // ليست حرجة لعرض الصفحة؛ نكمّل بدونها
-  setBalances([]);
-} else {
-  setBalances((bal as BalanceRow[]) ?? []);
-}
+    // 6) الأرصدة (الدالة التجميعية)
+    const { data: bal, error: balErr } = await supabase.rpc("get_group_balance", { p_group_id: groupId });
+    if (balErr) {
+      console.error("[useGroupData] balance rpc error", balErr);
+      // ليست حرجة لعرض الصفحة؛ نكمّل بدونها
+      setBalances([]);
+    } else {
+      setBalances((bal as BalanceRow[]) ?? []);
+    }
 
-setLoading(false);
+    setLoading(false);
+    } catch (err: any) {
+      console.error("[useGroupData] load error:", err);
+      setError(err.message || "حدث خطأ غير متوقع");
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
