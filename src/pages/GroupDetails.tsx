@@ -73,7 +73,7 @@ const GroupDetails = () => {
     }
   }, [rawId, navigate, toast]);
 
-  const { loading, error, group, members, profiles, expenses, balances, settlements, totals, refetch } = useGroupData(id);
+  const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch } = useGroupData(id);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -102,11 +102,20 @@ const GroupDetails = () => {
 
   const isOwner = currentUserId != null && group?.owner_id === currentUserId;
 
-  const myBalance = useMemo(() => {
-    if (!currentUserId) return 0;
-    const row = balances.find(b => b.user_id === currentUserId);
-    return Number(row?.net_balance ?? 0);
-  }, [balances, currentUserId]);
+  // الرصيد المعتمد والمحتمل
+  const myBalances = useMemo(() => {
+    if (!currentUserId) return { confirmed: 0, pending: 0, total: 0 };
+    
+    const confirmed = balances.find(b => b.user_id === currentUserId);
+    const pending = pendingAmounts.find(p => p.user_id === currentUserId);
+    const summary = balanceSummary.find(s => s.user_id === currentUserId);
+    
+    return {
+      confirmed: Number(confirmed?.net_balance ?? 0),
+      pending: Number(pending?.pending_net ?? 0),
+      total: Number(summary?.total_net ?? 0)
+    };
+  }, [balances, pendingAmounts, balanceSummary, currentUserId]);
 
   const sendMessage = () => {
     toast({
@@ -352,10 +361,13 @@ const GroupDetails = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">رصيدي</p>
+                  <p className="text-sm font-medium text-muted-foreground">رصيدي المعتمد</p>
                   <p className="text-2xl font-bold text-accent">
-                    {myBalance >= 0 ? '+' : ''}{myBalance.toLocaleString()}
+                    {myBalances.confirmed >= 0 ? '+' : ''}{myBalances.confirmed.toLocaleString()}
                   </p>
+                  {Math.abs(myBalances.pending) > 0 && (
+                    <p className="text-xs text-amber-600 mt-1">معلق: {myBalances.pending >= 0 ? '+' : ''}{myBalances.pending.toLocaleString()}</p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
                 </div>
                 <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
@@ -603,12 +615,12 @@ const GroupDetails = () => {
                             <p className="text-xs text-muted-foreground mt-1">
                               {balance > 0 ? 'مدين له' : balance < 0 ? 'عليه دين' : 'متوازن'}
                             </p>
-                            {currentUserId && myBalance < 0 && balance > 0 && (
+                            {currentUserId && myBalances.confirmed < 0 && balance > 0 && (
                               <div className="mt-2">
                                 <Button
                                   size="sm"
                                   variant="secondary"
-                                  onClick={() => { setPrefillTo(member.user_id); setPrefillAmount(Math.min(-myBalance, balance)); setSettleOpen(true); }}
+                                  onClick={() => { setPrefillTo(member.user_id); setPrefillAmount(Math.min(-myBalances.confirmed, balance)); setSettleOpen(true); }}
                                 >
                                   تسوية
                                 </Button>
@@ -634,12 +646,12 @@ const GroupDetails = () => {
                 <Button variant="outline" onClick={() => { setPrefillTo(undefined); setPrefillAmount(undefined); setSettleOpen(true); }}>
                   إضافة تسوية
                 </Button>
-                {myBalance < 0 && (
+                {myBalances.confirmed < 0 && (
                   <Button variant="hero" onClick={() => {
                     const creditors = balances.filter(b => b.user_id !== currentUserId && Number(b.net_balance ?? 0) > 0);
                     if (creditors.length) {
                       const c = creditors[0];
-                      const amt = Math.min(-myBalance, Number(c.net_balance ?? 0));
+                      const amt = Math.min(-myBalances.confirmed, Number(c.net_balance ?? 0));
                       setPrefillTo(c.user_id);
                       setPrefillAmount(amt);
                     } else {
@@ -653,20 +665,25 @@ const GroupDetails = () => {
               </div>
             </div>
 
-            {myBalance < 0 && (
+            {myBalances.confirmed < 0 && (
               <Card className="bg-accent/5 border-accent/30">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
                       عليك مبلغ
-                      <span className="mx-1 font-bold text-accent">{(-myBalance).toLocaleString()} {currencyLabel}</span>
-                      لعدد من الأعضاء. استخدم "تسوية الآن" للاقتراح التلقائي.
+                      <span className="mx-1 font-bold text-accent">{(-myBalances.confirmed).toLocaleString()} {currencyLabel}</span>
+                      لعدد من الأعضاء (الرصيد المعتمد).
+                      {Math.abs(myBalances.pending) > 0 && (
+                        <div className="mt-1 text-xs text-amber-700">
+                          تنبيه: يوجد مبالغ معلقة قد تغير الرصيد النهائي.
+                        </div>
+                      )}
                     </div>
                     <Button size="sm" variant="secondary" onClick={() => {
                       const creditors = balances.filter(b => b.user_id !== currentUserId && Number(b.net_balance ?? 0) > 0);
                       if (creditors.length) {
                         const c = creditors[0];
-                        const amt = Math.min(-myBalance, Number(c.net_balance ?? 0));
+                        const amt = Math.min(-myBalances.confirmed, Number(c.net_balance ?? 0));
                         setPrefillTo(c.user_id); setPrefillAmount(amt);
                       } else {
                         setPrefillTo(undefined); setPrefillAmount(undefined);

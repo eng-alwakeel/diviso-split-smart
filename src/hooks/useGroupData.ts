@@ -48,6 +48,24 @@ type BalanceRow = {
   net_balance: number | null;
 };
 
+type PendingAmountRow = {
+  user_id: string;
+  pending_paid: number;
+  pending_owed: number;
+  pending_net: number;
+};
+
+type BalanceSummaryRow = {
+  user_id: string;
+  confirmed_paid: number;
+  confirmed_owed: number;
+  confirmed_net: number;
+  pending_paid: number;
+  pending_owed: number;
+  pending_net: number;
+  total_net: number;
+};
+
 type SettlementRow = {
   id: string;
   group_id: string;
@@ -68,6 +86,8 @@ export const useGroupData = (groupId?: string) => {
   const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [balances, setBalances] = useState<BalanceRow[]>([]);
+  const [pendingAmounts, setPendingAmounts] = useState<PendingAmountRow[]>([]);
+  const [balanceSummary, setBalanceSummary] = useState<BalanceSummaryRow[]>([]);
   const [settlements, setSettlements] = useState<SettlementRow[]>([]);
   const [realtimeInitialized, setRealtimeInitialized] = useState(false);
 
@@ -164,7 +184,7 @@ export const useGroupData = (groupId?: string) => {
       setSettlements((sets as SettlementRow[]) ?? []);
     }
 
-    // 6) الأرصدة (الدالة التجميعية)
+    // 6) الأرصدة المعتمدة (الدالة التجميعية)
     const { data: bal, error: balErr } = await supabase.rpc("get_group_balance", { p_group_id: groupId });
     if (balErr) {
       console.error("[useGroupData] balance rpc error", balErr);
@@ -172,6 +192,24 @@ export const useGroupData = (groupId?: string) => {
       setBalances([]);
     } else {
       setBalances((bal as BalanceRow[]) ?? []);
+    }
+
+    // 7) المبالغ المعلقة
+    const { data: pending, error: pendingErr } = await supabase.rpc("get_pending_amounts", { p_group_id: groupId });
+    if (pendingErr) {
+      console.error("[useGroupData] pending amounts rpc error", pendingErr);
+      setPendingAmounts([]);
+    } else {
+      setPendingAmounts((pending as PendingAmountRow[]) ?? []);
+    }
+
+    // 8) ملخص الأرصدة الشامل
+    const { data: summary, error: summaryErr } = await supabase.rpc("get_balance_summary", { p_group_id: groupId });
+    if (summaryErr) {
+      console.error("[useGroupData] balance summary rpc error", summaryErr);
+      setBalanceSummary([]);
+    } else {
+      setBalanceSummary((summary as BalanceSummaryRow[]) ?? []);
     }
 
     setLoading(false);
@@ -271,6 +309,8 @@ return {
   profiles,
   expenses,
   balances,
+  pendingAmounts,
+  balanceSummary,
   settlements,
   totals,
   refetch: load,
