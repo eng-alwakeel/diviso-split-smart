@@ -671,29 +671,68 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_rewards: {
+        Row: {
+          applied_at: string | null
+          applied_to_subscription: boolean | null
+          created_at: string
+          days_earned: number
+          id: string
+          referral_id: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_to_subscription?: boolean | null
+          created_at?: string
+          days_earned?: number
+          id?: string
+          referral_id: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_to_subscription?: boolean | null
+          created_at?: string
+          days_earned?: number
+          id?: string
+          referral_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           created_at: string
           id: string
+          invitee_name: string | null
           invitee_phone: string
           inviter_id: string
           joined_at: string | null
+          referral_code: string | null
+          reward_days: number | null
           status: Database["public"]["Enums"]["referral_status"]
         }
         Insert: {
           created_at?: string
           id?: string
+          invitee_name?: string | null
           invitee_phone: string
           inviter_id: string
           joined_at?: string | null
+          referral_code?: string | null
+          reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
         }
         Update: {
           created_at?: string
           id?: string
+          invitee_name?: string | null
           invitee_phone?: string
           inviter_id?: string
           joined_at?: string | null
+          referral_code?: string | null
+          reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
         }
         Relationships: [
@@ -785,6 +824,30 @@ export type Database = {
           limit_value?: number
           plan?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_referral_codes: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -881,6 +944,10 @@ export type Database = {
       assert_quota: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
+      }
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_current_count: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
