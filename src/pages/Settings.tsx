@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
   ArrowRight,
   User, 
@@ -26,7 +27,8 @@ import {
   LogOut,
   Crown,
   Calendar,
-  Zap
+  Zap,
+  Upload
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +36,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { QuotaStatus } from "@/components/QuotaStatus";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { usePasswordChange } from "@/hooks/usePasswordChange";
+import { useProfileImage } from "@/hooks/useProfileImage";
 import { supabase } from "@/integrations/supabase/client";
 
 const getPlanDisplayName = (plan: string) => {
@@ -66,24 +71,21 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { subscription, isTrialActive, daysLeft, loading, refresh, startTrial } = useSubscription();
+  const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
+  const { changePassword, loading: passwordLoading } = usePasswordChange();
+  const { uploadProfileImage, uploading } = useProfileImage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [activeTab, setActiveTab] = useState("profile");
   const [showPassword, setShowPassword] = useState(false);
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    expenseReminders: true,
-    weeklyReports: false,
-    language: "ar",
-    currency: "SAR",
-    darkMode: false,
-    twoFactorAuth: false
-  });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     phone: "",
     avatar: "",
+    avatarUrl: "",
     joinDate: "",
     plan: "مجاني"
   });
@@ -110,6 +112,7 @@ const Settings = () => {
             email: user.email || "",
             phone: profileData.phone || "",
             avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || "م",
+            avatarUrl: profileData.avatar_url || "",
             joinDate: new Date(user.created_at).toLocaleDateString('ar-SA'),
             plan: getPlanDisplayName(subscription?.plan || 'free')
           });
@@ -120,7 +123,30 @@ const Settings = () => {
     loadProfile();
   }, [subscription]);
 
+  const validateProfile = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!profile.name.trim()) {
+      errors.name = "الاسم مطلوب";
+    }
+    
+    if (!profile.email.trim()) {
+      errors.email = "البريد الإلكتروني مطلوب";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+      errors.email = "البريد الإلكتروني غير صحيح";
+    }
+    
+    if (profile.phone && !/^[+]?[0-9\s-()]{10,}$/.test(profile.phone)) {
+      errors.phone = "رقم الجوال غير صحيح";
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const saveProfile = async () => {
+    if (!validateProfile()) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -150,7 +176,7 @@ const Settings = () => {
     }
   };
 
-  const changePassword = () => {
+  const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "خطأ",
@@ -160,30 +186,52 @@ const Settings = () => {
       return;
     }
 
-    toast({
-      title: "تم تغيير كلمة المرور!",
-      description: "تم تحديث كلمة المرور بنجاح",
-    });
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    });
+    const success = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+    if (success) {
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    }
   };
 
-  const saveSettings = () => {
-    toast({
-      title: "تم حفظ الإعدادات!",
-      description: "تم تحديث إعدادات التطبيق بنجاح",
-    });
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const newAvatarUrl = await uploadProfileImage(file);
+      setProfile(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
 
-  const deleteAccount = () => {
-    toast({
-      title: "طلب حذف الحساب",
-      description: "سيتم التواصل معك خلال 24 ساعة لتأكيد الحذف",
-      variant: "destructive"
-    });
+  const deleteAccount = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // حذف الحساب من المصادقة
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) throw error;
+
+      toast({
+        title: "تم حذف الحساب",
+        description: "تم حذف حسابك نهائياً",
+        variant: "destructive"
+      });
+      
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "خطأ في حذف الحساب",
+        description: "حدث خطأ أثناء حذف الحساب. تواصل مع الدعم الفني.",
+        variant: "destructive"
+      });
+    }
   };
 
   const logout = async () => {
@@ -262,17 +310,34 @@ const Settings = () => {
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <Avatar className="w-24 h-24">
-                      <AvatarFallback className="bg-accent text-background text-2xl font-bold">
-                        {profile.avatar}
-                      </AvatarFallback>
+                      {profile.avatarUrl ? (
+                        <AvatarImage src={profile.avatarUrl} alt="صورة الملف الشخصي" />
+                      ) : (
+                        <AvatarFallback className="bg-accent text-background text-2xl font-bold">
+                          {profile.avatar}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <Button 
                       size="sm" 
                       className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
                       variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
                     >
-                      <Camera className="w-4 h-4" />
+                      {uploading ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4" />
+                      )}
                     </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
@@ -298,9 +363,19 @@ const Settings = () => {
                     <Input
                       id="name"
                       value={profile.name}
-                      onChange={(e) => setProfile({...profile, name: e.target.value})}
-                      className="bg-background/50 border-border text-foreground"
+                      onChange={(e) => {
+                        setProfile({...profile, name: e.target.value});
+                        if (validationErrors.name) {
+                          setValidationErrors(prev => ({...prev, name: ""}));
+                        }
+                      }}
+                      className={`bg-background/50 border-border text-foreground ${
+                        validationErrors.name ? 'border-destructive' : ''
+                      }`}
                     />
+                    {validationErrors.name && (
+                      <p className="text-xs text-destructive">{validationErrors.name}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -309,9 +384,19 @@ const Settings = () => {
                       id="email"
                       type="email"
                       value={profile.email}
-                      onChange={(e) => setProfile({...profile, email: e.target.value})}
-                      className="bg-background/50 border-border text-foreground"
+                      onChange={(e) => {
+                        setProfile({...profile, email: e.target.value});
+                        if (validationErrors.email) {
+                          setValidationErrors(prev => ({...prev, email: ""}));
+                        }
+                      }}
+                      className={`bg-background/50 border-border text-foreground ${
+                        validationErrors.email ? 'border-destructive' : ''
+                      }`}
                     />
+                    {validationErrors.email && (
+                      <p className="text-xs text-destructive">{validationErrors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -319,10 +404,21 @@ const Settings = () => {
                     <Input
                       id="phone"
                       value={profile.phone}
-                      onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                      className="text-left bg-background/50 border-border text-foreground"
+                      onChange={(e) => {
+                        setProfile({...profile, phone: e.target.value});
+                        if (validationErrors.phone) {
+                          setValidationErrors(prev => ({...prev, phone: ""}));
+                        }
+                      }}
+                      className={`text-left bg-background/50 border-border text-foreground ${
+                        validationErrors.phone ? 'border-destructive' : ''
+                      }`}
                       dir="ltr"
+                      placeholder="+966xxxxxxxxx"
                     />
+                    {validationErrors.phone && (
+                      <p className="text-xs text-destructive">{validationErrors.phone}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -390,8 +486,17 @@ const Settings = () => {
                   />
                 </div>
 
-                <Button onClick={changePassword} variant="outline" className="border-border text-foreground hover:bg-accent/20">
-                  <Save className="w-4 h-4 ml-2" />
+                <Button 
+                  onClick={handleChangePassword} 
+                  variant="outline" 
+                  className="border-border text-foreground hover:bg-accent/20"
+                  disabled={passwordLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                >
+                  {passwordLoading ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
+                  ) : (
+                    <Save className="w-4 h-4 ml-2" />
+                  )}
                   تغيير كلمة المرور
                 </Button>
               </CardContent>
@@ -518,7 +623,7 @@ const Settings = () => {
                     <Label className="text-foreground">اللغة</Label>
                     <Select 
                       value={settings.language} 
-                      onValueChange={(value) => setSettings({...settings, language: value})}
+                      onValueChange={(value) => saveSettings({language: value})}
                     >
                       <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue />
@@ -534,7 +639,7 @@ const Settings = () => {
                     <Label className="text-foreground">العملة الافتراضية</Label>
                     <Select 
                       value={settings.currency} 
-                      onValueChange={(value) => setSettings({...settings, currency: value})}
+                      onValueChange={(value) => saveSettings({currency: value})}
                     >
                       <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue />
@@ -549,8 +654,16 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <Button onClick={saveSettings} variant="hero">
-                  <Save className="w-4 h-4 ml-2" />
+                <Button 
+                  onClick={() => saveSettings({})} 
+                  variant="hero"
+                  disabled={settingsLoading}
+                >
+                  {settingsLoading ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
+                  ) : (
+                    <Save className="w-4 h-4 ml-2" />
+                  )}
                   حفظ الإعدادات
                 </Button>
               </CardContent>
@@ -575,7 +688,7 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.emailNotifications}
-                      onCheckedChange={(checked) => setSettings({...settings, emailNotifications: checked})}
+                      onCheckedChange={(checked) => saveSettings({emailNotifications: checked})}
                     />
                   </div>
 
@@ -586,7 +699,7 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.pushNotifications}
-                      onCheckedChange={(checked) => setSettings({...settings, pushNotifications: checked})}
+                      onCheckedChange={(checked) => saveSettings({pushNotifications: checked})}
                     />
                   </div>
 
@@ -597,7 +710,7 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.expenseReminders}
-                      onCheckedChange={(checked) => setSettings({...settings, expenseReminders: checked})}
+                      onCheckedChange={(checked) => saveSettings({expenseReminders: checked})}
                     />
                   </div>
 
@@ -608,13 +721,21 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.weeklyReports}
-                      onCheckedChange={(checked) => setSettings({...settings, weeklyReports: checked})}
+                      onCheckedChange={(checked) => saveSettings({weeklyReports: checked})}
                     />
                   </div>
                 </div>
 
-                <Button onClick={saveSettings} variant="hero">
-                  <Save className="w-4 h-4 ml-2" />
+                <Button 
+                  onClick={() => saveSettings({})} 
+                  variant="hero"
+                  disabled={settingsLoading}
+                >
+                  {settingsLoading ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
+                  ) : (
+                    <Save className="w-4 h-4 ml-2" />
+                  )}
                   حفظ الإعدادات
                 </Button>
               </CardContent>
@@ -639,7 +760,7 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.twoFactorAuth}
-                      onCheckedChange={(checked) => setSettings({...settings, twoFactorAuth: checked})}
+                      onCheckedChange={(checked) => saveSettings({twoFactorAuth: checked})}
                     />
                   </div>
 
@@ -650,7 +771,7 @@ const Settings = () => {
                     </div>
                     <Switch
                       checked={settings.darkMode}
-                      onCheckedChange={(checked) => setSettings({...settings, darkMode: checked})}
+                      onCheckedChange={(checked) => saveSettings({darkMode: checked})}
                     />
                   </div>
                 </div>
@@ -658,8 +779,16 @@ const Settings = () => {
                 <Separator />
 
                 <div className="space-y-4">
-                  <Button onClick={saveSettings} variant="hero">
-                    <Save className="w-4 h-4 ml-2" />
+                  <Button 
+                    onClick={() => saveSettings({})} 
+                    variant="hero"
+                    disabled={settingsLoading}
+                  >
+                    {settingsLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
+                    ) : (
+                      <Save className="w-4 h-4 ml-2" />
+                    )}
                     حفظ الإعدادات
                   </Button>
 
@@ -668,10 +797,28 @@ const Settings = () => {
                     تسجيل الخروج
                   </Button>
 
-                  <Button onClick={deleteAccount} variant="destructive" className="w-full">
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    حذف الحساب
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="w-4 h-4 ml-2" />
+                        حذف الحساب
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>هل أنت متأكد من حذف الحساب؟</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك نهائياً.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          حذف الحساب
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

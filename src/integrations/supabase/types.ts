@@ -889,6 +889,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          dark_mode: boolean
+          email_notifications: boolean
+          expense_reminders: boolean
+          id: string
+          language: string
+          push_notifications: boolean
+          two_factor_auth: boolean
+          updated_at: string
+          user_id: string
+          weekly_reports: boolean
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          email_notifications?: boolean
+          expense_reminders?: boolean
+          id?: string
+          language?: string
+          push_notifications?: boolean
+          two_factor_auth?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_reports?: boolean
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          email_notifications?: boolean
+          expense_reminders?: boolean
+          id?: string
+          language?: string
+          push_notifications?: boolean
+          two_factor_auth?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_reports?: boolean
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           canceled_at: string | null
