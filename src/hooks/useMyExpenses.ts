@@ -61,15 +61,26 @@ const useMyExpenses = () => {
 
   const ITEMS_PER_PAGE = 20;
 
-  // Get current user ID for stats calculation
+  // Get current user ID for stats calculation with better error handling
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Error getting user in useMyExpenses:', error);
+          return;
+        }
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Failed to get user in useMyExpenses:', error);
       }
     };
-    getCurrentUser();
+    
+    // Add a small delay to avoid race conditions
+    const timeoutId = setTimeout(getCurrentUser, 50);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const fetchExpenses = useCallback(async (reset = false) => {
@@ -79,7 +90,8 @@ const useMyExpenses = () => {
 
       const currentUser = await supabase.auth.getUser();
       if (!currentUser.data.user) {
-        setError('المستخدم غير مسجل الدخول');
+        // Don't show error immediately, just return silently and let ProtectedRoute handle auth
+        setLoading(false);
         return;
       }
 

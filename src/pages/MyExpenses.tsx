@@ -35,15 +35,26 @@ const MyExpenses = () => {
     refreshExpenses
   } = useMyExpenses();
 
-  // Get current user
+  // Get current user with better error handling
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Error getting user:', error);
+          return;
+        }
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Failed to get current user:', error);
       }
     };
-    getCurrentUser();
+    
+    // Debounce the user check to avoid rapid calls
+    const timeoutId = setTimeout(getCurrentUser, 100);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Fetch user's groups for filtering
@@ -72,15 +83,13 @@ const MyExpenses = () => {
     setSelectedExpense(expense);
   };
 
+  // Show loading while getting user ID, but don't redirect immediately
   if (!currentUserId) {
     return (
       <div className="container mx-auto p-4 space-y-6">
         <div className="text-center py-12">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">يجب تسجيل الدخول لعرض المصاريف</p>
-          <Button onClick={() => navigate('/auth')} className="mt-4">
-            تسجيل الدخول
-          </Button>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
         </div>
       </div>
     );
