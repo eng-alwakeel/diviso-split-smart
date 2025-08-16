@@ -63,11 +63,11 @@ export function useQuotaHandler() {
         ocr: 500
       },
       lifetime: {
-        members: 100,
-        groups: 50,
-        expenses: 10000,
-        invites: 500,
-        ocr: 1000
+        members: -1, // Unlimited
+        groups: -1, // Unlimited
+        expenses: 2000,
+        invites: 1000,
+        ocr: 2000
       }
     };
     
