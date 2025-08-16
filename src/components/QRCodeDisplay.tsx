@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Download, Maximize2, Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import appIcon from '@/assets/app-icon.png';
 
 interface QRCodeDisplayProps {
   value: string;
@@ -18,7 +19,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
-  const generateQRCode = useCallback(async () => {
+  const generateCustomQRCode = useCallback(async () => {
     if (!canvasRef.current || !value?.trim()) {
       setError('قيمة الرابط غير صحيحة');
       return;
@@ -28,27 +29,121 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     setError('');
 
     try {
-      // Use fixed colors instead of CSS variables
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context not available');
+
+      // Set canvas size
+      canvas.width = size;
+      canvas.height = size;
+
+      // Generate QR code with app colors and high error correction
       const qrOptions = {
         width: size,
-        margin: 2,
+        margin: 1,
         color: {
-          dark: '#000000',
+          dark: '#1A1C1E', // App dark color
           light: '#FFFFFF',
         },
-        errorCorrectionLevel: 'M' as const,
+        errorCorrectionLevel: 'H' as const, // High error correction for logo overlay
       };
 
-      await QRCode.toCanvas(canvasRef.current, value, qrOptions);
+      // Generate QR to a temporary canvas
+      const tempCanvas = document.createElement('canvas');
+      await QRCode.toCanvas(tempCanvas, value, qrOptions);
 
-      // Generate data URL for download with higher resolution
-      const dataUrl = await QRCode.toDataURL(value, {
-        ...qrOptions,
-        width: size * 2,
+      // Clear main canvas and draw background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+
+      // Add gradient background frame
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#C8F169'); // Primary color
+      gradient.addColorStop(1, '#A5D147'); // Darker shade
+      
+      // Draw gradient border
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw white background for QR
+      const padding = 8;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(padding, padding, size - padding * 2, size - padding * 2);
+
+      // Draw QR code
+      ctx.drawImage(tempCanvas, padding, padding, size - padding * 2, size - padding * 2);
+
+      // Load and draw logo in center
+      const logo = new Image();
+      logo.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        logo.onload = () => {
+          // Calculate logo size (about 15% of QR size)
+          const logoSize = size * 0.15;
+          const logoX = (size - logoSize) / 2;
+          const logoY = (size - logoSize) / 2;
+
+          // Draw white circle background for logo
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(size / 2, size / 2, logoSize / 2 + 4, 0, 2 * Math.PI);
+          ctx.fill();
+
+          // Draw logo
+          ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+          resolve(true);
+        };
+        logo.onerror = () => resolve(true); // Continue without logo if it fails
+        logo.src = appIcon;
       });
-      setQrDataUrl(dataUrl);
+
+      // Generate high-resolution data URL for download
+      const tempHiResCanvas = document.createElement('canvas');
+      const hiResSize = size * 3;
+      tempHiResCanvas.width = hiResSize;
+      tempHiResCanvas.height = hiResSize;
+      const hiResCtx = tempHiResCanvas.getContext('2d');
+      
+      if (hiResCtx) {
+        // Repeat the same process for high-res version
+        const hiResGradient = hiResCtx.createLinearGradient(0, 0, hiResSize, hiResSize);
+        hiResGradient.addColorStop(0, '#C8F169');
+        hiResGradient.addColorStop(1, '#A5D147');
+        
+        hiResCtx.fillStyle = hiResGradient;
+        hiResCtx.fillRect(0, 0, hiResSize, hiResSize);
+        
+        const hiResPadding = 24;
+        hiResCtx.fillStyle = '#FFFFFF';
+        hiResCtx.fillRect(hiResPadding, hiResPadding, hiResSize - hiResPadding * 2, hiResSize - hiResPadding * 2);
+        
+        // Generate high-res QR
+        const hiResQRCanvas = document.createElement('canvas');
+        await QRCode.toCanvas(hiResQRCanvas, value, {
+          ...qrOptions,
+          width: hiResSize - hiResPadding * 2,
+        });
+        
+        hiResCtx.drawImage(hiResQRCanvas, hiResPadding, hiResPadding);
+        
+        // Draw high-res logo
+        const hiResLogoSize = hiResSize * 0.15;
+        const hiResLogoX = (hiResSize - hiResLogoSize) / 2;
+        const hiResLogoY = (hiResSize - hiResLogoSize) / 2;
+        
+        hiResCtx.fillStyle = '#FFFFFF';
+        hiResCtx.beginPath();
+        hiResCtx.arc(hiResSize / 2, hiResSize / 2, hiResLogoSize / 2 + 12, 0, 2 * Math.PI);
+        hiResCtx.fill();
+        
+        hiResCtx.drawImage(logo, hiResLogoX, hiResLogoY, hiResLogoSize, hiResLogoSize);
+        
+        setQrDataUrl(tempHiResCanvas.toDataURL('image/png', 1.0));
+      }
+
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      console.error('Error generating custom QR code:', error);
       setError('فشل في توليد رمز QR');
       toast.error('خطأ في توليد رمز QR');
     } finally {
@@ -57,8 +152,8 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
   }, [value, size]);
 
   useEffect(() => {
-    generateQRCode();
-  }, [generateQRCode]);
+    generateCustomQRCode();
+  }, [generateCustomQRCode]);
 
   const downloadQRCode = () => {
     if (!qrDataUrl) return;
@@ -104,7 +199,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
 
   const retryGeneration = () => {
     setError('');
-    generateQRCode();
+    generateCustomQRCode();
   };
 
   return (
@@ -152,19 +247,13 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
               </DialogHeader>
               <div className="flex justify-center p-4">
                 <div className="bg-white p-4 rounded-lg">
-                  <canvas 
-                    ref={(canvas) => {
-                      if (canvas && qrDataUrl) {
-                        QRCode.toCanvas(canvas, value, {
-                          width: 300,
-                          margin: 2,
-                          color: { dark: '#000000', light: '#FFFFFF' }
-                        });
-                      }
-                    }}
-                    width={300}
-                    height={300}
-                  />
+                  {qrDataUrl && (
+                    <img 
+                      src={qrDataUrl} 
+                      alt="رمز QR للإحالة" 
+                      className="w-[300px] h-[300px] object-contain"
+                    />
+                  )}
                 </div>
               </div>
             </DialogContent>
