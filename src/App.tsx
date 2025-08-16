@@ -10,6 +10,7 @@ import AddExpense from "./pages/AddExpense";
 import ReferralCenter from "./pages/ReferralCenter";
 import GroupDetails from "./pages/GroupDetails";
 import FinancialPlan from "./pages/FinancialPlan";
+import MyExpenses from "./pages/MyExpenses";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/create-group" element={<ProtectedRoute><CreateGroup /></ProtectedRoute>} />
           <Route path="/group/:id" element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
           <Route path="/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
+          <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
           <Route path="/financial-plan" element={<ProtectedRoute><FinancialPlan /></ProtectedRoute>} />
           <Route path="/referral" element={<ProtectedRoute><ReferralCenter /></ProtectedRoute>} />
           <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
