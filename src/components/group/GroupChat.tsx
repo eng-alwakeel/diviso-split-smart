@@ -173,7 +173,7 @@ const MessageBubble = ({ message }: { message: Message }) => {
       >
         {!isMe && (
           <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            عضو
+            {message.sender_id.slice(0,4)}...
           </p>
         )}
         <p className="text-sm">{message.content}</p>

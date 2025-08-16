@@ -39,6 +39,8 @@ import { useGroupData } from "@/hooks/useGroupData";
 import { GroupSettingsDialog } from "@/components/group/GroupSettingsDialog";
 import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog";
+import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
+import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -52,6 +54,11 @@ const GroupDetails = () => {
   const [settleOpen, setSettleOpen] = useState(false);
   const [prefillTo, setPrefillTo] = useState<string | undefined>(undefined);
   const [prefillAmount, setPrefillAmount] = useState<number | undefined>(undefined);
+  
+  // حوارات تحرير ورفض المصاريف
+  const [editExpenseOpen, setEditExpenseOpen] = useState(false);
+  const [rejectExpenseOpen, setRejectExpenseOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<any>(null);
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -132,14 +139,19 @@ const GroupDetails = () => {
       return;
     }
 
-    const { error: updErr } = await supabase.from("expenses").update({ status: "rejected" }).eq("id", expenseId);
-    if (updErr) {
-      console.error("[reject expense] error", updErr);
-      toast({ title: "تعذر رفض المصروف", description: updErr.message, variant: "destructive" });
-      return;
+    // For rejection, open the reject dialog
+    if (action === "reject") {
+      const expense = expenses.find(e => e.id === expenseId);
+      if (expense) {
+        setSelectedExpense(expense);
+        setRejectExpenseOpen(true);
+      }
     }
-    toast({ title: "تم رفض المصروف!" });
-    refetch();
+  };
+
+  const handleEditExpense = (expense: any) => {
+    setSelectedExpense(expense);
+    setEditExpenseOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -464,6 +476,34 @@ const GroupDetails = () => {
                               </Button>
                             </div>
                           )}
+                          
+                          {expense.status === "rejected" && currentUserId === expense.payer_id && (
+                            <div className="flex gap-2 mt-3 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
+                                className="bg-warning/20 border-warning/30 text-warning hover:bg-warning/30"
+                              >
+                                <Edit className="w-4 h-4 ml-1" />
+                                تعديل وإعادة تقديم
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {(expense.status === "pending" || expense.status === "rejected") && currentUserId === expense.payer_id && !canApprove && (
+                            <div className="flex gap-2 mt-3 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
+                                className="bg-secondary/20 border-secondary/30 text-secondary hover:bg-secondary/30"
+                              >
+                                <Edit className="w-4 h-4 ml-1" />
+                                تعديل
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -710,18 +750,33 @@ const GroupDetails = () => {
           </TabsContent>
         </Tabs>
 
-        <GroupSettlementDialog
-          open={settleOpen}
-          onOpenChange={setSettleOpen}
-          groupId={id}
-          currentUserId={currentUserId}
-          members={members}
-          profiles={profiles}
-          balances={balances}
-          initialToUserId={prefillTo}
-          initialAmount={prefillAmount}
-          onCreated={() => refetch()}
-        />
+      <GroupSettlementDialog
+        open={settleOpen}
+        onOpenChange={setSettleOpen}
+        groupId={id}
+        currentUserId={currentUserId}
+        members={members}
+        profiles={profiles}
+        balances={balances}
+        initialToUserId={prefillTo}
+        initialAmount={prefillAmount}
+        onCreated={() => refetch()}
+      />
+
+      <EditExpenseDialog
+        open={editExpenseOpen}
+        onOpenChange={setEditExpenseOpen}
+        expense={selectedExpense}
+        onUpdated={() => refetch()}
+      />
+
+      <RejectExpenseDialog
+        open={rejectExpenseOpen}
+        onOpenChange={setRejectExpenseOpen}
+        expenseId={selectedExpense?.id}
+        expenseDescription={selectedExpense?.description || ""}
+        onRejected={() => refetch()}
+      />
       </div>
       <div className="h-16 md:hidden" />
       <BottomNav />

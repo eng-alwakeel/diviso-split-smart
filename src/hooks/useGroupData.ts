@@ -57,12 +57,13 @@ export const useGroupData = (groupId?: string) => {
   const [loading, setLoading] = useState<boolean>(!!groupId);
   const [error, setError] = useState<string | null>(null);
 
-const [group, setGroup] = useState<GroupRow | null>(null);
-const [members, setMembers] = useState<MemberRow[]>([]);
-const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
-const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
-const [balances, setBalances] = useState<BalanceRow[]>([]);
-const [settlements, setSettlements] = useState<SettlementRow[]>([]);
+  const [group, setGroup] = useState<GroupRow | null>(null);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, ProfileRow>>({});
+  const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+  const [balances, setBalances] = useState<BalanceRow[]>([]);
+  const [settlements, setSettlements] = useState<SettlementRow[]>([]);
+  const [realtimeInitialized, setRealtimeInitialized] = useState(false);
 
   const load = async () => {
     const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -173,6 +174,67 @@ const [settlements, setSettlements] = useState<SettlementRow[]>([]);
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
+
+  // Real-time updates for balance-affecting tables
+  useEffect(() => {
+    if (!groupId || realtimeInitialized) return;
+    
+    console.log("[useGroupData] Setting up realtime listeners for group:", groupId);
+    
+    const expensesChannel = supabase
+      .channel(`expenses_${groupId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses', filter: `group_id=eq.${groupId}` },
+        (payload) => {
+          console.log("[useGroupData] Expenses change:", payload);
+          // Refresh data when expenses change
+          load();
+        }
+      )
+      .subscribe();
+
+    const settlementsChannel = supabase
+      .channel(`settlements_${groupId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'settlements', filter: `group_id=eq.${groupId}` },
+        (payload) => {
+          console.log("[useGroupData] Settlements change:", payload);
+          // Refresh data when settlements change
+          load();
+        }
+      )
+      .subscribe();
+
+    const splitsChannel = supabase
+      .channel(`expense_splits_${groupId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expense_splits' },
+        (payload) => {
+          console.log("[useGroupData] Expense splits change:", payload);
+          // Check if this split is for an expense in our group
+          if (payload.new || payload.old) {
+            const expenseId = (payload.new as any)?.expense_id || (payload.old as any)?.expense_id;
+            if (expenseId && expenses.some(e => e.id === expenseId)) {
+              load();
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    setRealtimeInitialized(true);
+
+    return () => {
+      console.log("[useGroupData] Cleaning up realtime listeners");
+      supabase.removeChannel(expensesChannel);
+      supabase.removeChannel(settlementsChannel);
+      supabase.removeChannel(splitsChannel);
+      setRealtimeInitialized(false);
+    };
+  }, [groupId, realtimeInitialized, expenses]);
 
   const totals = useMemo(() => {
     const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);

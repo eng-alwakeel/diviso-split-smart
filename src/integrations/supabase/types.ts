@@ -249,6 +249,41 @@ export type Database = {
         }
         Relationships: []
       }
+      expense_rejections: {
+        Row: {
+          created_at: string
+          expense_id: string
+          id: string
+          rejected_at: string
+          rejected_by: string
+          rejection_reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          expense_id: string
+          id?: string
+          rejected_at?: string
+          rejected_by: string
+          rejection_reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          expense_id?: string
+          id?: string
+          rejected_at?: string
+          rejected_by?: string
+          rejection_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_rejections_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_splits: {
         Row: {
           created_at: string
