@@ -213,7 +213,7 @@ const GroupDetails = () => {
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
 
-      <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} />
+      <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} groupName={group?.name} />
       <GroupSettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}

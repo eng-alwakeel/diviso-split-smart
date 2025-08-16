@@ -6,20 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Link, RefreshCw } from "lucide-react";
+import { Copy, Link, RefreshCw, Phone, MessageSquare } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface InviteByLinkDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupId: string | undefined;
+  groupName?: string;
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const InviteByLinkDialog = ({ open, onOpenChange, groupId }: InviteByLinkDialogProps) => {
+export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: InviteByLinkDialogProps) => {
   const { toast } = useToast();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const disabledReason = useMemo(() => {
     if (!groupId) return "لا يوجد معرف مجموعة.";
@@ -30,6 +33,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId }: InviteByLink
   useEffect(() => {
     if (!open) {
       setLink("");
+      setPhoneNumber("");
     }
   }, [open]);
 
@@ -70,6 +74,47 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId }: InviteByLink
     toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة إلى الحافظة." });
   };
 
+  const sendSMSInvite = async () => {
+    if (!phoneNumber.trim() || !link || !groupName) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-sms-invite', {
+        body: {
+          phone: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
+          groupName,
+          inviteLink: link,
+          senderName: "المستخدم"
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "تم إرسال الدعوة",
+        description: `تم إرسال دعوة SMS إلى ${phoneNumber}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ في إرسال SMS",
+        description: error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const sendWhatsAppInvite = () => {
+    if (!phoneNumber.trim() || !link || !groupName) return;
+    
+    const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupName}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${link}`;
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "تم فتح واتس اب!",
+      description: "تم توجيهك لإرسال الدعوة عبر واتس اب",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -101,6 +146,49 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId }: InviteByLink
               </Button>
             </div>
           </div>
+
+          {link && (
+            <>
+              <Separator />
+              
+              <div className="space-y-4">
+                <Label className="text-sm font-medium">إرسال الدعوة مباشرة</Label>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">رقم الجوال</Label>
+                  <Input
+                    id="phone"
+                    placeholder="966xxxxxxxxx"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="text-left"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={!phoneNumber.trim()}
+                    onClick={sendWhatsAppInvite}
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white border-green-500"
+                  >
+                    <MessageSquare className="w-4 h-4 ml-2" />
+                    إرسال عبر واتساب
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={!phoneNumber.trim()}
+                    onClick={sendSMSInvite}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                  >
+                    <Phone className="w-4 h-4 ml-2" />
+                    إرسال عبر SMS
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
