@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useReferralRewards } from "./useReferralRewards";
 
-export type SubscriptionPlan = "personal" | "family";
+export type SubscriptionPlan = "personal" | "family" | "lifetime";
 export type SubscriptionStatus = "trialing" | "active" | "expired" | "canceled";
 
 export interface UserSubscription {

@@ -1289,7 +1289,7 @@ export type Database = {
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
       referral_status: "pending" | "joined" | "blocked"
-      subscription_plan: "personal" | "family"
+      subscription_plan: "personal" | "family" | "lifetime"
       subscription_status: "trialing" | "active" | "expired" | "canceled"
     }
     CompositeTypes: {
@@ -1431,7 +1431,7 @@ export const Constants = {
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
       referral_status: ["pending", "joined", "blocked"],
-      subscription_plan: ["personal", "family"],
+      subscription_plan: ["personal", "family", "lifetime"],
       subscription_status: ["trialing", "active", "expired", "canceled"],
     },
   },

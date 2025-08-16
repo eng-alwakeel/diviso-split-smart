@@ -56,11 +56,18 @@ export function useQuotaHandler() {
         ocr: 100
       },
       family: {
-        members: 50,
+        members: 5,
         groups: 25,
         expenses: 5000,
         invites: 100,
         ocr: 500
+      },
+      lifetime: {
+        members: 100,
+        groups: 50,
+        expenses: 10000,
+        invites: 500,
+        ocr: 1000
       }
     };
     

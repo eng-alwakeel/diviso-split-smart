@@ -32,8 +32,8 @@ const plans = [
     priceYearly: "190",
     description: "للأفراد والعائلات النشطة",
     features: [
-      "مجموعات غير محدودة",
-      "أعضاء غير محدودين في المجموعة",
+      "حتى 10 مجموعات",
+      "حتى 20 عضو في المجموعة",
       "تقسيم متقدم (نسب ومبالغ)",
       "مسح الإيصالات بالذكاء الاصطناعي",
       "تحليلات وتوصيات ذكية",
@@ -47,12 +47,12 @@ const plans = [
   {
     name: "العائلية",
     icon: Users,
-    priceMonthly: "39",
-    priceYearly: "390",
-    description: "مثالية للعائلات والمجموعات",
+    priceMonthly: "75",
+    priceYearly: "750",
+    description: "للعائلات والمجموعات الصغيرة",
     features: [
       "جميع مزايا الباقة الشخصية",
-      "أعضاء غير محدودين في المجموعة",
+      "حتى 5 أعضاء في المجموعة",
       "حدود مشتركة وسياسات إنفاق",
       "تقارير للعائلة/المجموعة",
       "موافقة على المصاريف",
@@ -60,6 +60,25 @@ const plans = [
     ],
     buttonText: "اشترك الآن",
     popular: false
+  },
+  {
+    name: "مدى الحياة",
+    icon: Users,
+    priceMonthly: "350",
+    priceYearly: "350",
+    description: "🔥 عرض خاص - دفعة واحدة مدى الحياة",
+    features: [
+      "جميع مزايا الباقة الشخصية",
+      "حتى 100 عضو في المجموعة",
+      "مجموعات غير محدودة",
+      "استخدام OCR غير محدود",
+      "تقارير متقدمة",
+      "دعم أولوية مدى الحياة",
+      "تحديثات مجانية مدى الحياة"
+    ],
+    buttonText: "اشترك مدى الحياة",
+    popular: false,
+    isLifetime: true
   }
 ];
 
@@ -104,7 +123,7 @@ export const PricingSection = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
             return (
@@ -135,9 +154,12 @@ export const PricingSection = () => {
                   <p className="text-muted-foreground text-sm">{plan.description}</p>
                   
                     <div className="mt-4">
-                      <span className="text-4xl font-bold">{isYearly ? plan.priceYearly : plan.priceMonthly}</span>
-                      <span className="text-muted-foreground mr-2">{isYearly ? "ريال/سنوياً" : "ريال/شهرياً"}</span>
-                      {isYearly && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
+                      <span className="text-4xl font-bold">{plan.isLifetime ? plan.priceMonthly : (isYearly ? plan.priceYearly : plan.priceMonthly)}</span>
+                      <span className="text-muted-foreground mr-2">
+                        {plan.isLifetime ? "ريال مرة واحدة" : (isYearly ? "ريال/سنوياً" : "ريال/شهرياً")}
+                      </span>
+                      {isYearly && !plan.isLifetime && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
+                      {plan.isLifetime && <div className="text-xs text-orange-500 mt-1 font-medium">🔥 عرض محدود الوقت</div>}
                     </div>
                 </CardHeader>
 
@@ -169,13 +191,24 @@ export const PricingSection = () => {
                         className="w-full"
                         size="lg"
                         onClick={async () => {
-                          const planKey = plan.name === "شخصي" ? "personal" : "family";
+                          let planKey = "personal";
+                          if (plan.name === "العائلية") planKey = "family";
+                          else if (plan.name === "مدى الحياة") planKey = "lifetime";
+                          
                           const { data: { session } } = await supabase.auth.getSession();
                           if (!session?.user) {
                             const params = new URLSearchParams({ startTrial: planKey, redirectTo: "/dashboard" });
                             window.location.href = `/auth?${params.toString()}`;
                             return;
                           }
+                          
+                          if (plan.isLifetime) {
+                            // Handle lifetime plan - redirect to payment
+                            toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
+                            // This will be implemented later with payment integration
+                            return;
+                          }
+                          
                           const res = await startTrial(planKey as any);
                           if ((res as any).error) {
                             const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
@@ -187,7 +220,7 @@ export const PricingSection = () => {
                         }}
                         aria-label={`ابدأ تجربة ٧ أيام لخطة ${plan.name}`}
                       >
-                        ابدأ تجربة ٧ أيام
+                        {plan.isLifetime ? plan.buttonText : "ابدأ تجربة ٧ أيام"}
                       </Button>
                     )}
                   </div>
