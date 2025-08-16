@@ -32,6 +32,7 @@ import { ManageCategoriesDialog } from "@/components/categories/ManageCategories
 import { useCategories } from "@/hooks/useCategories";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { useAISuggestions } from "@/hooks/useAISuggestions";
 
 interface UserGroup {
   id: string;
@@ -49,6 +50,7 @@ const AddExpense = () => {
   const { toast } = useToast();
   const { categories, addCategory } = useCategories();
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
+  const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   
   // Form state
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
@@ -69,6 +71,10 @@ const AddExpense = () => {
   const [ocrResults, setOcrResults] = useState<any[]>([]);
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  // AI suggestions state
+  const [categorySuggestions, setCategorySuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // UI state
   const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
@@ -136,7 +142,7 @@ const AddExpense = () => {
     loadUserData();
   }, []);
 
-  // Handle file selection for receipt upload
+  // Enhanced OCR with AI analysis
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -148,7 +154,7 @@ const AddExpense = () => {
       setPreviewUrl(url);
       setReceipts([file]);
 
-      // Process OCR
+      // Upload and process with enhanced OCR
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const tmpPath = `${user.id}/tmp-${Date.now()}.${ext}`;
       
@@ -158,24 +164,50 @@ const AddExpense = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: ocrData, error: fnError } = await supabase.functions.invoke('process_receipt', {
-        body: { file_path: tmpPath },
-      });
-
-      if (fnError) throw fnError;
-
-      if (ocrData) {
-        setOcrResults([ocrData]);
-        // Auto-fill form with OCR results
-        if (ocrData.total) setAmount(ocrData.total.toString());
-        if (ocrData.merchant) setDescription(ocrData.merchant);
-        if (ocrData.receipt_date) setSpentAt(ocrData.receipt_date);
+      // Try enhanced OCR first
+      try {
+        const enhancedData = await enhanceReceiptOCR(tmpPath);
+        setOcrResults([enhancedData]);
+        
+        // Auto-fill form with enhanced results
+        if (enhancedData.total) setAmount(enhancedData.total.toString());
+        if (enhancedData.merchant) setDescription(enhancedData.merchant);
+        if (enhancedData.receipt_date) setSpentAt(enhancedData.receipt_date);
+        
+        // Set suggested category if available
+        if (enhancedData.suggested_category_id) {
+          setSelectedCategory(enhancedData.suggested_category_id);
+        }
         
         toast({
-          title: "تم تحليل الإيصال!",
-          description: "تم استخراج المعلومات بنجاح",
+          title: "تم تحليل الإيصال بالذكاء الاصطناعي!",
+          description: "تم استخراج المعلومات وتحليلها بنجاح",
         });
+        
+      } catch (enhancedError) {
+        console.error('Enhanced OCR failed, trying basic OCR:', enhancedError);
+        
+        // Fallback to basic OCR
+        const { data: ocrData, error: fnError } = await supabase.functions.invoke('process_receipt', {
+          body: { file_path: tmpPath },
+        });
+
+        if (fnError) throw fnError;
+
+        if (ocrData) {
+          setOcrResults([ocrData]);
+          // Auto-fill form with basic OCR results
+          if (ocrData.total) setAmount(ocrData.total.toString());
+          if (ocrData.merchant) setDescription(ocrData.merchant);
+          if (ocrData.receipt_date) setSpentAt(ocrData.receipt_date);
+          
+          toast({
+            title: "تم تحليل الإيصال!",
+            description: "تم استخراج المعلومات الأساسية",
+          });
+        }
       }
+      
     } catch (error) {
       console.error('OCR error:', error);
       toast({
@@ -186,6 +218,38 @@ const AddExpense = () => {
     } finally {
       setOcrProcessing(false);
     }
+  };
+
+  // Get intelligent category suggestions
+  const handleGetCategorySuggestions = async () => {
+    if (!description.trim()) {
+      toast({
+        title: "الوصف مطلوب",
+        description: "يرجى إدخال وصف للمصروف أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const suggestions = await suggestCategories(
+      description,
+      ocrResults[0]?.merchant || undefined,
+      amount ? parseFloat(amount) : undefined,
+      selectedGroup?.id
+    );
+    
+    setCategorySuggestions(suggestions);
+    setShowSuggestions(true);
+  };
+
+  // Accept AI category suggestion
+  const acceptCategorySuggestion = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setShowSuggestions(false);
+    toast({
+      title: "تم قبول الاقتراح",
+      description: "تم تطبيق الفئة المقترحة",
+    });
   };
 
   // Handle member toggle for splits
@@ -565,16 +629,72 @@ const AddExpense = () => {
                   <div className="space-y-2">
                     <Label htmlFor="category" className="text-foreground flex items-center justify-between">
                       <span>الفئة</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setManageCategoriesOpen(true)}
-                        className="ml-2"
-                      >
-                        إدارة الفئات
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGetCategorySuggestions}
+                          disabled={aiLoading || !description.trim()}
+                          className="text-xs"
+                        >
+                          <Brain className="w-3 h-3 ml-1" />
+                          {aiLoading ? "جاري التحليل..." : "اقتراح ذكي"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManageCategoriesOpen(true)}
+                          className="text-xs"
+                        >
+                          إدارة الفئات
+                        </Button>
+                      </div>
                     </Label>
+                    
+                    {/* AI Suggestions */}
+                    {showSuggestions && categorySuggestions.length > 0 && (
+                      <div className="space-y-2 p-3 border border-primary/20 rounded-lg bg-primary/5">
+                        <h4 className="text-sm font-medium flex items-center gap-2">
+                          <Brain className="w-4 h-4 text-primary" />
+                          اقتراحات الذكاء الاصطناعي
+                        </h4>
+                        <div className="space-y-2">
+                          {categorySuggestions.map((suggestion, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-background/50 rounded border">
+                              <div className="flex-1">
+                                <span className="font-medium">{suggestion.category_name}</span>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  ثقة: {(suggestion.confidence * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {suggestion.reason}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => acceptCategorySuggestion(suggestion.category_id)}
+                                className="text-xs"
+                              >
+                                <Check className="w-3 h-3 ml-1" />
+                                اختيار
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowSuggestions(false)}
+                          className="w-full text-xs"
+                        >
+                          إخفاء الاقتراحات
+                        </Button>
+                      </div>
+                    )}
+                    
                     <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
                       <SelectTrigger className="bg-background/50 border-border text-foreground">
                         <SelectValue placeholder="اختر الفئة" />

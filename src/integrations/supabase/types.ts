@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_suggestions: {
+        Row: {
+          confidence_score: number | null
+          content: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          status: string
+          suggestion_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          suggestion_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          status?: string
+          suggestion_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           allocated_amount: number
@@ -849,38 +885,53 @@ export type Database = {
       }
       receipt_ocr: {
         Row: {
+          ai_analysis: Json | null
+          confidence_scores: Json | null
           created_at: string
           created_by: string
           currency: string
           id: string
+          items: Json | null
           merchant: string | null
+          processing_status: string | null
           raw_text: string | null
           receipt_date: string | null
           storage_path: string
+          suggested_category_id: string | null
           total: number | null
           vat: number | null
         }
         Insert: {
+          ai_analysis?: Json | null
+          confidence_scores?: Json | null
           created_at?: string
           created_by?: string
           currency?: string
           id?: string
+          items?: Json | null
           merchant?: string | null
+          processing_status?: string | null
           raw_text?: string | null
           receipt_date?: string | null
           storage_path: string
+          suggested_category_id?: string | null
           total?: number | null
           vat?: number | null
         }
         Update: {
+          ai_analysis?: Json | null
+          confidence_scores?: Json | null
           created_at?: string
           created_by?: string
           currency?: string
           id?: string
+          items?: Json | null
           merchant?: string | null
+          processing_status?: string | null
           raw_text?: string | null
           receipt_date?: string | null
           storage_path?: string
+          suggested_category_id?: string | null
           total?: number | null
           vat?: number | null
         }
