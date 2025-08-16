@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrencies } from "@/hooks/useCurrencies";
 
 export interface UserSettings {
   language: string;
@@ -15,6 +16,7 @@ export interface UserSettings {
 
 export function useUserSettings() {
   const { toast } = useToast();
+  const { formatCurrency } = useCurrencies();
   const [settings, setSettings] = useState<UserSettings>({
     language: "ar",
     currency: "SAR",
@@ -110,6 +112,7 @@ export function useUserSettings() {
     setSettings,
     saveSettings,
     loading,
-    reload: loadSettings
+    reload: loadSettings,
+    formatCurrency
   };
 }

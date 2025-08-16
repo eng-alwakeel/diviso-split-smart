@@ -28,7 +28,8 @@ import {
   Crown,
   Calendar,
   Zap,
-  Upload
+  Upload,
+  RefreshCw
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +40,8 @@ import { QuotaStatus } from "@/components/QuotaStatus";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
+import { useCurrencies } from "@/hooks/useCurrencies";
+import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
 
 const getPlanDisplayName = (plan: string) => {
@@ -74,6 +77,7 @@ const Settings = () => {
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
+  const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState("profile");
@@ -636,21 +640,32 @@ const Settings = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-foreground">العملة الافتراضية</Label>
-                    <Select 
-                      value={settings.currency} 
-                      onValueChange={(value) => saveSettings({currency: value})}
-                    >
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SAR">ريال سعودي (SAR)</SelectItem>
-                        <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
-                        <SelectItem value="EUR">يورو (EUR)</SelectItem>
-                        <SelectItem value="AED">درهم إماراتي (AED)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-foreground">العملة المفضلة</Label>
+                    <div className="flex gap-2">
+                      <CurrencySelector
+                        currencies={currencies}
+                        value={settings.currency}
+                        onValueChange={(currency) => saveSettings({ currency })}
+                        placeholder="اختر العملة المفضلة..."
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={updateExchangeRates}
+                        disabled={currencyLoading}
+                        className="px-3"
+                      >
+                        {currencyLoading ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      ستظهر جميع المبالغ محولة إلى العملة المفضلة
+                    </p>
                   </div>
                 </div>
 
