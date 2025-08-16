@@ -799,14 +799,6 @@ export type Database = {
       }
     }
     Views: {
-      security_audit_sensitive_fields: {
-        Row: {
-          access_level: string | null
-          description: string | null
-          field_name: string | null
-        }
-        Relationships: []
-      }
       v_budget_summary: {
         Row: {
           budget_id: string | null

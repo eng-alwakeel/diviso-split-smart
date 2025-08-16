@@ -1,4 +1,7 @@
 project_id = "iwthriddasxzbjddpzzf"
 
+[functions.send-sms-invite]
+verify_jwt = false
+
 [functions.revenuecat_webhook]
 verify_jwt = false

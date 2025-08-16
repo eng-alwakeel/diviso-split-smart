@@ -78,6 +78,32 @@ const CreateGroup = () => {
     });
   };
 
+  const sendSMSInvite = async (phone: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-sms-invite', {
+        body: {
+          phone: phone.startsWith('+') ? phone : `+${phone}`,
+          groupName: groupData.name,
+          inviteLink,
+          senderName: "المستخدم" // يمكن جلب الاسم من الملف الشخصي
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "تم إرسال الدعوة",
+        description: `تم إرسال دعوة SMS إلى ${phone}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "خطأ في إرسال SMS",
+        description: error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendWhatsAppInvite = (phoneNumber: string) => {
     const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupData.name}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${inviteLink}`;
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -267,7 +293,15 @@ const CreateGroup = () => {
                       onClick={() => sendWhatsAppInvite(phone)}
                       className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                     >
-                      إرسال
+                      واتساب
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!phone.trim()}
+                      onClick={() => sendSMSInvite(phone)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                    >
+                      SMS
                     </Button>
                     {phoneNumbers.length > 1 && (
                       <Button
