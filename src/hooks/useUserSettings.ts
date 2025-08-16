@@ -70,24 +70,61 @@ export function useUserSettings() {
       const updatedSettings = { ...settings, ...newSettings };
       setSettings(updatedSettings);
 
-      // Use proper upsert with ON CONFLICT to avoid duplicate key errors
-      const { error } = await supabase
-        .from('user_settings')
-        .upsert({
-          user_id: user.id,
-          language: updatedSettings.language,
-          currency: updatedSettings.currency,
-          email_notifications: updatedSettings.emailNotifications,
-          push_notifications: updatedSettings.pushNotifications,
-          expense_reminders: updatedSettings.expenseReminders,
-          weekly_reports: updatedSettings.weeklyReports,
-          dark_mode: updatedSettings.darkMode,
-          two_factor_auth: updatedSettings.twoFactorAuth
-        }, {
-          onConflict: 'user_id'
-        });
+      // Try insert first, then update if it fails due to duplicate
+      try {
+        const { error: insertError } = await supabase
+          .from('user_settings')
+          .insert({
+            user_id: user.id,
+            language: updatedSettings.language,
+            currency: updatedSettings.currency,
+            email_notifications: updatedSettings.emailNotifications,
+            push_notifications: updatedSettings.pushNotifications,
+            expense_reminders: updatedSettings.expenseReminders,
+            weekly_reports: updatedSettings.weeklyReports,
+            dark_mode: updatedSettings.darkMode,
+            two_factor_auth: updatedSettings.twoFactorAuth
+          });
 
-      if (error) throw error;
+        // If insert fails due to duplicate key, update instead
+        if (insertError && insertError.code === '23505') {
+          const { error: updateError } = await supabase
+            .from('user_settings')
+            .update({
+              language: updatedSettings.language,
+              currency: updatedSettings.currency,
+              email_notifications: updatedSettings.emailNotifications,
+              push_notifications: updatedSettings.pushNotifications,
+              expense_reminders: updatedSettings.expenseReminders,
+              weekly_reports: updatedSettings.weeklyReports,
+              dark_mode: updatedSettings.darkMode,
+              two_factor_auth: updatedSettings.twoFactorAuth,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+          
+          if (updateError) throw updateError;
+        } else if (insertError) {
+          throw insertError;
+        }
+      } catch (err) {
+        // Final fallback to simple upsert
+        const { error: upsertError } = await supabase
+          .from('user_settings')
+          .upsert({
+            user_id: user.id,
+            language: updatedSettings.language,
+            currency: updatedSettings.currency,
+            email_notifications: updatedSettings.emailNotifications,
+            push_notifications: updatedSettings.pushNotifications,
+            expense_reminders: updatedSettings.expenseReminders,
+            weekly_reports: updatedSettings.weeklyReports,
+            dark_mode: updatedSettings.darkMode,
+            two_factor_auth: updatedSettings.twoFactorAuth
+          });
+          
+        if (upsertError) throw upsertError;
+      }
 
       toast({
         title: "تم حفظ الإعدادات!",

@@ -639,33 +639,58 @@ const Settings = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-foreground">العملة المفضلة</Label>
-                    <div className="flex gap-2">
-                      <CurrencySelector
-                        currencies={currencies}
-                        value={settings.currency}
-                        onValueChange={(currency) => saveSettings({ currency })}
-                        placeholder="اختر العملة المفضلة..."
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={updateExchangeRates}
-                        disabled={currencyLoading}
-                        className="px-3"
-                      >
-                        {currencyLoading ? (
-                          <RefreshCw className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-4 w-4" />
-                        )}
-                      </Button>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-base font-medium text-foreground">العملة المفضلة</Label>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        اختر العملة التي تريد استخدامها في التطبيق
+                      </p>
+                      <div className="flex gap-2">
+                        <CurrencySelector
+                          currencies={currencies}
+                          value={settings.currency}
+                          onValueChange={(currency) => saveSettings({ currency })}
+                          placeholder="اختر العملة المفضلة..."
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={updateExchangeRates}
+                          disabled={currencyLoading}
+                          className="px-3"
+                          title="تحديث أسعار الصرف"
+                        >
+                          {currencyLoading ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      
+                      {settings.currency && (
+                        <div className="mt-3 p-3 bg-muted/30 border border-border/50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            {currencies.find(c => c.code === settings.currency)?.flag_emoji && (
+                              <span className="text-lg">
+                                {currencies.find(c => c.code === settings.currency)?.flag_emoji}
+                              </span>
+                            )}
+                            <span className="font-bold text-lg">
+                              {currencies.find(c => c.code === settings.currency)?.symbol}
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              العملة المحددة: {currencies.find(c => c.code === settings.currency)?.name}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <p className="text-sm text-muted-foreground mt-2">
+                        ستظهر جميع المبالغ محولة إلى العملة المفضلة
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      ستظهر جميع المبالغ محولة إلى العملة المفضلة
-                    </p>
                   </div>
                 </div>
 
