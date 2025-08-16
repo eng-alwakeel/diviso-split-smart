@@ -33,62 +33,60 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas context not available');
 
-      // Set canvas size
-      canvas.width = size;
-      canvas.height = size;
+      // Set canvas size - increased height for logo
+      const qrSize = size;
+      const logoHeight = 50;
+      const totalHeight = qrSize + logoHeight + 20; // padding between QR and logo
+      
+      canvas.width = qrSize;
+      canvas.height = totalHeight;
 
-      // Generate QR code with app colors and high error correction
+      // Generate QR code with app colors
       const qrOptions = {
-        width: size,
+        width: qrSize,
         margin: 1,
         color: {
-          dark: '#1A1C1E', // App dark color
+          dark: '#16A34A', // Green from app theme
           light: '#FFFFFF',
         },
-        errorCorrectionLevel: 'H' as const, // High error correction for logo overlay
+        errorCorrectionLevel: 'M' as const,
       };
 
       // Generate QR to a temporary canvas
       const tempCanvas = document.createElement('canvas');
       await QRCode.toCanvas(tempCanvas, value, qrOptions);
 
-      // Clear main canvas and draw background
+      // Clear main canvas with white background
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, size, size);
+      ctx.fillRect(0, 0, qrSize, totalHeight);
 
-      // Add gradient background frame
-      const gradient = ctx.createLinearGradient(0, 0, size, size);
-      gradient.addColorStop(0, '#C8F169'); // Primary color
-      gradient.addColorStop(1, '#A5D147'); // Darker shade
+      // Add gradient background for QR area
+      const gradient = ctx.createLinearGradient(0, 0, qrSize, qrSize);
+      gradient.addColorStop(0, '#C8F169'); // Primary green
+      gradient.addColorStop(1, '#16A34A'); // Darker green
       
-      // Draw gradient border
+      // Draw gradient border for QR
+      const padding = 8;
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, size, size);
+      ctx.fillRect(0, 0, qrSize, qrSize);
       
       // Draw white background for QR
-      const padding = 8;
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(padding, padding, size - padding * 2, size - padding * 2);
+      ctx.fillRect(padding, padding, qrSize - padding * 2, qrSize - padding * 2);
 
       // Draw QR code
-      ctx.drawImage(tempCanvas, padding, padding, size - padding * 2, size - padding * 2);
+      ctx.drawImage(tempCanvas, padding, padding, qrSize - padding * 2, qrSize - padding * 2);
 
-      // Load and draw logo in center
+      // Load and draw logo below QR
       const logo = new Image();
       logo.crossOrigin = 'anonymous';
       
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         logo.onload = () => {
-          // Calculate logo size (about 15% of QR size)
-          const logoSize = size * 0.15;
-          const logoX = (size - logoSize) / 2;
-          const logoY = (size - logoSize) / 2;
-
-          // Draw white circle background for logo
-          ctx.fillStyle = '#FFFFFF';
-          ctx.beginPath();
-          ctx.arc(size / 2, size / 2, logoSize / 2 + 4, 0, 2 * Math.PI);
-          ctx.fill();
+          // Calculate logo position (centered below QR)
+          const logoSize = 40;
+          const logoX = (qrSize - logoSize) / 2;
+          const logoY = qrSize + 10; // 10px gap below QR
 
           // Draw logo
           ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
@@ -100,42 +98,44 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
 
       // Generate high-resolution data URL for download
       const tempHiResCanvas = document.createElement('canvas');
-      const hiResSize = size * 3;
-      tempHiResCanvas.width = hiResSize;
-      tempHiResCanvas.height = hiResSize;
+      const hiResQRSize = qrSize * 3;
+      const hiResLogoHeight = logoHeight * 3;
+      const hiResTotalHeight = hiResQRSize + hiResLogoHeight + 60;
+      
+      tempHiResCanvas.width = hiResQRSize;
+      tempHiResCanvas.height = hiResTotalHeight;
       const hiResCtx = tempHiResCanvas.getContext('2d');
       
       if (hiResCtx) {
-        // Repeat the same process for high-res version
-        const hiResGradient = hiResCtx.createLinearGradient(0, 0, hiResSize, hiResSize);
-        hiResGradient.addColorStop(0, '#C8F169');
-        hiResGradient.addColorStop(1, '#A5D147');
+        // Clear high-res canvas
+        hiResCtx.fillStyle = '#FFFFFF';
+        hiResCtx.fillRect(0, 0, hiResQRSize, hiResTotalHeight);
         
-        hiResCtx.fillStyle = hiResGradient;
-        hiResCtx.fillRect(0, 0, hiResSize, hiResSize);
+        // Draw high-res gradient
+        const hiResGradient = hiResCtx.createLinearGradient(0, 0, hiResQRSize, hiResQRSize);
+        hiResGradient.addColorStop(0, '#C8F169');
+        hiResGradient.addColorStop(1, '#16A34A');
         
         const hiResPadding = 24;
+        hiResCtx.fillStyle = hiResGradient;
+        hiResCtx.fillRect(0, 0, hiResQRSize, hiResQRSize);
+        
         hiResCtx.fillStyle = '#FFFFFF';
-        hiResCtx.fillRect(hiResPadding, hiResPadding, hiResSize - hiResPadding * 2, hiResSize - hiResPadding * 2);
+        hiResCtx.fillRect(hiResPadding, hiResPadding, hiResQRSize - hiResPadding * 2, hiResQRSize - hiResPadding * 2);
         
         // Generate high-res QR
         const hiResQRCanvas = document.createElement('canvas');
         await QRCode.toCanvas(hiResQRCanvas, value, {
           ...qrOptions,
-          width: hiResSize - hiResPadding * 2,
+          width: hiResQRSize - hiResPadding * 2,
         });
         
         hiResCtx.drawImage(hiResQRCanvas, hiResPadding, hiResPadding);
         
         // Draw high-res logo
-        const hiResLogoSize = hiResSize * 0.15;
-        const hiResLogoX = (hiResSize - hiResLogoSize) / 2;
-        const hiResLogoY = (hiResSize - hiResLogoSize) / 2;
-        
-        hiResCtx.fillStyle = '#FFFFFF';
-        hiResCtx.beginPath();
-        hiResCtx.arc(hiResSize / 2, hiResSize / 2, hiResLogoSize / 2 + 12, 0, 2 * Math.PI);
-        hiResCtx.fill();
+        const hiResLogoSize = 120;
+        const hiResLogoX = (hiResQRSize - hiResLogoSize) / 2;
+        const hiResLogoY = hiResQRSize + 30;
         
         hiResCtx.drawImage(logo, hiResLogoX, hiResLogoY, hiResLogoSize, hiResLogoSize);
         
