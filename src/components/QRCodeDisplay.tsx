@@ -77,24 +77,22 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
       // Draw QR code
       ctx.drawImage(tempCanvas, padding, padding, qrSize - padding * 2, qrSize - padding * 2);
 
-      // Load and draw logo below QR
-      const logo = new Image();
-      logo.crossOrigin = 'anonymous';
+      // Draw text logo below QR (Letter "D")
+      const logoY = qrSize + 15;
       
-      await new Promise((resolve) => {
-        logo.onload = () => {
-          // Calculate logo position (centered below QR)
-          const logoSize = 40;
-          const logoX = (qrSize - logoSize) / 2;
-          const logoY = qrSize + 10; // 10px gap below QR
-
-          // Draw logo
-          ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
-          resolve(true);
-        };
-        logo.onerror = () => resolve(true); // Continue without logo if it fails
-        logo.src = '/lovable-uploads/4eed09d8-8605-4bc8-aedd-a51b6ad9fcf8.png';
-      });
+      // Set font for the logo text
+      ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#16A34A'; // App green color
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Draw the letter "D" centered below QR
+      ctx.fillText('D', qrSize / 2, logoY + 15);
+      
+      // Add "Diviso" text below
+      ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#6B7280'; // Gray color
+      ctx.fillText('Diviso', qrSize / 2, logoY + 35);
 
       // Generate high-resolution data URL for download
       const tempHiResCanvas = document.createElement('canvas');
@@ -132,12 +130,22 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
         
         hiResCtx.drawImage(hiResQRCanvas, hiResPadding, hiResPadding);
         
-        // Draw high-res logo
-        const hiResLogoSize = 120;
-        const hiResLogoX = (hiResQRSize - hiResLogoSize) / 2;
-        const hiResLogoY = hiResQRSize + 30;
+        // Draw high-res text logo
+        const hiResLogoY = hiResQRSize + 45;
         
-        hiResCtx.drawImage(logo, hiResLogoX, hiResLogoY, hiResLogoSize, hiResLogoSize);
+        // Set font for high-res logo
+        hiResCtx.font = 'bold 84px system-ui, -apple-system, sans-serif';
+        hiResCtx.fillStyle = '#16A34A';
+        hiResCtx.textAlign = 'center';
+        hiResCtx.textBaseline = 'middle';
+        
+        // Draw "D" letter
+        hiResCtx.fillText('D', hiResQRSize / 2, hiResLogoY + 45);
+        
+        // Add "Diviso" text
+        hiResCtx.font = 'bold 36px system-ui, -apple-system, sans-serif';
+        hiResCtx.fillStyle = '#6B7280';
+        hiResCtx.fillText('Diviso', hiResQRSize / 2, hiResLogoY + 105);
         
         setQrDataUrl(tempHiResCanvas.toDataURL('image/png', 1.0));
       }
