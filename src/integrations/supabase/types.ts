@@ -156,28 +156,37 @@ export type Database = {
       currencies: {
         Row: {
           code: string
+          country_code: string | null
           created_at: string
+          flag_emoji: string | null
           id: string
           is_active: boolean
           name: string
+          region: string | null
           symbol: string
           updated_at: string
         }
         Insert: {
           code: string
+          country_code?: string | null
           created_at?: string
+          flag_emoji?: string | null
           id?: string
           is_active?: boolean
           name: string
+          region?: string | null
           symbol: string
           updated_at?: string
         }
         Update: {
           code?: string
+          country_code?: string | null
           created_at?: string
+          flag_emoji?: string | null
           id?: string
           is_active?: boolean
           name?: string
+          region?: string | null
           symbol?: string
           updated_at?: string
         }

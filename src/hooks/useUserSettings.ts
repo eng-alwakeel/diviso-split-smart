@@ -70,6 +70,7 @@ export function useUserSettings() {
       const updatedSettings = { ...settings, ...newSettings };
       setSettings(updatedSettings);
 
+      // Use proper upsert with ON CONFLICT to avoid duplicate key errors
       const { error } = await supabase
         .from('user_settings')
         .upsert({
@@ -82,6 +83,8 @@ export function useUserSettings() {
           weekly_reports: updatedSettings.weeklyReports,
           dark_mode: updatedSettings.darkMode,
           two_factor_auth: updatedSettings.twoFactorAuth
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
@@ -95,7 +98,7 @@ export function useUserSettings() {
       console.error('Error saving settings:', error);
       toast({
         title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ الإعدادات",
+        description: "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى.",
         variant: "destructive"
       });
     } finally {

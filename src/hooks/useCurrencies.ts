@@ -8,6 +8,9 @@ export interface Currency {
   name: string;
   symbol: string;
   is_active: boolean;
+  country_code?: string;
+  flag_emoji?: string;
+  region?: string;
 }
 
 export interface ExchangeRate {
