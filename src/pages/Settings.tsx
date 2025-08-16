@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { 
   ArrowRight,
   User, 
+  Users,
   CreditCard,
   Globe,
   Bell,
@@ -41,6 +42,8 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
+import { FamilyPlanManagement } from "@/components/family/FamilyPlanManagement";
+import { AcceptFamilyInvite } from "@/components/family/AcceptFamilyInvite";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -298,6 +301,7 @@ const Settings = () => {
           <TabsList className="flex w-full gap-1 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
             <TabsTrigger value="profile" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الملف الشخصي</TabsTrigger>
             <TabsTrigger value="subscription" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الاشتراك</TabsTrigger>
+            <TabsTrigger value="family" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">العائلة</TabsTrigger>
             <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
             <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
@@ -612,6 +616,38 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Family Plan Tab */}
+          <TabsContent value="family" className="space-y-6">
+            <div className="space-y-6">
+              {subscription?.plan === 'family' ? (
+                <FamilyPlanManagement />
+              ) : (
+                <div className="space-y-6">
+                  <AcceptFamilyInvite />
+                  <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-foreground">
+                        <Users className="w-5 h-5 text-accent" />
+                        ترقية للخطة العائلية
+                      </CardTitle>
+                      <CardDescription>
+                        احصل على الخطة العائلية لإدارة أعضاء عائلتك ومشاركة الميزات معهم
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        onClick={() => navigate('/pricing')}
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        ترقية للخطة العائلية
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Language & Currency Tab */}

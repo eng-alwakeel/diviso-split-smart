@@ -466,6 +466,81 @@ export type Database = {
           },
         ]
       }
+      family_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          expires_at: string
+          family_owner_id: string
+          id: string
+          invitation_code: string
+          invited_email: string | null
+          invited_phone: string | null
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          family_owner_id: string
+          id?: string
+          invitation_code?: string
+          invited_email?: string | null
+          invited_phone?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          expires_at?: string
+          family_owner_id?: string
+          id?: string
+          invitation_code?: string
+          invited_email?: string | null
+          invited_phone?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          created_at: string
+          family_owner_id: string
+          id: string
+          joined_at: string
+          member_user_id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          family_owner_id: string
+          id?: string
+          joined_at?: string
+          member_user_id: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          family_owner_id?: string
+          id?: string
+          joined_at?: string
+          member_user_id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_join_tokens: {
         Row: {
           created_at: string
@@ -1128,6 +1203,17 @@ export type Database = {
       get_current_count: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: number
+      }
+      get_family_quota_limits: {
+        Args: { p_user_id: string }
+        Returns: {
+          expenses_limit: number
+          groups_limit: number
+          invites_limit: number
+          members_limit: number
+          ocr_limit: number
+          plan_type: string
+        }[]
       }
       get_group_balance: {
         Args: { p_group_id: string }
