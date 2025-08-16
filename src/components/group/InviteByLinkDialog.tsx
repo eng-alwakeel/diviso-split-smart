@@ -6,25 +6,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Link, RefreshCw, Phone, MessageSquare } from "lucide-react";
+import { Copy, Link, RefreshCw, Phone, MessageSquare, Contact } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
+import { ContactsPicker } from "@/components/group/ContactsPicker";
+import { ContactInfo } from "@/hooks/useContacts";
 
 interface InviteByLinkDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupId: string | undefined;
   groupName?: string;
+  existingMembers?: string[];
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: InviteByLinkDialogProps) => {
+export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, existingMembers = [] }: InviteByLinkDialogProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [smartInviteLoading, setSmartInviteLoading] = useState(false);
 
   const disabledReason = useMemo(() => {
     if (!groupId) return "لا يوجد معرف مجموعة.";
@@ -36,6 +41,8 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: I
     if (!open) {
       setLink("");
       setPhoneNumber("");
+      setContactsOpen(false);
+      setSmartInviteLoading(false);
     }
   }, [open]);
 
@@ -121,6 +128,46 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: I
     });
   };
 
+  const sendSmartInvite = async (phone: string, contactName?: string) => {
+    if (!groupId || !groupName) return;
+    
+    setSmartInviteLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('smart-invite', {
+        body: {
+          groupId,
+          phoneNumber: phone,
+          groupName,
+          senderName: contactName || "صديقك"
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: data.userExists ? "تم إرسال إشعار داخلي" : "تم إرسال SMS",
+        description: data.message,
+        variant: data.success ? "default" : "destructive",
+      });
+
+      if (data.success) {
+        onOpenChange(false);
+      }
+    } catch (error: any) {
+      toast({
+        title: "خطأ في إرسال الدعوة",
+        description: error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    } finally {
+      setSmartInviteLoading(false);
+    }
+  };
+
+  const handleContactSelected = (contact: ContactInfo, selectedPhone: string) => {
+    sendSmartInvite(selectedPhone, contact.name);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -153,15 +200,28 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: I
             </div>
           </div>
 
-          {link && (
-            <>
-              <Separator />
-              
-              <div className="space-y-4">
-                <Label className="text-sm font-medium">إرسال الدعوة مباشرة</Label>
-                
+          <Separator />
+          
+          <div className="space-y-4">
+            <Label className="text-sm font-medium">دعوة الأعضاء</Label>
+            
+            {/* Smart invite from contacts */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setContactsOpen(true)}
+                disabled={smartInviteLoading}
+                className="flex-1"
+              >
+                <Contact className="w-4 h-4 ml-2" />
+                من جهات الاتصال
+              </Button>
+            </div>
+
+            {link && (
+              <>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">رقم الجوال</Label>
+                  <Label htmlFor="phone">أو أدخل رقم الجوال</Label>
                   <Input
                     id="phone"
                     placeholder="966xxxxxxxxx"
@@ -172,29 +232,45 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: I
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={!phoneNumber.trim() || smartInviteLoading}
+                    onClick={() => sendSmartInvite(phoneNumber)}
+                    className="bg-primary/20 border-primary/30 text-primary hover:bg-primary/30"
+                  >
+                    <Phone className="w-4 h-4 ml-2" />
+                    دعوة ذكية
+                  </Button>
                   <Button
                     variant="outline"
                     disabled={!phoneNumber.trim()}
                     onClick={sendWhatsAppInvite}
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white border-green-500"
+                    className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                   >
                     <MessageSquare className="w-4 h-4 ml-2" />
-                    إرسال عبر واتساب
+                    واتساب
                   </Button>
                   <Button
                     variant="outline"
                     disabled={!phoneNumber.trim()}
                     onClick={sendSMSInvite}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                    className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
                   >
                     <Phone className="w-4 h-4 ml-2" />
-                    إرسال عبر SMS
+                    SMS
                   </Button>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
+
+          <ContactsPicker
+            open={contactsOpen}
+            onOpenChange={setContactsOpen}
+            onContactSelected={handleContactSelected}
+            excludeNumbers={existingMembers}
+          />
         </div>
       </DialogContent>
     </Dialog>

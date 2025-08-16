@@ -33,6 +33,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { InviteByLinkDialog } from "@/components/group/InviteByLinkDialog";
+import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
 import { useGroupData } from "@/hooks/useGroupData";
@@ -75,6 +76,7 @@ const GroupDetails = () => {
   }, [rawId, navigate, toast]);
 
   const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch } = useGroupData(id);
+  const { isUserOnline, onlineCount } = useOnlinePresence(id);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -237,7 +239,13 @@ const GroupDetails = () => {
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
 
-      <InviteByLinkDialog open={openInvite} onOpenChange={setOpenInvite} groupId={id} groupName={group?.name} />
+      <InviteByLinkDialog 
+        open={openInvite} 
+        onOpenChange={setOpenInvite} 
+        groupId={id} 
+        groupName={group?.name}
+        existingMembers={members.map(m => m.user_id).filter(Boolean)}
+      />
       <GroupSettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
@@ -399,7 +407,9 @@ const GroupDetails = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">الأعضاء</p>
                   <p className="text-2xl font-bold text-accent">{memberCount}</p>
-                  <p className="text-xs text-muted-foreground mt-1">أعضاء</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {onlineCount > 0 ? `${onlineCount} متصل الآن` : 'أعضاء'}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-accent" />
@@ -590,14 +600,22 @@ const GroupDetails = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
+                          <div className="relative w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
                             <span className="text-2xl font-bold text-accent">
                               {(name || "ع").slice(0,1)}
                             </span>
+                            {isUserOnline(member.user_id) && (
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background" />
+                            )}
                           </div>
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-bold text-lg text-foreground">{name}</h3>
+                              {isUserOnline(member.user_id) && (
+                                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-600 border-green-500/30">
+                                  متصل
+                                </Badge>
+                              )}
                               {isAdmin && (
                                 <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-accent/20 text-accent border-accent/30">
                                   <Shield className="w-3 h-3" />
