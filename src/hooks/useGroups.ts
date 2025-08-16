@@ -21,7 +21,7 @@ async function fetchUserGroups(): Promise<Group[]> {
     .from("group_members")
     .select(`
       role,
-      groups (
+      groups!inner (
         id,
         name,
         currency,
