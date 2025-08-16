@@ -80,13 +80,14 @@ export function useReferrals() {
         return { error: "no_referral_code" };
       }
 
-      // Check if phone is already invited
+      // Check if phone is already invited (only active invitations)
       const { data: existingReferral } = await supabase
         .from("referrals")
-        .select("id")
+        .select("id, expires_at")
         .eq("inviter_id", user.id)
         .eq("invitee_phone", phone)
         .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
         .maybeSingle();
 
       if (existingReferral) {
@@ -102,7 +103,8 @@ export function useReferrals() {
           invitee_phone: phone,
           invitee_name: name || null,
           referral_code: referralCode,
-          status: "pending"
+          status: "pending",
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
         })
         .select()
         .single();

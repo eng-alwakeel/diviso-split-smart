@@ -970,6 +970,7 @@ export type Database = {
       referrals: {
         Row: {
           created_at: string
+          expires_at: string
           id: string
           invitee_name: string | null
           invitee_phone: string
@@ -981,6 +982,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expires_at?: string
           id?: string
           invitee_name?: string | null
           invitee_phone: string
@@ -992,6 +994,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expires_at?: string
           id?: string
           invitee_name?: string | null
           invitee_phone?: string

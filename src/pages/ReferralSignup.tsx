@@ -30,7 +30,7 @@ export default function ReferralSignup() {
       }
 
       try {
-        // Check if referral code exists and is valid
+        // First check if the referral code exists and is valid
         const { data: codeData, error: codeError } = await supabase
           .from("user_referral_codes")
           .select(`
@@ -40,8 +40,37 @@ export default function ReferralSignup() {
           .eq("referral_code", referralCode)
           .maybeSingle();
 
-        if (codeError || !codeData) {
-          toast.error("رمز الإحالة غير صالح أو منتهي الصلاحية");
+        if (codeError) throw codeError;
+        
+        if (!codeData) {
+          toast.error("رمز الإحالة غير صحيح");
+          navigate("/auth");
+          return;
+        }
+
+        // Check for active referral invitation
+        const { data: referralInvite, error: referralError } = await supabase
+          .from("referrals")
+          .select("*")
+          .eq("referral_code", referralCode)
+          .eq("status", "pending")
+          .maybeSingle();
+
+        if (referralError) throw referralError;
+
+        // If no referral invitation found, allow signup with the code
+        if (!referralInvite) {
+          setReferralData(codeData);
+          setLoading(false);
+          return;
+        }
+
+        // Check if the referral invitation has expired
+        const now = new Date();
+        const expiresAt = new Date(referralInvite.expires_at);
+        
+        if (now > expiresAt) {
+          toast.error("انتهت صلاحية دعوة الإحالة. يرجى طلب دعوة جديدة.");
           navigate("/auth");
           return;
         }

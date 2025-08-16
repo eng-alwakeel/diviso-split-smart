@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
     const inviterId = referralCodeData.user_id;
     console.log(`Found inviter: ${inviterId}`);
 
-    // Check if there's an existing pending referral
+    // Check if there's an existing pending referral and validate expiration
     const { data: existingReferral, error: referralError } = await supabaseClient
       .from("referrals")
       .select("*")
@@ -68,6 +68,22 @@ const handler = async (req: Request): Promise<Response> => {
     let referralId: string;
 
     if (existingReferral) {
+      // Check if the referral has expired
+      const now = new Date();
+      const expiresAt = new Date(existingReferral.expires_at);
+      
+      if (now > expiresAt) {
+        console.log('Referral has expired, updating status');
+        
+        // Update expired referral status
+        await supabaseClient
+          .from('referrals')
+          .update({ status: 'expired' })
+          .eq('id', existingReferral.id);
+        
+        throw new Error('Referral invitation has expired');
+      }
+
       // Update existing referral
       console.log("Updating existing referral:", existingReferral.id);
       
@@ -101,7 +117,8 @@ const handler = async (req: Request): Promise<Response> => {
           referral_code: referralCode,
           status: "joined",
           joined_at: new Date().toISOString(),
-          reward_days: 7
+          reward_days: 7,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
         })
         .select()
         .single();
