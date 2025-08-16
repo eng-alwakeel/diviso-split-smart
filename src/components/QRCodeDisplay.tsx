@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Download, Maximize2, Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import appIcon from '@/assets/app-icon.png';
+
 
 interface QRCodeDisplayProps {
   value: string;
@@ -95,7 +95,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
           resolve(true);
         };
         logo.onerror = () => resolve(true); // Continue without logo if it fails
-        logo.src = appIcon;
+        logo.src = '/lovable-uploads/4eed09d8-8605-4bc8-aedd-a51b6ad9fcf8.png';
       });
 
       // Generate high-resolution data URL for download
