@@ -987,6 +987,10 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      create_notification: {
+        Args: { p_payload?: Json; p_type: string; p_user_id: string }
+        Returns: string
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
