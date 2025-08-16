@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useQuotaHandler } from '@/hooks/useQuotaHandler';
 
 const InviteRoute = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { handleQuotaError } = useQuotaHandler();
 
   useEffect(() => {
     const run = async () => {
@@ -34,7 +36,10 @@ const InviteRoute = () => {
           navigate('/dashboard');
         }
       } catch (e) {
-        toast({ variant: 'destructive', title: 'خطأ في الانضمام', description: 'تحقق من صلاحية الرابط أو أعد المحاولة.' });
+        // Handle quota errors first
+        if (!handleQuotaError(e)) {
+          toast({ variant: 'destructive', title: 'خطأ في الانضمام', description: 'تحقق من صلاحية الرابط أو أعد المحاولة.' });
+        }
         navigate('/dashboard');
       } finally {
         // Cleanup any stored token

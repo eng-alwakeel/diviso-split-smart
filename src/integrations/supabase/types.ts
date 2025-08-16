@@ -761,6 +761,33 @@ export type Database = {
           },
         ]
       }
+      subscription_limits: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          limit_value: number
+          plan: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          limit_value: number
+          plan: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          limit_value?: number
+          plan?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           canceled_at: string | null
@@ -855,6 +882,10 @@ export type Database = {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
       }
+      get_current_count: {
+        Args: { p_action: string; p_group_id: string; p_user_id: string }
+        Returns: number
+      }
       get_group_balance: {
         Args: { p_group_id: string }
         Returns: {
@@ -873,6 +904,10 @@ export type Database = {
           total_spent_30d: number
           unread_notifications: number
         }[]
+      }
+      get_user_plan: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       increment_usage: {
         Args: { p_action: string; p_user_id: string }

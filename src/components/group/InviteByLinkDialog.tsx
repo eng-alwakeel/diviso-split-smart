@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Copy, Link, RefreshCw, Phone, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 
 interface InviteByLinkDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 
 export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: InviteByLinkDialogProps) => {
   const { toast } = useToast();
+  const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -54,11 +56,15 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName }: I
 
     if (error) {
       console.error("[InviteByLinkDialog] insert token error:", error);
-      toast({
-        title: "تعذر إنشاء رابط الدعوة",
-        description: error.message || "تحقق من أنك مدير للمجموعة ومسجل دخول.",
-        variant: "destructive",
-      });
+      
+      // Handle quota errors
+      if (!handleQuotaError(error)) {
+        toast({
+          title: "تعذر إنشاء رابط الدعوة",
+          description: error.message || "تحقق من أنك مدير للمجموعة ومسجل دخول.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
