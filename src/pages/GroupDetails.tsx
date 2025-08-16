@@ -436,6 +436,26 @@ const GroupDetails = () => {
                           <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
                             <span>دفع بواسطة {payerName}</span>
                           </div>
+                          
+                          {/* إظهار سبب الرفض للمصاريف المرفوضة */}
+                          {expense.status === "rejected" && expense.expense_rejections && expense.expense_rejections.length > 0 && (
+                            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <div className="w-4 h-4 bg-destructive/20 rounded-full flex items-center justify-center mt-0.5 shrink-0">
+                                  <XCircle className="w-3 h-3 text-destructive" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-destructive mb-1">سبب الرفض:</p>
+                                  <p className="text-xs text-destructive/80 leading-relaxed">
+                                    {expense.expense_rejections[0].rejection_reason || "لم يتم تحديد سبب"}
+                                  </p>
+                                  <p className="text-xs text-destructive/60 mt-1">
+                                    تم الرفض في {new Date(expense.expense_rejections[0].rejected_at).toLocaleDateString('ar-SA')}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Amount & Actions */}

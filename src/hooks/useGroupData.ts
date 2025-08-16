@@ -31,6 +31,11 @@ type ExpenseRow = {
   payer_id: string | null;
   status: "pending" | "approved" | "rejected";
   currency: string;
+  expense_rejections?: Array<{
+    rejection_reason: string | null;
+    rejected_at: string;
+    rejected_by: string;
+  }>;
 };
 
 type BalanceRow = {
@@ -125,10 +130,17 @@ export const useGroupData = (groupId?: string) => {
     }
     setProfiles(profilesMap);
 
-    // 4) المصاريف
+    // 4) المصاريف مع أسباب الرفض
     const { data: exps, error: expErr } = await supabase
       .from("expenses")
-      .select("id, group_id, description, amount, spent_at, created_at, payer_id, status, currency")
+      .select(`
+        id, group_id, description, amount, spent_at, created_at, payer_id, status, currency,
+        expense_rejections (
+          rejection_reason,
+          rejected_at,
+          rejected_by
+        )
+      `)
       .eq("group_id", groupId)
       .order("spent_at", { ascending: false });
     if (expErr) {
