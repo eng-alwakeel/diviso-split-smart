@@ -35,7 +35,7 @@ export const useGroupMembers = (groupId: string | null) => {
           role,
           can_approve_expenses,
           joined_at,
-          profiles:user_id (
+          profiles!user_id (
             id,
             display_name,
             name,

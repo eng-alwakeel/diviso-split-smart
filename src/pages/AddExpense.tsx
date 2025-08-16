@@ -200,25 +200,30 @@ const AddExpense = () => {
     });
   };
 
-  // Update member splits when split type or amount changes
+  // Auto-select all members and handle split calculations when split type changes
   useEffect(() => {
-    if (!selectedGroup || !amount || memberSplits.length === 0) return;
+    if (!selectedGroup || members.length === 0) return;
 
-    if (splitType === 'equal') {
+    // Auto-select all members for non-equal splits if none are selected
+    if ((splitType === 'percentage' || splitType === 'custom') && memberSplits.length === 0) {
+      const allMembers = members.map(member => ({
+        member_id: member.user_id,
+        share_amount: splitType === 'percentage' ? 100 / members.length : 0
+      }));
+      setMemberSplits(allMembers);
+      return;
+    }
+  }, [selectedGroup, splitType, members]);
+
+  // Update splits when amount changes for equal split
+  useEffect(() => {
+    if (splitType === 'equal' && amount && memberSplits.length > 0) {
       const shareAmount = parseFloat(amount) / memberSplits.length;
       setMemberSplits(prev => 
         prev.map(split => ({ ...split, share_amount: shareAmount }))
       );
-    } else if (splitType === 'percentage') {
-      // Reset percentages when switching to percentage mode
-      if (memberSplits.every(split => split.share_amount === 0)) {
-        const equalPercentage = 100 / memberSplits.length;
-        setMemberSplits(prev => 
-          prev.map(split => ({ ...split, share_amount: equalPercentage }))
-        );
-      }
     }
-  }, [selectedGroup, splitType, amount, memberSplits.length]);
+  }, [amount, splitType, memberSplits.length]);
 
   // Validation functions
   const getTotalPercentage = () => {
@@ -639,17 +644,71 @@ const AddExpense = () => {
                 )}
                 
                 <div className="space-y-2">
-                  <Label>نوع التقسيم</Label>
+                  <Label htmlFor="splitType">نوع التقسيم</Label>
                   <Select value={splitType} onValueChange={(value: 'equal' | 'percentage' | 'custom') => setSplitType(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر نوع التقسيم" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="equal">تقسيم متساوي</SelectItem>
-                      <SelectItem value="percentage">تقسيم بالنسبة المئوية</SelectItem>
-                      <SelectItem value="custom">تقسيم مخصص</SelectItem>
+                      <SelectItem value="equal">
+                        <div className="flex items-center gap-2">
+                          <Equal className="w-4 h-4" />
+                          تقسيم متساوي
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="percentage">
+                        <div className="flex items-center gap-2">
+                          <Percent className="w-4 h-4" />
+                          تقسيم بالنسبة المئوية
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="custom">
+                        <div className="flex items-center gap-2">
+                          <Calculator className="w-4 h-4" />
+                          تقسيم مخصص
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* Quick distribution buttons for non-equal splits */}
+                  {(splitType === 'percentage' || splitType === 'custom') && memberSplits.length > 0 && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (splitType === 'percentage') {
+                            const equalPercentage = 100 / memberSplits.length;
+                            setMemberSplits(prev => 
+                              prev.map(split => ({ ...split, share_amount: equalPercentage }))
+                            );
+                          } else if (splitType === 'custom' && amount) {
+                            const equalAmount = parseFloat(amount) / memberSplits.length;
+                            setMemberSplits(prev => 
+                              prev.map(split => ({ ...split, share_amount: equalAmount }))
+                            );
+                          }
+                        }}
+                      >
+                        <Equal className="w-3 h-3 ml-1" />
+                        توزيع متساوي
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setMemberSplits(prev => 
+                            prev.map(split => ({ ...split, share_amount: 0 }))
+                          );
+                        }}
+                      >
+                        إعادة تعيين
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -691,7 +750,10 @@ const AddExpense = () => {
                             </div>
                           </div>
                           
-                          {memberSplits.some(split => split.member_id === member.user_id) && (
+                          {/* Show input fields for all selected members or when split type requires input */}
+                          {(memberSplits.some(split => split.member_id === member.user_id) || 
+                            (splitType !== 'equal' && memberSplits.length > 0)) && 
+                           memberSplits.some(split => split.member_id === member.user_id) && (
                             <div className="flex items-center space-x-2 space-x-reverse">
                               {splitType === 'percentage' && (
                                 <>
@@ -699,14 +761,16 @@ const AddExpense = () => {
                                     type="number"
                                     min="0"
                                     max="100"
+                                    step="0.1"
                                     className="w-20"
+                                    placeholder="0.0"
                                     value={memberSplits.find(split => split.member_id === member.user_id)?.share_amount || 0}
                                     onChange={(e) => {
                                       const value = parseFloat(e.target.value) || 0;
                                       setMemberSplits(prev => 
                                         prev.map(split => 
                                           split.member_id === member.user_id 
-                                            ? { ...split, share_amount: value }
+                                            ? { ...split, share_amount: Math.min(100, Math.max(0, value)) }
                                             : split
                                         )
                                       );
@@ -723,13 +787,15 @@ const AddExpense = () => {
                                     min="0"
                                     step="0.01"
                                     className="w-24"
+                                    placeholder="0.00"
                                     value={memberSplits.find(split => split.member_id === member.user_id)?.share_amount || 0}
                                     onChange={(e) => {
                                       const value = parseFloat(e.target.value) || 0;
+                                      const maxAmount = parseFloat(amount || "0");
                                       setMemberSplits(prev => 
                                         prev.map(split => 
                                           split.member_id === member.user_id 
-                                            ? { ...split, share_amount: value }
+                                            ? { ...split, share_amount: Math.min(maxAmount, Math.max(0, value)) }
                                             : split
                                         )
                                       );
@@ -743,7 +809,10 @@ const AddExpense = () => {
                               
                               {splitType === 'equal' && (
                                 <span className="text-sm text-muted-foreground">
-                                  {(parseFloat(amount) / memberSplits.length).toFixed(2)} {selectedGroup?.currency || 'ريال'}
+                                  {amount && memberSplits.length > 0 ? 
+                                    (parseFloat(amount) / memberSplits.length).toFixed(2) : 
+                                    "0.00"
+                                  } {selectedGroup?.currency || 'ريال'}
                                 </span>
                               )}
                             </div>
@@ -757,27 +826,63 @@ const AddExpense = () => {
                   )}
                 </div>
 
-                {/* Split validation */}
+                {/* Enhanced Split validation with better messages */}
                 {memberSplits.length > 0 && (
                   <div className="space-y-2">
                     {splitType === 'percentage' && (
-                      <div className={`p-3 rounded-lg border ${Math.abs(getTotalPercentage() - 100) < 0.01 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <div className="flex justify-between text-sm">
+                      <div className={`p-3 rounded-lg border transition-colors ${Math.abs(getTotalPercentage() - 100) < 0.01 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'}`}>
+                        <div className="flex justify-between items-center text-sm">
                           <span>مجموع النسب:</span>
-                          <span className={Math.abs(getTotalPercentage() - 100) < 0.01 ? 'text-green-600' : 'text-red-600'}>
-                            {getTotalPercentage().toFixed(1)}%
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={Math.abs(getTotalPercentage() - 100) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                              {getTotalPercentage().toFixed(1)}%
+                            </span>
+                            {Math.abs(getTotalPercentage() - 100) < 0.01 ? 
+                              <Check className="w-4 h-4 text-green-600 dark:text-green-400" /> :
+                              <Info className="w-4 h-4 text-red-600 dark:text-red-400" />
+                            }
+                          </div>
                         </div>
+                        {Math.abs(getTotalPercentage() - 100) >= 0.01 && (
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            يجب أن يكون مجموع النسب 100%
+                          </p>
+                        )}
                       </div>
                     )}
                     
                     {splitType === 'custom' && (
-                      <div className={`p-3 rounded-lg border ${Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <div className="flex justify-between text-sm">
+                      <div className={`p-3 rounded-lg border transition-colors ${Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'}`}>
+                        <div className="flex justify-between items-center text-sm">
                           <span>مجموع المبالغ:</span>
-                          <span className={Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'text-green-600' : 'text-red-600'}>
-                            {getTotalCustomAmount().toFixed(2)} {selectedGroup?.currency || 'ريال'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                              {getTotalCustomAmount().toFixed(2)} {selectedGroup?.currency || 'ريال'}
+                            </span>
+                            {Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 
+                              <Check className="w-4 h-4 text-green-600 dark:text-green-400" /> :
+                              <Info className="w-4 h-4 text-red-600 dark:text-red-400" />
+                            }
+                          </div>
+                        </div>
+                        {Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) >= 0.01 && (
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            يجب أن يساوي مجموع المبالغ المبلغ الإجمالي ({parseFloat(amount || "0").toFixed(2)} {selectedGroup?.currency || 'ريال'})
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {splitType === 'equal' && memberSplits.length > 0 && amount && (
+                      <div className="p-3 rounded-lg border bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+                        <div className="flex justify-between items-center text-sm">
+                          <span>التقسيم المتساوي:</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-blue-600 dark:text-blue-400">
+                              {(parseFloat(amount) / memberSplits.length).toFixed(2)} {selectedGroup?.currency || 'ريال'} لكل عضو
+                            </span>
+                            <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </div>
                         </div>
                       </div>
                     )}
