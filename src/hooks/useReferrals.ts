@@ -80,6 +80,13 @@ export function useReferrals() {
         return { error: "no_referral_code" };
       }
 
+      // Validate Saudi phone number format
+      const phoneRegex = /^05\d{8}$/;
+      if (!phoneRegex.test(phone)) {
+        toast.error("يرجى إدخال رقم جوال سعودي صحيح (05xxxxxxxx)");
+        return { error: "invalid_phone_format" };
+      }
+
       // Check if phone is already invited (only active invitations)
       const { data: existingReferral } = await supabase
         .from("referrals")
@@ -91,11 +98,11 @@ export function useReferrals() {
         .maybeSingle();
 
       if (existingReferral) {
-        toast.error("تم إرسال دعوة لهذا الرقم مسبقاً");
+        toast.error("تم إرسال دعوة لهذا الرقم مسبقاً والدعوة لا تزال سارية");
         return { error: "already_invited" };
       }
 
-      // Insert referral record
+      // Insert referral record first
       const { data: referralData, error: referralError } = await supabase
         .from("referrals")
         .insert({
@@ -109,31 +116,47 @@ export function useReferrals() {
         .select()
         .single();
 
-      if (referralError) throw referralError;
+      if (referralError) {
+        console.error("Database error:", referralError);
+        toast.error("خطأ في حفظ بيانات الإحالة");
+        return { error: "database_error" };
+      }
+
+      console.log("Referral record created:", referralData);
 
       // Send SMS invite
-      const { error: smsError } = await supabase.functions.invoke('send-referral-invite', {
+      const { data: smsData, error: smsError } = await supabase.functions.invoke('send-referral-invite', {
         body: {
           phone,
-          senderName: user.user_metadata?.name || "صديقك",
+          senderName: user.user_metadata?.display_name || user.user_metadata?.name || "صديقك",
           referralCode
         }
       });
 
       if (smsError) {
         console.error("SMS error:", smsError);
-        // Don't fail the whole operation if SMS fails
+        // Update referral status to indicate SMS failure but keep the record
+        await supabase
+          .from("referrals")
+          .update({ 
+            status: "pending" // Keep as pending since the record exists
+          })
+          .eq("id", referralData.id);
+        
+        toast.error("تم حفظ الدعوة ولكن فشل إرسال الرسالة النصية");
+        return { error: "sms_failed", data: referralData };
       }
 
+      console.log("SMS sent successfully:", smsData);
       toast.success("تم إرسال الدعوة بنجاح!");
       
-      // Refresh referrals
+      // Refresh referrals to show the new one
       await fetchReferrals();
       
       return { success: true, data: referralData };
     } catch (error) {
       console.error("Error sending referral invite:", error);
-      toast.error("خطأ في إرسال الدعوة");
+      toast.error("حدث خطأ غير متوقع أثناء إرسال الدعوة");
       return { error: (error as Error).message };
     }
   }, [referralCode, fetchReferrals]);

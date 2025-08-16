@@ -66,7 +66,7 @@ const ReferralCenter = () => {
     });
   };
 
-  // إرسال دعوة إحالة حقيقية
+  // إرسال دعوة إحالة مع معالجة أفضل للأخطاء
   const handleSendReferralInvite = async () => {
     if (!newReferralPhone.trim()) {
       toast({
@@ -77,30 +77,34 @@ const ReferralCenter = () => {
       return;
     }
 
-    // التحقق من صحة رقم الجوال السعودي
-    const phoneRegex = /^05\d{8}$/;
-    if (!phoneRegex.test(newReferralPhone)) {
-      toast({
-        title: "خطأ",
-        description: "يرجى إدخال رقم جوال سعودي صحيح (05xxxxxxxx)",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsSending(true);
     try {
-      await sendInvite(newReferralPhone, newReferralName);
-      toast({
-        title: "تم إرسال الدعوة!",
-        description: `تم إرسال دعوة إلى ${newReferralPhone}`,
-      });
-      setNewReferralPhone("");
-      setNewReferralName("");
+      const result = await sendInvite(newReferralPhone, newReferralName);
+      
+      if (result.success) {
+        toast({
+          title: "تم إرسال الدعوة!",
+          description: `تم إرسال دعوة إلى ${newReferralPhone} بنجاح`,
+        });
+        setNewReferralPhone("");
+        setNewReferralName("");
+      } else if (result.error === "sms_failed") {
+        toast({
+          title: "تم حفظ الدعوة",
+          description: "تم حفظ الدعوة ولكن فشل إرسال الرسالة النصية",
+          variant: "destructive"
+        });
+        setNewReferralPhone("");
+        setNewReferralName("");
+      } else {
+        // Error already handled by the hook with toast.error
+        console.error("Referral invite failed:", result.error);
+      }
     } catch (error) {
+      console.error("Unexpected error:", error);
       toast({
         title: "خطأ في الإرسال",
-        description: "حدث خطأ أثناء إرسال الدعوة. يرجى المحاولة مرة أخرى.",
+        description: "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
         variant: "destructive"
       });
     } finally {

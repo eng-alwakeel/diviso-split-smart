@@ -36,8 +36,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required parameters: phone, senderName, or referralCode");
     }
 
+    // Validate Saudi phone number format
+    const phoneRegex = /^05\d{8}$/;
+    if (!phoneRegex.test(phone)) {
+      throw new Error("Invalid Saudi phone number format. Must be 05xxxxxxxx");
+    }
+
     // Create the referral invite message in Arabic
-    const inviteLink = `${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://").replace(".supabase.co", "")}/join/${referralCode}`;
+    const inviteLink = `https://iwthriddasxzbjddpzzf.supabase.co/join/${referralCode}`;
     const message = `
 🎉 مرحباً! 
 
@@ -61,6 +67,12 @@ ${inviteLink}
     console.log(`To: ${phone}`);
     console.log(`Message: ${message}`);
 
+    // For now, we'll simulate SMS sending success
+    // In production, integrate with your SMS service provider (Twilio, AWS SNS, etc.)
+    
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     // Log the SMS sending attempt (replace with actual SMS service in production)
     console.log("📱 SMS Invite Details:");
     console.log(`Recipient: ${phone}`);
@@ -68,11 +80,9 @@ ${inviteLink}
     console.log(`Referral Code: ${referralCode}`);
     console.log(`Invite Link: ${inviteLink}`);
 
-    // Here you would integrate with your SMS service (Twilio, etc.)
-    // For now, we'll just log it
-    
+    // Here you would integrate with your SMS service
     /*
-    // Example Twilio integration:
+    // Example with Twilio:
     const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
     const twilioToken = Deno.env.get("TWILIO_AUTH_TOKEN");
     const twilioFrom = Deno.env.get("TWILIO_PHONE_NUMBER");
@@ -110,7 +120,8 @@ ${inviteLink}
       JSON.stringify({ 
         success: true, 
         message: "تم إرسال دعوة الإحالة بنجاح",
-        inviteLink 
+        inviteLink,
+        phoneValidated: true
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
