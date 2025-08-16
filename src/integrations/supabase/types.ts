@@ -1284,6 +1284,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      increment_lifetime_purchases: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       increment_usage: {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined

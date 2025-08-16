@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useLifetimeOffer } from "@/hooks/useLifetimeOffer";
 import { useEffect } from "react";
 
 const plans = [
@@ -63,18 +64,19 @@ const plans = [
   },
   {
     name: "مدى الحياة",
-    icon: Users,
+    icon: Star,
     priceMonthly: "350",
     priceYearly: "350",
-    description: "🔥 عرض خاص - دفعة واحدة مدى الحياة",
+    description: "🔥 عرض خاص محدود - أول 100 شخص فقط",
     features: [
-      "جميع مزايا الباقة الشخصية",
-      "حتى 100 عضو في المجموعة",
-      "مجموعات غير محدودة",
-      "استخدام OCR غير محدود",
-      "تقارير متقدمة",
-      "دعم أولوية مدى الحياة",
-      "تحديثات مجانية مدى الحياة"
+      "حتى 10 مجموعات",
+      "حتى 20 عضو في المجموعة",
+      "تقسيم متقدم (نسب ومبالغ)",
+      "مسح الإيصالات بالذكاء الاصطناعي",
+      "تحليلات وتوصيات ذكية",
+      "دردشة المجموعة",
+      "تصدير التقارير",
+      "دعم أولوية مدى الحياة"
     ],
     buttonText: "اشترك مدى الحياة",
     popular: false,
@@ -86,6 +88,7 @@ export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
   const { startTrial } = useSubscription();
   const { toast } = useToast();
+  const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
 
   // تمت إزالة معالجة joinToken من هنا - يتم التعامل معها في InviteRoute الآن
 
@@ -124,7 +127,7 @@ export const PricingSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {plans.map((plan, index) => {
+          {plans.filter(plan => !plan.isLifetime || lifetimeAvailable).map((plan, index) => {
             const Icon = plan.icon;
             return (
               <Card 
@@ -159,7 +162,16 @@ export const PricingSection = () => {
                         {plan.isLifetime ? "ريال مرة واحدة" : (isYearly ? "ريال/سنوياً" : "ريال/شهرياً")}
                       </span>
                       {isYearly && !plan.isLifetime && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
-                      {plan.isLifetime && <div className="text-xs text-orange-500 mt-1 font-medium">🔥 عرض محدود الوقت</div>}
+                      {plan.isLifetime && (
+                        <div className="space-y-1">
+                          <div className="text-xs text-orange-500 font-medium">🔥 عرض محدود الوقت</div>
+                          {!lifetimeLoading && (
+                            <div className="text-xs text-destructive font-medium">
+                              متبقي {lifetimeRemaining} من 100 فقط!
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                 </CardHeader>
 
@@ -203,6 +215,15 @@ export const PricingSection = () => {
                           }
                           
                           if (plan.isLifetime) {
+                            // Check if lifetime offer is still available
+                            if (!lifetimeAvailable || lifetimeRemaining <= 0) {
+                              toast({ 
+                                title: "العرض منتهي", 
+                                description: "نأسف، لقد انتهى العرض المحدود لـ 100 شخص فقط", 
+                                variant: "destructive" 
+                              });
+                              return;
+                            }
                             // Handle lifetime plan - redirect to payment
                             toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
                             // This will be implemented later with payment integration
