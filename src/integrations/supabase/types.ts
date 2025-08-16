@@ -710,6 +710,36 @@ export type Database = {
           },
         ]
       }
+      lifetime_offer_tracking: {
+        Row: {
+          created_at: string
+          id: string
+          max_limit: number
+          offer_active: boolean
+          started_at: string
+          total_purchased: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_limit?: number
+          offer_active?: boolean
+          started_at?: string
+          total_purchased?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_limit?: number
+          offer_active?: boolean
+          started_at?: string
+          total_purchased?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
