@@ -37,7 +37,12 @@ export function useGroupInvites(groupId?: string) {
     }
   }, [groupId]);
 
-  const sendInvite = useCallback(async (phoneOrEmail: string, role: "owner" | "admin" | "member" = "member") => {
+  const sendInvite = useCallback(async (
+    phoneOrEmail: string, 
+    role: "owner" | "admin" | "member" = "member",
+    groupName?: string,
+    method: "smart" | "sms" | "email" = "smart"
+  ) => {
     if (!groupId) {
       toast.error("معرف المجموعة مطلوب");
       return { error: "no_group_id" };
@@ -81,13 +86,29 @@ export function useGroupInvites(groupId?: string) {
 
       // Determine if it's phone or email
       const isPhone = /^[\+]?[\d\s\-\(\)]+$/.test(phoneOrEmail);
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(phoneOrEmail);
       
-      if (isPhone) {
+      // Send based on method and type
+      if (method === "smart" && isPhone) {
+        // Use smart invite for phones
+        const { error: smartError } = await supabase.functions.invoke('smart-invite', {
+          body: {
+            groupId,
+            phoneNumber: phoneOrEmail,
+            groupName: groupName || "المجموعة",
+            senderName: user.user_metadata?.name || "صديقك"
+          }
+        });
+
+        if (smartError) {
+          console.error("Smart invite error:", smartError);
+        }
+      } else if (method === "sms" && isPhone) {
         // Send SMS invite
         const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
           body: {
             phone: phoneOrEmail,
-            groupName: "المجموعة", // Can be passed as parameter
+            groupName: groupName || "المجموعة",
             inviteLink: `${window.location.origin}/invite/${inviteData.id}`,
             senderName: user.user_metadata?.name || "صديقك"
           }
@@ -95,9 +116,28 @@ export function useGroupInvites(groupId?: string) {
 
         if (smsError) {
           console.error("SMS error:", smsError);
-          // Don't fail the whole operation
+        }
+      } else if (method === "email" && isEmail) {
+        // Send email invite
+        const { error: emailError } = await supabase.functions.invoke('send-email-invite', {
+          body: {
+            email: phoneOrEmail,
+            groupName: groupName || "المجموعة",
+            inviteLink: `${window.location.origin}/invite/${inviteData.id}`,
+            groupId
+          }
+        });
+
+        if (emailError) {
+          console.error("Email error:", emailError);
         }
       }
+
+      // Update status to sent
+      await supabase
+        .from("invites")
+        .update({ status: "sent" })
+        .eq("id", inviteData.id);
 
       toast.success("تم إرسال الدعوة بنجاح!");
       await fetchInvites(); // Refresh invites

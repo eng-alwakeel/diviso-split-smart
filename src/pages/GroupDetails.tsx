@@ -32,7 +32,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
-import { InviteByLinkDialog } from "@/components/group/InviteByLinkDialog";
+import { InviteManagementDialog } from "@/components/group/InviteManagementDialog";
 import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
@@ -239,7 +239,7 @@ const GroupDetails = () => {
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
 
-      <InviteByLinkDialog 
+      <InviteManagementDialog 
         open={openInvite} 
         onOpenChange={setOpenInvite} 
         groupId={id} 
