@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, 
   Users, 
@@ -17,7 +18,9 @@ import {
   ArrowDownCircle,
   Share2,
   BarChart3,
-  Settings
+  Settings,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +29,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { WalletStack } from "@/components/wallet/WalletStack";
 import RecentExpensesCards from "@/components/RecentExpensesCards";
 import MobileSummary from "@/components/MobileSummary";
+import { useReferrals } from "@/hooks/useReferrals";
+import { useToast } from "@/hooks/use-toast";
 
 interface GroupRow {
   id: string;
@@ -34,6 +39,9 @@ interface GroupRow {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { referrals, loading: referralsLoading } = useReferrals();
+  
   const [selectedTab, setSelectedTab] = useState("overview");
   const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
   const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null; payer_id: string | null }>>([]);
@@ -44,12 +52,25 @@ const Dashboard = () => {
   const [groupOwedMap, setGroupOwedMap] = useState<Record<string, number>>({});
   const [mySplitByExpense, setMySplitByExpense] = useState<Record<string, number>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [monthlyTotalExpenses, setMonthlyTotalExpenses] = useState(0);
+  const [weeklyExpensesCount, setWeeklyExpensesCount] = useState(0);
   useEffect(() => {
     const load = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      const uid = session.session?.user.id;
-      setCurrentUserId(uid ?? null);
-      if (!uid) return;
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data: session } = await supabase.auth.getSession();
+        const uid = session.session?.user.id;
+        setCurrentUserId(uid ?? null);
+        if (!uid) {
+          setLoading(false);
+          return;
+        }
       const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
       const ids = (memberships ?? []).map((m: any) => m.group_id);
       if (!ids.length) { 
@@ -136,9 +157,47 @@ const Dashboard = () => {
         .order('spent_at', { ascending: false })
         .limit(10);
       setRecentExpenses(latest ?? []);
+
+      // Calculate monthly total expenses (current month)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const { data: monthlyExpenses } = await supabase
+        .from('expenses')
+        .select('amount')
+        .eq('payer_id', uid)
+        .gte('spent_at', startOfMonth.toISOString());
+        
+      const monthlyTotal = (monthlyExpenses ?? []).reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+      setMonthlyTotalExpenses(monthlyTotal);
+
+      // Calculate weekly expenses count
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const { data: weeklyExpenses } = await supabase
+        .from('expenses')
+        .select('id')
+        .in('group_id', ids)
+        .gte('spent_at', weekAgo.toISOString());
+        
+      setWeeklyExpensesCount((weeklyExpenses ?? []).length);
+
+      } catch (err) {
+        console.error('Dashboard loading error:', err);
+        setError('فشل في تحميل بيانات الداشبورد');
+        toast({
+          title: "خطأ في التحميل",
+          description: "فشل في تحميل بيانات الداشبورد",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     load();
-  }, []);
+  }, [toast]);
 
   const navigateToSelectedGroup = () => {
     if (selectedGroupId) {
@@ -174,6 +233,57 @@ const Dashboard = () => {
   const monthlyBudget = 2000;
   const currentSpending = groups.reduce((s, g) => s + g.totalExpenses, 0);
   const budgetProgress = (currentSpending / monthlyBudget) * 100;
+  
+  const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
+
+  const retryLoad = () => {
+    window.location.reload();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <Skeleton className="h-64 w-full" />
+              </div>
+              <div>
+                <Skeleton className="h-32 w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive" />
+            <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
+            <p className="text-muted-foreground text-center">{error}</p>
+            <Button onClick={retryLoad} className="bg-primary hover:bg-primary/90">
+              <RefreshCw className="w-4 h-4 ml-2" />
+              إعادة المحاولة
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -204,7 +314,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold text-primary">12,450 ر.س</p>
+                  <p className="text-2xl font-bold text-primary">{monthlyTotalExpenses.toLocaleString()} ر.س</p>
                   <p className="text-xs text-muted-foreground mt-1">هذا الشهر</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
@@ -236,7 +346,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">المصاريف الأخيرة</p>
-                  <p className="text-2xl font-bold text-primary">8</p>
+                  <p className="text-2xl font-bold text-primary">{weeklyExpensesCount}</p>
                   <p className="text-xs text-muted-foreground mt-1">خلال الأسبوع</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
@@ -252,7 +362,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="text-foreground">
                   <p className="text-sm font-medium text-muted-foreground">الإحالات</p>
-                  <p className="text-2xl font-bold text-primary">5</p>
+                  <p className="text-2xl font-bold text-primary">{referralsLoading ? '-' : successfulReferrals}</p>
                   <p className="text-xs text-muted-foreground mt-1">إحالات ناجحة</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
