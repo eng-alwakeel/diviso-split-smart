@@ -14,7 +14,8 @@ import {
   Copy,
   Phone,
   Link as LinkIcon,
-  Coins
+  Coins,
+  Calculator
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppHeader } from "@/components/AppHeader";
@@ -22,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { InitialBalancesStep, type MemberBalance } from "@/components/group/InitialBalancesStep";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ const CreateGroup = () => {
   });
   const [phoneNumbers, setPhoneNumbers] = useState([""]);
   const [inviteLink, setInviteLink] = useState("");
+  const [initialBalances, setInitialBalances] = useState<MemberBalance[]>([]);
 
   const categories = [
     "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
@@ -115,6 +118,92 @@ const CreateGroup = () => {
     });
   };
 
+  const createInitialBalances = async (groupId: string, userId: string) => {
+    if (initialBalances.length === 0) return;
+
+    try {
+      // Create initial expenses for members who paid
+      for (const member of initialBalances) {
+        if (member.amountPaid > 0) {
+          const { data: expenseData, error: expenseError } = await supabase
+            .from('expenses')
+            .insert({
+              group_id: groupId,
+              amount: member.amountPaid,
+              description: `رصيد أولي - دفع مسبق بواسطة ${member.name}`,
+              payer_id: userId, // We'll use the group owner as payer temporarily
+              created_by: userId,
+              status: 'approved',
+              currency: groupData.currency
+            })
+            .select('id')
+            .single();
+
+          if (expenseError) throw expenseError;
+
+          // Create expense splits for all members based on their owed amounts
+          const totalOwed = initialBalances.reduce((sum, m) => sum + m.amountOwed, 0);
+          if (totalOwed > 0) {
+            const splits = initialBalances
+              .filter(m => m.amountOwed > 0)
+              .map(m => ({
+                expense_id: expenseData.id,
+                member_id: userId, // We'll use the group owner for now
+                share_amount: m.amountOwed
+              }));
+
+            if (splits.length > 0) {
+              const { error: splitError } = await supabase
+                .from('expense_splits')
+                .insert(splits);
+
+              if (splitError) throw splitError;
+            }
+          }
+        }
+      }
+
+      // Create settlements to balance the accounts
+      for (const member of initialBalances) {
+        const netBalance = member.amountPaid - member.amountOwed;
+        if (Math.abs(netBalance) > 0.01) {
+          if (netBalance > 0) {
+            // Member is owed money
+            const { error: settlementError } = await supabase
+              .from('settlements')
+              .insert({
+                group_id: groupId,
+                from_user_id: userId, // Group will owe this member
+                to_user_id: userId, // Temporary until member joins
+                amount: netBalance,
+                created_by: userId,
+                note: `رصيد أولي - مستحق لـ ${member.name}`
+              });
+
+            if (settlementError) throw settlementError;
+          } else {
+            // Member owes money
+            const { error: settlementError } = await supabase
+              .from('settlements')
+              .insert({
+                group_id: groupId,
+                from_user_id: userId, // Temporary until member joins
+                to_user_id: userId, // Group is owed by this member
+                amount: Math.abs(netBalance),
+                created_by: userId,
+                note: `رصيد أولي - مستحق من ${member.name}`
+              });
+
+            if (settlementError) throw settlementError;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error creating initial balances:', error);
+      throw error;
+    }
+  };
+
   const handleCreateGroup = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
@@ -130,10 +219,17 @@ const CreateGroup = () => {
         .single();
       if (groupErr) throw groupErr;
       const groupId = groupInsert.id;
+      
       const { error: memberErr } = await supabase
         .from('group_members')
         .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
+
+      // Create initial balances if provided
+      if (initialBalances.length > 0) {
+        await createInitialBalances(groupId, user.id);
+      }
+
       toast({ title: 'تم إنشاء المجموعة!', description: `تم إنشاء مجموعة "${groupData.name}" بنجاح` });
       navigate(`/group/${groupId}`);
     } catch (e: any) {
@@ -146,6 +242,24 @@ const CreateGroup = () => {
       generateInviteLink();
     }
     setCurrentStep(currentStep + 1);
+  };
+
+  const isStep3Valid = () => {
+    if (initialBalances.length === 0) return true; // No initial balances is valid
+    
+    // Check if all members have names and at least one amount
+    const validMembers = initialBalances.every(member => 
+      member.name.trim() !== '' && 
+      (member.amountPaid !== 0 || member.amountOwed !== 0)
+    );
+    
+    // Check if balances are balanced (sum = 0)
+    const totalBalance = initialBalances.reduce((sum, member) => 
+      sum + (member.amountPaid - member.amountOwed), 0
+    );
+    const isBalanced = Math.abs(totalBalance) < 0.01;
+    
+    return validMembers && isBalanced;
   };
 
   return (
@@ -173,14 +287,21 @@ const CreateGroup = () => {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-muted'}`}>
               1
             </div>
-            <span className="font-medium">معلومات المجموعة</span>
+            <span className="font-medium text-xs md:text-sm">معلومات المجموعة</span>
           </div>
-          <div className={`flex-1 h-1 mx-4 ${currentStep > 1 ? 'bg-primary' : 'bg-muted'}`}></div>
+          <div className={`flex-1 h-1 mx-2 ${currentStep > 1 ? 'bg-primary' : 'bg-muted'}`}></div>
           <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary text-white' : 'bg-muted'}`}>
               2
             </div>
-            <span className="font-medium">دعوة الأعضاء</span>
+            <span className="font-medium text-xs md:text-sm">دعوة الأعضاء</span>
+          </div>
+          <div className={`flex-1 h-1 mx-2 ${currentStep > 2 ? 'bg-primary' : 'bg-muted'}`}></div>
+          <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-white' : 'bg-muted'}`}>
+              3
+            </div>
+            <span className="font-medium text-xs md:text-sm">الأرصدة الأولية</span>
           </div>
         </div>
 
@@ -382,7 +503,37 @@ const CreateGroup = () => {
                 العودة
               </Button>
               <Button
+                onClick={nextStep}
+                className="flex-1"
+                variant="hero"
+              >
+                المتابعة للأرصدة الأولية
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Initial Balances */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <InitialBalancesStep
+              currency={groupData.currency}
+              onBalancesChange={setInitialBalances}
+              initialBalances={initialBalances}
+            />
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(2)}
+                className="flex-1"
+              >
+                العودة
+              </Button>
+              <Button
                 onClick={handleCreateGroup}
+                disabled={!isStep3Valid()}
                 className="flex-1"
                 variant="hero"
               >
