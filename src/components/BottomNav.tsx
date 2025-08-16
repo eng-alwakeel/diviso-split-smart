@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Receipt, BarChart3, Share2, Settings } from "lucide-react";
+import { Home, Receipt, Users, Share2, Settings } from "lucide-react";
 
 export const BottomNav = () => {
   const location = useLocation();
   const items = [
     { to: "/dashboard", label: "الرئيسية", icon: Home },
     { to: "/my-expenses", label: "مصاريفي", icon: Receipt },
-    { to: "/financial-plan", label: "الخطة", icon: BarChart3 },
+    { to: "/my-groups", label: "مجموعاتي", icon: Users },
     { to: "/referral", label: "الإحالة", icon: Share2 },
     { to: "/settings", label: "الإعدادات", icon: Settings },
   ];
