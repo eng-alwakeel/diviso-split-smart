@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -609,6 +609,7 @@ export type Database = {
           display_name: string | null
           id: string
           name: string | null
+          phone: string | null
           updated_at: string
         }
         Insert: {
@@ -617,6 +618,7 @@ export type Database = {
           display_name?: string | null
           id: string
           name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -625,6 +627,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           name?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -857,18 +860,18 @@ export type Database = {
     }
     Functions: {
       assert_quota: {
-        Args: { p_action: string; p_user_id: string; p_group_id: string }
+        Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
       }
       get_group_balance: {
         Args: { p_group_id: string }
         Returns: {
-          user_id: string
-          amount_paid: number
           amount_owed: number
+          amount_paid: number
+          net_balance: number
           settlements_in: number
           settlements_out: number
-          net_balance: number
+          user_id: string
         }[]
       }
       get_user_dashboard: {
@@ -880,7 +883,7 @@ export type Database = {
         }[]
       }
       increment_usage: {
-        Args: { p_user_id: string; p_action: string }
+        Args: { p_action: string; p_user_id: string }
         Returns: undefined
       }
       is_group_admin: {
