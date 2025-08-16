@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Wand2, Trash2 } from "lucide-react";
+import { BalancePreview } from "./BalancePreview";
+import { BalanceBreakdown } from "./BalanceBreakdown";
 
 export interface MemberRow {
   user_id: string;
@@ -21,7 +23,11 @@ export interface ProfileRow {
 
 export interface BalanceRow {
   user_id: string;
-  net_balance: number | null;
+  amount_paid: number;
+  amount_owed: number;
+  settlements_in: number;
+  settlements_out: number;
+  net_balance: number;
 }
 
 interface RowState {
@@ -38,6 +44,12 @@ interface GroupSettlementDialogProps {
   members: MemberRow[];
   profiles: Record<string, ProfileRow>;
   balances: BalanceRow[];
+  pendingAmounts?: Array<{
+    user_id: string;
+    pending_paid: number;
+    pending_owed: number;
+    pending_net: number;
+  }>;
   initialToUserId?: string;
   initialAmount?: number;
   onCreated?: () => void;
@@ -56,6 +68,7 @@ export const GroupSettlementDialog = ({
   members,
   profiles,
   balances,
+  pendingAmounts = [],
   initialToUserId,
   initialAmount,
   onCreated,
@@ -79,6 +92,16 @@ export const GroupSettlementDialog = ({
     // users with positive net_balance
     return balances.filter(b => (Number(b.net_balance ?? 0) > 0) && b.user_id !== currentUserId);
   }, [balances, currentUserId]);
+
+  // Prepare proposed settlements for preview
+  const proposedSettlements = useMemo(() => {
+    return rows
+      .filter(row => row.to_user_id && Number(row.amount) > 0)
+      .map(row => ({
+        to_user_id: row.to_user_id,
+        amount: Number(row.amount)
+      }));
+  }, [rows]);
 
   const canSubmit = !!groupId && !!currentUserId && rows.every(r => r.to_user_id && Number(r.amount) > 0 && r.to_user_id !== currentUserId);
 
@@ -138,7 +161,7 @@ export const GroupSettlementDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>إضافة تسوية</DialogTitle>
           <DialogDescription>
@@ -146,14 +169,22 @@ export const GroupSettlementDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Helper summary */}
-          <div className="rounded-xl border border-border/50 bg-card/80 p-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span>رصيدك الحالي:</span>
-              <span className="font-semibold text-accent">{myNet >= 0 ? "+" : ""}{myNet.toLocaleString()} ر.س</span>
-            </div>
-          </div>
+        <div className="space-y-6">
+          {/* Balance Breakdown */}
+          {currentUserId && (
+            <BalanceBreakdown
+              userId={currentUserId}
+              balances={balances}
+              pendingAmounts={pendingAmounts}
+            />
+          )}
+
+          {/* Balance Preview */}
+          <BalancePreview
+            currentBalance={myNet}
+            proposedSettlements={proposedSettlements}
+            profiles={profiles}
+          />
 
           {/* Rows */}
           <div className="space-y-3">
@@ -194,7 +225,7 @@ export const GroupSettlementDialog = ({
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap items-center gap-2 justify-between">
+          <div className="flex flex-wrap items-center gap-2 justify-between pt-4 border-t border-border/50">
             <div className="flex gap-2">
               <Button variant="outline" onClick={addRow} className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
@@ -208,6 +239,12 @@ export const GroupSettlementDialog = ({
             <Button variant="hero" onClick={handleSubmit} disabled={!canSubmit || submitting}>
               {submitting ? "جارٍ الحفظ..." : "حفظ التسوية"}
             </Button>
+          </div>
+
+          {/* Educational Note */}
+          <div className="p-3 rounded-lg bg-muted/20 text-xs text-muted-foreground">
+            <div className="font-medium mb-1">💡 نصيحة:</div>
+            <div>عند دفع تسوية، ستنخفض قيمة رصيدك بمقدار المبلغ المدفوع. إذا كنت مديناً (رصيد سالب)، فإن التسوية ستقرب رصيدك من الصفر.</div>
           </div>
         </div>
       </DialogContent>

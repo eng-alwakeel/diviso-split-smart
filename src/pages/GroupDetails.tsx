@@ -42,6 +42,7 @@ import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog"
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
+import { BalanceDashboard } from "@/components/group/BalanceDashboard";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -639,7 +640,7 @@ const GroupDetails = () => {
           </TabsContent>
 
           {/* Settlements Tab */}
-          <TabsContent value="settlements" className="space-y-4">
+          <TabsContent value="settlements" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">التسويات</h2>
               <div className="flex gap-2">
@@ -665,42 +666,22 @@ const GroupDetails = () => {
               </div>
             </div>
 
-            {myBalances.confirmed < 0 && (
-              <Card className="bg-accent/5 border-accent/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm">
-                      عليك مبلغ
-                      <span className="mx-1 font-bold text-accent">{(-myBalances.confirmed).toLocaleString()} {currencyLabel}</span>
-                      لعدد من الأعضاء (الرصيد المعتمد).
-                      {Math.abs(myBalances.pending) > 0 && (
-                        <div className="mt-1 text-xs text-amber-700">
-                          تنبيه: يوجد مبالغ معلقة قد تغير الرصيد النهائي.
-                        </div>
-                      )}
-                    </div>
-                    <Button size="sm" variant="secondary" onClick={() => {
-                      const creditors = balances.filter(b => b.user_id !== currentUserId && Number(b.net_balance ?? 0) > 0);
-                      if (creditors.length) {
-                        const c = creditors[0];
-                        const amt = Math.min(-myBalances.confirmed, Number(c.net_balance ?? 0));
-                        setPrefillTo(c.user_id); setPrefillAmount(amt);
-                      } else {
-                        setPrefillTo(undefined); setPrefillAmount(undefined);
-                      }
-                      setSettleOpen(true);
-                    }}>
-                      تسوية الآن
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
 
+            {!loading && !error && currentUserId && (
+              <BalanceDashboard
+                currentUserId={currentUserId}
+                balances={balances}
+                pendingAmounts={pendingAmounts}
+                settlements={settlements}
+                profiles={profiles}
+                currency={currencyLabel}
+              />
+            )}
+
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold">جميع التسويات</h3>
               {settlements.map(s => (
                 <Card key={s.id} className="bg-card/90 border border-border/50 shadow-card rounded-2xl">
                   <CardContent className="p-5 md:p-6">
@@ -811,6 +792,7 @@ const GroupDetails = () => {
         members={members}
         profiles={profiles}
         balances={balances}
+        pendingAmounts={pendingAmounts}
         initialToUserId={prefillTo}
         initialAmount={prefillAmount}
         onCreated={() => refetch()}
