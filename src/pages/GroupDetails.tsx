@@ -41,6 +41,7 @@ import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog";
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
+import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ const GroupDetails = () => {
   const [editExpenseOpen, setEditExpenseOpen] = useState(false);
   const [rejectExpenseOpen, setRejectExpenseOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
+  const [selectedExpenseForDetails, setSelectedExpenseForDetails] = useState<any>(null);
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -423,7 +425,15 @@ const GroupDetails = () => {
                   (expense.payer_id && (profiles[expense.payer_id]?.display_name || profiles[expense.payer_id]?.name)) ||
                   "عضو";
                 return (
-                  <Card key={expense.id} className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm">
+                  <Card 
+                    key={expense.id} 
+                    className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm"
+                    onClick={() => {
+                      if (expense.status === "pending" && canApprove) {
+                        setSelectedExpenseForDetails(expense);
+                      }
+                    }}
+                  >
                     <CardContent className="p-5 md:p-6">
                       <div className="flex items-center justify-between gap-4">
                         {/* Icon */}
@@ -802,6 +812,18 @@ const GroupDetails = () => {
         expenseId={selectedExpense?.id}
         expenseDescription={selectedExpense?.description || ""}
         onRejected={() => refetch()}
+      />
+
+      {/* Expense Details Dialog */}
+      <ExpenseDetailsDialog
+        open={!!selectedExpenseForDetails}
+        onOpenChange={(open) => {
+          if (!open) setSelectedExpenseForDetails(null);
+        }}
+        expense={selectedExpenseForDetails}
+        profiles={profiles}
+        canApprove={canApprove}
+        onApprove={handleExpenseApproval}
       />
       </div>
       <div className="h-16 md:hidden" />
