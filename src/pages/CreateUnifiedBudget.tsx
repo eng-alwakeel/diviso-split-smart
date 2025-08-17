@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { UnifiedBudgetCreator } from "@/components/budgets/UnifiedBudgetCreator";
 import { useBudgets, CreateBudgetData } from "@/hooks/useBudgets";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function CreateUnifiedBudget() {
   const navigate = useNavigate();
@@ -41,10 +42,32 @@ export default function CreateUnifiedBudget() {
 
       // Create budget categories
       for (const category of budgetData.categories) {
+        // Create category first if it doesn't exist
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { data: existingCategory } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name_ar', category.category_name)
+          .maybeSingle();
+
+        let categoryId = existingCategory?.id;
+        
+        if (!categoryId) {
+          const { data: newCategory } = await supabase
+            .from('categories')
+            .insert([{ name_ar: category.category_name, created_by: user.id }])
+            .select('id')
+            .single();
+          categoryId = newCategory?.id;
+        }
+
         await createCategory({
           name: category.category_name,
           allocated_amount: category.amount,
           budget_id: createdBudget.id,
+          category_id: categoryId,
         });
       }
 

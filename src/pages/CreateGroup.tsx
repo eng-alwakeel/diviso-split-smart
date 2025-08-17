@@ -46,6 +46,7 @@ const CreateGroup = () => {
   const [initialBalances, setInitialBalances] = useState<MemberBalance[]>([]);
   const [aiSuggestedCategories, setAiSuggestedCategories] = useState<any[]>([]);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [createdGroupId, setCreatedGroupId] = useState<string>("");
 
   const categories = [
     "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
@@ -203,11 +204,14 @@ const CreateGroup = () => {
     }
   };
 
-  const handleAISuggestionsAccept = async (selectedCategories: any[]) => {
+  const handleAISuggestionsAccept = async (budgetId: string) => {
     try {
       setLoading(true);
-      const categoriesWithAmounts = await createCategoriesFromSuggestions(selectedCategories);
-      setAiSuggestedCategories(categoriesWithAmounts);
+      // Budget is already created by the AI component
+      toast({
+        title: 'نجح!',
+        description: 'تم إنشاء الميزانية بنجاح من اقتراحات الذكاء الاصطناعي',
+      });
       nextStep();
     } catch (error) {
       console.error('Error processing AI suggestions:', error);
@@ -320,12 +324,14 @@ const CreateGroup = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep === 1 && groupData.category !== 'عام' && groupData.category !== 'أخرى') {
-      // Show AI suggestions for specific group types
+      // Create the group first, then show AI suggestions
+      await createGroupOnly();
       setShowAISuggestions(true);
       setCurrentStep(2);
     } else if (currentStep === 1) {
+      await createGroupOnly();
       generateInviteLink();
       setCurrentStep(3); // Skip AI suggestions for general groups
     } else if (currentStep === 2 && showAISuggestions) {
@@ -333,6 +339,35 @@ const CreateGroup = () => {
       setCurrentStep(3);
     } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const createGroupOnly = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (!user) {
+      toast({ title: "يلزم تسجيل الدخول", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      const { data: groupInsert, error: groupErr } = await supabase
+        .from('groups')
+        .insert({ name: groupData.name, owner_id: user.id, currency: groupData.currency })
+        .select('id')
+        .single();
+      if (groupErr) throw groupErr;
+      
+      setCreatedGroupId(groupInsert.id);
+      
+      const { error: memberErr } = await supabase
+        .from('group_members')
+        .insert({ group_id: groupInsert.id, user_id: user.id, role: 'owner' });
+      if (memberErr) throw memberErr;
+      
+    } catch (e: any) {
+      toast({ title: 'فشل إنشاء المجموعة', description: e.message, variant: 'destructive' });
+      throw e;
     }
   };
 
@@ -492,6 +527,7 @@ const CreateGroup = () => {
               </CardHeader>
               <CardContent>
                 <AIGroupCategorySuggestions
+                  groupId={createdGroupId}
                   groupType={groupData.category}
                   groupName={groupData.name}
                   expectedBudget={undefined}

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Bot, TrendingUp, Plus, DollarSign, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useBudgetFromAI } from '@/hooks/useBudgetFromAI';
 
 interface CategorySuggestion {
   category_id: string | null;
@@ -26,16 +27,18 @@ interface AISuggestionsData {
 }
 
 interface AIGroupCategorySuggestionsProps {
+  groupId: string;
   groupType: string;
   groupName: string;
   expectedBudget?: number;
   memberCount?: number;
-  onAcceptSuggestions: (selectedCategories: CategorySuggestion[]) => void;
+  onAcceptSuggestions: (budgetId: string) => void;
   onSkip: () => void;
   loading?: boolean;
 }
 
 export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProps> = ({
+  groupId,
   groupType,
   groupName,
   expectedBudget,
@@ -48,6 +51,7 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
   const [selectedCategories, setSelectedCategories] = useState<CategorySuggestion[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const { toast } = useToast();
+  const { createBudgetFromAISuggestions, loading: creatingBudget } = useBudgetFromAI();
 
   const fetchSuggestions = async () => {
     try {
@@ -124,7 +128,7 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
     return 'bg-red-100 text-red-800';
   };
 
-  const handleAcceptSuggestions = () => {
+  const handleAcceptSuggestions = async () => {
     if (selectedCategories.length === 0) {
       toast({
         title: 'تنبيه',
@@ -133,7 +137,18 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
       });
       return;
     }
-    onAcceptSuggestions(selectedCategories);
+    
+    try {
+      const budgetId = await createBudgetFromAISuggestions(
+        groupId,
+        `ميزانية ${groupName}`,
+        getTotalSelectedAmount(),
+        selectedCategories
+      );
+      onAcceptSuggestions(budgetId);
+    } catch (error) {
+      // Error is already handled in the hook
+    }
   };
 
   if (loadingSuggestions) {
@@ -290,10 +305,10 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
       <div className="flex gap-3">
         <Button 
           onClick={handleAcceptSuggestions}
-          disabled={selectedCategories.length === 0 || loading}
+          disabled={selectedCategories.length === 0 || loading || creatingBudget}
           className="flex-1"
         >
-          {loading ? 'جاري الإنشاء...' : `استخدام الفئات المختارة (${selectedCategories.length})`}
+          {(loading || creatingBudget) ? 'جاري الإنشاء...' : `استخدام الفئات المختارة (${selectedCategories.length})`}
         </Button>
         <Button 
           onClick={onSkip}

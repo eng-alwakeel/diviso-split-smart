@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           allocated_amount: number
           budget_id: string
+          category_id: string | null
           created_at: string
           id: string
           name: string
@@ -62,6 +63,7 @@ export type Database = {
         Insert: {
           allocated_amount?: number
           budget_id: string
+          category_id?: string | null
           created_at?: string
           id?: string
           name: string
@@ -70,6 +72,7 @@ export type Database = {
         Update: {
           allocated_amount?: number
           budget_id?: string
+          category_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -89,6 +92,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_budget_summary"
             referencedColumns: ["budget_id"]
+          },
+          {
+            foreignKeyName: "budget_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
           },
         ]
       }

@@ -7,6 +7,7 @@ export type BudgetCategory = {
   name: string;
   allocated_amount: number;
   budget_id: string;
+  category_id: string;
   created_at: string;
   updated_at: string;
 };
@@ -15,6 +16,7 @@ export type CreateBudgetCategoryData = {
   name: string;
   allocated_amount: number;
   budget_id: string;
+  category_id: string;
 };
 
 async function fetchBudgetCategories(budgetId?: string): Promise<BudgetCategory[]> {
