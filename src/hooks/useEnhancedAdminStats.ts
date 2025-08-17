@@ -6,23 +6,20 @@ export function useEnhancedAdminStats() {
     queryKey: ["enhanced-admin-stats"],
     queryFn: async () => {
       // Fetch all admin data in parallel
-      const [statsData, subscriptionData, activityData, insightsData] = await Promise.all([
+      const [statsData, subscriptionData, activityData] = await Promise.all([
         supabase.rpc("get_admin_dashboard_stats"),
         supabase.rpc("get_admin_subscription_stats"),
-        supabase.rpc("get_admin_activity_stats"),
-        supabase.rpc("get_admin_insights")
+        supabase.rpc("get_admin_activity_stats")
       ]);
 
       if (statsData.error) throw statsData.error;
       if (subscriptionData.error) throw subscriptionData.error;
       if (activityData.error) throw activityData.error;
-      if (insightsData.error) throw insightsData.error;
 
       return {
         general: statsData.data[0],
         subscriptions: subscriptionData.data,
-        activity: activityData.data,
-        insights: insightsData.data
+        activity: activityData.data
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
