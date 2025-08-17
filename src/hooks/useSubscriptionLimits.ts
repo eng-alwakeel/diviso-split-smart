@@ -39,15 +39,22 @@ export function useSubscriptionLimits() {
     
     try {
       const currentPlan = getCurrentPlan();
+      console.log('useSubscriptionLimits: Current plan:', currentPlan);
       
       const { data, error } = await supabase
         .from('subscription_limits')
         .select('action, limit_value')
         .eq('plan', currentPlan);
 
-      if (error) throw error;
+      if (error) {
+        console.error('useSubscriptionLimits: Database error:', error);
+        throw error;
+      }
+
+      console.log('useSubscriptionLimits: Retrieved limits data:', data);
 
       if (!data || data.length === 0) {
+        console.warn('useSubscriptionLimits: No limits found for plan:', currentPlan);
         throw new Error(`No limits found for plan: ${currentPlan}`);
       }
 
@@ -79,12 +86,13 @@ export function useSubscriptionLimits() {
         }
       });
 
+      console.log('useSubscriptionLimits: Final limits map:', limitsMap);
       setLimits(limitsMap);
     } catch (err) {
-      console.error('Error fetching subscription limits:', err);
+      console.error('useSubscriptionLimits: Error fetching limits:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch limits');
       
-      // Fallback to default limits
+      // Fallback to default limits for free plan
       const defaultLimits: SubscriptionLimits = {
         members: 5,
         groups: 3,
@@ -92,6 +100,7 @@ export function useSubscriptionLimits() {
         invites: 10,
         ocr: 5
       };
+      console.log('useSubscriptionLimits: Using fallback limits:', defaultLimits);
       setLimits(defaultLimits);
     } finally {
       setLoading(false);

@@ -9,8 +9,17 @@ import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, 
 
 export const UsageLimitsCard = () => {
   const navigate = useNavigate();
-  const { limits, loading, isFreePlan, formatLimit, getUsagePercentage, isNearLimit, isAtLimit } = useSubscriptionLimits();
-  const { groupsCount, monthlyTotalExpenses } = useDashboardData();
+  const { limits, loading, isFreePlan, formatLimit, getUsagePercentage, isNearLimit, isAtLimit, currentPlan } = useSubscriptionLimits();
+  const { groupsCount, monthlyTotalExpenses, loading: dashboardLoading } = useDashboardData();
+
+  console.log('UsageLimitsCard: Rendering with:', {
+    limits,
+    loading,
+    isFreePlan,
+    currentPlan,
+    groupsCount,
+    dashboardLoading
+  });
 
   if (loading || !limits) {
     return (

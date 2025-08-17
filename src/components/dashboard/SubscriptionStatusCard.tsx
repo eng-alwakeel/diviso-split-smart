@@ -15,10 +15,43 @@ export const SubscriptionStatusCard = () => {
     isTrialActive, 
     daysLeft, 
     totalDaysLeft, 
-    freeDaysFromReferrals 
+    freeDaysFromReferrals,
+    loading
   } = useSubscription();
   const { currentPlan, badgeConfig } = usePlanBadge();
   const { currentPlan: planFromLimits } = useSubscriptionLimits();
+
+  console.log('SubscriptionStatusCard: Rendering with:', {
+    subscription,
+    isTrialActive,
+    daysLeft,
+    totalDaysLeft,
+    loading,
+    freeDaysFromReferrals,
+    currentPlan,
+    planFromLimits
+  });
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Card className="border border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Crown className="w-5 h-5 text-primary" />
+            حالة الاشتراك
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="h-6 bg-muted animate-pulse rounded"></div>
+            <div className="h-6 bg-muted animate-pulse rounded"></div>
+            <div className="h-8 bg-muted animate-pulse rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getStatusText = () => {
     if (!subscription) return "لا يوجد اشتراك";

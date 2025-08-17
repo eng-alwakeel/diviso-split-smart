@@ -27,18 +27,28 @@ export function useSubscription() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.log('useSubscription: No user found');
         setSubscription(null);
         return;
       }
+      
+      console.log('useSubscription: Fetching subscription for user:', user.id);
       const { data, error } = await supabase
         .from("user_subscriptions")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (error) throw error;
+        
+      if (error) {
+        console.error('useSubscription: Database error:', error);
+        throw error;
+      }
+      
+      console.log('useSubscription: Retrieved data:', data);
       setSubscription(data ?? null);
     } catch (e) {
-      // noop: keep null
+      console.error('useSubscription: Error fetching subscription:', e);
+      setSubscription(null);
     } finally {
       setLoading(false);
     }
