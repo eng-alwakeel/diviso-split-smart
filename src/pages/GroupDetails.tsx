@@ -265,6 +265,18 @@ const GroupDetails = () => {
 
   const membersLabel = (n: number) => (n === 1 ? "عضو" : n === 2 ? "عضوان" : "أعضاء");
 
+  const getGroupTypeLabel = (groupType: string) => {
+    const labels: Record<string, string> = {
+      "trip": "رحلة",
+      "home": "سكن مشترك", 
+      "work": "عمل",
+      "party": "حفلة",
+      "project": "مشروع",
+      "general": "عام"
+    };
+    return labels[groupType] || groupType;
+  };
+
   return (
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
@@ -321,7 +333,14 @@ const GroupDetails = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <h1 className="text-lg md:text-2xl font-extrabold break-words">{group?.name ?? "..."}</h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-lg md:text-2xl font-extrabold break-words">{group?.name ?? "..."}</h1>
+                    {group?.group_type && (
+                      <Badge variant="outline" className="text-xs">
+                        {getGroupTypeLabel(group.group_type)}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-2 text-[11px] md:text-sm text-muted-foreground flex-wrap">
                     <span>{memberCount} {membersLabel(memberCount)}</span>
                     <span className="opacity-40">•</span>

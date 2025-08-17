@@ -42,67 +42,99 @@ async function fetchRecentCategories(groupId: string): Promise<{id: string, usag
 async function fetchGroupType(groupId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from('groups')
-    .select('name')
+    .select('group_type')
     .eq('id', groupId)
-    .single();
+    .maybeSingle();
 
   if (error) return null;
-  return data?.name || null;
+  return data?.group_type || null;
 }
 
-const suggestCategoriesForGroupType = (groupName: string, allCategories: any[]): {id: string, confidence: number}[] => {
-  const name = groupName.toLowerCase();
+const suggestCategoriesForGroupType = (groupType: string, allCategories: any[]): {id: string, confidence: number}[] => {
   const suggestions: {id: string, confidence: number}[] = [];
 
-  // Travel/Trip suggestions
-  if (name.includes('رحلة') || name.includes('سفر') || name.includes('اسبانيا') || name.includes('مدريد')) {
-    const travelCategories = [
-      'مواصلات', 'طعام', 'إقامة', 'ترفيه', 'تسوق', 'وقود', 'مطاعم', 'فنادق'
-    ];
-    
-    allCategories.forEach(cat => {
-      const confidence = travelCategories.some(travel => 
-        cat.name_ar.includes(travel)
-      ) ? 0.9 : 0;
+  switch (groupType) {
+    case 'trip':
+      const travelCategories = [
+        'مواصلات', 'طعام', 'إقامة', 'ترفيه', 'تسوق', 'وقود', 'مطاعم', 'فنادق', 'شراب'
+      ];
       
-      if (confidence > 0) {
-        suggestions.push({ id: cat.id, confidence });
-      }
-    });
-  }
-  
-  // Home/Family suggestions
-  else if (name.includes('منزل') || name.includes('عائلة') || name.includes('بيت')) {
-    const homeCategories = [
-      'طعام', 'مطاعم', 'صحة', 'تسوق', 'فواتير', 'صيانة', 'تنظيف', 'أطفال'
-    ];
-    
-    allCategories.forEach(cat => {
-      const confidence = homeCategories.some(home => 
-        cat.name_ar.includes(home)
-      ) ? 0.8 : 0;
+      allCategories.forEach(cat => {
+        const confidence = travelCategories.some(travel => 
+          cat.name_ar.includes(travel)
+        ) ? 0.9 : 0;
+        
+        if (confidence > 0) {
+          suggestions.push({ id: cat.id, confidence });
+        }
+      });
+      break;
+
+    case 'party':
+      const partyCategories = [
+        'ديكور', 'طعام', 'ترفيه', 'هدايا', 'ملابس', 'تصوير', 'دعوات', 'حلويات', 'مطاعم'
+      ];
       
-      if (confidence > 0) {
-        suggestions.push({ id: cat.id, confidence });
-      }
-    });
-  }
-  
-  // Project suggestions
-  else if (name.includes('مشروع') || name.includes('عمل') || name.includes('شركة')) {
-    const workCategories = [
-      'مكتب', 'اجتماعات', 'مواصلات', 'معدات', 'قرطاسية', 'طعام'
-    ];
-    
-    allCategories.forEach(cat => {
-      const confidence = workCategories.some(work => 
-        cat.name_ar.includes(work)
-      ) ? 0.7 : 0;
+      allCategories.forEach(cat => {
+        const confidence = partyCategories.some(party => 
+          cat.name_ar.includes(party)
+        ) ? 0.8 : 0;
+        
+        if (confidence > 0) {
+          suggestions.push({ id: cat.id, confidence });
+        }
+      });
+      break;
+
+    case 'home':
+      const homeCategories = [
+        'طعام', 'مطاعم', 'صحة', 'تسوق', 'فواتير', 'صيانة', 'تنظيف', 'أطفال', 'أثاث'
+      ];
       
-      if (confidence > 0) {
-        suggestions.push({ id: cat.id, confidence });
-      }
-    });
+      allCategories.forEach(cat => {
+        const confidence = homeCategories.some(home => 
+          cat.name_ar.includes(home)
+        ) ? 0.8 : 0;
+        
+        if (confidence > 0) {
+          suggestions.push({ id: cat.id, confidence });
+        }
+      });
+      break;
+
+    case 'work':
+    case 'project':
+      const workCategories = [
+        'مكتب', 'اجتماعات', 'مواصلات', 'معدات', 'قرطاسية', 'طعام', 'تقنية'
+      ];
+      
+      allCategories.forEach(cat => {
+        const confidence = workCategories.some(work => 
+          cat.name_ar.includes(work)
+        ) ? 0.7 : 0;
+        
+        if (confidence > 0) {
+          suggestions.push({ id: cat.id, confidence });
+        }
+      });
+      break;
+
+    default:
+      // For general or unknown types, suggest common categories
+      const generalCategories = [
+        'طعام', 'مواصلات', 'ترفيه', 'تسوق', 'صحة'
+      ];
+      
+      allCategories.forEach(cat => {
+        const confidence = generalCategories.some(general => 
+          cat.name_ar.includes(general)
+        ) ? 0.5 : 0;
+        
+        if (confidence > 0) {
+          suggestions.push({ id: cat.id, confidence });
+        }
+      });
+      break;
   }
 
   return suggestions.sort((a, b) => b.confidence - a.confidence).slice(0, 5);
@@ -122,13 +154,13 @@ export function useSmartCategories(groupId: string | null) {
     queryFn: async () => {
       if (!groupId) return [];
 
-      const [recentCategories, groupName] = await Promise.all([
+      const [recentCategories, groupType] = await Promise.all([
         fetchRecentCategories(groupId),
         fetchGroupType(groupId)
       ]);
 
-      const suggestedCategories = groupName 
-        ? suggestCategoriesForGroupType(groupName, allCategories)
+      const suggestedCategories = groupType 
+        ? suggestCategoriesForGroupType(groupType, allCategories)
         : [];
 
       const result: SmartCategory[] = [];

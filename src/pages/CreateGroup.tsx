@@ -49,9 +49,20 @@ const CreateGroup = () => {
   const [createdGroupId, setCreatedGroupId] = useState<string>("");
 
   const categories = [
-    "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
-    "هدية جماعية", "حفلة", "رياضة", "أخرى"
+    "trip", "home", "work", "party", "project", "general"
   ];
+
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      "trip": "رحلة",
+      "home": "سكن مشترك", 
+      "work": "عمل",
+      "party": "حفلة",
+      "project": "مشروع",
+      "general": "عام"
+    };
+    return labels[category] || category;
+  };
 
   const handleAddPhone = () => {
     setPhoneNumbers([...phoneNumbers, ""]);
@@ -294,7 +305,12 @@ const CreateGroup = () => {
     try {
       const { data: groupInsert, error: groupErr } = await supabase
         .from('groups')
-        .insert({ name: groupData.name, owner_id: user.id, currency: groupData.currency })
+        .insert({ 
+          name: groupData.name, 
+          owner_id: user.id, 
+          currency: groupData.currency,
+          group_type: groupData.category
+        })
         .select('id')
         .single();
       if (groupErr) throw groupErr;
@@ -325,7 +341,7 @@ const CreateGroup = () => {
   };
 
   const nextStep = async () => {
-    if (currentStep === 1 && groupData.category !== 'عام' && groupData.category !== 'أخرى') {
+    if (currentStep === 1 && groupData.category !== 'general') {
       // Create the group first, then show AI suggestions
       await createGroupOnly();
       setShowAISuggestions(true);
@@ -353,7 +369,12 @@ const CreateGroup = () => {
     try {
       const { data: groupInsert, error: groupErr } = await supabase
         .from('groups')
-        .insert({ name: groupData.name, owner_id: user.id, currency: groupData.currency })
+        .insert({ 
+          name: groupData.name, 
+          owner_id: user.id, 
+          currency: groupData.currency,
+          group_type: groupData.category
+        })
         .select('id')
         .single();
       if (groupErr) throw groupErr;
@@ -481,7 +502,7 @@ const CreateGroup = () => {
                       className="cursor-pointer justify-center py-2 hover:bg-accent/20 text-foreground"
                       onClick={() => setGroupData({...groupData, category})}
                     >
-                      {category}
+                      {getCategoryLabel(category)}
                     </Badge>
                   ))}
                 </div>
@@ -522,7 +543,7 @@ const CreateGroup = () => {
                   اقتراحات الذكاء الاصطناعي
                 </CardTitle>
                 <p className="text-muted-foreground">
-                  بناءً على نوع مجموعتك "{groupData.category}"، إليك بعض الفئات المقترحة لمساعدتك في إدارة المصاريف
+                  بناءً على نوع مجموعتك "{getCategoryLabel(groupData.category)}"، إليك بعض الفئات المقترحة لمساعدتك في إدارة المصاريف
                 </p>
               </CardHeader>
               <CardContent>

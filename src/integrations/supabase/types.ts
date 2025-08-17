@@ -681,6 +681,7 @@ export type Database = {
           archived_at: string | null
           created_at: string | null
           currency: string
+          group_type: string | null
           id: string
           name: string
           owner_id: string
@@ -690,6 +691,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string | null
           currency?: string
+          group_type?: string | null
           id?: string
           name: string
           owner_id: string
@@ -699,6 +701,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string | null
           currency?: string
+          group_type?: string | null
           id?: string
           name?: string
           owner_id?: string
