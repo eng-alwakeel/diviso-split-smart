@@ -30,7 +30,9 @@ import {
   Calendar,
   Zap,
   Upload,
-  RefreshCw
+  RefreshCw,
+  Receipt,
+  TrendingUp
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +50,7 @@ import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const getPlanDisplayName = (plan: string) => {
   switch (plan) {
@@ -84,6 +87,7 @@ const Settings = () => {
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
+  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState("profile");
@@ -308,6 +312,9 @@ const Settings = () => {
             <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
             <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
+            {adminData?.isAdmin && (
+              <TabsTrigger value="admin" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8 text-primary">الإدارة</TabsTrigger>
+            )}
           </TabsList>
 
           {/* Profile Tab */}
@@ -353,7 +360,15 @@ const Settings = () => {
                     />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
+                    <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                      {profile.name || "مستخدم"}
+                      {adminData?.isAdmin && (
+                        <Badge variant="outline" className="border-primary text-primary bg-primary/10">
+                          <Crown className="w-3 h-3 ml-1" />
+                          مدير
+                        </Badge>
+                      )}
+                    </h3>
                     <p className="text-muted-foreground">{profile.email}</p>
                     <div className="flex gap-2 mt-2">
                       <PlanBadge 
@@ -917,6 +932,74 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Admin Tab */}
+          {adminData?.isAdmin && (
+            <TabsContent value="admin" className="space-y-6">
+              <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border border-primary/20 shadow-card rounded-2xl backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <Shield className="w-5 h-5 text-primary" />
+                    لوحة التحكم الإدارية
+                  </CardTitle>
+                  <CardDescription>
+                    الوصول إلى أدوات الإدارة والإحصائيات المتقدمة للنظام
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg border border-border/30">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Crown className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-foreground">صلاحيات المدير</h3>
+                      <p className="text-sm text-muted-foreground">
+                        يمكنك الوصول إلى لوحة التحكم لإدارة المستخدمين والمجموعات والإحصائيات
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="border-primary text-primary bg-primary/10">
+                      <Shield className="w-3 h-3 ml-1" />
+                      مدير النظام
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="space-y-2">
+                        <p className="text-foreground flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          إدارة المستخدمين
+                        </p>
+                        <p className="text-foreground flex items-center gap-2">
+                          <Receipt className="w-4 h-4 text-primary" />
+                          إدارة المجموعات
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-foreground flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-primary" />
+                          الإحصائيات المتقدمة
+                        </p>
+                         <p className="text-foreground flex items-center gap-2">
+                           <Shield className="w-4 h-4 text-primary" />
+                           إعدادات النظام
+                         </p>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={() => navigate('/admin-dashboard')}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                      size="lg"
+                    >
+                      <Shield className="w-5 h-5 ml-2" />
+                      دخول لوحة التحكم الإدارية
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
       <div className="h-16 md:hidden" />

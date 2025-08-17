@@ -21,7 +21,8 @@ import {
   Settings,
   AlertTriangle,
   RefreshCw,
-  HelpCircle
+  HelpCircle,
+  Shield
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { useSecurityHeaders } from "@/hooks/useSecurityHeaders";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 interface GroupRow {
   id: string;
@@ -47,6 +49,7 @@ const Dashboard = () => {
   const { referrals, loading: referralsLoading } = useReferrals();
   const { debounce, createCache } = usePerformanceOptimization();
   const { sanitizeInput } = useSecurityHeaders();
+  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
   
   const [selectedTab, setSelectedTab] = useState("overview");
   const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
@@ -407,6 +410,29 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Admin Dashboard Card - Only for Admins */}
+        {adminData?.isAdmin && (
+          <div className="hidden md:block mb-8">
+            <Card 
+              className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border border-primary/20 hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
+              onClick={() => navigate('/admin-dashboard')}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-foreground">
+                    <p className="text-sm font-medium text-primary">لوحة التحكم الإدارية</p>
+                    <p className="text-2xl font-bold text-primary">إدارة النظام</p>
+                    <p className="text-xs text-muted-foreground mt-1">انقر للوصول إلى لوحة التحكم</p>
+                  </div>
+                  <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                    <Shield className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
