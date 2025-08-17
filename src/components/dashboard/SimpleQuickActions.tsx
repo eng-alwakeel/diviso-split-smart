@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BarChart3, Share2, Settings } from "lucide-react";
+import { Plus, Users, BarChart3, Share2, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const SimpleQuickActions = () => {
@@ -11,6 +11,12 @@ export const SimpleQuickActions = () => {
       title: "إضافة مصروف",
       icon: Plus,
       onClick: () => navigate('/add-expense'),
+      variant: "default" as const,
+    },
+    {
+      title: "إنشاء مجموعة",
+      icon: Users,
+      onClick: () => navigate('/create-group'),
       variant: "default" as const,
     },
     {
