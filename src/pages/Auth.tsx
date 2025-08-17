@@ -30,6 +30,7 @@ const Auth = () => {
     const trialPlan = params.get("startTrial");
     const redirectTo = params.get("redirectTo") || "/dashboard";
     const joinToken = localStorage.getItem('joinToken');
+    const phoneInviteToken = localStorage.getItem('phoneInviteToken');
 
     // Listen first, then get existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -38,6 +39,13 @@ const Auth = () => {
         if (joinToken) {
           localStorage.removeItem('joinToken');
           window.location.href = `/i/${joinToken}`;
+          return;
+        }
+        
+        // إذا كان هناك phoneInviteToken، نعيد التوجيه للرابط المناسب
+        if (phoneInviteToken) {
+          localStorage.removeItem('phoneInviteToken');
+          window.location.href = `/invite-phone/${phoneInviteToken}`;
           return;
         }
         
@@ -58,6 +66,13 @@ const Auth = () => {
         if (joinToken) {
           localStorage.removeItem('joinToken');
           window.location.href = `/i/${joinToken}`;
+          return;
+        }
+        
+        // إذا كان هناك phoneInviteToken، نعيد التوجيه للرابط المناسب
+        if (phoneInviteToken) {
+          localStorage.removeItem('phoneInviteToken');
+          window.location.href = `/invite-phone/${phoneInviteToken}`;
           return;
         }
         

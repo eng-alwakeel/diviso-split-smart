@@ -700,30 +700,48 @@ export type Database = {
       }
       invites: {
         Row: {
+          accepted_at: string | null
+          accepted_by: string | null
           created_at: string
           created_by: string
+          expires_at: string | null
           group_id: string
           id: string
+          invite_source: string | null
+          invite_token: string | null
+          invite_type: string | null
           invited_role: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
           status: Database["public"]["Enums"]["invite_status"]
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
           created_at?: string
           created_by: string
+          expires_at?: string | null
           group_id: string
           id?: string
+          invite_source?: string | null
+          invite_token?: string | null
+          invite_type?: string | null
           invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
           status?: Database["public"]["Enums"]["invite_status"]
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
           created_at?: string
           created_by?: string
+          expires_at?: string | null
           group_id?: string
           id?: string
+          invite_source?: string | null
+          invite_token?: string | null
+          invite_type?: string | null
           invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email?: string
           status?: Database["public"]["Enums"]["invite_status"]
@@ -1288,6 +1306,15 @@ export type Database = {
       }
     }
     Functions: {
+      accept_phone_invite: {
+        Args: { p_phone: string; p_token: string }
+        Returns: {
+          group_id: string
+          message: string
+          needs_phone_confirmation: boolean
+          success: boolean
+        }[]
+      }
       assert_quota: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined

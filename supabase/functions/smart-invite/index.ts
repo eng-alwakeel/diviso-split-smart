@@ -103,16 +103,20 @@ serve(async (req) => {
         console.error('Error creating notification:', notificationError);
       }
 
-      // Also create a regular invite record for tracking
-      const { error: inviteError } = await supabaseClient
+      // Create invite record with token for tracking
+      const { data: inviteData, error: inviteError } = await supabaseClient
         .from('invites')
         .insert({
           group_id: groupId,
           phone_or_email: cleanPhone,
           created_by: user.id,
           invited_role: 'member',
-          status: 'sent'
-        });
+          status: 'sent',
+          invite_type: 'notification',
+          invite_source: 'smart_invite'
+        })
+        .select('invite_token')
+        .single();
 
       if (inviteError) {
         console.error('Error creating invite record:', inviteError);
@@ -134,11 +138,33 @@ serve(async (req) => {
     } else {
       // No existing account - send SMS invitation with app download link
       try {
+        // Create invite record with token first
+        const { data: inviteData, error: inviteError } = await supabaseClient
+          .from('invites')
+          .insert({
+            group_id: groupId,
+            phone_or_email: cleanPhone,
+            created_by: user.id,
+            invited_role: 'member',
+            status: 'sent',
+            invite_type: 'phone',
+            invite_source: 'whatsapp'
+          })
+          .select('invite_token')
+          .single();
+
+        if (inviteError || !inviteData) {
+          throw new Error('Failed to create invite record');
+        }
+
+        // Generate proper invite link with token
+        const inviteLink = `${req.headers.get('origin') || Deno.env.get('SITE_URL') || 'https://diviso.app'}/invite-phone/${inviteData.invite_token}`;
+
         const { error: smsError } = await supabaseClient.functions.invoke('send-sms-invite', {
           body: {
             phone: phoneNumber.startsWith('+') ? phoneNumber : `+966${cleanPhone}`,
             groupName,
-            inviteLink: `${Deno.env.get('SITE_URL') || 'https://diviso.app'}/download?ref=${groupId}`,
+            inviteLink,
             senderName
           }
         });
@@ -146,21 +172,6 @@ serve(async (req) => {
         if (smsError) {
           console.error('SMS error:', smsError);
           // Don't fail the whole operation for SMS errors
-        }
-
-        // Create invite record
-        const { error: inviteError } = await supabaseClient
-          .from('invites')
-          .insert({
-            group_id: groupId,
-            phone_or_email: cleanPhone,
-            created_by: user.id,
-            invited_role: 'member',
-            status: 'sent'
-          });
-
-        if (inviteError) {
-          console.error('Error creating invite record:', inviteError);
         }
 
         console.log('Sent SMS invite to new user');
