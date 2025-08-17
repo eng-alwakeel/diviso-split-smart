@@ -1318,6 +1318,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      admin_delete_group: {
+        Args: { p_group_id: string }
+        Returns: boolean
+      }
       admin_toggle_user_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
         Returns: boolean
