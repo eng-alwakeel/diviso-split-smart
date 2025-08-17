@@ -10,8 +10,6 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
-import { SimpleGroupsList } from "@/components/dashboard/SimpleGroupsList";
-import { SimpleExpensesList } from "@/components/dashboard/SimpleExpensesList";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 
 const Dashboard = () => {
@@ -20,16 +18,11 @@ const Dashboard = () => {
   const [showGuide, setShowGuide] = useState(false);
   
   const {
-    groups,
-    recentExpenses,
     myPaid,
     myOwed,
-    groupPaidMap,
-    groupOwedMap,
-    mySplitByExpense,
     monthlyTotalExpenses,
     weeklyExpensesCount,
-    currentUserId,
+    groupsCount,
     loading,
     error,
     refetch
@@ -108,7 +101,7 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <SimpleStatsGrid
           monthlyTotalExpenses={monthlyTotalExpenses}
-          groupsCount={groups.length}
+          groupsCount={groupsCount}
           weeklyExpensesCount={weeklyExpensesCount}
           myPaid={myPaid}
           myOwed={myOwed}
@@ -134,26 +127,9 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Groups and Expenses */}
-          <div className="lg:col-span-2 space-y-6">
-            <SimpleGroupsList
-              groups={groups}
-              groupPaidMap={groupPaidMap}
-              groupOwedMap={groupOwedMap}
-            />
-            
-            <SimpleExpensesList
-              expenses={recentExpenses}
-              groups={groups}
-              mySplitByExpense={mySplitByExpense}
-              currentUserId={currentUserId}
-            />
-          </div>
-
-          {/* Sidebar */}
-          <div>
+        {/* Quick Actions - Centered */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-md">
             <SimpleQuickActions />
           </div>
         </div>
