@@ -28,8 +28,8 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ManageCategoriesDialog } from "@/components/categories/ManageCategoriesDialog";
-import { useCategories } from "@/hooks/useCategories";
+
+import { SmartCategorySelector } from "@/components/expenses/SmartCategorySelector";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
@@ -48,7 +48,7 @@ interface MemberSplit {
 const AddExpense = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { categories, addCategory } = useCategories();
+  // Removed useCategories as we now use SmartCategorySelector
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   
@@ -77,7 +77,6 @@ const AddExpense = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   
   // UI state
-  const [manageCategoriesOpen, setManageCategoriesOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApprovalInfo, setShowApprovalInfo] = useState(false);
   
@@ -629,28 +628,17 @@ const AddExpense = () => {
                   <div className="space-y-2">
                     <Label htmlFor="category" className="text-foreground flex items-center justify-between">
                       <span>الفئة</span>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleGetCategorySuggestions}
-                          disabled={aiLoading || !description.trim()}
-                          className="text-xs"
-                        >
-                          <Brain className="w-3 h-3 ml-1" />
-                          {aiLoading ? "جاري التحليل..." : "اقتراح ذكي"}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setManageCategoriesOpen(true)}
-                          className="text-xs"
-                        >
-                          إدارة الفئات
-                        </Button>
-                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGetCategorySuggestions}
+                        disabled={aiLoading || !description.trim()}
+                        className="text-xs"
+                      >
+                        <Brain className="w-3 h-3 ml-1" />
+                        {aiLoading ? "جاري التحليل..." : "اقتراح ذكي"}
+                      </Button>
                     </Label>
                     
                     {/* AI Suggestions */}
@@ -695,18 +683,12 @@ const AddExpense = () => {
                       </div>
                     )}
                     
-                    <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue placeholder="اختر الفئة" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border-border">
-                        {categories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id} className="text-foreground hover:bg-accent/20">
-                            {cat.name_ar}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SmartCategorySelector
+                      groupId={selectedGroup?.id || null}
+                      selectedCategoryId={selectedCategory}
+                      onCategorySelect={setSelectedCategory}
+                      groupCurrency={selectedGroup?.currency}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -1055,11 +1037,6 @@ const AddExpense = () => {
       <BottomNav />
       <div className="h-24 lg:hidden" />
 
-      <ManageCategoriesDialog
-        open={manageCategoriesOpen}
-        onOpenChange={setManageCategoriesOpen}
-        currentUserId={user?.id}
-      />
     </div>
   );
 };
