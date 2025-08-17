@@ -7,7 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlanBadge } from "@/components/ui/plan-badge";
+import { AdminBadge } from "@/components/ui/admin-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
+import { useAdminBadge } from "@/hooks/useAdminBadge";
 
 interface Message {
   id: string;
@@ -186,7 +188,9 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 const MessageBubble = ({ message, profiles }: { message: Message; profiles: Record<string, any> }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [senderIsAdmin, setSenderIsAdmin] = useState<boolean>(false);
   const { getPlanBadgeConfig } = usePlanBadge();
+  const { badgeConfig: adminBadgeConfig } = useAdminBadge();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -201,6 +205,14 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
           .eq("user_id", message.sender_id)
           .maybeSingle();
         setUserSubscription(subData);
+
+        // Check if sender is admin
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", message.sender_id)
+          .single();
+        setSenderIsAdmin(profileData?.is_admin || false);
       }
     };
     
@@ -243,10 +255,18 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
           {!isMe && (
             <div className="text-xs font-medium mb-1 text-muted-foreground flex items-center gap-2">
               <span>{senderName}</span>
-              <PlanBadge 
-                config={getPlanBadgeConfig(senderPlan as any)} 
-                size="sm"
-              />
+              <div className="flex items-center gap-1">
+                {senderIsAdmin && (
+                  <AdminBadge 
+                    config={adminBadgeConfig} 
+                    size="sm"
+                  />
+                )}
+                <PlanBadge 
+                  config={getPlanBadgeConfig(senderPlan as any)} 
+                  size="sm"
+                />
+              </div>
             </div>
           )}
           <div className="text-sm leading-relaxed">{message.content}</div>

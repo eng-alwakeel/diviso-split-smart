@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminBadge } from "@/hooks/useAdminBadge";
+import { AdminBadge } from "@/components/ui/admin-badge";
 import { Shield } from "lucide-react";
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
@@ -12,6 +14,7 @@ interface AppHeaderProps {
 export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const navigate = useNavigate();
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { isAdmin, badgeConfig } = useAdminBadge();
 
   return (
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
@@ -30,18 +33,24 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
             <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
           </div>
 
-          {/* Right: Admin Dashboard Link */}
-          <div className="justify-self-end">
-            {adminData?.isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/admin-dashboard')}
-                className="text-primary hover:text-primary/80 hover:bg-primary/10 rounded-xl"
-                title="لوحة التحكم الإدارية"
-              >
-                <Shield className="w-4 h-4" />
-              </Button>
+          {/* Right: Admin Dashboard Link & Badge */}
+          <div className="justify-self-end flex items-center gap-2">
+            {isAdmin && (
+              <>
+                <AdminBadge 
+                  config={badgeConfig} 
+                  size="sm"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/admin-dashboard')}
+                  className="text-primary hover:text-primary/80 hover:bg-primary/10 rounded-xl"
+                  title="لوحة التحكم الإدارية"
+                >
+                  <Shield className="w-4 h-4" />
+                </Button>
+              </>
             )}
           </div>
         </div>

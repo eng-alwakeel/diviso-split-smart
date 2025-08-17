@@ -4,6 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Shield, Crown, UserMinus } from "lucide-react";
 import { useMemberActions } from "@/hooks/useMemberActions";
+import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 
 interface Profile {
   id: string;
@@ -81,28 +82,26 @@ export const MemberCard = ({
   return (
     <div className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
       <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10">
-          <AvatarFallback className="bg-primary/10 text-primary">
-            {memberName.slice(0, 1).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <UserDisplayWithBadges
+          user={{
+            id: member.profile?.id || "",
+            display_name: member.profile?.display_name || member.profile?.name,
+            avatar_url: member.profile?.avatar_url,
+            phone: member.profile?.phone
+          }}
+          isCurrentUser={isCurrentUser}
+          avatarSize="md"
+          badgeSize="sm"
+          showAvatar={true}
+          showPlanBadge={true}
+          className="flex-1"
+        />
         
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{memberName}</span>
-            {isCurrentUser && (
-              <Badge variant="outline" className="text-xs">أنت</Badge>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2 mt-1">
-            {getRoleBadge()}
-            {member.profile?.phone && (
-              <span className="text-xs text-muted-foreground">
-                {member.profile.phone}
-              </span>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          {isCurrentUser && (
+            <Badge variant="outline" className="text-xs">أنت</Badge>
+          )}
+          {getRoleBadge()}
         </div>
       </div>
 

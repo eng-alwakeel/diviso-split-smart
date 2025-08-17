@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Shield, ShieldCheck } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAdminUserActions } from "@/hooks/useEnhancedAdminStats";
+import { AdminBadge } from "@/components/ui/admin-badge";
+import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -39,6 +41,7 @@ interface AdminManagementTablesProps {
 export const AdminManagementTables = ({ users, groups }: AdminManagementTablesProps) => {
   const queryClient = useQueryClient();
   const { toggleUserAdmin, deleteGroup } = useAdminUserActions();
+  const { badgeConfig: adminBadgeConfig } = useAdminBadge();
   const [isLoading, setIsLoading] = useState<string | null>(null);
 
   const handleToggleAdmin = async (userId: string, currentAdmin: boolean) => {
@@ -121,10 +124,11 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                     </TableCell>
                     <TableCell>
                       {user.is_admin ? (
-                        <Badge className="bg-red-100 text-red-800">
-                          <ShieldCheck className="w-3 h-3 mr-1" />
-                          مدير
-                        </Badge>
+                        <AdminBadge 
+                          config={adminBadgeConfig} 
+                          size="sm"
+                          showLabel={true}
+                        />
                       ) : (
                         <Badge variant="outline">
                           <Shield className="w-3 h-3 mr-1" />
