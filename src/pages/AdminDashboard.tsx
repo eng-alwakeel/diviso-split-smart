@@ -13,18 +13,46 @@ import { TopInsightsCards } from "@/components/admin/TopInsightsCards";
 import { AdminManagementTables } from "@/components/admin/AdminManagementTables";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { AdminFilters } from "@/components/admin/AdminFilters";
+import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
+import { toast } from "@/hooks/use-toast";
 
 export const AdminDashboard = () => {
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
-  const { data: stats, isLoading: statsLoading } = useAdminStats();
-  const { data: users, isLoading: usersLoading } = useAdminUsers();
-  const { data: groups, isLoading: groupsLoading } = useAdminGroups();
-  const { data: enhancedStats, isLoading: enhancedLoading } = useEnhancedAdminStats();
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
+  const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useAdminUsers();
+  const { data: groups, isLoading: groupsLoading, refetch: refetchGroups } = useAdminGroups();
+  const { data: enhancedStats, isLoading: enhancedLoading, refetch: refetchEnhanced } = useEnhancedAdminStats();
+  
+  const handleFilterChange = (filters: any) => {
+    // TODO: Implement filtering logic
+    console.log('Filters changed:', filters);
+  };
+  
+  const handleExport = (config: ExportConfig) => {
+    // TODO: Implement export functionality
+    toast({
+      title: "بدء التصدير",
+      description: `سيتم تصدير البيانات بصيغة ${config.format.toUpperCase()}`,
+    });
+    console.log('Export config:', config);
+  };
+  
+  const handleRefresh = () => {
+    refetchStats();
+    refetchUsers();
+    refetchGroups();
+    refetchEnhanced();
+    toast({
+      title: "تم التحديث",
+      description: "تم تحديث جميع البيانات بنجاح",
+    });
+  };
 
   if (adminLoading || statsLoading || enhancedLoading) {
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="container mx-auto space-y-6">
+      <div className="min-h-screen bg-background">
+        <div className="page-container">
           <Skeleton className="h-8 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -37,9 +65,20 @@ export const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="container mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="page-container">
         <AdminHeader />
+        
+        <AdminFilters 
+          onFilterChange={handleFilterChange}
+          onExport={() => {}}
+          onRefresh={handleRefresh}
+          isLoading={statsLoading || enhancedLoading}
+        />
+        
+        <div className="flex justify-end mb-4">
+          <AdminExport onExport={handleExport} />
+        </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -50,123 +89,169 @@ export const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Basic Statistics Overview */}
+            {/* Enhanced Statistics Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <Card className="bg-gradient-to-br from-primary/10 to-primary/20 border-primary/20 hover:shadow-lg transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-blue-700">إجمالي المستخدمين</CardTitle>
-                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <CardTitle className="text-sm font-medium text-primary">إجمالي المستخدمين</CardTitle>
+                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
                     👥
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-900">{stats?.total_users}</div>
-                  <p className="text-xs text-blue-600 mt-1">مسجلين في النظام</p>
+                  <div className="text-2xl font-bold text-foreground">{stats?.total_users?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">مسجلين في النظام</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <Card className="bg-gradient-to-br from-green-500/10 to-green-500/20 border-green-500/20 hover:shadow-lg transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700">إجمالي المجموعات</CardTitle>
-                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">إجمالي المجموعات</CardTitle>
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
                     🏢
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-900">{stats?.total_groups}</div>
-                  <p className="text-xs text-green-600 mt-1">مجموعات نشطة</p>
+                  <div className="text-2xl font-bold text-foreground">{stats?.total_groups?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">مجموعات نشطة</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/20 border-purple-500/20 hover:shadow-lg transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700">إجمالي المصروفات</CardTitle>
-                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">إجمالي المصروفات</CardTitle>
+                  <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
                     💳
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-900">{stats?.total_expenses}</div>
-                  <p className="text-xs text-purple-600 mt-1">مصروف معتمد</p>
+                  <div className="text-2xl font-bold text-foreground">{stats?.total_expenses?.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">مصروف معتمد</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+              <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/20 border-yellow-500/20 hover:shadow-lg transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-yellow-700">إجمالي المبلغ</CardTitle>
-                  <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                  <CardTitle className="text-sm font-medium text-yellow-700 dark:text-yellow-400">إجمالي المبلغ</CardTitle>
+                  <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
                     💰
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-900">{stats?.total_amount?.toFixed(2)} ر.س</div>
-                  <p className="text-xs text-yellow-600 mt-1">إجمالي الإنفاق</p>
+                  <div className="text-2xl font-bold text-foreground">{stats?.total_amount?.toLocaleString()} ر.س</div>
+                  <p className="text-xs text-muted-foreground mt-1">إجمالي الإنفاق</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Quick Stats */}
+            {/* Enhanced Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
+              <Card className="hover:shadow-md transition-shadow duration-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">📊 إحصائيات سريعة</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    📊 إحصائيات سريعة
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">الاشتراكات النشطة</span>
-                    <span className="font-medium">{stats?.active_subscriptions}</span>
+                    <Badge variant="secondary" className="text-sm font-semibold">
+                      {stats?.active_subscriptions?.toLocaleString()}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">مستخدمين جدد هذا الشهر</span>
-                    <span className="font-medium">{stats?.new_users_this_month}</span>
+                    <Badge variant="secondary" className="text-sm font-semibold">
+                      {stats?.new_users_this_month?.toLocaleString()}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">المستخدمين النشطين اليوم</span>
-                    <span className="font-medium">{stats?.active_users_today}</span>
+                    <Badge variant="secondary" className="text-sm font-semibold">
+                      {stats?.active_users_today?.toLocaleString()}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">الإيرادات الشهرية</span>
-                    <span className="font-medium text-green-600">{stats?.monthly_revenue?.toFixed(2)} ر.س</span>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                      {stats?.monthly_revenue?.toLocaleString()} ر.س
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow duration-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">📈 نمو الاستخدام</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    📈 نمو الاستخدام
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">معدل النمو الشهري</span>
-                    <Badge className="bg-green-100 text-green-800">+12%</Badge>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">+12%</Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">معدل الاحتفاظ</span>
-                    <Badge className="bg-blue-100 text-blue-800">85%</Badge>
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">85%</Badge>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">متوسط المصروفات يومياً</span>
-                    <span className="font-medium">{Math.round((stats?.total_expenses || 0) / 30)}</span>
+                    <span className="font-medium text-foreground">
+                      {Math.round((stats?.total_expenses || 0) / 30).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">متوسط المجموعات الجديدة</span>
+                    <span className="font-medium text-foreground">
+                      {Math.round((stats?.total_groups || 0) / 30).toLocaleString()}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-md transition-shadow duration-200">
                 <CardHeader>
-                  <CardTitle className="text-lg">🎯 أهداف الأداء</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    🎯 أهداف الأداء
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">هدف المستخدمين</span>
-                    <span className="font-medium">{((stats?.total_users || 0) / 1000 * 100).toFixed(1)}%</span>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground text-sm">هدف المستخدمين (1000)</span>
+                      <span className="font-medium text-sm">{((stats?.total_users || 0) / 1000 * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full" 
+                        style={{ width: `${Math.min(((stats?.total_users || 0) / 1000 * 100), 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">هدف الإيرادات</span>
-                    <span className="font-medium">{((stats?.monthly_revenue || 0) / 10000 * 100).toFixed(1)}%</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground text-sm">هدف الإيرادات (10,000 ر.س)</span>
+                      <span className="font-medium text-sm">{((stats?.monthly_revenue || 0) / 10000 * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full" 
+                        style={{ width: `${Math.min(((stats?.monthly_revenue || 0) / 10000 * 100), 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">هدف المجموعات</span>
-                    <span className="font-medium">{((stats?.total_groups || 0) / 500 * 100).toFixed(1)}%</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground text-sm">هدف المجموعات (500)</span>
+                      <span className="font-medium text-sm">{((stats?.total_groups || 0) / 500 * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-purple-500 h-2 rounded-full" 
+                        style={{ width: `${Math.min(((stats?.total_groups || 0) / 500 * 100), 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
