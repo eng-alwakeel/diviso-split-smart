@@ -226,6 +226,58 @@ const CreateGroup = () => {
     nextStep();
   };
 
+  const createBudgetFromAISuggestions = async (groupId: string, userId: string) => {
+    if (aiSuggestedCategories.length === 0) return;
+
+    try {
+      // Calculate total budget amount from AI suggestions
+      const totalAmount = aiSuggestedCategories.reduce((sum, cat) => sum + cat.amount, 0);
+      
+      // Create the main budget
+      const { data: budgetData, error: budgetError } = await supabase
+        .from('budgets')
+        .insert({
+          name: `ميزانية ${groupData.name}`,
+          total_amount: totalAmount,
+          amount_limit: totalAmount,
+          start_date: new Date().toISOString().split('T')[0],
+          period: 'monthly',
+          budget_type: groupData.category === 'رحلة' ? 'trip' : 'event',
+          group_id: groupId,
+          created_by: userId
+        })
+        .select('id')
+        .single();
+
+      if (budgetError) throw budgetError;
+
+      // Create budget categories from AI suggestions
+      const budgetCategories = aiSuggestedCategories.map(category => ({
+        budget_id: budgetData.id,
+        name: category.name_ar,
+        allocated_amount: category.amount
+      }));
+
+      const { error: categoriesError } = await supabase
+        .from('budget_categories')
+        .insert(budgetCategories);
+
+      if (categoriesError) throw categoriesError;
+
+      toast({ 
+        title: 'تم إنشاء الميزانية!', 
+        description: `تم إنشاء ميزانية بقيمة ${totalAmount.toLocaleString()} ${groupData.currency} مع ${aiSuggestedCategories.length} فئات`
+      });
+    } catch (error) {
+      console.error('Error creating budget from AI suggestions:', error);
+      toast({ 
+        title: 'خطأ في إنشاء الميزانية', 
+        description: 'تم إنشاء المجموعة لكن فشل في إنشاء الميزانية المقترحة',
+        variant: 'destructive' 
+      });
+    }
+  };
+
   const handleCreateGroup = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
@@ -233,10 +285,12 @@ const CreateGroup = () => {
       toast({ title: "يلزم تسجيل الدخول", variant: "destructive" });
       return;
     }
+    
+    setLoading(true);
     try {
       const { data: groupInsert, error: groupErr } = await supabase
         .from('groups')
-        .insert({ name: groupData.name, owner_id: user.id })
+        .insert({ name: groupData.name, owner_id: user.id, currency: groupData.currency })
         .select('id')
         .single();
       if (groupErr) throw groupErr;
@@ -247,6 +301,11 @@ const CreateGroup = () => {
         .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
 
+      // Create budget from AI suggestions if available
+      if (aiSuggestedCategories.length > 0) {
+        await createBudgetFromAISuggestions(groupId, user.id);
+      }
+
       // Create initial balances if provided
       if (initialBalances.length > 0) {
         await createInitialBalances(groupId, user.id);
@@ -256,6 +315,8 @@ const CreateGroup = () => {
       navigate(`/group/${groupId}`);
     } catch (e: any) {
       toast({ title: 'فشل إنشاء المجموعة', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
   };
 
