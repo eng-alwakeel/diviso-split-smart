@@ -49,9 +49,9 @@ export const SimpleStatsGrid = ({
       onClick: () => navigate('/my-groups'),
     },
     {
-      title: "مصاريف الأسبوع",
-      value: weeklyExpensesCount.toString(),
-      subtitle: "آخر 7 أيام",
+      title: "المدفوع لي",
+      value: `${myPaid.toLocaleString()} ر.س`,
+      subtitle: "إجمالي",
       icon: Receipt,
       color: "text-orange-600",
       bgColor: "bg-orange-50",

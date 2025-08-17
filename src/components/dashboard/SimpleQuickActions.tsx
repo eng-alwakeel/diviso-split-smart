@@ -11,13 +11,13 @@ export const SimpleQuickActions = () => {
       title: "إضافة مصروف",
       icon: Plus,
       onClick: () => navigate('/add-expense'),
-      variant: "default" as const,
+      variant: "outline" as const,
     },
     {
       title: "إنشاء مجموعة",
       icon: Users,
       onClick: () => navigate('/create-group'),
-      variant: "default" as const,
+      variant: "outline" as const,
     },
     {
       title: "الخطة المالية",
