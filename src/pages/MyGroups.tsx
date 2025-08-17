@@ -46,7 +46,7 @@ export default function MyGroups() {
             </AlertDescription>
           </Alert>
         </div>
-        {isMobile && <BottomNav />}
+        <BottomNav />
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function MyGroups() {
         </Tabs>
       </div>
 
-      {isMobile && <BottomNav />}
+      <BottomNav />
     </div>
   );
 }

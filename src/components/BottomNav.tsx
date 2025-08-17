@@ -19,7 +19,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-4 inset-x-0 z-50">
-      <div className="mx-auto max-w-2xl lg:max-w-4xl px-4 pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto max-w-2xl lg:max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
         <div className="rounded-2xl border border-border/60 bg-background/70 backdrop-blur shadow-elevated supports-[backdrop-filter]:bg-background/60">
           <ul className="flex items-stretch justify-between">
             {items.map(({ to, label, icon: Icon }) => (
