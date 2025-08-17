@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Key, Eye, EyeOff, Save, Trash2 } from "lucide-react";
+import { useSecureValidation } from "@/hooks/useSecureValidation";
+import { useSecurityAudit } from "@/hooks/useSecurityAudit";
 
 interface SecurityTabProps {
   passwordData: {
@@ -30,6 +32,23 @@ export function SecurityTab({
     new: false,
     confirm: false
   });
+  
+  const { validateField, errors } = useSecureValidation();
+  const { logSecurityEvent, validateInput } = useSecurityAudit();
+  
+  const handleSecurePasswordChange = async () => {
+    // Log password change attempt
+    await logSecurityEvent('password_change_attempt', 'profiles');
+    
+    // Validate inputs
+    if (!validateInput(passwordData.currentPassword) || 
+        !validateInput(passwordData.newPassword) || 
+        !validateInput(passwordData.confirmPassword)) {
+      return;
+    }
+    
+    await handleChangePassword();
+  };
 
   return (
     <div className="space-y-6">
@@ -110,7 +129,7 @@ export function SecurityTab({
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button onClick={handleChangePassword} disabled={passwordLoading} className="gap-2">
+            <Button onClick={handleSecurePasswordChange} disabled={passwordLoading} className="gap-2">
               {passwordLoading ? (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (

@@ -507,6 +507,7 @@ export type Database = {
           accepted_at: string | null
           accepted_by: string | null
           created_at: string
+          encrypted_token: string | null
           expires_at: string
           family_owner_id: string
           id: string
@@ -521,6 +522,7 @@ export type Database = {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
+          encrypted_token?: string | null
           expires_at?: string
           family_owner_id: string
           id?: string
@@ -535,6 +537,7 @@ export type Database = {
           accepted_at?: string | null
           accepted_by?: string | null
           created_at?: string
+          encrypted_token?: string | null
           expires_at?: string
           family_owner_id?: string
           id?: string
@@ -1550,6 +1553,10 @@ export type Database = {
         Args: { p_token: string }
         Returns: string
       }
+      log_security_event: {
+        Args: { p_action: string; p_details?: Json; p_table_name?: string }
+        Returns: undefined
+      }
       seed_demo_for_user: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1557,6 +1564,14 @@ export type Database = {
       unarchive_group: {
         Args: { p_group_id: string }
         Returns: boolean
+      }
+      validate_family_invitation_token: {
+        Args: { p_token: string }
+        Returns: {
+          family_owner_id: string
+          invitation_id: string
+          role: string
+        }[]
       }
       verify_user_password: {
         Args: { current_password: string }

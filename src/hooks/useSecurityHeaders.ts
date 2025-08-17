@@ -21,11 +21,18 @@ export function useSecurityHeaders() {
     // Enable XSS Protection
     addMetaTag('X-XSS-Protection', '1; mode=block');
     
-    // Prevent clickjacking
-    addMetaTag('X-Frame-Options', 'DENY');
+    // Prevent clickjacking - use SAMEORIGIN instead of DENY for iframe compatibility
+    addMetaTag('X-Frame-Options', 'SAMEORIGIN');
 
     // Feature Policy
     addMetaTag('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    
+    // Content Security Policy
+    addMetaTag('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:");
+    
+    // Additional security headers
+    addMetaTag('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    addMetaTag('Referrer-Policy', 'strict-origin-when-cross-origin');
 
     // Monitor for potential security issues
     const handleSecurityViolation = (event: SecurityPolicyViolationEvent) => {
