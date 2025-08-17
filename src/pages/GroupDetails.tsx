@@ -261,6 +261,7 @@ const GroupDetails = () => {
         onOpenInvite={() => setOpenInvite(true)}
         onRenamed={() => refetch()}
         onLeftGroup={() => navigate('/dashboard')}
+        onGroupDeleted={() => navigate('/dashboard')}
       />
 
       <GroupReportDialog

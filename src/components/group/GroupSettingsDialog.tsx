@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, ExternalLink, LogOut, Pencil } from "lucide-react";
+import { Copy, ExternalLink, LogOut, Pencil, Trash2 } from "lucide-react";
 
 interface GroupSettingsDialogProps {
   open: boolean;
@@ -17,6 +17,7 @@ interface GroupSettingsDialogProps {
   onOpenInvite: () => void;
   onRenamed?: (newName: string) => void;
   onLeftGroup?: () => void;
+  onGroupDeleted?: () => void;
 }
 
 export const GroupSettingsDialog = ({
@@ -29,11 +30,13 @@ export const GroupSettingsDialog = ({
   onOpenInvite,
   onRenamed,
   onLeftGroup,
+  onGroupDeleted,
 }: GroupSettingsDialogProps) => {
   const { toast } = useToast();
   const [name, setName] = useState<string>(groupName ?? "");
   const [saving, setSaving] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (open) setName(groupName ?? "");
@@ -107,6 +110,86 @@ export const GroupSettingsDialog = ({
     onLeftGroup?.();
   };
 
+  const handleDeleteGroup = async () => {
+    if (!groupId || !isOwner) return;
+
+    // التحقق من عدم وجود مصاريف
+    const { count: expenseCount } = await supabase
+      .from("expenses")
+      .select("*", { count: "exact", head: true })
+      .eq("group_id", groupId);
+
+    if (expenseCount && expenseCount > 0) {
+      toast({ 
+        title: "لا يمكن حذف المجموعة", 
+        description: "يجب حذف جميع المصاريف أولاً", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // التحقق من عدم وجود أعضاء آخرين (المالك فقط)
+    const { count: memberCount } = await supabase
+      .from("group_members")
+      .select("*", { count: "exact", head: true })
+      .eq("group_id", groupId);
+
+    if (memberCount && memberCount > 1) {
+      toast({ 
+        title: "لا يمكن حذف المجموعة", 
+        description: "يجب إزالة جميع الأعضاء أولاً", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // تأكيد مزدوج
+    const firstConfirm = window.confirm("هل أنت متأكد من حذف هذه المجموعة؟ هذا الإجراء لا يمكن التراجع عنه.");
+    if (!firstConfirm) return;
+
+    const secondConfirm = window.confirm("تأكيد أخير: سيتم حذف المجموعة نهائياً. هل تريد المتابعة؟");
+    if (!secondConfirm) return;
+
+    setDeleting(true);
+
+    try {
+      // حذف الدعوات المعلقة
+      await supabase.from("invites").delete().eq("group_id", groupId);
+      
+      // حذف رموز الانضمام
+      await supabase.from("group_join_tokens").delete().eq("group_id", groupId);
+      
+      // حذف عضوية المالك
+      await supabase.from("group_members").delete().eq("group_id", groupId);
+      
+      // حذف المجموعة
+      const { error } = await supabase.from("groups").delete().eq("id", groupId);
+
+      if (error) {
+        console.error("[GroupSettingsDialog] delete error", error);
+        toast({ 
+          title: "تعذر حذف المجموعة", 
+          description: error.message, 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      toast({ title: "تم حذف المجموعة بنجاح" });
+      onOpenChange(false);
+      onGroupDeleted?.();
+    } catch (error) {
+      console.error("[GroupSettingsDialog] unexpected error", error);
+      toast({ 
+        title: "حدث خطأ غير متوقع", 
+        description: "حاول مرة أخرى", 
+        variant: "destructive" 
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -154,12 +237,27 @@ export const GroupSettingsDialog = ({
             </div>
           </div>
 
-          <div className="pt-2">
-            <Button variant="destructive" onClick={handleLeave} disabled={isOwner || leaving} className="w-full">
-              <LogOut className="w-4 h-4 ml-2" /> مغادرة المجموعة
-            </Button>
+          <div className="pt-2 space-y-3">
+            {isOwner ? (
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteGroup} 
+                disabled={deleting} 
+                className="w-full"
+              >
+                <Trash2 className="w-4 h-4 ml-2" /> 
+                {deleting ? "جاري الحذف..." : "حذف المجموعة"}
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleLeave} disabled={leaving} className="w-full">
+                <LogOut className="w-4 h-4 ml-2" /> مغادرة المجموعة
+              </Button>
+            )}
+            
             {isOwner && (
-              <p className="text-xs text-destructive mt-2">لا يمكن للمالك مغادرة المجموعة. عيّن مالكاً آخر أولاً.</p>
+              <p className="text-xs text-muted-foreground">
+                يمكن حذف المجموعة فقط إذا كانت فارغة (بدون أعضاء أو مصاريف)
+              </p>
             )}
           </div>
         </div>
