@@ -33,9 +33,6 @@ export const Header = () => {
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
                 الباقات
               </a>
-              <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-                حول التطبيق
-              </a>
             </nav>
             {/* Mobile menu button */}
             <Button variant="ghost" size="sm" className="md:hidden">
