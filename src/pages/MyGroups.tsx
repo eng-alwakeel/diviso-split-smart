@@ -13,6 +13,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +21,7 @@ export default function MyGroups() {
   const { data: groups = [], isLoading, error } = useGroups(activeTab === "archived");
   const { archiveGroup, unarchiveGroup } = useGroupArchive();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const filteredGroups = groups.filter(group =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -33,7 +35,7 @@ export default function MyGroups() {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="container max-w-md mx-auto px-4 pt-4 pb-20">
+        <div className={`container ${isMobile ? 'max-w-md' : 'max-w-6xl'} mx-auto px-4 pt-4 ${isMobile ? 'pb-20' : 'pb-8'}`}>
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">مجموعاتي</h1>
             <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
@@ -44,7 +46,7 @@ export default function MyGroups() {
             </AlertDescription>
           </Alert>
         </div>
-        <BottomNav />
+        {isMobile && <BottomNav />}
       </div>
     );
   }
@@ -53,55 +55,56 @@ export default function MyGroups() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container max-w-md mx-auto px-4 pt-4 pb-20 space-y-6">
+      <div className={`container ${isMobile ? 'max-w-md' : 'max-w-6xl'} mx-auto px-4 pt-4 ${isMobile ? 'pb-20' : 'pb-8'} space-y-6`}>
         {/* عنوان الصفحة */}
         <div className="text-center">
           <h1 className="text-2xl font-bold">مجموعاتي</h1>
           <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
         </div>
+        
         {/* إحصائيات عامة */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid gap-3 ${isMobile ? 'grid-cols-3' : 'grid-cols-3 lg:grid-cols-6'}`}>
           <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-xl font-bold text-primary">{totalGroups}</div>
-              <div className="text-xs text-muted-foreground">المجموعات</div>
+            <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-primary`}>{totalGroups}</div>
+              <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>المجموعات</div>
             </CardContent>
           </Card>
           <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-xl font-bold text-secondary">{adminGroups}</div>
-              <div className="text-xs text-muted-foreground">أديرها</div>
+            <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-secondary`}>{adminGroups}</div>
+              <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>أديرها</div>
             </CardContent>
           </Card>
           <Card className="text-center">
-            <CardContent className="p-3">
-              <div className="text-xl font-bold text-accent">{totalMembers}</div>
-              <div className="text-xs text-muted-foreground">الأعضاء</div>
+            <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-accent`}>{totalMembers}</div>
+              <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>الأعضاء</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* شريط البحث */}
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="البحث في المجموعات..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        {/* شريط البحث وزر الإنشاء */}
+        <div className={`${isMobile ? 'space-y-4' : 'flex gap-4 items-center'}`}>
+          <div className={`relative ${isMobile ? '' : 'flex-1 max-w-md'}`}>
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="البحث في المجموعات..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            onClick={() => navigate("/create-group")}
+            className={`${isMobile ? 'w-full' : 'shrink-0'}`}
+            size="lg"
+          >
+            <Plus className="h-4 w-4 ml-2" />
+            إنشاء مجموعة جديدة
+          </Button>
         </div>
-
-        {/* زر إنشاء مجموعة جديدة */}
-        <Button 
-          onClick={() => navigate("/create-group")}
-          className="w-full"
-          size="lg"
-        >
-          <Plus className="h-4 w-4 ml-2" />
-          إنشاء مجموعة جديدة
-        </Button>
 
         {/* قائمة المجموعات */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -117,20 +120,22 @@ export default function MyGroups() {
           
           {isLoading ? (
             // Loading skeletons
-            Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-6 w-16" />
-                      <Skeleton className="h-6 w-20" />
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+              {Array.from({ length: isMobile ? 3 : 6 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-20" />
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : filteredGroups.length === 0 ? (
             searchQuery ? (
               <Card>
@@ -152,21 +157,24 @@ export default function MyGroups() {
               </Card>
             )
           ) : (
-            filteredGroups.map((group) => (
-              <GroupCard 
-                key={group.id} 
-                group={group} 
-                onNavigate={navigate}
-                onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup}
-                isArchived={activeTab === 'archived'}
-              />
-            ))
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+              {filteredGroups.map((group) => (
+                <GroupCard 
+                  key={group.id} 
+                  group={group} 
+                  onNavigate={navigate}
+                  onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup}
+                  isArchived={activeTab === 'archived'}
+                  isMobile={isMobile}
+                />
+              ))}
+            </div>
           )}
           </TabsContent>
         </Tabs>
       </div>
 
-      <BottomNav />
+      {isMobile && <BottomNav />}
     </div>
   );
 }
@@ -183,24 +191,25 @@ interface GroupCardProps {
   onNavigate: (path: string) => void;
   onArchive: (groupId: string) => void;
   isArchived?: boolean;
+  isMobile?: boolean;
 }
 
-function GroupCard({ group, onNavigate, onArchive, isArchived }: GroupCardProps) {
+function GroupCard({ group, onNavigate, onArchive, isArchived, isMobile }: GroupCardProps) {
   const isAdmin = group.member_role === 'admin' || group.member_role === 'owner';
   
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer">
-      <CardHeader className="pb-3">
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]">
+      <CardHeader className={`${isMobile ? 'pb-3' : 'pb-4'}`}>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <CardTitle 
-              className="text-base leading-tight cursor-pointer hover:text-primary transition-colors"
+              className={`${isMobile ? 'text-base' : 'text-lg'} leading-tight cursor-pointer hover:text-primary transition-colors`}
               onClick={() => onNavigate(`/group/${group.id}`)}
             >
               {group.name}
             </CardTitle>
-            <CardDescription className="flex items-center gap-2 text-xs">
-              <Users className="h-3 w-3" />
+            <CardDescription className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              <Users className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
               {group.member_count || 0} عضو
               <span className="text-muted-foreground">•</span>
               {group.currency}
@@ -208,7 +217,7 @@ function GroupCard({ group, onNavigate, onArchive, isArchived }: GroupCardProps)
           </div>
           <div className="flex gap-1">
             {isAdmin && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                 مدير
               </Badge>
             )}
@@ -217,30 +226,35 @@ function GroupCard({ group, onNavigate, onArchive, isArchived }: GroupCardProps)
       </CardHeader>
       
       <CardContent className="pt-0">
-        <div className="flex gap-2">
+        <div className={`${isMobile ? 'flex gap-2' : 'grid grid-cols-2 gap-3'}`}>
           <Button
-            size="sm"
+            size={isMobile ? "sm" : "default"}
             variant="outline"
             onClick={() => onNavigate(`/group/${group.id}`)}
             className="flex-1"
           >
-            <TrendingUp className="h-3 w-3 ml-1" />
+            <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ml-1`} />
             عرض
           </Button>
           <Button
-            size="sm"
+            size={isMobile ? "sm" : "default"}
             variant="outline"
             onClick={() => onNavigate(`/add-expense?group=${group.id}`)}
             className="flex-1"
           >
-            <CreditCard className="h-3 w-3 ml-1" />
+            <CreditCard className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ml-1`} />
             مصروف
           </Button>
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="hover:bg-muted/50">
-                  <MoreVertical className="h-3 w-3" />
+                <Button 
+                  size={isMobile ? "sm" : "default"} 
+                  variant="ghost" 
+                  className={`hover:bg-muted/50 ${isMobile ? '' : 'col-span-2'}`}
+                >
+                  <MoreVertical className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  {!isMobile && <span className="mr-2">خيارات</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
