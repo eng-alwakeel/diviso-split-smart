@@ -22,12 +22,44 @@ export type BudgetAlert = {
 };
 
 async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTrackingData[]> {
-  const { data, error } = await supabase.rpc('get_group_budget_tracking', {
-    p_group_id: groupId
-  });
-  
-  if (error) throw error;
-  return (data || []) as BudgetTrackingData[];
+  try {
+    const { data, error } = await supabase.rpc('get_group_budget_tracking', {
+      p_group_id: groupId
+    });
+    
+    if (error) {
+      // Fallback to direct query if RPC fails
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('budget_categories')
+        .select(`
+          category_id,
+          allocated_amount,
+          categories!inner(name_ar),
+          budgets!inner(group_id, start_date, end_date)
+        `)
+        .eq('budgets.group_id', groupId)
+        .lte('budgets.start_date', new Date().toISOString().split('T')[0])
+        .or(`end_date.is.null,end_date.gte.${new Date().toISOString().split('T')[0]}`, { foreignTable: 'budgets' });
+        
+      if (fallbackError) throw fallbackError;
+      
+      return (fallbackData || []).map(item => ({
+        category_id: item.category_id,
+        category_name: item.categories?.name_ar || 'Unknown',
+        budgeted_amount: item.allocated_amount,
+        spent_amount: 0, // Will be calculated later
+        remaining_amount: item.allocated_amount,
+        spent_percentage: 0,
+        status: 'safe' as const,
+        expense_count: 0
+      }));
+    }
+    
+    return (data || []) as BudgetTrackingData[];
+  } catch (error) {
+    console.error('Error fetching group budget tracking:', error);
+    throw error;
+  }
 }
 
 async function fetchBudgetAlerts(groupId: string): Promise<BudgetAlert[]> {
