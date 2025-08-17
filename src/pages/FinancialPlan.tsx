@@ -157,13 +157,22 @@ export default function FinancialPlan() {
         </div>
 
         {/* Create Budget Button */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-4">
           <Button 
-            className="w-full md:w-auto"
+            className="flex-1 md:flex-none"
             onClick={() => setIsCreatingBudget(true)}
+            variant="outline"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
-            إنشاء ميزانية جديدة
+            إنشاء ميزانية تقليدية
+          </Button>
+          
+          <Button 
+            className="flex-1 md:flex-none"
+            onClick={() => window.location.href = '/create-unified-budget'}
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            إنشاء ميزانية شاملة
           </Button>
         </div>
 

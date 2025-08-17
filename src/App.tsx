@@ -11,6 +11,7 @@ import AddExpense from "./pages/AddExpense";
 import ReferralCenter from "./pages/ReferralCenter";
 import GroupDetails from "./pages/GroupDetails";
 import FinancialPlan from "./pages/FinancialPlan";
+import CreateUnifiedBudget from "./pages/CreateUnifiedBudget";
 import MyExpenses from "./pages/MyExpenses";
 import MyGroups from "./pages/MyGroups";
 import Settings from "./pages/Settings";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
             <Route path="/my-groups" element={<ProtectedRoute><MyGroups /></ProtectedRoute>} />
             <Route path="/financial-plan" element={<ProtectedRoute><FinancialPlan /></ProtectedRoute>} />
+            <Route path="/create-unified-budget" element={<ProtectedRoute><CreateUnifiedBudget /></ProtectedRoute>} />
             <Route path="/referral" element={<ProtectedRoute><ReferralCenter /></ProtectedRoute>} />
             <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
