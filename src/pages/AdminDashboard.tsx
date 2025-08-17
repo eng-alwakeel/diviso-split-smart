@@ -13,8 +13,9 @@ import { TopInsightsCards } from "@/components/admin/TopInsightsCards";
 import { AdminManagementTables } from "@/components/admin/AdminManagementTables";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { AdminFilters } from "@/components/admin/AdminFilters";
-import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
+// Temporarily commented out for debugging
+// import { AdminFilters } from "@/components/admin/AdminFilters";
+// import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 
 export const AdminDashboard = () => {
@@ -29,7 +30,7 @@ export const AdminDashboard = () => {
     console.log('Filters changed:', filters);
   };
   
-  const handleExport = (config: ExportConfig) => {
+  const handleExport = (config: any) => {
     // TODO: Implement export functionality
     toast({
       title: "بدء التصدير",
@@ -39,13 +40,23 @@ export const AdminDashboard = () => {
   };
   
   const handleRefresh = () => {
-    refetchStats();
-    refetchUsers();
-    refetchGroups();
-    refetchEnhanced();
-    toast({
-      title: "تم التحديث",
-      description: "تم تحديث جميع البيانات بنجاح",
+    Promise.all([
+      refetchStats(),
+      refetchUsers(), 
+      refetchGroups(),
+      refetchEnhanced()
+    ]).then(() => {
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث جميع البيانات بنجاح",
+      });
+    }).catch((error) => {
+      console.error('Refresh error:', error);
+      toast({
+        title: "خطأ في التحديث",
+        description: "حدث خطأ أثناء تحديث البيانات",
+        variant: "destructive"
+      });
     });
   };
 
@@ -69,7 +80,8 @@ export const AdminDashboard = () => {
       <div className="page-container">
         <AdminHeader />
         
-        <AdminFilters 
+        {/* Temporarily commented out to debug */}
+        {/* <AdminFilters 
           onFilterChange={handleFilterChange}
           onExport={() => {}}
           onRefresh={handleRefresh}
@@ -77,8 +89,8 @@ export const AdminDashboard = () => {
         />
         
         <div className="flex justify-end mb-4">
-          <AdminExport onExport={handleExport} />
-        </div>
+          <AdminExport onExport={handleExport} isLoading={false} />
+        </div> */}
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
