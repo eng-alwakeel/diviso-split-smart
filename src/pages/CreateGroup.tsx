@@ -24,11 +24,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InitialBalancesStep, type MemberBalance } from "@/components/group/InitialBalancesStep";
 import { useCurrencies } from "@/hooks/useCurrencies";
+import { AIGroupCategorySuggestions } from '@/components/group/AIGroupCategorySuggestions';
+import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
+import { Bot } from 'lucide-react';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { currencies } = useCurrencies();
+  const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
+  const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
     name: "",
@@ -39,6 +44,8 @@ const CreateGroup = () => {
   const [phoneNumbers, setPhoneNumbers] = useState([""]);
   const [inviteLink, setInviteLink] = useState("");
   const [initialBalances, setInitialBalances] = useState<MemberBalance[]>([]);
+  const [aiSuggestedCategories, setAiSuggestedCategories] = useState<any[]>([]);
+  const [showAISuggestions, setShowAISuggestions] = useState(false);
 
   const categories = [
     "رحلة", "سكن مشترك", "مشروع عمل", "عشاء جماعي", 
@@ -196,6 +203,29 @@ const CreateGroup = () => {
     }
   };
 
+  const handleAISuggestionsAccept = async (selectedCategories: any[]) => {
+    try {
+      setLoading(true);
+      const categoriesWithAmounts = await createCategoriesFromSuggestions(selectedCategories);
+      setAiSuggestedCategories(categoriesWithAmounts);
+      nextStep();
+    } catch (error) {
+      console.error('Error processing AI suggestions:', error);
+      toast({
+        title: 'خطأ',
+        description: 'فشل في معالجة اقتراحات الذكاء الاصطناعي',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAISuggestionsSkip = () => {
+    setShowAISuggestions(false);
+    nextStep();
+  };
+
   const handleCreateGroup = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
@@ -230,10 +260,19 @@ const CreateGroup = () => {
   };
 
   const nextStep = () => {
-    if (currentStep === 1) {
+    if (currentStep === 1 && groupData.category !== 'عام' && groupData.category !== 'أخرى') {
+      // Show AI suggestions for specific group types
+      setShowAISuggestions(true);
+      setCurrentStep(2);
+    } else if (currentStep === 1) {
       generateInviteLink();
+      setCurrentStep(3); // Skip AI suggestions for general groups
+    } else if (currentStep === 2 && showAISuggestions) {
+      generateInviteLink();
+      setCurrentStep(3);
+    } else if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
     }
-    setCurrentStep(currentStep + 1);
   };
 
   const isStep3Valid = () => {
@@ -286,19 +325,26 @@ const CreateGroup = () => {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary text-white' : 'bg-muted'}`}>
               2
             </div>
-            <span className="font-medium text-xs md:text-sm">دعوة الأعضاء</span>
+            <span className="font-medium text-xs md:text-sm">اقتراحات ذكية</span>
           </div>
           <div className={`flex-1 h-1 mx-2 ${currentStep > 2 ? 'bg-primary' : 'bg-muted'}`}></div>
           <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-white' : 'bg-muted'}`}>
               3
             </div>
+            <span className="font-medium text-xs md:text-sm">دعوة الأعضاء</span>
+          </div>
+          <div className={`flex-1 h-1 mx-2 ${currentStep > 3 ? 'bg-primary' : 'bg-muted'}`}></div>
+          <div className={`flex items-center gap-2 ${currentStep >= 4 ? 'text-primary' : 'text-muted-foreground'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-primary text-white' : 'bg-muted'}`}>
+              4
+            </div>
             <span className="font-medium text-xs md:text-sm">الأرصدة الأولية</span>
           </div>
         </div>
 
         {/* Step 1: Group Information */}
-        {currentStep === 1 && (
+          {currentStep === 1 && (
           <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
@@ -371,8 +417,34 @@ const CreateGroup = () => {
           </Card>
         )}
 
-        {/* Step 2: Invite Members */}
-        {currentStep === 2 && (
+        {/* Step 2: AI Suggestions */}
+          {currentStep === 2 && showAISuggestions && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  اقتراحات الذكاء الاصطناعي
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  بناءً على نوع مجموعتك "{groupData.category}"، إليك بعض الفئات المقترحة لمساعدتك في إدارة المصاريف
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AIGroupCategorySuggestions
+                  groupType={groupData.category}
+                  groupName={groupData.name}
+                  expectedBudget={undefined}
+                  memberCount={undefined}
+                  onAcceptSuggestions={handleAISuggestionsAccept}
+                  onSkip={handleAISuggestionsSkip}
+                  loading={loading}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+        {/* Step 3: Invite Members */}
+          {currentStep === 3 && (
           <div className="space-y-6">
             {/* Phone Numbers */}
             <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
@@ -481,7 +553,13 @@ const CreateGroup = () => {
             <div className="flex gap-4">
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep(1)}
+                onClick={() => {
+                  if (showAISuggestions) {
+                    setCurrentStep(2);
+                  } else {
+                    setCurrentStep(1);
+                  }
+                }}
                 className="flex-1"
               >
                 العودة
@@ -497,8 +575,8 @@ const CreateGroup = () => {
           </div>
         )}
 
-        {/* Step 3: Initial Balances */}
-        {currentStep === 3 && (
+        {/* Step 4: Initial Balances */}
+          {currentStep === 4 && (
           <div className="space-y-6">
             <InitialBalancesStep
               currency={groupData.currency}
@@ -510,18 +588,18 @@ const CreateGroup = () => {
             <div className="flex gap-4">
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep(2)}
+                onClick={() => setCurrentStep(3)}
                 className="flex-1"
               >
                 العودة
               </Button>
               <Button
                 onClick={handleCreateGroup}
-                disabled={!isStep3Valid()}
+                disabled={!isStep3Valid() || loading}
                 className="flex-1"
                 variant="hero"
               >
-                إنشاء المجموعة
+                {loading ? 'جاري الإنشاء...' : 'إنشاء المجموعة'}
               </Button>
             </div>
           </div>
