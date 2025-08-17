@@ -8,6 +8,21 @@ const config: CapacitorConfig = {
     url: 'https://diviso.app',
     cleartext: true,
     allowNavigation: ['diviso.app']
+  },
+  plugins: {
+    Contacts: {
+      permissions: ['contacts']
+    }
+  },
+  android: {
+    permissions: [
+      'android.permission.READ_CONTACTS'
+    ]
+  },
+  ios: {
+    permissions: [
+      'NSContactsUsageDescription'
+    ]
   }
 };
 
