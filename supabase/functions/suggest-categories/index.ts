@@ -21,7 +21,7 @@ serve(async (req) => {
     // Initialize clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
+    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -98,14 +98,14 @@ ${userPatterns || 'لا توجد بيانات سابقة'}
   "analysis": "تحليل مختصر للمصروف"
 }`;
 
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${deepseekApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'deepseek-chat',
         max_tokens: 800,
         temperature: 0.3,
         messages: [
@@ -121,16 +121,16 @@ ${userPatterns || 'لا توجد بيانات سابقة'}
       }),
     });
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+    if (!deepseekResponse.ok) {
+      const errorText = await deepseekResponse.text();
+      console.error('DeepSeek API error:', errorText);
+      throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
     }
 
-    const openaiData = await openaiResponse.json();
-    const analysisText = openaiData.choices[0].message.content;
+    const deepseekData = await deepseekResponse.json();
+    const analysisText = deepseekData.choices[0].message.content;
     
-    console.log('OpenAI categorization result:', analysisText);
+    console.log('DeepSeek categorization result:', analysisText);
 
     // Parse the JSON response
     let aiResult;
@@ -142,7 +142,7 @@ ${userPatterns || 'لا توجد بيانات سابقة'}
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
+      console.error('Failed to parse DeepSeek response:', parseError);
       // Fallback to simple text matching
       const fallbackCategory = categories.find(cat => 
         description?.toLowerCase().includes(cat.name_ar.toLowerCase()) ||

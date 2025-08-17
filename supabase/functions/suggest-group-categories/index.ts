@@ -94,15 +94,15 @@ serve(async (req) => {
 }
 `;
 
-    // Call OpenAI API
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call DeepSeek API
+    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'deepseek-chat',
         messages: [
           {
             role: 'system',
@@ -118,12 +118,13 @@ serve(async (req) => {
       }),
     });
 
-    if (!openAIResponse.ok) {
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+    if (!deepseekResponse.ok) {
+      console.error('DeepSeek API error:', await deepseekResponse.text());
+      throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
     }
 
-    const openAIData = await openAIResponse.json();
-    let aiResponse = openAIData.choices[0].message.content;
+    const deepseekData = await deepseekResponse.json();
+    let aiResponse = deepseekData.choices[0].message.content;
 
     // Parse AI response
     let suggestions;
