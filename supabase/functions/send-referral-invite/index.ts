@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create the referral invite message in Arabic
-    const inviteLink = `https://iwthriddasxzbjddpzzf.supabase.co/join/${referralCode}`;
+    const inviteLink = `https://diviso.app/referral-signup/${referralCode}`;
     const message = `
 🎉 مرحباً! 
 
