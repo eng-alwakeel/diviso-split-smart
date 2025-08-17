@@ -1352,6 +1352,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_admin_activity_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_users: number
+          date: string
+          new_expenses: number
+          new_groups: number
+          new_users: number
+          ocr_usage: number
+        }[]
+      }
       get_admin_dashboard_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
