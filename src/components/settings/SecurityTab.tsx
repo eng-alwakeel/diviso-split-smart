@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Key, Eye, EyeOff, Save, Trash2, LogOut } from "lucide-react";
+import { Key, Eye, EyeOff, Save, Trash2 } from "lucide-react";
 
 interface SecurityTabProps {
   passwordData: {
@@ -16,7 +16,6 @@ interface SecurityTabProps {
   handleChangePassword: () => Promise<void>;
   passwordLoading: boolean;
   deleteAccount: () => Promise<void>;
-  logout: () => Promise<void>;
 }
 
 export function SecurityTab({
@@ -24,8 +23,7 @@ export function SecurityTab({
   setPasswordData,
   handleChangePassword,
   passwordLoading,
-  deleteAccount,
-  logout
+  deleteAccount
 }: SecurityTabProps) {
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -131,51 +129,28 @@ export function SecurityTab({
           <CardDescription>خيارات حسابك والأمان</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    هل أنت متأكد من رغبتك في تسجيل الخروج من الحساب؟
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                  <AlertDialogAction onClick={logout}>تسجيل الخروج</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  حذف الحساب
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>حذف الحساب نهائياً</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    تحذير: هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك ومجموعاتك نهائياً.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground">
-                    حذف نهائي
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="gap-2 w-full">
+                <Trash2 className="w-4 h-4" />
+                حذف الحساب
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>حذف الحساب نهائياً</AlertDialogTitle>
+                <AlertDialogDescription>
+                  تحذير: هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك ومجموعاتك نهائياً.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground">
+                  حذف نهائي
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

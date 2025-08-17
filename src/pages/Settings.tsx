@@ -324,6 +324,7 @@ const Settings = () => {
               planBadgeConfig={getPlanBadgeConfig(currentPlan)}
               isTrialActive={isTrialActive}
               daysLeft={daysLeft}
+              logout={logout}
             />
           </TabsContent>
 
@@ -562,7 +563,6 @@ const Settings = () => {
               handleChangePassword={handleChangePassword}
               passwordLoading={passwordLoading}
               deleteAccount={deleteAccount}
-              logout={logout}
             />
           </TabsContent>
 

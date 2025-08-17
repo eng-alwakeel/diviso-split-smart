@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Save, User, Crown } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Camera, Save, User, Crown, LogOut } from "lucide-react";
 import { PlanBadge } from "@/components/ui/plan-badge";
 
 interface ProfileTabProps {
@@ -28,6 +29,7 @@ interface ProfileTabProps {
   planBadgeConfig: any;
   isTrialActive?: boolean;
   daysLeft?: number;
+  logout: () => void;
 }
 
 export function ProfileTab({
@@ -41,7 +43,8 @@ export function ProfileTab({
   isAdmin,
   planBadgeConfig,
   isTrialActive,
-  daysLeft
+  daysLeft,
+  logout
 }: ProfileTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -184,7 +187,29 @@ export function ProfileTab({
             </div>
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  تسجيل الخروج
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    هل أنت متأكد من أنك تريد تسجيل الخروج من حسابك؟
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction onClick={logout}>
+                    تسجيل الخروج
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button onClick={saveProfile} className="gap-2">
               <Save className="w-4 h-4" />
               حفظ التغييرات
