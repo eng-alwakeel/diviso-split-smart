@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminBadge } from "@/hooks/useAdminBadge";
+import { AdminBadge } from "@/components/ui/admin-badge";
 import { Shield } from "lucide-react";
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
@@ -12,6 +14,7 @@ interface AppHeaderProps {
 export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const navigate = useNavigate();
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { shouldShowBadge: shouldShowAdminBadge, badgeConfig: adminBadgeConfig } = useAdminBadge();
 
   return (
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
@@ -31,7 +34,15 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
           </div>
 
           {/* Right: Admin Dashboard Link */}
-          <div className="justify-self-end">
+          <div className="justify-self-end flex items-center gap-2">
+            {shouldShowAdminBadge && (
+              <AdminBadge 
+                config={adminBadgeConfig} 
+                size="sm"
+                style="compact"
+              />
+            )}
+            
             {adminData?.isAdmin && (
               <Button
                 variant="ghost"
