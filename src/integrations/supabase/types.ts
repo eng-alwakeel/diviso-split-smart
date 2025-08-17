@@ -1233,10 +1233,12 @@ export type Database = {
           canceled_at: string | null
           created_at: string
           expires_at: string
+          first_trial_started_at: string | null
           id: string
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
+          total_trial_days_used: number | null
           updated_at: string
           user_id: string
         }
@@ -1244,10 +1246,12 @@ export type Database = {
           canceled_at?: string | null
           created_at?: string
           expires_at?: string
+          first_trial_started_at?: string | null
           id?: string
           plan: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          total_trial_days_used?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1255,10 +1259,12 @@ export type Database = {
           canceled_at?: string | null
           created_at?: string
           expires_at?: string
+          first_trial_started_at?: string | null
           id?: string
           plan?: Database["public"]["Enums"]["subscription_plan"]
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
+          total_trial_days_used?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1490,6 +1496,10 @@ export type Database = {
           pending_paid: number
           user_id: string
         }[]
+      }
+      get_remaining_trial_days: {
+        Args: { p_user_id: string }
+        Returns: number
       }
       get_user_dashboard: {
         Args: { p_user_id: string }

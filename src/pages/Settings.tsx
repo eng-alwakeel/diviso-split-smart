@@ -55,7 +55,7 @@ const getStatusDisplayName = (status: string) => {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscription, isTrialActive, daysLeft, totalDaysLeft, freeDaysFromReferrals, loading, refresh, startTrial } = useSubscription();
+  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
@@ -240,6 +240,12 @@ const Settings = () => {
           description: "لديك تجربة مجانية نشطة بالفعل",
           variant: "destructive"
         });
+      } else if (result.error === 'trial_expired') {
+        toast({
+          title: "انتهت فترة التجربة",
+          description: "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
+          variant: "destructive"
+        });
       } else {
         toast({
           title: "خطأ",
@@ -250,7 +256,32 @@ const Settings = () => {
     } else {
       toast({
         title: "تم بدء التجربة المجانية!",
-        description: `تم تفعيل باقة ${getPlanDisplayName(plan)} لمدة ${daysLeft} أيام`,
+        description: `تم تفعيل باقة ${getPlanDisplayName(plan)} لمدة 7 أيام`,
+      });
+      await refresh();
+    }
+  };
+
+  const handleSwitchPlan = async (plan: 'personal' | 'family') => {
+    const result = await switchPlan(plan);
+    if (result.error) {
+      if (result.error === 'trial_expired') {
+        toast({
+          title: "انتهت فترة التجربة",
+          description: "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء تبديل الباقة",
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "تم تبديل الباقة!",
+        description: `تم التبديل إلى باقة ${getPlanDisplayName(plan)} بنجاح`,
       });
       await refresh();
     }
@@ -335,9 +366,13 @@ const Settings = () => {
               isTrialActive={isTrialActive}
               daysLeft={daysLeft}
               totalDaysLeft={totalDaysLeft}
+              remainingTrialDays={remainingTrialDays}
+              canStartTrial={canStartTrial}
+              canSwitchPlan={canSwitchPlan}
               freeDaysFromReferrals={freeDaysFromReferrals}
               loading={loading}
               handleStartTrial={handleStartTrial}
+              handleSwitchPlan={handleSwitchPlan}
               getPlanDisplayName={getPlanDisplayName}
               getStatusDisplayName={getStatusDisplayName}
             />

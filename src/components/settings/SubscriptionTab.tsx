@@ -13,9 +13,13 @@ interface SubscriptionTabProps {
   isTrialActive: boolean;
   daysLeft: number;
   totalDaysLeft: number;
+  remainingTrialDays: number;
+  canStartTrial: boolean;
+  canSwitchPlan: boolean;
   freeDaysFromReferrals: number;
   loading: boolean;
   handleStartTrial: (plan: 'personal' | 'family') => Promise<void>;
+  handleSwitchPlan: (plan: 'personal' | 'family') => Promise<void>;
   getPlanDisplayName: (plan: string) => string;
   getStatusDisplayName: (status: string) => string;
 }
@@ -25,9 +29,13 @@ export function SubscriptionTab({
   isTrialActive,
   daysLeft,
   totalDaysLeft,
+  remainingTrialDays,
+  canStartTrial,
+  canSwitchPlan,
   freeDaysFromReferrals,
   loading,
   handleStartTrial,
+  handleSwitchPlan,
   getPlanDisplayName,
   getStatusDisplayName
 }: SubscriptionTabProps) {
@@ -119,49 +127,139 @@ export function SubscriptionTab({
 
               <QuotaStatus />
 
-              {!subscription?.plan || subscription?.plan === 'free' ? (
-                <div className="space-y-4 pt-4 border-t border-border">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">ابدأ تجربتك المجانية</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="border border-border/50 hover:border-accent/50 transition-colors">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-accent" />
-                          الباقة الشخصية
-                        </CardTitle>
-                        <CardDescription>للاستخدام الشخصي</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button 
-                          onClick={() => handleStartTrial('personal')}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          <Calendar className="w-4 h-4 ml-2" />
-                          تجربة مجانية 30 يوم
-                        </Button>
-                      </CardContent>
-                    </Card>
+              {/* Trial Days Remaining Display */}
+              {remainingTrialDays > 0 && (
+                <div className="space-y-2 pt-4 border-t border-border">
+                  <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-green-600" />
+                    أيام التجربة المجانية المتبقية
+                  </label>
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-green-700 dark:text-green-300">التجربة المجانية الموحدة</span>
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-400">
+                        {remainingTrialDays} من 7 أيام
+                      </Badge>
+                    </div>
+                    <Progress value={(remainingTrialDays / 7) * 100} className="h-2 mb-2" />
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      يمكنك التبديل بين الباقات خلال فترة التجربة المجانية
+                    </p>
+                  </div>
+                </div>
+              )}
 
-                    <Card className="border border-border/50 hover:border-accent/50 transition-colors">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Crown className="w-4 h-4 text-accent" />
-                          الباقة العائلية
-                        </CardTitle>
-                        <CardDescription>للعائلات والمجموعات</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button 
-                          onClick={() => handleStartTrial('family')}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          <Calendar className="w-4 h-4 ml-2" />
-                          تجربة مجانية 30 يوم
-                        </Button>
-                      </CardContent>
-                    </Card>
+              {!subscription?.plan || subscription?.plan === 'free' ? (
+                canStartTrial ? (
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">ابدأ تجربتك المجانية (7 أيام)</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="border border-border/50 hover:border-accent/50 transition-colors">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-accent" />
+                            الباقة الشخصية
+                          </CardTitle>
+                          <CardDescription>للاستخدام الشخصي</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            onClick={() => handleStartTrial('personal')}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            <Calendar className="w-4 h-4 ml-2" />
+                            تجربة مجانية 7 أيام
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border border-border/50 hover:border-accent/50 transition-colors">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-accent" />
+                            الباقة العائلية
+                          </CardTitle>
+                          <CardDescription>للعائلات والمجموعات</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            onClick={() => handleStartTrial('family')}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            <Calendar className="w-4 h-4 ml-2" />
+                            تجربة مجانية 7 أيام
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 pt-4 border-t border-border">
+                    <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-5 h-5 text-amber-600" />
+                        <span className="font-medium text-amber-800 dark:text-amber-400">انتهت فترة التجربة المجانية</span>
+                      </div>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+                        لقد استنفدت فترة التجربة المجانية المتاحة لك (7 أيام). للاستمرار في استخدام المميزات المتقدمة، يرجى الاشتراك في إحدى الباقات.
+                      </p>
+                      <Button 
+                        onClick={() => navigate('/pricing')}
+                        className="w-full"
+                        variant="default"
+                      >
+                        اشترك الآن
+                      </Button>
+                    </div>
+                  </div>
+                )
+              ) : canSwitchPlan ? (
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">تبديل الباقة (ضمن التجربة المجانية)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {subscription.plan !== 'personal' && (
+                      <Card className="border border-border/50 hover:border-accent/50 transition-colors">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-accent" />
+                            الباقة الشخصية
+                          </CardTitle>
+                          <CardDescription>للاستخدام الشخصي</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            onClick={() => handleSwitchPlan('personal')}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            التبديل للباقة الشخصية
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {subscription.plan !== 'family' && (
+                      <Card className="border border-border/50 hover:border-accent/50 transition-colors">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-accent" />
+                            الباقة العائلية
+                          </CardTitle>
+                          <CardDescription>للعائلات والمجموعات</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            onClick={() => handleSwitchPlan('family')}
+                            className="w-full"
+                            variant="outline"
+                          >
+                            التبديل للباقة العائلية
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               ) : (
