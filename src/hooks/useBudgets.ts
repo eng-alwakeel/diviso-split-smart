@@ -31,11 +31,17 @@ export type CreateBudgetData = {
   category_id?: string;
 };
 
-async function fetchBudgets(): Promise<Budget[]> {
-  const { data, error } = await supabase
+async function fetchBudgets(groupId?: string): Promise<Budget[]> {
+  let query = supabase
     .from("budgets")
     .select("*")
     .order("created_at", { ascending: false });
+  
+  if (groupId) {
+    query = query.eq("group_id", groupId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) throw error;
   return data || [];
@@ -79,7 +85,7 @@ async function deleteBudget(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export function useBudgets() {
+export function useBudgets(groupId?: string) {
   const queryClient = useQueryClient();
 
   const {
@@ -88,14 +94,15 @@ export function useBudgets() {
     error,
     refetch
   } = useQuery({
-    queryKey: ["budgets"],
-    queryFn: fetchBudgets,
+    queryKey: ["budgets", groupId],
+    queryFn: () => fetchBudgets(groupId),
   });
 
   const createMutation = useMutation({
     mutationFn: createBudget,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["group-budget-tracking"] });
       toast.success("تم إنشاء الميزانية بنجاح");
     },
     onError: (error: any) => {
@@ -108,6 +115,7 @@ export function useBudgets() {
       updateBudget(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["group-budget-tracking"] });
       toast.success("تم تحديث الميزانية بنجاح");
     },
     onError: (error: any) => {
@@ -119,6 +127,7 @@ export function useBudgets() {
     mutationFn: deleteBudget,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["group-budget-tracking"] });
       toast.success("تم حذف الميزانية بنجاح");
     },
     onError: (error: any) => {

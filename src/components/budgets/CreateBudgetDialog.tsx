@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   MapPin, 
   Calendar, 
@@ -15,17 +16,22 @@ import {
   PiggyBank, 
   CreditCard,
   Users,
-  RefreshCw
+  RefreshCw,
+  HelpCircle,
+  Tag
 } from "lucide-react";
 import { toast } from "sonner";
 import { useGroups } from "@/hooks/useGroups";
+import { useCategories } from "@/hooks/useCategories";
 import { CreateBudgetData } from "@/hooks/useBudgets";
+import { addDays, addWeeks, addMonths, addYears, format } from "date-fns";
 
 interface CreateBudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateBudget: (data: CreateBudgetData) => Promise<void>;
   isCreating: boolean;
+  groupId?: string; // إضافة معرف المجموعة كخيار
 }
 
 const budgetTypes = [
@@ -89,9 +95,11 @@ export function CreateBudgetDialog({
   open, 
   onOpenChange, 
   onCreateBudget, 
-  isCreating 
+  isCreating,
+  groupId 
 }: CreateBudgetDialogProps) {
   const { data: groups = [], isLoading: groupsLoading, error: groupsError, refetch: refetchGroups } = useGroups();
+  const { categories = [], isLoading: categoriesLoading } = useCategories();
   const [step, setStep] = useState<'type' | 'details'>('type');
   const [selectedType, setSelectedType] = useState<typeof budgetTypes[0] | null>(null);
   const [formData, setFormData] = useState({
@@ -99,10 +107,41 @@ export function CreateBudgetDialog({
     total_amount: "",
     amount_limit: "",
     period: "monthly" as "weekly" | "monthly" | "yearly" | "quarterly" | "custom",
-    start_date: "",
+    start_date: new Date().toISOString().split('T')[0],
     end_date: "",
-    group_id: ""
+    group_id: groupId || "",
+    category_id: ""
   });
+
+  // حساب تاريخ النهاية تلقائياً عند تغيير الفترة أو تاريخ البداية
+  useEffect(() => {
+    if (formData.start_date && formData.period !== 'custom') {
+      const startDate = new Date(formData.start_date);
+      let endDate: Date;
+
+      switch (formData.period) {
+        case 'weekly':
+          endDate = addWeeks(startDate, 1);
+          break;
+        case 'monthly':
+          endDate = addMonths(startDate, 1);
+          break;
+        case 'quarterly':
+          endDate = addMonths(startDate, 3);
+          break;
+        case 'yearly':
+          endDate = addYears(startDate, 1);
+          break;
+        default:
+          return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        end_date: endDate.toISOString().split('T')[0]
+      }));
+    }
+  }, [formData.start_date, formData.period]);
 
   const handleTypeSelect = (type: typeof budgetTypes[0]) => {
     setSelectedType(type);
@@ -117,8 +156,29 @@ export function CreateBudgetDialog({
   };
 
   const handleSubmit = async () => {
+    // التحقق من الحقول المطلوبة
     if (!selectedType || !formData.name || !formData.total_amount || !formData.group_id) {
       toast.error("يرجى ملء جميع الحقول المطلوبة");
+      return;
+    }
+
+    // التحقق من صحة المبالغ
+    const totalAmount = parseFloat(formData.total_amount);
+    const limitAmount = formData.amount_limit ? parseFloat(formData.amount_limit) : totalAmount;
+
+    if (totalAmount <= 0) {
+      toast.error("يجب أن يكون المبلغ الإجمالي أكبر من صفر");
+      return;
+    }
+
+    if (limitAmount > totalAmount) {
+      toast.error("لا يمكن أن يكون الحد الأقصى أكبر من المبلغ الإجمالي");
+      return;
+    }
+
+    // التحقق من صحة التواريخ
+    if (formData.end_date && formData.start_date >= formData.end_date) {
+      toast.error("يجب أن يكون تاريخ النهاية بعد تاريخ البداية");
       return;
     }
 
@@ -130,16 +190,17 @@ export function CreateBudgetDialog({
     try {
       await onCreateBudget({
         name: formData.name,
-        total_amount: parseFloat(formData.total_amount),
-        amount_limit: formData.amount_limit ? parseFloat(formData.amount_limit) : parseFloat(formData.total_amount),
-        start_date: formData.start_date || new Date().toISOString().split('T')[0],
+        total_amount: totalAmount,
+        amount_limit: limitAmount,
+        start_date: formData.start_date,
         end_date: formData.end_date || undefined,
         period: formData.period,
         budget_type: selectedType.id,
-        group_id: formData.group_id
+        group_id: formData.group_id,
+        category_id: formData.category_id || undefined
       });
 
-      // Reset form
+      // إعادة تعيين النموذج
       setStep('type');
       setSelectedType(null);
       setFormData({
@@ -147,9 +208,10 @@ export function CreateBudgetDialog({
         total_amount: "",
         amount_limit: "",
         period: "monthly",
-        start_date: "",
+        start_date: new Date().toISOString().split('T')[0],
         end_date: "",
-        group_id: ""
+        group_id: groupId || "",
+        category_id: ""
       });
       onOpenChange(false);
     } catch (error: any) {
@@ -214,35 +276,100 @@ export function CreateBudgetDialog({
       </div>
 
       <div>
-        <Label htmlFor="budget-name">اسم الميزانية</Label>
+        <Label htmlFor="budget-name">اسم الميزانية *</Label>
         <Input
           id="budget-name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="مثال: ميزانية شهر يناير"
+          className={!formData.name ? "border-destructive" : ""}
         />
       </div>
 
       <div>
-        <Label htmlFor="budget-amount">المبلغ الإجمالي</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="budget-amount">المبلغ الإجمالي *</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>المبلغ الكامل المخصص لهذه الميزانية</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Input
           id="budget-amount"
           type="number"
+          min="1"
           value={formData.total_amount}
           onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
           placeholder="0"
+          className={!formData.total_amount || parseFloat(formData.total_amount) <= 0 ? "border-destructive" : ""}
         />
       </div>
 
       <div>
-        <Label htmlFor="budget-limit">الحد الأقصى للإنفاق (اختياري)</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="budget-limit">الحد الأقصى للإنفاق (اختياري)</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>الحد الأقصى للإنفاق قبل إرسال تنبيه. اتركه فارغاً لاستخدام المبلغ الإجمالي</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Input
           id="budget-limit"
           type="number"
+          min="1"
           value={formData.amount_limit}
           onChange={(e) => setFormData({ ...formData, amount_limit: e.target.value })}
-          placeholder="اتركه فارغاً لاستخدام المبلغ الإجمالي"
+          placeholder={`الافتراضي: ${formData.total_amount || '0'} ريال`}
         />
+        {formData.amount_limit && formData.total_amount && 
+         parseFloat(formData.amount_limit) > parseFloat(formData.total_amount) && (
+          <p className="text-sm text-destructive mt-1">
+            لا يمكن أن يكون الحد الأقصى أكبر من المبلغ الإجمالي
+          </p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="budget-category">الفئة (اختياري)</Label>
+        <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="اختر الفئة" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">بدون فئة</SelectItem>
+            {categoriesLoading ? (
+              <SelectItem value="" disabled>
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin">
+                    <RefreshCw className="h-4 w-4" />
+                  </div>
+                  جاري التحميل...
+                </div>
+              </SelectItem>
+            ) : (
+              categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    <span>{category.name_ar}</span>
+                  </div>
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
@@ -303,7 +430,19 @@ export function CreateBudgetDialog({
       </div>
 
       <div>
-        <Label htmlFor="budget-period">الفترة</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="budget-period">الفترة</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>فترة الميزانية. سيتم حساب تاريخ النهاية تلقائياً</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Select 
           value={formData.period} 
           onValueChange={(value: "weekly" | "monthly" | "yearly" | "quarterly" | "custom") => 
@@ -314,35 +453,88 @@ export function CreateBudgetDialog({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="weekly">أسبوعية</SelectItem>
-            <SelectItem value="monthly">شهرية</SelectItem>
-            <SelectItem value="quarterly">ربع سنوية</SelectItem>
-            <SelectItem value="yearly">سنوية</SelectItem>
-            <SelectItem value="custom">مخصصة</SelectItem>
+            <SelectItem value="weekly">
+              <div className="flex flex-col">
+                <span>أسبوعية</span>
+                <span className="text-xs text-muted-foreground">7 أيام</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="monthly">
+              <div className="flex flex-col">
+                <span>شهرية</span>
+                <span className="text-xs text-muted-foreground">شهر واحد</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="quarterly">
+              <div className="flex flex-col">
+                <span>ربع سنوية</span>
+                <span className="text-xs text-muted-foreground">3 أشهر</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="yearly">
+              <div className="flex flex-col">
+                <span>سنوية</span>
+                <span className="text-xs text-muted-foreground">سنة واحدة</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="custom">
+              <div className="flex flex-col">
+                <span>مخصصة</span>
+                <span className="text-xs text-muted-foreground">تحديد يدوي للفترة</span>
+              </div>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="start-date">تاريخ البداية</Label>
+          <Label htmlFor="start-date">تاريخ البداية *</Label>
           <Input
             id="start-date"
             type="date"
             value={formData.start_date}
             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            className={!formData.start_date ? "border-destructive" : ""}
           />
         </div>
         <div>
-          <Label htmlFor="end-date">تاريخ النهاية (اختياري)</Label>
+          <Label htmlFor="end-date">
+            تاريخ النهاية 
+            {formData.period !== 'custom' && (
+              <span className="text-xs text-muted-foreground ml-1">(محسوب تلقائياً)</span>
+            )}
+          </Label>
           <Input
             id="end-date"
             type="date"
             value={formData.end_date}
             onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+            disabled={formData.period !== 'custom'}
+            className={formData.period !== 'custom' ? "opacity-60" : ""}
           />
+          {formData.end_date && formData.start_date >= formData.end_date && (
+            <p className="text-sm text-destructive mt-1">
+              يجب أن يكون تاريخ النهاية بعد تاريخ البداية
+            </p>
+          )}
         </div>
       </div>
+
+      {/* معاينة الميزانية */}
+      {formData.name && formData.total_amount && (
+        <div className="bg-muted/50 rounded-lg p-3 border">
+          <h4 className="font-medium mb-2">معاينة الميزانية:</h4>
+          <div className="text-sm space-y-1">
+            <p><span className="font-medium">الاسم:</span> {formData.name}</p>
+            <p><span className="font-medium">المبلغ:</span> {formData.total_amount} ريال</p>
+            <p><span className="font-medium">الفترة:</span> 
+              {formData.start_date && format(new Date(formData.start_date), 'dd/MM/yyyy')}
+              {formData.end_date && ` - ${format(new Date(formData.end_date), 'dd/MM/yyyy')}`}
+            </p>
+          </div>
+        </div>
+      )}
 
       <Button 
         onClick={handleSubmit} 
