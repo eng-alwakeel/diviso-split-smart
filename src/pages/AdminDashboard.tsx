@@ -3,6 +3,10 @@ import { ar } from "date-fns/locale";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminStats, useAdminUsers, useAdminGroups } from "@/hooks/useAdminStats";
 import { useEnhancedAdminStats } from "@/hooks/useEnhancedAdminStats";
+import { useBusinessMetrics, useRevenueInsights } from "@/hooks/useBusinessMetrics";
+import { RevenueMetricsCards } from "@/components/admin/RevenueMetricsCards";
+import { PlanPerformanceChart } from "@/components/admin/PlanPerformanceChart";
+import { BusinessHealthMetrics } from "@/components/admin/BusinessHealthMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,6 +24,8 @@ import { toast } from "@/hooks/use-toast";
 
 export const AdminDashboard = () => {
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { data: businessMetrics, isLoading: businessLoading, refetch: refetchBusiness } = useBusinessMetrics();
+  const { data: revenueInsights, isLoading: insightsLoading, refetch: refetchInsights } = useRevenueInsights();
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useAdminUsers();
   const { data: groups, isLoading: groupsLoading, refetch: refetchGroups } = useAdminGroups();
@@ -41,6 +47,8 @@ export const AdminDashboard = () => {
   
   const handleRefresh = () => {
     Promise.all([
+      refetchBusiness(),
+      refetchInsights(),
       refetchStats(),
       refetchUsers(), 
       refetchGroups(),
@@ -92,189 +100,84 @@ export const AdminDashboard = () => {
           <AdminExport onExport={handleExport} isLoading={false} />
         </div> */}
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="subscriptions">الاشتراكات</TabsTrigger>
+        <Tabs defaultValue="revenue" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="revenue">الإيرادات والنمو</TabsTrigger>
+            <TabsTrigger value="health">صحة الأعمال</TabsTrigger>
+            <TabsTrigger value="plans">تحليل الباقات</TabsTrigger>
             <TabsTrigger value="activity">النشاط</TabsTrigger>
             <TabsTrigger value="management">الإدارة</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Enhanced Statistics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-br from-primary/10 to-primary/20 border-primary/20 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-primary">إجمالي المستخدمين</CardTitle>
-                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                    👥
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{stats?.total_users?.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">مسجلين في النظام</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-500/10 to-green-500/20 border-green-500/20 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">إجمالي المجموعات</CardTitle>
-                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-                    🏢
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{stats?.total_groups?.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">مجموعات نشطة</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/20 border-purple-500/20 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-400">إجمالي المصروفات</CardTitle>
-                  <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                    💳
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{stats?.total_expenses?.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground mt-1">مصروف معتمد</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/20 border-yellow-500/20 hover:shadow-lg transition-all duration-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-yellow-700 dark:text-yellow-400">إجمالي المبلغ</CardTitle>
-                  <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
-                    💰
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-foreground">{stats?.total_amount?.toLocaleString()} ر.س</div>
-                  <p className="text-xs text-muted-foreground mt-1">إجمالي الإنفاق</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Enhanced Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="hover:shadow-md transition-shadow duration-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    📊 إحصائيات سريعة
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">الاشتراكات النشطة</span>
-                    <Badge variant="secondary" className="text-sm font-semibold">
-                      {stats?.active_subscriptions?.toLocaleString()}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">مستخدمين جدد هذا الشهر</span>
-                    <Badge variant="secondary" className="text-sm font-semibold">
-                      {stats?.new_users_this_month?.toLocaleString()}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">المستخدمين النشطين اليوم</span>
-                    <Badge variant="secondary" className="text-sm font-semibold">
-                      {stats?.active_users_today?.toLocaleString()}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">الإيرادات الشهرية</span>
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                      {stats?.monthly_revenue?.toLocaleString()} ر.س
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow duration-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    📈 نمو الاستخدام
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">معدل النمو الشهري</span>
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">+12%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">معدل الاحتفاظ</span>
-                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">85%</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">متوسط المصروفات يومياً</span>
-                    <span className="font-medium text-foreground">
-                      {Math.round((stats?.total_expenses || 0) / 30).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">متوسط المجموعات الجديدة</span>
-                    <span className="font-medium text-foreground">
-                      {Math.round((stats?.total_groups || 0) / 30).toLocaleString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow duration-200">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    🎯 أهداف الأداء
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground text-sm">هدف المستخدمين (1000)</span>
-                      <span className="font-medium text-sm">{((stats?.total_users || 0) / 1000 * 100).toFixed(1)}%</span>
+          <TabsContent value="revenue" className="space-y-6">
+            <RevenueMetricsCards 
+              data={businessMetrics || {} as any} 
+              isLoading={businessLoading} 
+            />
+            
+            <PlanPerformanceChart 
+              data={businessMetrics || {} as any} 
+              isLoading={businessLoading} 
+            />
+            
+            {revenueInsights && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>أهم مصادر الإيرادات</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {revenueInsights.top_revenue_sources.map((source, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm">{source.source}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">{source.percentage}%</Badge>
+                            <span className="text-sm font-medium">
+                              {source.revenue.toLocaleString('ar-SA')} ريال
+                            </span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: `${Math.min(((stats?.total_users || 0) / 1000 * 100), 100)}%` }}
-                      ></div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>فرص النمو</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {revenueInsights.growth_opportunities.map((opportunity, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm">{opportunity.opportunity}</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            {opportunity.potential}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground text-sm">هدف الإيرادات (10,000 ر.س)</span>
-                      <span className="font-medium text-sm">{((stats?.monthly_revenue || 0) / 10000 * 100).toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full" 
-                        style={{ width: `${Math.min(((stats?.monthly_revenue || 0) / 10000 * 100), 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground text-sm">هدف المجموعات (500)</span>
-                      <span className="font-medium text-sm">{((stats?.total_groups || 0) / 500 * 100).toFixed(1)}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="bg-purple-500 h-2 rounded-full" 
-                        style={{ width: `${Math.min(((stats?.total_groups || 0) / 500 * 100), 100)}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="subscriptions" className="space-y-6">
-            {enhancedStats?.subscriptions && (
-              <SubscriptionStatsCards data={enhancedStats.subscriptions} />
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </TabsContent>
+
+          <TabsContent value="health" className="space-y-6">
+            <BusinessHealthMetrics 
+              data={businessMetrics || {} as any} 
+              isLoading={businessLoading} 
+            />
+          </TabsContent>
+
+          <TabsContent value="plans" className="space-y-6">
+            <PlanPerformanceChart 
+              data={businessMetrics || {} as any} 
+              isLoading={businessLoading} 
+            />
+          </TabsContent>
+
 
           <TabsContent value="activity" className="space-y-6">
             {enhancedStats?.activity && (
