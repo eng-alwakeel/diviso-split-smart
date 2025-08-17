@@ -1,15 +1,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CreditCard, Calendar, Zap, Crown } from "lucide-react";
-import { QuotaStatus } from "@/components/QuotaStatus";
+import { CreditCard, Calendar, Clock, Gift, Zap, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { QuotaStatus } from "@/components/QuotaStatus";
 
 interface SubscriptionTabProps {
   subscription: any;
   isTrialActive: boolean;
   daysLeft: number;
+  totalDaysLeft: number;
+  freeDaysFromReferrals: number;
   loading: boolean;
   handleStartTrial: (plan: 'personal' | 'family') => Promise<void>;
   getPlanDisplayName: (plan: string) => string;
@@ -20,12 +24,18 @@ export function SubscriptionTab({
   subscription,
   isTrialActive,
   daysLeft,
+  totalDaysLeft,
+  freeDaysFromReferrals,
   loading,
   handleStartTrial,
   getPlanDisplayName,
   getStatusDisplayName
 }: SubscriptionTabProps) {
   const navigate = useNavigate();
+
+  const formatDate = (date: string) => {
+    return format(new Date(date), "d MMMM yyyy", { locale: ar });
+  };
 
   return (
     <div className="space-y-6">
@@ -67,21 +77,40 @@ export function SubscriptionTab({
                   </Badge>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">تاريخ انتهاء الاشتراك</label>
-                  <p className="text-muted-foreground">
-                    {subscription?.expiry_date 
-                      ? new Date(subscription.expiry_date).toLocaleDateString('ar-SA')
-                      : 'غير محدد'
-                    }
-                  </p>
-                </div>
-
-                {isTrialActive && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">الأيام المتبقية</label>
+                {subscription && (
+                  <>
                     <div className="space-y-2">
-                      <p className="text-lg font-bold text-accent">{daysLeft} أيام</p>
+                      <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        تاريخ البداية
+                      </label>
+                      <p className="text-muted-foreground">
+                        {formatDate(subscription.started_at)}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        تاريخ الانتهاء
+                      </label>
+                      <p className="text-muted-foreground">
+                        {formatDate(subscription.expires_at)}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {subscription && daysLeft > 0 && (
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-foreground">الأيام المتبقية (الاشتراك الفعلي)</label>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-lg font-bold text-accent">{daysLeft} أيام</p>
+                        <span className="text-sm text-muted-foreground">
+                          من إجمالي {Math.ceil((new Date(subscription.expires_at).getTime() - new Date(subscription.started_at).getTime()) / (1000 * 60 * 60 * 24))} يوم
+                        </span>
+                      </div>
                       <Progress value={(daysLeft / 30) * 100} className="h-2" />
                     </div>
                   </div>
@@ -149,6 +178,39 @@ export function SubscriptionTab({
           )}
         </CardContent>
       </Card>
+
+      {freeDaysFromReferrals > 0 && (
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 shadow-card rounded-2xl backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-400">
+              <Gift className="w-5 h-5" />
+              الأيام المجانية من الإحالات
+            </CardTitle>
+            <CardDescription className="text-green-700 dark:text-green-300">
+              أيام إضافية حصلت عليها من دعوة الأصدقاء
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-green-800 dark:text-green-400">الأيام المتاحة للتطبيق:</span>
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-400 border-green-300 dark:border-green-700">
+                  {freeDaysFromReferrals} يوم
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-green-800 dark:text-green-400">إجمالي الأيام المتبقية:</span>
+                <span className="text-lg font-bold text-green-900 dark:text-green-300">{totalDaysLeft} يوم</span>
+              </div>
+
+              <p className="text-xs text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
+                💡 يمكنك تطبيق هذه الأيام المجانية لتمديد اشتراكك الحالي أو المستقبلي من خلال مركز الإحالات
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

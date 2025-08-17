@@ -55,7 +55,7 @@ const getStatusDisplayName = (status: string) => {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscription, isTrialActive, daysLeft, loading, refresh, startTrial } = useSubscription();
+  const { subscription, isTrialActive, daysLeft, totalDaysLeft, freeDaysFromReferrals, loading, refresh, startTrial } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
@@ -334,6 +334,8 @@ const Settings = () => {
               subscription={subscription}
               isTrialActive={isTrialActive}
               daysLeft={daysLeft}
+              totalDaysLeft={totalDaysLeft}
+              freeDaysFromReferrals={freeDaysFromReferrals}
               loading={loading}
               handleStartTrial={handleStartTrial}
               getPlanDisplayName={getPlanDisplayName}

@@ -89,16 +89,21 @@ export function useSubscription() {
   }, [subscription]);
 
   const daysLeft = useMemo(() => {
-    if (!subscription) return freeDaysFromReferrals;
+    if (!subscription) return 0;
     const exp = new Date(subscription.expires_at).getTime();
     const diff = Math.ceil((exp - Date.now()) / (1000 * 60 * 60 * 24));
-    return Math.max(0, diff) + freeDaysFromReferrals;
-  }, [subscription, freeDaysFromReferrals]);
+    return Math.max(0, diff);
+  }, [subscription]);
+
+  const totalDaysLeft = useMemo(() => {
+    return daysLeft + freeDaysFromReferrals;
+  }, [daysLeft, freeDaysFromReferrals]);
 
   return {
     subscription,
     isTrialActive,
     daysLeft,
+    totalDaysLeft,
     loading,
     refresh: fetchSubscription,
     startTrial,
