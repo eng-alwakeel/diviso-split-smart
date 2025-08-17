@@ -48,7 +48,6 @@ import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const getPlanDisplayName = (plan: string) => {
   switch (plan) {
@@ -85,7 +84,6 @@ const Settings = () => {
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
-  const { data: adminData } = useAdminAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState("profile");
@@ -310,9 +308,6 @@ const Settings = () => {
             <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
             <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
             <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
-            {adminData?.isAdmin && (
-              <TabsTrigger value="admin" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإدارة</TabsTrigger>
-            )}
           </TabsList>
 
           {/* Profile Tab */}
@@ -358,15 +353,7 @@ const Settings = () => {
                     />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
-                      {adminData?.isAdmin && (
-                        <Badge className="bg-gradient-to-r from-accent to-accent/80 text-background text-xs">
-                          <Crown className="w-3 h-3 ml-1" />
-                          مدير
-                        </Badge>
-                      )}
-                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">{profile.name || "مستخدم"}</h3>
                     <p className="text-muted-foreground">{profile.email}</p>
                     <div className="flex gap-2 mt-2">
                       <PlanBadge 
@@ -930,77 +917,6 @@ const Settings = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Admin Tab */}
-          {adminData?.isAdmin && (
-            <TabsContent value="admin" className="space-y-6">
-              <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Crown className="w-5 h-5 text-accent" />
-                    لوحة التحكم الإدارية
-                  </CardTitle>
-                  <CardDescription>
-                    أدوات خاصة بإدارة النظام ومراقبة الأداء
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-6 bg-gradient-to-r from-accent/10 to-accent/5 rounded-lg border border-accent/20">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-accent to-accent/80 rounded-lg flex items-center justify-center">
-                        <Shield className="w-6 h-6 text-background" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground">مراقبة النظام</h3>
-                        <p className="text-sm text-muted-foreground">
-                          عرض إحصائيات مفصلة وإدارة المستخدمين والمجموعات
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-2">
-                        <p className="text-foreground flex items-center gap-2">
-                          <Users className="w-4 h-4 text-accent" />
-                          إدارة المستخدمين
-                        </p>
-                        <p className="text-foreground flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-accent" />
-                          إدارة الاشتراكات
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-foreground flex items-center gap-2">
-                          <Crown className="w-4 h-4 text-accent" />
-                          إدارة المجموعات
-                        </p>
-                        <p className="text-foreground flex items-center gap-2">
-                          <Shield className="w-4 h-4 text-accent" />
-                          تقارير الأمان
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={() => navigate('/admin-dashboard')}
-                    variant="hero"
-                    className="w-full"
-                  >
-                    <Crown className="w-4 h-4 ml-2" />
-                    دخول لوحة التحكم الإدارية
-                  </Button>
-
-                  <div className="text-center">
-                    <Badge className="bg-gradient-to-r from-accent to-accent/80 text-background">
-                      <Crown className="w-3 h-3 ml-1" />
-                      صلاحيات إدارية نشطة
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
         </Tabs>
       </div>
       <div className="h-16 md:hidden" />
