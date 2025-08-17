@@ -1318,6 +1318,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      admin_toggle_user_admin: {
+        Args: { p_is_admin: boolean; p_user_id: string }
+        Returns: boolean
+      }
       assert_quota: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
