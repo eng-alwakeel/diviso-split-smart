@@ -200,6 +200,9 @@ const MyExpenses = () => {
                       expense={expense}
                       onViewDetails={handleViewDetails}
                       currentUserId={currentUserId}
+                      onExpenseDeleted={() => {
+                        refreshExpenses();
+                      }}
                     />
                   ))}
                 </div>

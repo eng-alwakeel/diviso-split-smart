@@ -2,18 +2,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { MyExpense } from "@/hooks/useMyExpenses";
+import { useExpenseActions } from "@/hooks/useExpenseActions";
 
 interface ExpenseCardProps {
   expense: MyExpense;
   onViewDetails?: (expense: MyExpense) => void;
   currentUserId?: string;
+  onExpenseDeleted?: () => void;
 }
 
-export const ExpenseCard = ({ expense, onViewDetails, currentUserId }: ExpenseCardProps) => {
+export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDeleted }: ExpenseCardProps) => {
+  const { deleteExpense, deleting } = useExpenseActions();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved': return 'bg-success/10 text-success border-success/20';
@@ -35,6 +39,15 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId }: ExpenseCa
   const isPayer = expense.payer_id === currentUserId;
   const userSplit = expense.splits.find(split => split.member_id === currentUserId);
   const shareAmount = userSplit?.share_amount || 0;
+  const canDelete = (expense.created_by === currentUserId || isPayer) && 
+                   (expense.status === 'pending' || expense.status === 'rejected');
+
+  const handleDelete = async () => {
+    const success = await deleteExpense(expense.id);
+    if (success && onExpenseDeleted) {
+      onExpenseDeleted();
+    }
+  };
 
   return (
     <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
@@ -142,6 +155,43 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId }: ExpenseCa
               <MessageSquare className="h-3 w-3 mr-1" />
               عرض التفاصيل
             </Button>
+            
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10"
+                    disabled={deleting}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>حذف المصروف</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      هل أنت متأكد من حذف هذا المصروف؟ لا يمكن التراجع عن هذا الإجراء.
+                      <br />
+                      <strong>{expense.description || expense.note_ar || 'مصروف بدون وصف'}</strong>
+                      <br />
+                      المبلغ: {expense.amount.toLocaleString()} {expense.currency}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deleting}
+                    >
+                      {deleting ? "جاري الحذف..." : "حذف"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </CardContent>

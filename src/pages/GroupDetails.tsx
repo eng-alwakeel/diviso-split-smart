@@ -44,9 +44,11 @@ import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { BalanceDashboard } from "@/components/group/BalanceDashboard";
+import { MemberCard } from "@/components/group/MemberCard";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useMemberSubscriptions } from "@/hooks/useMemberSubscriptions";
+import { useExpenseActions } from "@/hooks/useExpenseActions";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -596,72 +598,17 @@ const GroupDetails = () => {
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
 
             <div className="space-y-4">
-              {members.map((member) => {
-                const p = profiles[member.user_id];
-                const name = p?.display_name || p?.name || `${member.user_id.slice(0, 4)}...`;
-                const balance = Number(balances.find(b => b.user_id === member.user_id)?.net_balance ?? 0);
-                const isAdmin = member.role === "admin" || member.role === "owner";
-
-                return (
-                  <Card key={member.user_id} className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
-                            <span className="text-2xl font-bold text-accent">
-                              {(name || "ع").slice(0,1)}
-                            </span>
-                            {isUserOnline(member.user_id) && (
-                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <h3 className="font-bold text-lg text-foreground">{name}</h3>
-                              {isUserOnline(member.user_id) && (
-                                <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-600 border-green-500/30">
-                                  متصل
-                                </Badge>
-                              )}
-                              {isAdmin && (
-                                <Badge variant="secondary" className="text-xs flex items-center gap-1 bg-accent/20 text-accent border-accent/30">
-                                  <Shield className="w-3 h-3" />
-                                  مدير
-                                </Badge>
-                              )}
-                              <PlanBadge 
-                                config={getPlanBadgeConfig(memberSubscriptions[member.user_id]?.plan || 'free')} 
-                                size="sm"
-                              />
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">عضو في المجموعة</p>
-                          </div>
-                        </div>
-                          <div className="text-left">
-                            <p className="text-2xl font-bold text-accent">
-                              {balance > 0 ? '+' : ''}{balance.toLocaleString()}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{currencyLabel}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {balance > 0 ? 'مدين له' : balance < 0 ? 'عليه دين' : 'متوازن'}
-                            </p>
-                            {currentUserId && myBalances.confirmed < 0 && balance > 0 && (
-                              <div className="mt-2">
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  onClick={() => { setPrefillTo(member.user_id); setPrefillAmount(Math.min(-myBalances.confirmed, balance)); setSettleOpen(true); }}
-                                >
-                                  تسوية
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {members.map((member) => (
+                <MemberCard
+                  key={member.user_id}
+                  member={member}
+                  currentUserId={currentUserId}
+                  isOwner={isOwner}
+                  canAdmin={canApprove}
+                  groupId={id!}
+                  onMemberRemoved={refetch}
+                />
+              ))}
               {!loading && members.length === 0 && (
                 <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
               )}
