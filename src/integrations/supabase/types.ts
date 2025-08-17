@@ -1365,6 +1365,18 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_admin_subscription_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_users: number
+          conversion_rate: number
+          expired_users: number
+          monthly_revenue: number
+          plan_type: string
+          total_users: number
+          trial_users: number
+        }[]
+      }
       get_balance_summary: {
         Args: { p_group_id: string }
         Returns: {
