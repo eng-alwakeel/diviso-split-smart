@@ -1,238 +1,70 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Plus, 
-  Users, 
-  Receipt, 
-  TrendingUp, 
-  Gift, 
-  Calendar,
-  DollarSign,
-  Target,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Share2,
-  BarChart3,
-  Settings,
-  AlertTriangle,
-  RefreshCw,
-  HelpCircle,
-  Shield
-} from "lucide-react";
+import { AlertTriangle, RefreshCw, HelpCircle, Plus, Users, Receipt, Target, BarChart3, Share2, Settings, Shield } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
-import { supabase } from "@/integrations/supabase/client";
-import { WalletStack } from "@/components/wallet/WalletStack";
-import RecentExpensesCards from "@/components/RecentExpensesCards";
 import MobileSummary from "@/components/MobileSummary";
 import { AppGuide } from "@/components/AppGuide";
-import { useReferrals } from "@/hooks/useReferrals";
-import { useToast } from "@/hooks/use-toast";
-import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
-import { useSecurityHeaders } from "@/hooks/useSecurityHeaders";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { QuickStatsCards } from "@/components/dashboard/QuickStatsCards";
+import { MainContent } from "@/components/dashboard/MainContent";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-
-interface GroupRow {
-  id: string;
-  name: string;
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WalletStack } from "@/components/wallet/WalletStack";
+import RecentExpensesCards from "@/components/RecentExpensesCards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { referrals, loading: referralsLoading } = useReferrals();
-  const { debounce, createCache } = usePerformanceOptimization();
-  const { sanitizeInput } = useSecurityHeaders();
-  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
-  
-  const [selectedTab, setSelectedTab] = useState("overview");
-  const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
-  const [recentExpenses, setRecentExpenses] = useState<Array<{ id: string; description: string | null; amount: number; group_id: string; spent_at: string | null; created_at: string | null; payer_id: string | null }>>([]);
-  const [myPaid, setMyPaid] = useState(0);
-  const [myOwed, setMyOwed] = useState(0);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupPaidMap, setGroupPaidMap] = useState<Record<string, number>>({});
-  const [groupOwedMap, setGroupOwedMap] = useState<Record<string, number>>({});
-  const [mySplitByExpense, setMySplitByExpense] = useState<Record<string, number>>({});
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   
-  // Loading and error states
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [monthlyTotalExpenses, setMonthlyTotalExpenses] = useState(0);
-  const [weeklyExpensesCount, setWeeklyExpensesCount] = useState(0);
+  const {
+    groups,
+    recentExpenses,
+    myPaid,
+    myOwed,
+    groupPaidMap,
+    groupOwedMap,
+    mySplitByExpense,
+    monthlyTotalExpenses,
+    weeklyExpensesCount,
+    currentUserId,
+    loading,
+    error,
+    refetch
+  } = useDashboardData();
 
-  // Performance cache
-  const cache = createCache(50);
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const { data: session } = await supabase.auth.getSession();
-        const uid = session.session?.user.id;
-        setCurrentUserId(uid ?? null);
-        if (!uid) {
-          setLoading(false);
-          return;
-        }
-      const { data: memberships } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
-      const ids = (memberships ?? []).map((m: any) => m.group_id);
-      if (!ids.length) { 
-        setGroups([]); 
-        setRecentExpenses([]); 
-        setMyPaid(0); 
-        setMyOwed(0); 
-        setGroupPaidMap({});
-        setGroupOwedMap({});
-        setSelectedGroupId(null);
-        localStorage.removeItem('selectedGroupId');
-        return; 
-      }
-      const { data: groupsData } = await supabase.from('groups').select('id,name').in('id', ids);
-      const { data: memberRows } = await supabase.from('group_members').select('group_id').in('group_id', ids);
-      const memberCount: Record<string, number> = {};
-      (memberRows ?? []).forEach((r: any) => { memberCount[r.group_id] = (memberCount[r.group_id] || 0) + 1; });
-      const { data: expenseRows } = await supabase.from('expenses').select('id, group_id, amount, payer_id').in('group_id', ids);
-      const totals: Record<string, number> = {}; const counts: Record<string, number> = {};
-      const expenseIdToGroup: Record<string, string> = {};
-      (expenseRows ?? []).forEach((e: any) => { 
-        totals[e.group_id] = (totals[e.group_id] || 0) + Number(e.amount || 0); 
-        counts[e.group_id] = (counts[e.group_id] || 0) + 1; 
-        expenseIdToGroup[e.id] = e.group_id; 
-      });
-
-      // Totals for current user (overall and per group)
-      const paidByGroup: Record<string, number> = {};
-      const paidTotal = (expenseRows ?? []).reduce((s: number, e: any) => {
-        if (e.payer_id === uid) {
-          paidByGroup[e.group_id] = (paidByGroup[e.group_id] || 0) + Number(e.amount || 0);
-          return s + Number(e.amount || 0);
-        }
-        return s;
-      }, 0);
-
-      let owedTotal = 0;
-      const owedByGroup: Record<string, number> = {};
-      const mySplitMap: Record<string, number> = {};
-      const expenseIds = (expenseRows ?? []).map((e: any) => e.id);
-      if (expenseIds.length) {
-        const { data: mySplits } = await supabase
-          .from('expense_splits')
-          .select('expense_id, share_amount')
-          .eq('member_id', uid)
-          .in('expense_id', expenseIds);
-        (mySplits ?? []).forEach((sp: any) => {
-          const gid = expenseIdToGroup[sp.expense_id];
-          mySplitMap[sp.expense_id] = Number(sp.share_amount || 0);
-          if (gid) {
-            owedByGroup[gid] = (owedByGroup[gid] || 0) + Number(sp.share_amount || 0);
-            owedTotal += Number(sp.share_amount || 0);
-          }
-        });
-      }
-      setMySplitByExpense(mySplitMap);
-      setMyPaid(paidTotal);
-      setMyOwed(owedTotal);
-      setGroupPaidMap(paidByGroup);
-      setGroupOwedMap(owedByGroup);
-
-      const mapped = (groupsData ?? []).map((g: GroupRow) => ({
-        id: g.id,
-        name: g.name,
-        members: memberCount[g.id] || 0,
-        expenses: counts[g.id] || 0,
-        totalExpenses: totals[g.id] || 0,
-        category: undefined,
-      }));
-      setGroups(mapped);
-
-      // Default selected group: last in array (top of stack) or saved value
+  // Initialize selected group
+  useState(() => {
+    if (groups.length > 0) {
       let defaultSelected = localStorage.getItem('selectedGroupId');
-      const idsSet = new Set(mapped.map((g) => g.id));
+      const idsSet = new Set(groups.map((g) => g.id));
       if (!defaultSelected || !idsSet.has(defaultSelected)) {
-        defaultSelected = mapped.length ? mapped[mapped.length - 1].id : null as any;
+        defaultSelected = groups[groups.length - 1].id;
       }
       setSelectedGroupId(defaultSelected);
-
-      const { data: latest } = await supabase
-        .from('expenses')
-        .select('id, description, amount, group_id, spent_at, created_at, payer_id')
-        .in('group_id', ids)
-        .order('spent_at', { ascending: false })
-        .limit(5);
-      setRecentExpenses(latest ?? []);
-
-      // Calculate monthly total expenses (current month)
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      
-      const { data: monthlyExpenses } = await supabase
-        .from('expenses')
-        .select('amount')
-        .eq('payer_id', uid)
-        .gte('spent_at', startOfMonth.toISOString());
-        
-      const monthlyTotal = (monthlyExpenses ?? []).reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
-      setMonthlyTotalExpenses(monthlyTotal);
-
-      // Calculate weekly expenses count
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      
-      const { data: weeklyExpenses } = await supabase
-        .from('expenses')
-        .select('id')
-        .in('group_id', ids)
-        .gte('spent_at', weekAgo.toISOString());
-        
-      setWeeklyExpensesCount((weeklyExpenses ?? []).length);
-
-      } catch (err) {
-        console.error('Dashboard loading error:', err);
-        setError('فشل في تحميل بيانات الداشبورد');
-        toast({
-          title: "خطأ في التحميل",
-          description: "فشل في تحميل بيانات الداشبورد",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [toast]);
-
-  const navigateToSelectedGroup = () => {
-    if (selectedGroupId) {
-      navigate(`/group/${selectedGroupId}`);
     }
-  };
+  });
 
   const selectGroup = (id: string) => {
     if (id === selectedGroupId) {
-      // If user clicks the same selected group again, navigate to its details
       navigate(`/group/${id}`);
       return;
     }
     setSelectedGroupId(id);
     localStorage.setItem('selectedGroupId', id);
   };
+
   const goPrev = () => {
     if (!groups.length) return;
     const idx = groups.findIndex((g) => g.id === (selectedGroupId ?? ""));
     const prevIdx = idx <= 0 ? groups.length - 1 : idx - 1;
     selectGroup(groups[prevIdx].id);
   };
+
   const goNext = () => {
     if (!groups.length) return;
     const idx = groups.findIndex((g) => g.id === (selectedGroupId ?? ""));
@@ -243,14 +75,8 @@ const Dashboard = () => {
   const selectedPaid = selectedGroupId ? (groupPaidMap[selectedGroupId] ?? 0) : myPaid;
   const selectedOwed = selectedGroupId ? (groupOwedMap[selectedGroupId] ?? 0) : myOwed;
 
-  const monthlyBudget = 2000;
-  const currentSpending = groups.reduce((s, g) => s + g.totalExpenses, 0);
-  const budgetProgress = (currentSpending / monthlyBudget) * 100;
-  
-  const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
-
   const retryLoad = () => {
-    window.location.reload();
+    refetch();
   };
 
   if (loading) {
@@ -304,11 +130,11 @@ const Dashboard = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="mb-8 hidden md:block">
+        <div className="mb-6 hidden md:block">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">مرحباً بك في ديفيزو!</h1>
-              <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
+              <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
+              <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
             </div>
             <Button
               variant="ghost"
@@ -317,7 +143,7 @@ const Dashboard = () => {
               className="text-muted-foreground hover:text-foreground"
             >
               <HelpCircle className="w-4 h-4 ml-2" />
-              دليل الاستخدام
+              المساعدة
             </Button>
           </div>
         </div>
@@ -327,106 +153,35 @@ const Dashboard = () => {
           <MobileSummary
             paid={selectedPaid}
             owed={selectedOwed}
-            totalExpenses={currentSpending}
+            totalExpenses={groups.reduce((s, g) => s + g.totalExpenses, 0)}
             groupsCount={groups.length}
             recentCount={recentExpenses.length}
           />
         </div>
         {/* Quick Stats Cards */}
-        <div className="hidden md:grid md:grid-cols-4 gap-6 mb-8">
-          {/* Total Expenses Card */}
-          <Card 
-            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
-            onClick={() => navigate('/my-expenses')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">إجمالي المصاريف</p>
-                  <p className="text-2xl font-bold text-primary">{monthlyTotalExpenses.toLocaleString()} ر.س</p>
-                  <p className="text-xs text-muted-foreground mt-1">هذا الشهر</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <DollarSign className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Groups Card */}
-          <Card 
-            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
-            onClick={() => navigate('/my-groups')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">المجموعات النشطة</p>
-                  <p className="text-2xl font-bold text-primary">{groups.length}</p>
-                  <p className="text-xs text-muted-foreground mt-1">انقر للعرض</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Expenses Card */}
-          <Card 
-            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
-            onClick={() => navigate('/my-expenses')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">المصاريف الأخيرة</p>
-                  <p className="text-2xl font-bold text-primary">{weeklyExpensesCount}</p>
-                  <p className="text-xs text-muted-foreground mt-1">خلال الأسبوع</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Receipt className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Referrals Card */}
-          <Card 
-            className="bg-card border border-border hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
-            onClick={() => navigate('/referral')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-foreground">
-                  <p className="text-sm font-medium text-muted-foreground">الإحالات</p>
-                  <p className="text-2xl font-bold text-primary">{referralsLoading ? '-' : successfulReferrals}</p>
-                  <p className="text-xs text-muted-foreground mt-1">انقر للعرض</p>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <Share2 className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="hidden md:block">
+          <QuickStatsCards
+            monthlyTotalExpenses={monthlyTotalExpenses}
+            groupsCount={groups.length}
+            weeklyExpensesCount={weeklyExpensesCount}
+          />
         </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
         {adminData?.isAdmin && (
-          <div className="hidden md:block mb-8">
+          <div className="hidden md:block mb-6">
             <Card 
               className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border border-primary/20 hover:shadow-card transition-all duration-300 cursor-pointer rounded-2xl hover:scale-[1.02] hover:border-primary/50" 
               onClick={() => navigate('/admin-dashboard')}
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="text-foreground">
                     <p className="text-sm font-medium text-primary">لوحة التحكم الإدارية</p>
-                    <p className="text-2xl font-bold text-primary">إدارة النظام</p>
-                    <p className="text-xs text-muted-foreground mt-1">انقر للوصول إلى لوحة التحكم</p>
+                    <p className="text-xs text-muted-foreground mt-1">إدارة النظام والمستخدمين</p>
                   </div>
-                  <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                    <Shield className="w-6 h-6 text-primary" />
+                  <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-primary" />
                   </div>
                 </div>
               </CardContent>
