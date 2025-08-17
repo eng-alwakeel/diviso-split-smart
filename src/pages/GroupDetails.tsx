@@ -26,7 +26,8 @@ import {
   XCircle,
   Shield,
   FileText,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams } from "react-router-dom";
@@ -49,6 +50,10 @@ import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useMemberSubscriptions } from "@/hooks/useMemberSubscriptions";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
+import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
+import { useBudgets } from "@/hooks/useBudgets";
+import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
+import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -68,6 +73,9 @@ const GroupDetails = () => {
   const [rejectExpenseOpen, setRejectExpenseOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [selectedExpenseForDetails, setSelectedExpenseForDetails] = useState<any>(null);
+  
+  // Budget state
+  const [createBudgetOpen, setCreateBudgetOpen] = useState(false);
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -84,6 +92,10 @@ const GroupDetails = () => {
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
   const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id));
+  
+  // Budget hooks
+  const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
+  const { budgets, createBudget, updateBudget, deleteBudget, isCreating } = useBudgets();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -95,6 +107,17 @@ const GroupDetails = () => {
       document.title = `${group.name} - تفاصيل المجموعة`;
     }
   }, [group?.name]);
+
+  // Calculate budget totals for quick cards
+  const budgetTotals = useMemo(() => {
+    if (!budgetTracking.length) return { total: 0, spent: 0, percentage: 0 };
+    
+    const total = budgetTracking.reduce((sum, item) => sum + (item.budgeted_amount || 0), 0);
+    const spent = budgetTracking.reduce((sum, item) => sum + (item.spent_amount || 0), 0);
+    const percentage = total > 0 ? (spent / total) * 100 : 0;
+    
+    return { total, spent, percentage };
+  }, [budgetTracking]);
 
   // إخفاء شريط التمرير أثناء التواجد في صفحة تفاصيل المجموعة
   useEffect(() => {
@@ -395,13 +418,29 @@ const GroupDetails = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
+          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm" onClick={() => setActiveTab("budget")}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
-                  <p className="text-2xl font-bold text-accent">{budgetProgress.toFixed(0)}%</p>
-                  <p className="text-xs text-muted-foreground mt-1">مستخدم</p>
+                  <p className="text-2xl font-bold text-accent">
+                    {budgetTotals.total > 0 ? `${budgetTotals.spent.toLocaleString()}` : "قريباً"}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Progress 
+                      value={budgetTotals.percentage} 
+                      className="flex-1 h-2" 
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {budgetTotals.total > 0 ? `${budgetTotals.percentage.toFixed(0)}%` : "0%"}
+                    </span>
+                  </div>
+                  {budgetAlerts.length > 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-500" />
+                      <span className="text-xs text-amber-600">{budgetAlerts.length} تنبيه</span>
+                    </div>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
                   <Target className="w-6 h-6 text-accent" />
@@ -713,24 +752,105 @@ const GroupDetails = () => {
           {/* Budget Tab */}
           <TabsContent value="budget" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">خطة الميزانية</h2>
-              <Button variant="outline" disabled>
-                <Edit className="w-4 h-4 ml-2" />
-                قريباً
-              </Button>
+              <h2 className="text-xl font-semibold">الميزانيات</h2>
+              {canApprove && (
+                <Button onClick={() => setCreateBudgetOpen(true)}>
+                  <Plus className="w-4 h-4 ml-2" />
+                  إنشاء ميزانية
+                </Button>
+              )}
             </div>
-            
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>لا توجد ميزانية مرتبطة بهذه المجموعة حالياً</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  يمكنك إنشاء ميزانية من صفحة "الخطة المالية" وربطها بالمجموعة لاحقاً.
-                </p>
-                <Progress value={0} className="w-full mt-2" />
-              </CardContent>
-            </Card>
+
+            {/* Budget Alerts */}
+            {budgetAlerts.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-amber-600 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  تنبيهات الميزانية
+                </h3>
+                {budgetAlerts.map((alert) => (
+                  <Card key={alert.category_id} className="border-amber-200 bg-amber-50">
+                    <CardContent className="p-4">
+                      <p className="text-sm text-amber-800">
+                        {getAlertMessage(alert)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Budget Tracking */}
+            {budgetLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-20 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : budgetTracking.length > 0 ? (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">تتبع الميزانيات</h3>
+                {budgetTracking.map((item) => (
+                  <Card key={item.category_id} className="shadow-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold">{item.category_name || "فئة غير محددة"}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className={getStatusColor(item.status)}>
+                              {getStatusLabel(item.status)}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {item.expense_count} مصروف
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <div className="text-2xl font-black">
+                            {item.spent_amount.toLocaleString()} {currencyLabel}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            من {item.budgeted_amount.toLocaleString()} {currencyLabel}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>المتبقي: {item.remaining_amount.toLocaleString()} {currencyLabel}</span>
+                          <span>{item.spent_percentage.toFixed(0)}%</span>
+                        </div>
+                        <Progress 
+                          value={Math.min(item.spent_percentage, 100)} 
+                          className="h-2"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle>لا توجد ميزانيات</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    لم يتم إنشاء أي ميزانيات لهذه المجموعة بعد.
+                  </p>
+                  {canApprove && (
+                    <Button onClick={() => setCreateBudgetOpen(true)} variant="outline">
+                      <Plus className="w-4 h-4 ml-2" />
+                      إنشاء أول ميزانية
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Chat Tab */}
@@ -810,6 +930,18 @@ const GroupDetails = () => {
         profiles={profiles}
         canApprove={canApprove}
         onApprove={handleExpenseApproval}
+      />
+
+      {/* Create Budget Dialog */}
+      <CreateBudgetDialog
+        open={createBudgetOpen}
+        onOpenChange={setCreateBudgetOpen}
+        onCreateBudget={async (data) => {
+          await createBudget({ ...data, group_id: id! });
+          setCreateBudgetOpen(false);
+          refetch();
+        }}
+        isCreating={isCreating}
       />
       </div>
       <div className="h-16 md:hidden" />
