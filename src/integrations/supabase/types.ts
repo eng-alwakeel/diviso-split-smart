@@ -877,6 +877,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_admin: boolean
           name: string | null
           phone: string | null
           updated_at: string
@@ -886,6 +887,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_admin?: boolean
           name?: string | null
           phone?: string | null
           updated_at?: string
@@ -895,6 +897,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_admin?: boolean
           name?: string | null
           phone?: string | null
           updated_at?: string
@@ -1349,6 +1352,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_admin_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_subscriptions: number
+          active_users_today: number
+          monthly_revenue: number
+          new_users_this_month: number
+          total_amount: number
+          total_expenses: number
+          total_groups: number
+          total_users: number
+        }[]
+      }
       get_balance_summary: {
         Args: { p_group_id: string }
         Returns: {
@@ -1401,6 +1417,19 @@ export type Database = {
           status: string
         }[]
       }
+      get_groups_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          currency: string
+          expenses_count: number
+          id: string
+          members_count: number
+          name: string
+          owner_name: string
+          total_amount: number
+        }[]
+      }
       get_pending_amounts: {
         Args: { p_group_id: string }
         Returns: {
@@ -1421,6 +1450,20 @@ export type Database = {
       get_user_plan: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      get_users_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          current_plan: string
+          display_name: string
+          expenses_count: number
+          groups_count: number
+          id: string
+          is_admin: boolean
+          name: string
+          phone: string
+        }[]
       }
       increment_lifetime_purchases: {
         Args: Record<PropertyKey, never>
