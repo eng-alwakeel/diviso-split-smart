@@ -19,6 +19,7 @@ import Notifications from "./pages/Notifications";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import EmailVerify from "./pages/EmailVerify";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import InviteRoute from "./pages/InviteRoute";
@@ -36,6 +37,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/verify" element={<EmailVerify />} />
             <Route path="/" element={<Index />} />
             <Route path="/i/:code" element={<InviteRoute />} />
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
