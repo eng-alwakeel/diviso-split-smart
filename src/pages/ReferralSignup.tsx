@@ -16,6 +16,7 @@ export default function ReferralSignup() {
   const [referralData, setReferralData] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
     phone: "",
     password: "",
     confirmPassword: ""
@@ -104,14 +105,16 @@ export default function ReferralSignup() {
     setSubmitting(true);
 
     try {
-      // Sign up the user
+      // Sign up the user with email
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        phone: formData.phone,
+        email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             name: formData.name,
             display_name: formData.name,
+            phone: formData.phone,
             referral_code: referralCode
           }
         }
@@ -125,8 +128,9 @@ export default function ReferralSignup() {
           body: {
             userId: authData.user.id,
             referralCode,
-            userPhone: formData.phone,
-            userName: formData.name
+            userEmail: formData.email,
+            userName: formData.name,
+            userPhone: formData.phone
           }
         });
 
@@ -144,7 +148,7 @@ export default function ReferralSignup() {
       console.error("Signup error:", error);
       
       if (error.message?.includes("User already registered")) {
-        toast.error("هذا الرقم مسجل مسبقاً. يرجى تسجيل الدخول");
+        toast.error("هذا البريد مسجل مسبقاً. يرجى تسجيل الدخول");
         navigate("/auth");
       } else {
         toast.error("خطأ في إنشاء الحساب. يرجى المحاولة مرة أخرى");
@@ -195,16 +199,27 @@ export default function ReferralSignup() {
                 required
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="example@email.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                required
+              />
+            </div>
             
             <div className="space-y-2">
-              <Label htmlFor="phone">رقم الهاتف</Label>
+              <Label htmlFor="phone">رقم الهاتف (اختياري)</Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="05xxxxxxxx"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                required
               />
             </div>
             

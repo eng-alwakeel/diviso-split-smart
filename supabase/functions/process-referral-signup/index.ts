@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     // Parse request body
-    const { userId, referralCode, userPhone, userName }: ReferralSignupRequest = await req.json();
+    const { userId, referralCode, userEmail, userName, userPhone }: ReferralSignupRequest = await req.json();
     console.log(`Processing referral signup for user: ${userId} with code: ${referralCode}`);
 
     if (!userId || !referralCode || !userPhone) {
