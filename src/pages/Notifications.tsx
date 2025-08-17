@@ -1,6 +1,7 @@
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
 import { useNotifications } from '@/hooks/useNotifications';
+import { GroupInviteCard } from '@/components/GroupInviteCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck } from 'lucide-react';
 
 export default function Notifications() {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, loading, refetch } = useNotifications();
   const navigate = useNavigate();
 
   const handleNotificationClick = (notification: any) => {
@@ -18,8 +19,10 @@ export default function Notifications() {
       markAsRead(notification.id);
     }
 
-    // Navigate based on notification type
-    if (notification.type.includes('expense') && notification.payload.group_id) {
+    // Navigate based on notification type - don't navigate for group invites as they have their own UI
+    if (notification.type === 'group_invite') {
+      return;
+    } else if (notification.type.includes('expense') && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'new_message' && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}?tab=chat`);
@@ -36,6 +39,8 @@ export default function Notifications() {
         return '❌';
       case 'new_message':
         return '💬';
+      case 'group_invite':
+        return '👥';
       default:
         return '🔔';
     }
@@ -53,6 +58,8 @@ export default function Notifications() {
         return `تم رفض مصروفك بقيمة ${payload.amount} ${payload.currency}`;
       case 'new_message':
         return `${payload.sender_name}: ${payload.content}`;
+      case 'group_invite':
+        return `دعوة انضمام لمجموعة "${payload.group_name}"`;
       default:
         return 'إشعار جديد';
     }
@@ -121,42 +128,50 @@ export default function Notifications() {
         ) : (
           <div className="space-y-2">
             {notifications.map((notification) => (
-              <Card
-                key={notification.id}
-                className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                  !notification.read_at ? 'bg-primary/5 border-primary/20' : ''
-                }`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <CardContent className="flex items-start gap-4 p-4">
-                  <div className="text-2xl">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium leading-tight">
-                        {getNotificationText(notification)}
-                      </p>
-                      {!notification.read_at && (
-                        <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                      )}
+              notification.type === 'group_invite' ? (
+                <GroupInviteCard
+                  key={notification.id}
+                  notification={notification}
+                  onUpdate={refetch}
+                />
+              ) : (
+                <Card
+                  key={notification.id}
+                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+                    !notification.read_at ? 'bg-primary/5 border-primary/20' : ''
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <CardContent className="flex items-start gap-4 p-4">
+                    <div className="text-2xl">
+                      {getNotificationIcon(notification.type)}
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        {notification.payload.group_name}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(notification.created_at), {
-                          addSuffix: true,
-                          locale: ar,
-                        })}
-                      </span>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium leading-tight">
+                          {getNotificationText(notification)}
+                        </p>
+                        {!notification.read_at && (
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-xs">
+                          {notification.payload.group_name}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(notification.created_at), {
+                            addSuffix: true,
+                            locale: ar,
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )
             ))}
           </div>
         )}

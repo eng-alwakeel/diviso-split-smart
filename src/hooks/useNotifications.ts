@@ -144,6 +144,8 @@ const getNotificationTitle = (type: string): string => {
       return 'تم رفض المصروف';
     case 'new_message':
       return 'رسالة جديدة';
+    case 'group_invite':
+      return 'دعوة انضمام لمجموعة';
     default:
       return 'إشعار جديد';
   }
@@ -161,6 +163,8 @@ const getNotificationDescription = (notification: Notification): string => {
       return `تم رفض مصروفك بقيمة ${payload.amount} ${payload.currency} في ${payload.group_name}`;
     case 'new_message':
       return `${payload.sender_name}: ${payload.content} في ${payload.group_name}`;
+    case 'group_invite':
+      return `${payload.inviter_name} دعاك للانضمام إلى مجموعة "${payload.group_name}"`;
     default:
       return 'إشعار جديد';
   }
