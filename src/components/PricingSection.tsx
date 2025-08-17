@@ -9,6 +9,7 @@ import { useLifetimeOffer } from "@/hooks/useLifetimeOffer";
 import { useEffect } from "react";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
   {
@@ -92,6 +93,7 @@ export const PricingSection = () => {
   const { toast } = useToast();
   const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
   const { getPlanBadgeConfig } = usePlanBadge();
+  const navigate = useNavigate();
 
   // تمت إزالة معالجة joinToken من هنا - يتم التعامل معها في InviteRoute الآن
 
@@ -204,12 +206,13 @@ export const PricingSection = () => {
                   <div className="pt-6">
                     {plan.name === "مجاني" ? (
                       <Button 
-                        asChild
                         variant={plan.popular ? "hero" : "outline"}
                         className="w-full"
                         size="lg"
+                        onClick={() => navigate("/auth")}
+                        aria-label={`البدء في خطة ${plan.name}`}
                       >
-                        <a href="/auth" aria-label={`البدء في خطة ${plan.name}`}>ابدأ مجاناً</a>
+                        ابدأ مجاناً
                       </Button>
                     ) : (
                       <Button
@@ -224,7 +227,7 @@ export const PricingSection = () => {
                           const { data: { session } } = await supabase.auth.getSession();
                           if (!session?.user) {
                             const params = new URLSearchParams({ startTrial: planKey, redirectTo: "/dashboard" });
-                            window.location.href = `/auth?${params.toString()}`;
+                            navigate(`/auth?${params.toString()}`);
                             return;
                           }
                           
@@ -250,7 +253,7 @@ export const PricingSection = () => {
                             toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
                           } else {
                             toast({ title: "بدأت التجربة المجانية", description: "صالحة لمدة ٧ أيام" });
-                            window.location.href = "/dashboard";
+                            navigate("/dashboard");
                           }
                         }}
                         aria-label={`ابدأ تجربة ٧ أيام لخطة ${plan.name}`}
