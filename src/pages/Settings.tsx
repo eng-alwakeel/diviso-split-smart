@@ -584,7 +584,7 @@ const Settings = () => {
                   )}
                   
                   <Button 
-                    onClick={() => navigate('/pricing')}
+                    onClick={() => navigate('/pricing-protected')}
                     variant="outline"
                     className="border-border text-foreground hover:bg-accent/20"
                   >
@@ -641,12 +641,24 @@ const Settings = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Button 
-                        onClick={() => navigate('/pricing')}
-                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                      >
-                        ترقية للخطة العائلية
-                      </Button>
+                      <div className="space-y-3">
+                        {(!subscription || subscription?.status === "expired") && (
+                          <Button 
+                            onClick={() => handleStartTrial('family')}
+                            className="w-full"
+                            disabled={loading}
+                          >
+                            {loading ? "جاري البدء..." : "بدء التجربة المجانية للخطة العائلية"}
+                          </Button>
+                        )}
+                        <Button 
+                          onClick={() => navigate('/pricing-protected')}
+                          variant="outline"
+                          className="w-full border-border text-foreground hover:bg-accent/20"
+                        >
+                          عرض جميع الباقات والأسعار
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

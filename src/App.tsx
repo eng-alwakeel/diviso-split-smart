@@ -13,6 +13,7 @@ import FinancialPlan from "./pages/FinancialPlan";
 import MyExpenses from "./pages/MyExpenses";
 import MyGroups from "./pages/MyGroups";
 import Settings from "./pages/Settings";
+import PricingProtected from "./pages/PricingProtected";
 import Notifications from "./pages/Notifications";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/pricing-protected" element={<ProtectedRoute><PricingProtected /></ProtectedRoute>} />
           <Route path="/pricing" element={<Pricing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
