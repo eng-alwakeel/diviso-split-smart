@@ -1,9 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useSubscriptionLimits } from "./useSubscriptionLimits";
 
 export function useQuotaHandler() {
-  const { limits, currentPlan, isFreePlan } = useSubscriptionLimits();
+  const { limits, currentPlan, isFreePlan, getUsagePercentage, isNearLimit, isAtLimit } = useSubscriptionLimits();
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [currentQuotaType, setCurrentQuotaType] = useState<'groups' | 'members' | 'expenses' | 'invites' | 'ocr'>('groups');
 
   const handleQuotaError = useCallback((error: any) => {
     const errorMessage = error?.message || error?.toString() || '';
@@ -11,21 +13,26 @@ export function useQuotaHandler() {
     if (errorMessage.includes('quota_exceeded:')) {
       const quotaMessage = errorMessage.split('quota_exceeded:')[1];
       
-      toast.error(quotaMessage, {
-        duration: 5000,
-          action: {
-            label: "ترقية الباقة",
-            onClick: () => {
-              // Navigate to pricing/upgrade page
-              window.location.href = '/pricing';
-            },
-          },
-      });
+      // Extract quota type from error message
+      let quotaType: 'groups' | 'members' | 'expenses' | 'invites' | 'ocr' = 'groups';
+      if (quotaMessage.includes('group')) quotaType = 'groups';
+      else if (quotaMessage.includes('member')) quotaType = 'members';
+      else if (quotaMessage.includes('expense')) quotaType = 'expenses';
+      else if (quotaMessage.includes('invite')) quotaType = 'invites';
+      else if (quotaMessage.includes('ocr')) quotaType = 'ocr';
+      
+      setCurrentQuotaType(quotaType);
+      setUpgradeDialogOpen(true);
       
       return true; // Indicates the error was handled
     }
     
     return false; // Error was not a quota error
+  }, []);
+
+  const showUpgradeDialog = useCallback((quotaType: 'groups' | 'members' | 'expenses' | 'invites' | 'ocr') => {
+    setCurrentQuotaType(quotaType);
+    setUpgradeDialogOpen(true);
   }, []);
 
   const getPlanLimits = useCallback(() => {
@@ -38,10 +45,60 @@ export function useQuotaHandler() {
     };
   }, [limits]);
 
+  const checkQuotaWarning = useCallback((usage: number, limit: number, quotaType: string) => {
+    const percentage = getUsagePercentage(usage, limit);
+    const isNear = isNearLimit(usage, limit);
+    const isAt = isAtLimit(usage, limit);
+
+    return {
+      showWarning: isNear && !isAt,
+      showCritical: isAt,
+      percentage,
+      type: isAt ? 'critical' as const : (isNear ? 'warning' as const : null)
+    };
+  }, [getUsagePercentage, isNearLimit, isAtLimit]);
+
+  const getPlanBenefits = useCallback(() => {
+    return {
+      personal: {
+        name: "الباقة الشخصية",
+        price: "19 ريال/شهر",
+        benefits: [
+          "مجموعات غير محدودة",
+          "أعضاء غير محدودين",
+          "مصاريف غير محدودة",
+          "مسح الإيصالات بالذكاء الاصطناعي",
+          "تحليلات وتوصيات ذكية",
+          "دردشة المجموعة"
+        ]
+      },
+      family: {
+        name: "الباقة العائلية",
+        price: "75 ريال/شهر",
+        benefits: [
+          "جميع مزايا الباقة الشخصية",
+          "إدارة العائلة (حتى 5 أعضاء)",
+          "موافقة على المصاريف",
+          "تقارير عائلية متقدمة",
+          "سياسات إنفاق مخصصة"
+        ]
+      }
+    };
+  }, []);
+
   return {
+    // Original functions
     handleQuotaError,
     currentPlan,
     getPlanLimits,
-    isFreePlan
+    isFreePlan,
+    
+    // New enhanced functions
+    showUpgradeDialog,
+    upgradeDialogOpen,
+    setUpgradeDialogOpen,
+    currentQuotaType,
+    checkQuotaWarning,
+    getPlanBenefits
   };
 }

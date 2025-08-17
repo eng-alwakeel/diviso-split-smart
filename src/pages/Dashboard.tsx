@@ -13,6 +13,10 @@ import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { SubscriptionStatusCard } from "@/components/dashboard/SubscriptionStatusCard";
 import { UsageLimitsCard } from "@/components/dashboard/UsageLimitsCard";
+import { QuotaWarningBanner } from "@/components/quota/QuotaWarningBanner";
+import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
+import { useQuotaHandler } from "@/hooks/useQuotaHandler";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,6 +33,27 @@ const Dashboard = () => {
     error,
     refetch
   } = useDashboardData();
+
+  const { 
+    checkQuotaWarning, 
+    upgradeDialogOpen, 
+    setUpgradeDialogOpen, 
+    currentQuotaType,
+    isFreePlan 
+  } = useQuotaHandler();
+  
+  const { limits } = useSubscriptionLimits();
+
+  // Check for quota warnings
+  const quotaWarnings = limits && isFreePlan ? [
+    { type: 'groups', usage: groupsCount || 0, limit: limits.groups },
+    { type: 'expenses', usage: weeklyExpensesCount || 0, limit: limits.expenses },
+  ].map(({ type, usage, limit }) => ({
+    type,
+    usage,
+    limit,
+    ...checkQuotaWarning(usage, limit, type)
+  })).filter(warning => warning.showWarning || warning.showCritical) : [];
 
   const retryLoad = () => {
     refetch();
@@ -82,6 +107,22 @@ const Dashboard = () => {
       <AppHeader />
       
       <div className="page-container space-y-6">
+        {/* Quota Warning Banners */}
+        {quotaWarnings.length > 0 && (
+          <div className="space-y-2">
+            {quotaWarnings.map(warning => (
+              <QuotaWarningBanner
+                key={warning.type}
+                type={warning.type!}
+                quotaType={warning.type}
+                currentUsage={warning.usage}
+                limit={warning.limit}
+                percentage={warning.percentage}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
           <div>
@@ -144,6 +185,25 @@ const Dashboard = () => {
       
       {/* App Guide */}
       {showGuide && <AppGuide onClose={() => setShowGuide(false)} />}
+
+      {/* Quota Upgrade Dialog */}
+      {limits && (
+        <QuotaUpgradeDialog
+          open={upgradeDialogOpen}
+          onOpenChange={setUpgradeDialogOpen}
+          quotaType={currentQuotaType}
+          currentUsage={
+            currentQuotaType === 'groups' ? (groupsCount || 0) :
+            currentQuotaType === 'expenses' ? (weeklyExpensesCount || 0) :
+            0
+          }
+          limit={
+            currentQuotaType === 'groups' ? limits.groups :
+            currentQuotaType === 'expenses' ? limits.expenses :
+            0
+          }
+        />
+      )}
       
       <div className="h-24" />
       <BottomNav />
