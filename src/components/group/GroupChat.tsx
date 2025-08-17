@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Send, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
+import { PlanBadge } from "@/components/ui/plan-badge";
+import { usePlanBadge } from "@/hooks/usePlanBadge";
 
 interface Message {
   id: string;
@@ -184,11 +185,23 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 
 const MessageBubble = ({ message, profiles }: { message: Message; profiles: Record<string, any> }) => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const { getPlanBadgeConfig } = usePlanBadge();
 
   useEffect(() => {
     const fetchUserData = async () => {
       const { data } = await supabase.auth.getSession();
       setUserId(data.session?.user?.id || null);
+      
+      // Fetch sender's subscription for badge
+      if (message.sender_id) {
+        const { data: subData } = await supabase
+          .from("user_subscriptions")
+          .select("*")
+          .eq("user_id", message.sender_id)
+          .maybeSingle();
+        setUserSubscription(subData);
+      }
     };
     
     fetchUserData();
@@ -198,6 +211,16 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
   const senderProfile = profiles[message.sender_id];
   const senderName = senderProfile?.display_name || senderProfile?.name || 'مستخدم';
   const senderAvatar = senderProfile?.avatar_url;
+  
+  // Determine sender's plan for badge
+  const senderPlan = (() => {
+    if (!userSubscription) return "free";
+    if (userSubscription.status === "active" || 
+        (userSubscription.status === "trialing" && new Date(userSubscription.expires_at) > new Date())) {
+      return userSubscription.plan;
+    }
+    return "free";
+  })();
 
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"} mb-3`}>
@@ -218,13 +241,11 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
           }`}
         >
           {!isMe && (
-            <div className="text-xs font-medium mb-1 text-muted-foreground">
-              <UserDisplayWithBadges
-                userId={message.sender_id}
-                displayName={senderName}
-                badgeSize="sm"
-                showPlanBadge={true}
-                showAdminBadge={true}
+            <div className="text-xs font-medium mb-1 text-muted-foreground flex items-center gap-2">
+              <span>{senderName}</span>
+              <PlanBadge 
+                config={getPlanBadgeConfig(senderPlan as any)} 
+                size="sm"
               />
             </div>
           )}

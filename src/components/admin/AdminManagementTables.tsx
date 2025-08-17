@@ -7,7 +7,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAdminUserActions } from "@/hooks/useEnhancedAdminStats";
 import { toast } from "sonner";
 import { useState } from "react";
-import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 
 interface User {
   id: string;
@@ -111,13 +110,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                 {users.slice(0, 10).map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
-                      <UserDisplayWithBadges
-                        userId={user.id}
-                        displayName={user.display_name || user.name || 'مستخدم مجهول'}
-                        badgeSize="sm"
-                        showPlanBadge={false}
-                        showAdminBadge={true}
-                      />
+                      {user.display_name || user.name || 'مستخدم مجهول'}
                     </TableCell>
                     <TableCell>{user.phone || '-'}</TableCell>
                     <TableCell>{getPlanBadge(user.current_plan)}</TableCell>

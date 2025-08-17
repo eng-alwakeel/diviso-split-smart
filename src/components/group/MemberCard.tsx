@@ -4,7 +4,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "@/components/ui/badge";
 import { Shield, Crown, UserMinus } from "lucide-react";
 import { useMemberActions } from "@/hooks/useMemberActions";
-import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 
 interface Profile {
   id: string;
@@ -89,14 +88,11 @@ export const MemberCard = ({
         </Avatar>
         
         <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <UserDisplayWithBadges
-              userId={member.user_id}
-              displayName={memberName}
-              isCurrentUser={isCurrentUser}
-              badgeSize="sm"
-              showPlanBadge={false}
-            />
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{memberName}</span>
+            {isCurrentUser && (
+              <Badge variant="outline" className="text-xs">أنت</Badge>
+            )}
           </div>
           
           <div className="flex items-center gap-2 mt-1">
