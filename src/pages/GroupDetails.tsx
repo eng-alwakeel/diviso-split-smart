@@ -443,8 +443,19 @@ const GroupDetails = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
                   <p className="text-2xl font-bold text-accent">
-                    {budgetTotals.total > 0 ? `${budgetTotals.spent.toLocaleString()}` : "قريباً"}
+                    {budgetTotals.total > 0 ? `${budgetTotals.total.toLocaleString()}` : "قريباً"}
                   </p>
+                  <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
+                  {budgetTotals.total > 0 && (
+                    <>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        مصروف: {budgetTotals.spent.toLocaleString()} {currencyLabel}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        متبقي: {(budgetTotals.total - budgetTotals.spent).toLocaleString()} {currencyLabel}
+                      </p>
+                    </>
+                  )}
                   <div className="flex items-center gap-2 mt-2">
                     <Progress 
                       value={budgetTotals.percentage} 
