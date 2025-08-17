@@ -239,16 +239,22 @@ function GroupCard({ group, onNavigate, onArchive, isArchived }: GroupCardProps)
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost">
+                <Button size="sm" variant="ghost" className="hover:bg-muted/50">
                   <MoreVertical className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)}>
+              <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
+                <DropdownMenuItem 
+                  onClick={() => onNavigate(`/group/${group.id}?tab=settings`)}
+                  className="cursor-pointer"
+                >
                   <Settings className="h-4 w-4 mr-2" />
                   الإعدادات
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onArchive(group.id)}>
+                <DropdownMenuItem 
+                  onClick={() => onArchive(group.id)}
+                  className="cursor-pointer"
+                >
                   <Archive className="h-4 w-4 mr-2" />
                   {isArchived ? 'استعادة' : 'أرشف'}
                 </DropdownMenuItem>

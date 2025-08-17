@@ -1,45 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { 
-  ArrowRight,
-  User, 
-  Users,
-  CreditCard,
-  Globe,
-  Bell,
-  Shield,
-  Key,
-  Camera,
-  Save,
-  Trash2,
-  Plus,
-  Eye,
-  EyeOff,
-  LogOut,
-  Crown,
-  Calendar,
-  Zap,
-  Upload,
-  RefreshCw,
-  Receipt,
-  TrendingUp
-} from "lucide-react";
+import { ArrowRight, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
-import { QuotaStatus } from "@/components/QuotaStatus";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
@@ -48,9 +20,11 @@ import { FamilyPlanManagement } from "@/components/family/FamilyPlanManagement";
 import { AcceptFamilyInvite } from "@/components/family/AcceptFamilyInvite";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
-import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { ProfileTab } from "@/components/settings/ProfileTab";
+import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
+import { SecurityTab } from "@/components/settings/SecurityTab";
 
 const getPlanDisplayName = (plan: string) => {
   switch (plan) {
@@ -88,10 +62,8 @@ const Settings = () => {
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [activeTab, setActiveTab] = useState("profile");
-  const [showPassword, setShowPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [profile, setProfile] = useState({
@@ -285,7 +257,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-background">
+    <div className="min-h-screen bg-background">
       <AppHeader />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -305,367 +277,67 @@ const Settings = () => {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex w-full gap-1 overflow-x-auto whitespace-nowrap px-1 py-1 text-xs md:text-sm [scrollbar-width:none] [-ms-overflow-style:'none'] [&::-webkit-scrollbar]:hidden">
-            <TabsTrigger value="profile" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الملف الشخصي</TabsTrigger>
-            <TabsTrigger value="subscription" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الاشتراك</TabsTrigger>
-            <TabsTrigger value="family" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">العائلة</TabsTrigger>
-            <TabsTrigger value="language" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">اللغة</TabsTrigger>
-            <TabsTrigger value="notifications" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الإشعارات</TabsTrigger>
-            <TabsTrigger value="privacy" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8">الخصوصية</TabsTrigger>
+          <TabsList className="w-full">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">الملف الشخصي</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              <span className="hidden sm:inline">الاشتراك</span>
+            </TabsTrigger>
+            <TabsTrigger value="family" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">العائلة</span>
+            </TabsTrigger>
+            <TabsTrigger value="language" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              <span className="hidden sm:inline">اللغة</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">الإشعارات</span>
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">الأمان</span>
+            </TabsTrigger>
             {adminData?.isAdmin && (
-              <TabsTrigger value="admin" className="shrink-0 whitespace-nowrap text-[11px] md:text-sm px-2 py-1.5 h-8 text-primary">الإدارة</TabsTrigger>
+              <TabsTrigger value="admin" className="flex items-center gap-2 text-primary">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">الإدارة</span>
+              </TabsTrigger>
             )}
           </TabsList>
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <User className="w-5 h-5 text-accent" />
-                  المعلومات الشخصية
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <Avatar className="w-24 h-24">
-                      {profile.avatarUrl ? (
-                        <AvatarImage src={profile.avatarUrl} alt="صورة الملف الشخصي" />
-                      ) : (
-                        <AvatarFallback className="bg-accent text-background text-2xl font-bold">
-                          {profile.avatar}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <Button 
-                      size="sm" 
-                      className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Camera className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                      {profile.name || "مستخدم"}
-                      {adminData?.isAdmin && (
-                        <Badge variant="outline" className="border-primary text-primary bg-primary/10">
-                          <Crown className="w-3 h-3 ml-1" />
-                          مدير
-                        </Badge>
-                      )}
-                    </h3>
-                    <p className="text-muted-foreground">{profile.email}</p>
-                    <div className="flex gap-2 mt-2">
-                      <PlanBadge 
-                        config={getPlanBadgeConfig(currentPlan)} 
-                        size="md"
-                      />
-                      {isTrialActive && (
-                        <Badge variant="outline" className="border-accent text-accent">
-                          تجربة مجانية • {daysLeft} أيام متبقية
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-foreground">الاسم الكامل</Label>
-                    <Input
-                      id="name"
-                      value={profile.name}
-                      onChange={(e) => {
-                        setProfile({...profile, name: e.target.value});
-                        if (validationErrors.name) {
-                          setValidationErrors(prev => ({...prev, name: ""}));
-                        }
-                      }}
-                      className={`bg-background/50 border-border text-foreground ${
-                        validationErrors.name ? 'border-destructive' : ''
-                      }`}
-                    />
-                    {validationErrors.name && (
-                      <p className="text-xs text-destructive">{validationErrors.name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground">البريد الإلكتروني</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => {
-                        setProfile({...profile, email: e.target.value});
-                        if (validationErrors.email) {
-                          setValidationErrors(prev => ({...prev, email: ""}));
-                        }
-                      }}
-                      className={`bg-background/50 border-border text-foreground ${
-                        validationErrors.email ? 'border-destructive' : ''
-                      }`}
-                    />
-                    {validationErrors.email && (
-                      <p className="text-xs text-destructive">{validationErrors.email}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-foreground">رقم الجوال</Label>
-                    <Input
-                      id="phone"
-                      value={profile.phone}
-                      onChange={(e) => {
-                        setProfile({...profile, phone: e.target.value});
-                        if (validationErrors.phone) {
-                          setValidationErrors(prev => ({...prev, phone: ""}));
-                        }
-                      }}
-                      className={`text-left bg-background/50 border-border text-foreground ${
-                        validationErrors.phone ? 'border-destructive' : ''
-                      }`}
-                      dir="ltr"
-                      placeholder="+966xxxxxxxxx"
-                    />
-                    {validationErrors.phone && (
-                      <p className="text-xs text-destructive">{validationErrors.phone}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-foreground">تاريخ الانضمام</Label>
-                    <Input value={profile.joinDate} disabled className="bg-background/30 border-border text-muted-foreground" />
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button onClick={saveProfile} variant="hero">
-                    <Save className="w-4 h-4 ml-2" />
-                    حفظ التغييرات
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
-                      >
-                        <LogOut className="w-4 h-4 ml-2" />
-                        تسجيل الخروج
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={logout}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          تسجيل الخروج
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Key className="w-5 h-5 text-accent" />
-                  تغيير كلمة المرور
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword" className="text-foreground">كلمة المرور الحالية</Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showPassword ? "text" : "password"}
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                      className="bg-background/50 border-border text-foreground"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute left-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-foreground">كلمة المرور الجديدة</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    className="bg-background/50 border-border text-foreground"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-foreground">تأكيد كلمة المرور</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    className="bg-background/50 border-border text-foreground"
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleChangePassword} 
-                  variant="outline" 
-                  className="border-border text-foreground hover:bg-accent/20"
-                  disabled={passwordLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-                >
-                  {passwordLoading ? (
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
-                  ) : (
-                    <Save className="w-4 h-4 ml-2" />
-                  )}
-                  تغيير كلمة المرور
-                </Button>
-              </CardContent>
-            </Card>
+            <ProfileTab
+              profile={profile}
+              setProfile={setProfile}
+              validationErrors={validationErrors}
+              setValidationErrors={setValidationErrors}
+              saveProfile={saveProfile}
+              handleImageUpload={handleImageUpload}
+              uploading={uploading}
+              isAdmin={adminData?.isAdmin}
+              planBadgeConfig={getPlanBadgeConfig(currentPlan)}
+              isTrialActive={isTrialActive}
+              daysLeft={daysLeft}
+            />
           </TabsContent>
 
           {/* Subscription Tab */}
           <TabsContent value="subscription" className="space-y-6">
-            {/* Current Plan Status */}
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Crown className="w-5 h-5 text-accent" />
-                  الباقة الحالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-background/50 rounded-lg border border-border/30">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
-                      <Crown className="w-6 h-6 text-background" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        باقة {getPlanDisplayName(subscription?.plan || 'free')}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        الحالة: {getStatusDisplayName(subscription?.status || '')}
-                      </p>
-                      {subscription?.expires_at && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <Calendar className="w-3 h-3" />
-                          {isTrialActive 
-                            ? `تنتهي التجربة في ${daysLeft} أيام`
-                            : `تنتهي في: ${new Date(subscription.expires_at).toLocaleDateString('ar-SA')}`
-                          }
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {subscription?.status === 'trialing' && (
-                    <Badge variant="outline" className="border-accent text-accent">
-                      تجربة مجانية
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-3">
-                  {(!subscription || subscription.status === 'expired') && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Button 
-                        onClick={() => handleStartTrial('personal')}
-                        variant="hero"
-                        disabled={loading}
-                        className="flex items-center gap-2"
-                      >
-                        <Zap className="w-4 h-4" />
-                        تجربة الباقة الشخصية مجاناً
-                      </Button>
-                      <Button 
-                        onClick={() => handleStartTrial('family')}
-                        variant="outline"
-                        disabled={loading}
-                        className="flex items-center gap-2 border-border text-foreground hover:bg-accent/20"
-                      >
-                        <Crown className="w-4 h-4" />
-                        تجربة الباقة العائلية مجاناً
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <Button 
-                    onClick={() => navigate('/pricing-protected')}
-                    variant="outline"
-                    className="border-border text-foreground hover:bg-accent/20"
-                  >
-                    عرض جميع الباقات والأسعار
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quota Status */}
-            <QuotaStatus />
-
-            {/* Subscription Benefits */}
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Zap className="w-5 h-5 text-accent" />
-                  مزايا الاشتراك المدفوع
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2">
-                    <p className="text-foreground">✓ أعضاء أكثر في المجموعات</p>
-                    <p className="text-foreground">✓ مجموعات أكثر</p>
-                    <p className="text-foreground">✓ مصروفات شهرية أكثر</p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-foreground">✓ دعوات أكثر</p>
-                    <p className="text-foreground">✓ استخدام OCR أكثر</p>
-                    <p className="text-foreground">✓ دعم فني أولوية</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SubscriptionTab
+              subscription={subscription}
+              isTrialActive={isTrialActive}
+              daysLeft={daysLeft}
+              loading={loading}
+              handleStartTrial={handleStartTrial}
+              getPlanDisplayName={getPlanDisplayName}
+              getStatusDisplayName={getStatusDisplayName}
+            />
           </TabsContent>
 
           {/* Family Plan Tab */}
@@ -796,7 +468,7 @@ const Settings = () => {
 
                 <Button 
                   onClick={() => saveSettings({})} 
-                  variant="hero"
+                  variant="default"
                   disabled={settingsLoading}
                 >
                   {settingsLoading ? (
@@ -868,7 +540,7 @@ const Settings = () => {
 
                 <Button 
                   onClick={() => saveSettings({})} 
-                  variant="hero"
+                  variant="default"
                   disabled={settingsLoading}
                 >
                   {settingsLoading ? (
@@ -882,107 +554,16 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Privacy & Security Tab */}
+          {/* Privacy/Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Shield className="w-5 h-5 text-accent" />
-                  الخصوصية والأمان
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">المصادقة الثنائية</p>
-                      <p className="text-sm text-muted-foreground">حماية إضافية لحسابك</p>
-                    </div>
-                    <Switch
-                      checked={settings.twoFactorAuth}
-                      onCheckedChange={(checked) => saveSettings({twoFactorAuth: checked})}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">الوضع المظلم</p>
-                      <p className="text-sm text-muted-foreground">تغيير مظهر التطبيق</p>
-                    </div>
-                    <Switch
-                      checked={settings.darkMode}
-                      onCheckedChange={(checked) => saveSettings({darkMode: checked})}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <Button 
-                    onClick={() => saveSettings({})} 
-                    variant="hero"
-                    disabled={settingsLoading}
-                  >
-                    {settingsLoading ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
-                    ) : (
-                      <Save className="w-4 h-4 ml-2" />
-                    )}
-                    حفظ الإعدادات
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive">
-                        <LogOut className="w-4 h-4 ml-2" />
-                        تسجيل الخروج
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={logout}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          تسجيل الخروج
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" className="w-full">
-                        <Trash2 className="w-4 h-4 ml-2" />
-                        حذف الحساب
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>هل أنت متأكد من حذف الحساب؟</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك نهائياً.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                        <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          حذف الحساب
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
+            <SecurityTab
+              passwordData={passwordData}
+              setPasswordData={setPasswordData}
+              handleChangePassword={handleChangePassword}
+              passwordLoading={passwordLoading}
+              deleteAccount={deleteAccount}
+              logout={logout}
+            />
           </TabsContent>
 
           {/* Admin Tab */}
@@ -999,61 +580,21 @@ const Settings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg border border-border/30">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Crown className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-foreground">صلاحيات المدير</h3>
-                      <p className="text-sm text-muted-foreground">
-                        يمكنك الوصول إلى لوحة التحكم لإدارة المستخدمين والمجموعات والإحصائيات
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="border-primary text-primary bg-primary/10">
-                      <Shield className="w-3 h-3 ml-1" />
-                      مدير النظام
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-2">
-                        <p className="text-foreground flex items-center gap-2">
-                          <Users className="w-4 h-4 text-primary" />
-                          إدارة المستخدمين
-                        </p>
-                        <p className="text-foreground flex items-center gap-2">
-                          <Receipt className="w-4 h-4 text-primary" />
-                          إدارة المجموعات
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-foreground flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-primary" />
-                          الإحصائيات المتقدمة
-                        </p>
-                         <p className="text-foreground flex items-center gap-2">
-                           <Shield className="w-4 h-4 text-primary" />
-                           إعدادات النظام
-                         </p>
-                      </div>
-                    </div>
-
-                    <Button 
-                      onClick={() => navigate('/admin-dashboard')}
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                      size="lg"
-                    >
-                      <Shield className="w-5 h-5 ml-2" />
-                      دخول لوحة التحكم الإدارية
-                    </Button>
-                  </div>
+                  <Button 
+                    onClick={() => navigate('/admin-dashboard')}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    size="lg"
+                  >
+                    <Shield className="w-5 h-5 ml-2" />
+                    دخول لوحة التحكم الإدارية
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
           )}
         </Tabs>
       </div>
+      
       <div className="h-16 md:hidden" />
       <BottomNav />
     </div>
