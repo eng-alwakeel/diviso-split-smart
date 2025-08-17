@@ -20,7 +20,8 @@ import {
   BarChart3,
   Settings,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  HelpCircle
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -29,8 +30,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { WalletStack } from "@/components/wallet/WalletStack";
 import RecentExpensesCards from "@/components/RecentExpensesCards";
 import MobileSummary from "@/components/MobileSummary";
+import { AppGuide } from "@/components/AppGuide";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
+import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
+import { useSecurityHeaders } from "@/hooks/useSecurityHeaders";
 
 interface GroupRow {
   id: string;
@@ -41,6 +45,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { referrals, loading: referralsLoading } = useReferrals();
+  const { debounce, createCache } = usePerformanceOptimization();
+  const { sanitizeInput } = useSecurityHeaders();
   
   const [selectedTab, setSelectedTab] = useState("overview");
   const [groups, setGroups] = useState<Array<{ id: string; name: string; members: number; expenses: number; totalExpenses: number; category?: string }>>([]);
@@ -52,12 +58,16 @@ const Dashboard = () => {
   const [groupOwedMap, setGroupOwedMap] = useState<Record<string, number>>({});
   const [mySplitByExpense, setMySplitByExpense] = useState<Record<string, number>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
   
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [monthlyTotalExpenses, setMonthlyTotalExpenses] = useState(0);
   const [weeklyExpensesCount, setWeeklyExpensesCount] = useState(0);
+
+  // Performance cache
+  const cache = createCache(50);
   useEffect(() => {
     const load = async () => {
       try {
@@ -292,8 +302,21 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8 hidden md:block">
-          <h1 className="text-3xl font-bold text-foreground mb-2">مرحباً بك في ديفيزو!</h1>
-          <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">مرحباً بك في ديفيزو!</h1>
+              <p className="text-muted-foreground">إدارة ذكية للمصاريف المشتركة</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowGuide(true)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <HelpCircle className="w-4 h-4 ml-2" />
+              دليل الاستخدام
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Summary */}
@@ -536,6 +559,10 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* App Guide */}
+      {showGuide && <AppGuide onClose={() => setShowGuide(false)} />}
+      
       <div className="h-24 lg:hidden" />
       <BottomNav />
     </div>

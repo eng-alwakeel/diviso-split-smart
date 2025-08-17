@@ -1,8 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 export const Header = () => {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check auth state
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLoginClick = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <header className="bg-gradient-dark backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
@@ -12,17 +44,17 @@ export const Header = () => {
             <Button 
               variant="hero" 
               size="sm"
-              onClick={() => (window.location.href = '/dashboard')}
+              onClick={handleLoginClick}
             >
-              دخول
+              {isLoggedIn ? 'لوحة التحكم' : 'دخول'}
             </Button>
           </div>
 
           {/* Center: Logo */}
-          <a href="/" className="justify-self-center inline-flex items-center gap-3">
+          <Link to="/" className="justify-self-center inline-flex items-center gap-3">
             <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
             <span className="sr-only">Diviso</span>
-          </a>
+          </Link>
 
           {/* Right: Navigation / Menu */}
           <div className="justify-self-end flex items-center gap-3">
