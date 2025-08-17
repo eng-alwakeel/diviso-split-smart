@@ -30,6 +30,7 @@ interface MemberCardProps {
   canAdmin: boolean;
   groupId: string;
   onMemberRemoved?: () => void;
+  planConfig?: any;
 }
 
 export const MemberCard = ({ 
@@ -38,7 +39,8 @@ export const MemberCard = ({
   isOwner, 
   canAdmin, 
   groupId, 
-  onMemberRemoved 
+  onMemberRemoved,
+  planConfig
 }: MemberCardProps) => {
   const { removeMember, removing } = useMemberActions();
   
@@ -84,10 +86,12 @@ export const MemberCard = ({
       <div className="flex items-center gap-3">
         <UserDisplayWithBadges
           user={{
-            id: member.profile?.id || "",
-            display_name: member.profile?.display_name || member.profile?.name,
+            id: member.user_id,
+            display_name: member.profile?.display_name,
+            name: member.profile?.name,
             avatar_url: member.profile?.avatar_url,
-            phone: member.profile?.phone
+            phone: member.profile?.phone,
+            is_admin: (member.profile as any)?.is_admin
           }}
           isCurrentUser={isCurrentUser}
           avatarSize="md"
@@ -95,6 +99,7 @@ export const MemberCard = ({
           showAvatar={true}
           showPlanBadge={true}
           className="flex-1"
+          planConfig={planConfig}
         />
         
         <div className="flex items-center gap-2">

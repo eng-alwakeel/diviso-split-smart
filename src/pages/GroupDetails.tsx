@@ -598,17 +598,28 @@ const GroupDetails = () => {
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
 
             <div className="space-y-4">
-              {members.map((member) => (
-                <MemberCard
-                  key={member.user_id}
-                  member={member}
-                  currentUserId={currentUserId}
-                  isOwner={isOwner}
-                  canAdmin={canApprove}
-                  groupId={id!}
-                  onMemberRemoved={refetch}
-                />
-              ))}
+              {members.map((member) => {
+                const memberSubscription = memberSubscriptions[member.user_id];
+                const memberPlan = memberSubscription?.plan || 'free';
+                const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
+                const memberProfile = profiles[member.user_id];
+                
+                return (
+                  <MemberCard
+                    key={member.user_id}
+                    member={{
+                      ...member,
+                      profile: memberProfile
+                    }}
+                    currentUserId={currentUserId}
+                    isOwner={isOwner}
+                    canAdmin={canApprove}
+                    groupId={id!}
+                    onMemberRemoved={refetch}
+                    planConfig={memberPlanConfig}
+                  />
+                );
+              })}
               {!loading && members.length === 0 && (
                 <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
               )}

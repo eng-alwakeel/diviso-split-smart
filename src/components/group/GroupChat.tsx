@@ -69,7 +69,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
         const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
         const { data: profilesData, error: profilesError } = await supabase
           .from("profiles")
-          .select("id, display_name, name, avatar_url")
+          .select("id, display_name, name, avatar_url, phone, is_admin")
           .in("id", senderIds);
 
         if (!profilesError && profilesData) {
@@ -188,7 +188,6 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 const MessageBubble = ({ message, profiles }: { message: Message; profiles: Record<string, any> }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<any>(null);
-  const [senderIsAdmin, setSenderIsAdmin] = useState<boolean>(false);
   const { getPlanBadgeConfig } = usePlanBadge();
   const { badgeConfig: adminBadgeConfig } = useAdminBadge();
 
@@ -205,14 +204,6 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
           .eq("user_id", message.sender_id)
           .maybeSingle();
         setUserSubscription(subData);
-
-        // Check if sender is admin
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("is_admin")
-          .eq("id", message.sender_id)
-          .single();
-        setSenderIsAdmin(profileData?.is_admin || false);
       }
     };
     
@@ -221,8 +212,9 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
 
   const isMe = userId && message.sender_id === userId;
   const senderProfile = profiles[message.sender_id];
-  const senderName = senderProfile?.display_name || senderProfile?.name || 'مستخدم';
+  const senderName = senderProfile?.display_name || senderProfile?.name || senderProfile?.phone || 'مستخدم';
   const senderAvatar = senderProfile?.avatar_url;
+  const senderIsAdmin = senderProfile?.is_admin || false;
   
   // Determine sender's plan for badge
   const senderPlan = (() => {

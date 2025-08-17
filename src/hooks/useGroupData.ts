@@ -13,6 +13,7 @@ type MemberRow = {
   user_id: string;
   role: "owner" | "admin" | "member";
   can_approve_expenses: boolean;
+  profile?: ProfileRow | null;
 };
 
 type ProfileRow = {
@@ -20,6 +21,8 @@ type ProfileRow = {
   display_name: string | null;
   name: string | null;
   avatar_url: string | null;
+  phone: string | null;
+  is_admin: boolean;
 };
 
 type ExpenseRow = {
@@ -138,7 +141,7 @@ export const useGroupData = (groupId?: string) => {
     if (ids.length) {
       const { data: profs, error: profErr } = await supabase
         .from("profiles")
-        .select("id, display_name, name, avatar_url")
+        .select("id, display_name, name, avatar_url, phone, is_admin")
         .in("id", ids);
       if (profErr) {
         console.error("[useGroupData] profiles error", profErr);
