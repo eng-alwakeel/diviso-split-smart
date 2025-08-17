@@ -8,6 +8,7 @@ type GroupRow = {
   owner_id: string;
   created_at: string | null;
   group_type?: string;
+  currency: string;
 };
 
 type MemberRow = {
@@ -112,7 +113,7 @@ export const useGroupData = (groupId?: string) => {
     // 1) المجموعة
     const { data: grp, error: grpErr } = await supabase
       .from("groups")
-      .select("id, name, owner_id, created_at, group_type")
+      .select("id, name, owner_id, created_at, group_type, currency")
       .eq("id", groupId)
       .maybeSingle();
     if (grpErr) {

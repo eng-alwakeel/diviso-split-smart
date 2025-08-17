@@ -54,6 +54,7 @@ import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
 import { useBudgets } from "@/hooks/useBudgets";
 import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
 import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
+import { useCurrencies } from "@/hooks/useCurrencies";
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -96,6 +97,9 @@ const GroupDetails = () => {
   // Budget hooks
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
   const { budgets, createBudget, updateBudget, deleteBudget, isCreating } = useBudgets();
+  
+  // Currency hook
+  const { formatCurrency, currencies } = useCurrencies();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -261,7 +265,11 @@ const GroupDetails = () => {
 
   const memberCount = members.length;
   const budgetProgress = 0;
-  const currencyLabel = "ر.س";
+  
+  // استخدام عملة المجموعة الفعلية
+  const groupCurrency = group?.currency || 'SAR';
+  const currency = currencies.find(c => c.code === groupCurrency);
+  const currencyLabel = currency?.symbol || groupCurrency;
 
   const membersLabel = (n: number) => (n === 1 ? "عضو" : n === 2 ? "عضوان" : "أعضاء");
 
