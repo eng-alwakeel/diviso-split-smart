@@ -456,10 +456,41 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <Button onClick={saveProfile} variant="hero">
-                  <Save className="w-4 h-4 ml-2" />
-                  حفظ التغييرات
-                </Button>
+                <div className="flex gap-3">
+                  <Button onClick={saveProfile} variant="hero">
+                    <Save className="w-4 h-4 ml-2" />
+                    حفظ التغييرات
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
+                      >
+                        <LogOut className="w-4 h-4 ml-2" />
+                        تسجيل الخروج
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={logout}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          تسجيل الخروج
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
 
@@ -901,10 +932,31 @@ const Settings = () => {
                     حفظ الإعدادات
                   </Button>
 
-                  <Button onClick={logout} variant="outline" className="w-full border-border text-foreground hover:bg-accent/20">
-                    <LogOut className="w-4 h-4 ml-2" />
-                    تسجيل الخروج
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive">
+                        <LogOut className="w-4 h-4 ml-2" />
+                        تسجيل الخروج
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={logout}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          تسجيل الخروج
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
