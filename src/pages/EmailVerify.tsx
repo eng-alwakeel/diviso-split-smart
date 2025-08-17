@@ -20,13 +20,35 @@ const EmailVerify = () => {
       const type = searchParams.get("type");
       const email = searchParams.get("email");
 
+      console.log("Email verification - URL params:", { token: token?.substring(0, 10) + "...", type, email });
+
+      // فحص المستخدم الحالي أولاً
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (session?.user && session.user.email_confirmed_at) {
+        console.log("User already verified");
+        setStatus("success");
+        toast({
+          title: "حسابك مفعل بالفعل!",
+          description: "يمكنك الانتقال إلى لوحة التحكم"
+        });
+        
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 2000);
+        return;
+      }
+
       if (!token || !type) {
+        console.log("Missing token or type");
         setStatus("error");
-        setErrorMessage("رابط التحقق غير صالح");
+        setErrorMessage("رابط التحقق غير صالح أو غير مكتمل");
         return;
       }
 
       try {
+        console.log("Attempting email verification...");
+        
         // التحقق من البريد الإلكتروني باستخدام token
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash: token,
@@ -34,17 +56,24 @@ const EmailVerify = () => {
           ...(email && { email })
         });
 
+        console.log("Verification result:", { data: !!data, error: error?.message });
+
         if (error) {
           console.error("Verification error:", error);
           setStatus("error");
-          setErrorMessage(
-            error.message.includes("expired") 
-              ? "انتهت صلاحية رابط التحقق" 
-              : error.message.includes("invalid")
-              ? "رابط التحقق غير صالح"
-              : "حدث خطأ أثناء التحقق من البريد الإلكتروني"
-          );
+          
+          // رسائل خطأ محددة حسب نوع المشكلة
+          if (error.message.includes("expired")) {
+            setErrorMessage("انتهت صلاحية رابط التحقق. يرجى طلب رابط جديد.");
+          } else if (error.message.includes("invalid") || error.message.includes("not found")) {
+            setErrorMessage("رابط التحقق غير صالح أو تم استخدامه من قبل.");
+          } else if (error.message.includes("already")) {
+            setErrorMessage("تم التحقق من هذا الحساب مسبقاً.");
+          } else {
+            setErrorMessage(`خطأ في التحقق: ${error.message}`);
+          }
         } else {
+          console.log("Verification successful");
           setStatus("success");
           toast({
             title: "تم التحقق بنجاح!",
@@ -59,7 +88,7 @@ const EmailVerify = () => {
       } catch (error: any) {
         console.error("Unexpected error:", error);
         setStatus("error");
-        setErrorMessage("حدث خطأ غير متوقع");
+        setErrorMessage(`حدث خطأ غير متوقع: ${error.message || "خطأ في النظام"}`);
       }
     };
 
