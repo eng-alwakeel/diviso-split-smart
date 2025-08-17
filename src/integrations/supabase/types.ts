@@ -665,6 +665,7 @@ export type Database = {
       }
       groups: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           currency: string
           id: string
@@ -673,6 +674,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           currency?: string
           id?: string
@@ -681,6 +683,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           currency?: string
           id?: string
@@ -835,6 +838,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          archived_at: string | null
           created_at: string
           id: string
           payload: Json
@@ -844,6 +848,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           payload?: Json
@@ -853,6 +858,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           id?: string
           payload?: Json
@@ -1326,6 +1332,14 @@ export type Database = {
         Args: { p_is_admin: boolean; p_user_id: string }
         Returns: boolean
       }
+      archive_group: {
+        Args: { p_group_id: string }
+        Returns: boolean
+      }
+      archive_old_notifications: {
+        Args: { p_days_old?: number; p_user_id: string }
+        Returns: number
+      }
       assert_quota: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: undefined
@@ -1351,6 +1365,10 @@ export type Database = {
           available: boolean
           remaining: number
         }[]
+      }
+      cleanup_old_archived_notifications: {
+        Args: { p_months_old?: number }
+        Returns: number
       }
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
@@ -1535,6 +1553,10 @@ export type Database = {
       seed_demo_for_user: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      unarchive_group: {
+        Args: { p_group_id: string }
+        Returns: boolean
       }
       verify_user_password: {
         Args: { current_password: string }

@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Plus, Search, Users, TrendingUp, CreditCard, Settings } from "lucide-react";
+import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useGroups } from "@/hooks/useGroups";
+import { useGroupArchive } from "@/hooks/useGroupArchive";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
@@ -13,7 +16,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: groups = [], isLoading, error } = useGroups();
+  const [activeTab, setActiveTab] = useState("active");
+  const { data: groups = [], isLoading, error } = useGroups(activeTab === "archived");
+  const { archiveGroup, unarchiveGroup } = useGroupArchive();
   const navigate = useNavigate();
 
   const filteredGroups = groups.filter(group =>
@@ -99,8 +104,16 @@ export default function MyGroups() {
         </Button>
 
         {/* قائمة المجموعات */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">مجموعاتي ({filteredGroups.length})</h2>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="active">النشطة</TabsTrigger>
+            <TabsTrigger value="archived">المؤرشفة</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={activeTab} className="space-y-4 mt-4">
+            <h2 className="text-lg font-semibold">
+              {activeTab === 'active' ? 'المجموعات النشطة' : 'المجموعات المؤرشفة'} ({filteredGroups.length})
+            </h2>
           
           {isLoading ? (
             // Loading skeletons
@@ -140,10 +153,17 @@ export default function MyGroups() {
             )
           ) : (
             filteredGroups.map((group) => (
-              <GroupCard key={group.id} group={group} onNavigate={navigate} />
+              <GroupCard 
+                key={group.id} 
+                group={group} 
+                onNavigate={navigate}
+                onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup}
+                isArchived={activeTab === 'archived'}
+              />
             ))
           )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <BottomNav />
@@ -161,9 +181,11 @@ interface GroupCardProps {
     created_at: string;
   };
   onNavigate: (path: string) => void;
+  onArchive: (groupId: string) => void;
+  isArchived?: boolean;
 }
 
-function GroupCard({ group, onNavigate }: GroupCardProps) {
+function GroupCard({ group, onNavigate, onArchive, isArchived }: GroupCardProps) {
   const isAdmin = group.member_role === 'admin' || group.member_role === 'owner';
   
   return (
@@ -215,13 +237,23 @@ function GroupCard({ group, onNavigate }: GroupCardProps) {
             مصروف
           </Button>
           {isAdmin && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onNavigate(`/group/${group.id}?tab=settings`)}
-            >
-              <Settings className="h-3 w-3" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost">
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  الإعدادات
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onArchive(group.id)}>
+                  <Archive className="h-4 w-4 mr-2" />
+                  {isArchived ? 'استعادة' : 'أرشف'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </CardContent>

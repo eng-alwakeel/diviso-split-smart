@@ -8,16 +8,17 @@ export type Group = {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  archived_at?: string | null;
   member_role?: string;
   member_count?: number;
 };
 
-async function fetchUserGroups(): Promise<Group[]> {
+async function fetchUserGroups(includeArchived = false): Promise<Group[]> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) throw new Error("User not authenticated");
 
   // Get all groups where user is a member with proper join
-  const { data: groupMembers, error: membersError } = await supabase
+  let query = supabase
     .from("group_members")
     .select(`
       role,
@@ -27,10 +28,18 @@ async function fetchUserGroups(): Promise<Group[]> {
         currency,
         owner_id,
         created_at,
-        updated_at
+        updated_at,
+        archived_at
       )
     `)
     .eq("user_id", userData.user.id);
+
+  // Filter archived groups unless specifically requested
+  if (!includeArchived) {
+    query = query.is("groups.archived_at", null);
+  }
+
+  const { data: groupMembers, error: membersError } = await query;
 
   if (membersError) throw membersError;
 
@@ -52,6 +61,7 @@ async function fetchUserGroups(): Promise<Group[]> {
         owner_id: group.owner_id,
         created_at: group.created_at,
         updated_at: group.updated_at,
+        archived_at: group.archived_at,
         member_role: member.role,
         member_count: count || 0
       };
@@ -61,10 +71,10 @@ async function fetchUserGroups(): Promise<Group[]> {
   return groupsWithDetails;
 }
 
-export function useGroups() {
+export function useGroups(includeArchived = false) {
   return useQuery({
-    queryKey: ["user-groups"],
-    queryFn: fetchUserGroups,
+    queryKey: ["user-groups", includeArchived],
+    queryFn: () => fetchUserGroups(includeArchived),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

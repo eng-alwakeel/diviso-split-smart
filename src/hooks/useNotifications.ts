@@ -8,27 +8,44 @@ export interface Notification {
   payload: Record<string, any>;
   read_at: string | null;
   created_at: string;
+  archived_at: string | null;
 }
 
-export const useNotifications = () => {
+export const useNotifications = (includeArchived = false) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [archivedNotifications, setArchivedNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchNotifications = async () => {
     try {
-      const { data, error } = await supabase
+      // جلب الإشعارات النشطة
+      const { data: activeData, error: activeError } = await supabase
         .from('notifications')
         .select('*')
+        .is('archived_at', null)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (activeError) throw activeError;
 
-      const typedNotifications = data as Notification[];
-      setNotifications(typedNotifications);
-      setUnreadCount(typedNotifications.filter(n => !n.read_at).length);
+      const activeNotifications = activeData as Notification[];
+      setNotifications(activeNotifications);
+      setUnreadCount(activeNotifications.filter(n => !n.read_at).length);
+
+      // جلب الإشعارات المؤرشفة إذا طُلب ذلك
+      if (includeArchived) {
+        const { data: archivedData, error: archivedError } = await supabase
+          .from('notifications')
+          .select('*')
+          .not('archived_at', 'is', null)
+          .order('archived_at', { ascending: false })
+          .limit(100);
+
+        if (archivedError) throw archivedError;
+        setArchivedNotifications(archivedData as Notification[]);
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -91,6 +108,85 @@ export const useNotifications = () => {
     }
   };
 
+  const archiveNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      toast({
+        title: 'تم الأرشفة',
+        description: 'تم أرشفة الإشعار بنجاح',
+      });
+    } catch (error) {
+      console.error('Error archiving notification:', error);
+      toast({
+        title: 'خطأ',
+        description: 'فشل في أرشفة الإشعار',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const archiveOldNotifications = async (daysOld = 30) => {
+    try {
+      const { data, error } = await supabase.rpc('archive_old_notifications', {
+        p_user_id: (await supabase.auth.getUser()).data.user?.id,
+        p_days_old: daysOld
+      });
+
+      if (error) throw error;
+
+      await fetchNotifications();
+      
+      toast({
+        title: 'تم الأرشفة',
+        description: `تم أرشفة ${data || 0} إشعار`,
+      });
+      
+      return data || 0;
+    } catch (error) {
+      console.error('Error archiving old notifications:', error);
+      toast({
+        title: 'خطأ',
+        description: 'فشل في أرشفة الإشعارات القديمة',
+        variant: 'destructive',
+      });
+      return 0;
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setArchivedNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      toast({
+        title: 'تم الحذف',
+        description: 'تم حذف الإشعار نهائياً',
+      });
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast({
+        title: 'خطأ',
+        description: 'فشل في حذف الإشعار',
+        variant: 'destructive',
+      });
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
 
@@ -126,10 +222,14 @@ export const useNotifications = () => {
 
   return {
     notifications,
+    archivedNotifications,
     unreadCount,
     loading,
     markAsRead,
     markAllAsRead,
+    archiveNotification,
+    archiveOldNotifications,
+    deleteNotification,
     refetch: fetchNotifications,
   };
 };
