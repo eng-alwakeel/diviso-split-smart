@@ -258,7 +258,7 @@ const CreateGroup = () => {
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="simple-container">
         {/* Header */}
         <div className="mb-8">
           <Button 

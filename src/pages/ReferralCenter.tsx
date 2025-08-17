@@ -178,7 +178,7 @@ const ReferralCenter = () => {
     return (
       <div className="min-h-screen bg-dark-background">
         <AppHeader />
-        <div className="container mx-auto px-4 py-8">
+        <div className="page-container">
           <div className="space-y-6">
             <Skeleton className="h-8 w-64" />
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -199,7 +199,7 @@ const ReferralCenter = () => {
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="page-container">
         {/* Header */}
         <div className="mb-8">
           <Button 

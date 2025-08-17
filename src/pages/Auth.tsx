@@ -168,7 +168,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto px-4 py-12 max-w-md">
+      <div className="auth-container">
         <Card className="bg-card border border-border rounded-2xl">
           <CardHeader>
             <CardTitle className="text-center">

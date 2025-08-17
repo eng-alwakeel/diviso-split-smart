@@ -36,7 +36,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="container mx-auto px-4 py-8 space-y-4">
+        <div className="page-container space-y-4">
           <Skeleton className="h-8 w-48" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
@@ -51,7 +51,6 @@ const Dashboard = () => {
             <Skeleton className="h-64 w-full" />
           </div>
         </div>
-        <div className="h-24" />
         <BottomNav />
       </div>
     );
@@ -61,7 +60,7 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="container mx-auto px-4 py-8">
+        <div className="page-container">
           <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <AlertTriangle className="w-12 h-12 text-destructive" />
             <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
@@ -80,7 +79,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="page-container space-y-6">
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
           <div>

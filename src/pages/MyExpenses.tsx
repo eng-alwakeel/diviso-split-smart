@@ -86,7 +86,7 @@ const MyExpenses = () => {
   // Show loading while getting user ID, but don't redirect immediately
   if (!currentUserId) {
     return (
-      <div className="container mx-auto p-4 space-y-6">
+      <div className="page-container space-y-6">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">جاري تحميل البيانات...</p>
@@ -96,7 +96,7 @@ const MyExpenses = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="page-container space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

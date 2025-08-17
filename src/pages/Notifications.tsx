@@ -85,7 +85,7 @@ export default function Notifications() {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <main className="container mx-auto px-4 py-6 pb-20">
+        <main className="page-container">
           <div className="text-center py-8">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
             <p className="mt-2 text-muted-foreground">جاري التحميل...</p>
@@ -100,7 +100,7 @@ export default function Notifications() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <main className="container mx-auto px-4 py-6 pb-20">
+      <main className="page-container">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">

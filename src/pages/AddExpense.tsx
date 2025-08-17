@@ -449,7 +449,7 @@ const AddExpense = () => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="form-container">
           <div className="space-y-6 animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3"></div>
             <div className="h-64 bg-muted rounded"></div>
@@ -464,7 +464,7 @@ const AddExpense = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="form-container">
         {/* Header */}
         <div className="mb-8">
           <Button 

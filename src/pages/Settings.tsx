@@ -260,7 +260,7 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="form-container">
         {/* Header */}
         <div className="mb-8">
           <Button 

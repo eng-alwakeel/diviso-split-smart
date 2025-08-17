@@ -139,6 +139,23 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Layout containers with unified spacing */
+  .page-container {
+    @apply container mx-auto px-4 py-6 max-w-6xl pb-24 lg:pb-8;
+  }
+
+  .form-container {
+    @apply container mx-auto px-4 py-6 max-w-4xl pb-24 lg:pb-8;
+  }
+
+  .simple-container {
+    @apply container mx-auto px-4 py-6 max-w-2xl pb-24 lg:pb-8;
+  }
+
+  .auth-container {
+    @apply container mx-auto px-4 py-8 max-w-md pb-24 lg:pb-8;
+  }
+
   .bg-grid-pattern {
     background-image: radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.18) 1px, transparent 1px);
     background-size: 16px 16px;

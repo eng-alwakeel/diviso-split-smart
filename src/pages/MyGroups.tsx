@@ -35,7 +35,7 @@ export default function MyGroups() {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className={`container ${isMobile ? 'max-w-md' : 'max-w-6xl'} mx-auto px-4 pt-4 ${isMobile ? 'pb-20' : 'pb-8'}`}>
+        <div className="page-container">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold">مجموعاتي</h1>
             <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
@@ -55,7 +55,7 @@ export default function MyGroups() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className={`container ${isMobile ? 'max-w-md' : 'max-w-6xl'} mx-auto px-4 pt-4 ${isMobile ? 'pb-20' : 'pb-8'} space-y-6`}>
+      <div className="page-container space-y-6">
         {/* عنوان الصفحة */}
         <div className="text-center">
           <h1 className="text-2xl font-bold">مجموعاتي</h1>
