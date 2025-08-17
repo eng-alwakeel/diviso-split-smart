@@ -11,6 +11,8 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
+import { SubscriptionStatusCard } from "@/components/dashboard/SubscriptionStatusCard";
+import { UsageLimitsCard } from "@/components/dashboard/UsageLimitsCard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -105,6 +107,12 @@ const Dashboard = () => {
           myPaid={myPaid}
           myOwed={myOwed}
         />
+
+        {/* Subscription and Usage Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SubscriptionStatusCard />
+          <UsageLimitsCard />
+        </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
         {adminData?.isAdmin && (
