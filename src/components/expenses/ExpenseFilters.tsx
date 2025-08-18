@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +23,17 @@ export const ExpenseFilters = ({
   groups = [], 
   loading = false 
 }: ExpenseFiltersProps) => {
+  const { debounce } = usePerformanceOptimization();
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<FilterType>(filters);
+
+  // Debounced search to improve performance
+  const debouncedSearch = useMemo(
+    () => debounce((searchValue: string) => {
+      onFiltersChange({ ...localFilters, search: searchValue || undefined });
+    }, 300),
+    [debounce, localFilters, onFiltersChange]
+  );
 
   const handleApplyFilters = () => {
     onFiltersChange(localFilters);
@@ -60,7 +70,11 @@ export const ExpenseFilters = ({
         <Input
           placeholder="ابحث في أوصاف المصاريف..."
           value={localFilters.search || ''}
-          onChange={(e) => updateFilter('search', e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            updateFilter('search', value);
+            debouncedSearch(value);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               onFiltersChange(localFilters);

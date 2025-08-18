@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePerformanceOptimization } from "./usePerformanceOptimization";
 
 interface GroupData {
   id: string;
@@ -34,6 +35,9 @@ interface DashboardData {
 
 export const useDashboardData = (): DashboardData => {
   const { toast } = useToast();
+  const { createCache, measurePerformance } = usePerformanceOptimization();
+  const cache = useMemo(() => createCache(50), [createCache]);
+  
   const [data, setData] = useState<Omit<DashboardData, 'loading' | 'error' | 'refetch'>>({
     myPaid: 0,
     myOwed: 0,
@@ -44,7 +48,16 @@ export const useDashboardData = (): DashboardData => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    const cacheKey = 'dashboard-data';
+    
+    // Check cache first
+    if (cache.has(cacheKey)) {
+      setData(cache.get(cacheKey));
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -57,85 +70,83 @@ export const useDashboardData = (): DashboardData => {
         return;
       }
 
+      // Use parallel queries for better performance
       // Get user's group memberships
-      const { data: memberships } = await supabase
-        .from('group_members')
-        .select('group_id')
-        .eq('user_id', uid);
-        
-      const groupIds = (memberships ?? []).map((m: any) => m.group_id);
-      
-      if (!groupIds.length) {
-        setData({
-          myPaid: 0,
-          myOwed: 0,
-          monthlyTotalExpenses: 0,
-          weeklyExpensesCount: 0,
-          groupsCount: 0,
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Fetch expenses for calculations
-      const { data: expenseRows } = await supabase
-        .from('expenses')
-        .select('id, group_id, amount, payer_id')
-        .in('group_id', groupIds);
-
-      // Calculate what user paid
-      const totalPaid = (expenseRows ?? []).reduce((sum: number, e: any) => {
-        if (e.payer_id === uid) {
-          return sum + Number(e.amount || 0);
-        }
-        return sum;
-      }, 0);
-
-      // Calculate what user owes
-      let totalOwed = 0;
-      const expenseIds = (expenseRows ?? []).map((e: any) => e.id);
-      if (expenseIds.length) {
-        const { data: userSplits } = await supabase
-          .from('expense_splits')
-          .select('share_amount')
-          .eq('member_id', uid)
-          .in('expense_id', expenseIds);
+        const { data: memberships } = await supabase
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', uid);
           
-        totalOwed = (userSplits ?? []).reduce((sum, split) => {
-          return sum + Number(split.share_amount || 0);
-        }, 0);
-      }
-
-      // Calculate monthly total expenses for current user
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      
-      const { data: monthlyExpenses } = await supabase
-        .from('expenses')
-        .select('amount')
-        .eq('payer_id', uid)
-        .gte('spent_at', startOfMonth.toISOString());
+        const groupIds = (memberships ?? []).map((m: any) => m.group_id);
         
-      const monthlyTotal = (monthlyExpenses ?? []).reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+        if (!groupIds.length) {
+          const emptyData = {
+            myPaid: 0,
+            myOwed: 0,
+            monthlyTotalExpenses: 0,
+            weeklyExpensesCount: 0,
+            groupsCount: 0,
+          };
+          setData(emptyData);
+          cache.set(cacheKey, emptyData);
+          setLoading(false);
+          return;
+        }
 
-      // Calculate weekly expenses count
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      
-      const { data: weeklyExpenses } = await supabase
-        .from('expenses')
-        .select('id')
-        .in('group_id', groupIds)
-        .gte('spent_at', weekAgo.toISOString());
+        // Parallel queries for better performance
+        const [expenseResult, splitsResult, monthlyResult, weeklyResult] = await Promise.all([
+          supabase
+            .from('expenses')
+            .select('id, group_id, amount, payer_id, status')
+            .in('group_id', groupIds)
+            .eq('status', 'approved'),
+          
+          supabase
+            .from('expense_splits')
+            .select('share_amount, expense_id')
+            .eq('member_id', uid),
+            
+          supabase
+            .from('expenses')
+            .select('amount')
+            .eq('payer_id', uid)
+            .eq('status', 'approved')
+            .gte('spent_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+            
+          supabase
+            .from('expenses')
+            .select('id')
+            .in('group_id', groupIds)
+            .gte('spent_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        ]);
 
-      setData({
-        myPaid: totalPaid,
-        myOwed: totalOwed,
-        monthlyTotalExpenses: monthlyTotal,
-        weeklyExpensesCount: (weeklyExpenses ?? []).length,
-        groupsCount: groupIds.length,
-      });
+        const expenses = expenseResult.data ?? [];
+        const splits = splitsResult.data ?? [];
+        const monthlyExpenses = monthlyResult.data ?? [];
+        const weeklyExpenses = weeklyResult.data ?? [];
+
+        // Calculate totals
+        const totalPaid = expenses
+          .filter(e => e.payer_id === uid)
+          .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+        const expenseIds = expenses.map(e => e.id);
+        const totalOwed = splits
+          .filter(s => expenseIds.includes(s.expense_id))
+          .reduce((sum, split) => sum + Number(split.share_amount || 0), 0);
+
+        const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+
+        const dashboardResult = {
+          myPaid: totalPaid,
+          myOwed: totalOwed,
+          monthlyTotalExpenses: monthlyTotal,
+          weeklyExpensesCount: weeklyExpenses.length,
+          groupsCount: groupIds.length,
+        };
+
+      setData(dashboardResult);
+      cache.set(cacheKey, dashboardResult);
 
     } catch (err) {
       console.error('Dashboard data fetch error:', err);
@@ -148,11 +159,16 @@ export const useDashboardData = (): DashboardData => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cache]);
+
+  const measuredFetchData = useMemo(
+    () => measurePerformance('dashboard-fetch', fetchData),
+    [measurePerformance, fetchData]
+  );
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    measuredFetchData();
+  }, [measuredFetchData]);
 
   return {
     ...data,

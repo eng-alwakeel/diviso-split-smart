@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
+import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CreateGroup from "./pages/CreateGroup";
