@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Wand2, Trash2 } from "lucide-react";
 import { BalancePreview } from "./BalancePreview";
 import { BalanceBreakdown } from "./BalanceBreakdown";
+import { useCurrencies } from "@/hooks/useCurrencies";
+import { useUserSettings } from "@/hooks/useUserSettings";
 
 export interface MemberRow {
   user_id: string;
@@ -53,6 +55,7 @@ interface GroupSettlementDialogProps {
   initialToUserId?: string;
   initialAmount?: number;
   onCreated?: () => void;
+  groupCurrency?: string;
 }
 
 const formatName = (id: string, profiles: Record<string, ProfileRow>) => {
@@ -72,8 +75,11 @@ export const GroupSettlementDialog = ({
   initialToUserId,
   initialAmount,
   onCreated,
+  groupCurrency = 'SAR',
 }: GroupSettlementDialogProps) => {
   const { toast } = useToast();
+  const { currencies, convertCurrency, getExchangeRate } = useCurrencies();
+  const { settings } = useUserSettings();
   const [rows, setRows] = useState<RowState[]>([{ to_user_id: initialToUserId || "", amount: initialAmount?.toString() || "", note: "" }]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -176,6 +182,10 @@ export const GroupSettlementDialog = ({
               userId={currentUserId}
               balances={balances}
               pendingAmounts={pendingAmounts}
+              groupCurrency={groupCurrency}
+              userCurrency={settings?.currency || 'SAR'}
+              currencies={currencies}
+              convertCurrency={convertCurrency}
             />
           )}
 
@@ -184,6 +194,10 @@ export const GroupSettlementDialog = ({
             currentBalance={myNet}
             proposedSettlements={proposedSettlements}
             profiles={profiles}
+            groupCurrency={groupCurrency}
+            userCurrency={settings?.currency || 'SAR'}
+            currencies={currencies}
+            convertCurrency={convertCurrency}
           />
 
           {/* Rows */}

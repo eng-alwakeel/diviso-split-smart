@@ -941,6 +941,7 @@ const GroupDetails = () => {
         initialToUserId={prefillTo}
         initialAmount={prefillAmount}
         onCreated={() => refetch()}
+        groupCurrency={groupCurrency}
       />
 
       <EditExpenseDialog

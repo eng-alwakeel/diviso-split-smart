@@ -196,7 +196,7 @@ export const BalanceDashboard = ({
             userId={currentUserId}
             balances={balances}
             pendingAmounts={pendingAmounts}
-            currency={currency}
+            groupCurrency={currency}
           />
         </TabsContent>
 

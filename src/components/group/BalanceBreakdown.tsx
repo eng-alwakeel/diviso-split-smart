@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowDownCircle, ArrowUpCircle, RefreshCw, DollarSign } from "lucide-react";
+import { Currency } from "@/hooks/useCurrencies";
 
 interface BalanceBreakdownProps {
   userId: string;
@@ -18,14 +19,20 @@ interface BalanceBreakdownProps {
     pending_owed: number;
     pending_net: number;
   }>;
-  currency?: string;
+  groupCurrency?: string;
+  userCurrency?: string;
+  currencies?: Currency[];
+  convertCurrency?: (amount: number, fromCurrency: string, toCurrency: string) => number;
 }
 
 export const BalanceBreakdown = ({ 
   userId, 
   balances, 
-  pendingAmounts = [], 
-  currency = "ر.س" 
+  pendingAmounts = [],
+  groupCurrency = 'SAR',
+  userCurrency = 'SAR',
+  currencies = [],
+  convertCurrency
 }: BalanceBreakdownProps) => {
   const userBalance = balances.find(b => b.user_id === userId);
   const userPending = pendingAmounts.find(p => p.user_id === userId);
@@ -40,8 +47,21 @@ export const BalanceBreakdown = ({
     );
   }
 
-  const formatAmount = (amount: number) => {
-    return `${amount.toLocaleString()} ${currency}`;
+  // Get currency symbols
+  const groupCurrencySymbol = currencies.find(c => c.code === groupCurrency)?.symbol || groupCurrency;
+  const userCurrencySymbol = currencies.find(c => c.code === userCurrency)?.symbol || userCurrency;
+
+  const formatAmount = (amount: number, showBoth = true) => {
+    const groupAmount = `${amount.toLocaleString()} ${groupCurrencySymbol}`;
+    
+    if (!showBoth || groupCurrency === userCurrency || !convertCurrency) {
+      return groupAmount;
+    }
+    
+    const convertedAmount = convertCurrency(Math.abs(amount), groupCurrency, userCurrency);
+    const userAmount = `${convertedAmount.toLocaleString()} ${userCurrencySymbol}`;
+    
+    return `${groupAmount} (${userAmount} تقريباً)`;
   };
 
   const totalPaid = Number(userBalance.amount_paid) + Number(userPending?.pending_paid || 0);

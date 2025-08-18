@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowUp, ArrowDown, TrendingUp } from "lucide-react";
+import { Currency } from "@/hooks/useCurrencies";
 
 interface BalancePreviewProps {
   currentBalance: number;
@@ -9,14 +10,20 @@ interface BalancePreviewProps {
     amount: number;
   }>;
   profiles: Record<string, { display_name?: string | null; name?: string | null }>;
-  currency?: string;
+  groupCurrency?: string;
+  userCurrency?: string;
+  currencies?: Currency[];
+  convertCurrency?: (amount: number, fromCurrency: string, toCurrency: string) => number;
 }
 
 export const BalancePreview = ({ 
   currentBalance, 
   proposedSettlements, 
-  profiles, 
-  currency = "ر.س" 
+  profiles,
+  groupCurrency = 'SAR',
+  userCurrency = 'SAR',
+  currencies = [],
+  convertCurrency
 }: BalancePreviewProps) => {
   const totalSettlementOut = useMemo(() => {
     return proposedSettlements.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
@@ -25,9 +32,23 @@ export const BalancePreview = ({
   const newBalance = currentBalance - totalSettlementOut;
   const balanceChange = newBalance - currentBalance;
 
-  const formatAmount = (amount: number) => {
+  // Get currency symbols
+  const groupCurrencySymbol = currencies.find(c => c.code === groupCurrency)?.symbol || groupCurrency;
+  const userCurrencySymbol = currencies.find(c => c.code === userCurrency)?.symbol || userCurrency;
+
+  const formatAmount = (amount: number, showBoth = true) => {
     const sign = amount >= 0 ? "+" : "";
-    return `${sign}${amount.toLocaleString()} ${currency}`;
+    const groupAmount = `${sign}${amount.toLocaleString()} ${groupCurrencySymbol}`;
+    
+    if (!showBoth || groupCurrency === userCurrency || !convertCurrency) {
+      return groupAmount;
+    }
+    
+    const convertedAmount = convertCurrency(Math.abs(amount), groupCurrency, userCurrency);
+    const convertedSign = amount >= 0 ? "+" : "";
+    const userAmount = `${convertedSign}${convertedAmount.toLocaleString()} ${userCurrencySymbol}`;
+    
+    return `${groupAmount} (${userAmount} تقريباً)`;
   };
 
   const formatName = (userId: string) => {
@@ -77,16 +98,16 @@ export const BalancePreview = ({
             <div className="text-xs text-muted-foreground">تفاصيل التسويات المقترحة:</div>
             <div className="space-y-1">
               {proposedSettlements.map((settlement, index) => (
-                <div key={index} className="flex items-center justify-between text-xs p-2 rounded-lg bg-muted/20">
-                  <span>إلى {formatName(settlement.to_user_id)}</span>
-                  <span className="font-medium">{Number(settlement.amount).toLocaleString()} {currency}</span>
-                </div>
+                 <div key={index} className="flex items-center justify-between text-xs p-2 rounded-lg bg-muted/20">
+                   <span>إلى {formatName(settlement.to_user_id)}</span>
+                   <span className="font-medium">{formatAmount(settlement.amount, false).replace('+', '')}</span>
+                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between pt-2 border-t border-border/50 text-sm font-medium">
-              <span>إجمالي المبلغ المدفوع:</span>
-              <span className="text-destructive">-{totalSettlementOut.toLocaleString()} {currency}</span>
-            </div>
+             <div className="flex items-center justify-between pt-2 border-t border-border/50 text-sm font-medium">
+               <span>إجمالي المبلغ المدفوع:</span>
+               <span className="text-destructive">{formatAmount(-totalSettlementOut)}</span>
+             </div>
           </div>
         )}
 
@@ -94,9 +115,9 @@ export const BalancePreview = ({
         {currentBalance < 0 && Math.abs(newBalance) < Math.abs(currentBalance) && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-accent/10 border border-accent/20">
             <TrendingUp className="w-4 h-4 text-accent" />
-            <span className="text-xs text-accent">
-              ممتاز! هذه التسوية ستحسن رصيدك بمقدار {Math.abs(balanceChange).toLocaleString()} {currency}
-            </span>
+             <span className="text-xs text-accent">
+               ممتاز! هذه التسوية ستحسن رصيدك بمقدار {formatAmount(Math.abs(balanceChange), false)}
+             </span>
           </div>
         )}
       </CardContent>
