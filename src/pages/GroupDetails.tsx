@@ -119,15 +119,20 @@ const GroupDetails = () => {
     }
   }, [group?.name]);
 
-  // Calculate budget totals for quick cards
+  // Calculate budget totals from budget categories, not main budgets
   const budgetTotals = useMemo(() => {
-    if (!budgets.length) return { total: 0, spent: 0, percentage: 0 };
+    if (!budgetTracking || budgetTracking.length === 0) {
+      return { total: 0, spent: 0, percentage: 0 };
+    }
     
-    const total = budgets.reduce((sum, budget) => sum + (budget.total_amount || 0), 0);
-    const spent = budgetTracking.reduce((sum, item) => sum + (item.spent_amount || 0), 0);
-    const percentage = total > 0 ? (spent / total) * 100 : 0;
+    const total = budgetTracking.reduce((sum, category) => sum + (category.budgeted_amount || 0), 0);
+    const spent = budgetTracking.reduce((sum, category) => sum + (category.spent_amount || 0), 0);
     
-    return { total, spent, percentage };
+    return {
+      total,
+      spent,
+      percentage: total > 0 ? (spent / total) * 100 : 0
+    };
   }, [budgetTracking]);
 
   // إخفاء شريط التمرير أثناء التواجد في صفحة تفاصيل المجموعة
@@ -838,51 +843,50 @@ const GroupDetails = () => {
                   <div className="animate-spin mx-auto w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
                   <p className="text-muted-foreground mt-2">جاري تحميل الميزانيات...</p>
                 </div>
-              ) : budgets.length > 0 && (
+              ) : budgetTracking && budgetTracking.length > 0 ? (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">الميزانيات الحالية</h3>
-                    <Badge variant="secondary">{budgets.length} ميزانية</Badge>
+                    <h3 className="text-lg font-semibold">فئات الميزانية</h3>
+                    <Badge variant="secondary">{budgetTracking.length} فئة</Badge>
                   </div>
                   
                   <div className="grid gap-4">
-                    {budgets.map((budget) => {
-                      // For budgets with specific categories, match tracking data
-                      // For general budgets (no category), calculate total spending in the budget period
-                      let spent = 0;
-                      if (budget.category_id) {
-                        const trackingData = budgetTracking.find(bt => bt.category_id === budget.category_id);
-                        spent = trackingData?.spent_amount || 0;
-                      } else {
-                        // For general budgets, sum all approved expenses in the budget period
-                        const budgetStart = new Date(budget.start_date);
-                        const budgetEnd = budget.end_date ? new Date(budget.end_date) : new Date();
-                        spent = expenses
-                          .filter(expense => {
-                            if (expense.status !== 'approved') return false;
-                            const expenseDate = new Date(expense.spent_at || expense.created_at);
-                            return expenseDate >= budgetStart && expenseDate <= budgetEnd;
-                          })
-                          .reduce((sum, expense) => sum + expense.amount, 0);
-                      }
-                      
-                      const totalAmount = budget.amount_limit || budget.total_amount;
-                      const progress = totalAmount > 0 ? (spent / totalAmount) * 100 : 0;
-                      const remaining = totalAmount - spent;
-                      
+                    {budgetTracking.map((categoryBudget) => {
+                      const progress = categoryBudget.spent_percentage;
+                      const spent = categoryBudget.spent_amount;
+                      const remaining = categoryBudget.remaining_amount;
+
+                      // Create a budget object for BudgetProgressCard
+                      const budgetForCard = {
+                        id: categoryBudget.category_id || '',
+                        name: categoryBudget.category_name || 'فئة غير محددة',
+                        total_amount: categoryBudget.budgeted_amount,
+                        period: 'monthly' as const,
+                        start_date: new Date().toISOString().split('T')[0],
+                        end_date: null,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        created_by: '',
+                        group_id: id!,
+                        category_id: categoryBudget.category_id,
+                        budget_type: 'monthly' as const,
+                        amount_limit: categoryBudget.budgeted_amount,
+                        starts_on: null
+                      };
+
                       return (
                         <BudgetProgressCard
-                          key={budget.id}
-                          budget={budget}
+                          key={`category-${categoryBudget.category_id}`}
+                          budget={budgetForCard}
                           progress={progress}
                           spent={spent}
                           remaining={remaining}
                           onEdit={() => {
-                            setEditingBudget(budget);
+                            setEditingBudget(budgetForCard);
                             setEditBudgetOpen(true);
                           }}
                           onDelete={() => {
-                            setDeletingBudget(budget);
+                            setDeletingBudget(budgetForCard);
                             setDeleteBudgetOpen(true);
                           }}
                           formatCurrency={(amount) => formatCurrency(amount, group?.currency || 'SAR')}
@@ -890,6 +894,13 @@ const GroupDetails = () => {
                       );
                     })}
                   </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">لا توجد ميزانيات بعد</div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    ابدأ بإنشاء ميزانية لتتبع مصاريف المجموعة
+                  </p>
                 </div>
               )}
 

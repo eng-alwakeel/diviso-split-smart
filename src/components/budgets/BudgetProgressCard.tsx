@@ -27,9 +27,16 @@ export function BudgetProgressCard({
 }: BudgetProgressCardProps) {
   const getProgressVariant = () => {
     if (progress >= 100) return "destructive";
-    if (progress >= 90) return "secondary";
-    if (progress >= 75) return "outline";
+    if (progress >= 90) return "destructive";
+    if (progress >= 80) return "secondary";
     return "default";
+  };
+
+  const getStatusColor = () => {
+    if (progress >= 100) return "text-destructive";
+    if (progress >= 90) return "text-destructive";
+    if (progress >= 80) return "text-orange-600";
+    return "text-green-600";
   };
 
   const getProgressIcon = () => {
@@ -68,7 +75,7 @@ export function BudgetProgressCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={getProgressVariant()} className="flex items-center gap-1">
+            <Badge variant={getProgressVariant()} className={`flex items-center gap-1 ${getStatusColor()}`}>
               {getProgressIcon()}
               {progress.toFixed(1)}%
             </Badge>
@@ -97,14 +104,29 @@ export function BudgetProgressCard({
           </div>
         </div>
         
-        {progress >= 90 && (
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
+        {progress >= 80 && (
+          <div className={`p-3 rounded-lg ${
+            progress >= 100 
+              ? 'bg-destructive/10 border border-destructive/20' 
+              : progress >= 90 
+                ? 'bg-destructive/10 border border-destructive/20'
+                : 'bg-orange-50 border border-orange-200'
+          }`}>
+            <div className={`flex items-center gap-2 ${
+              progress >= 100 
+                ? 'text-destructive' 
+                : progress >= 90 
+                  ? 'text-destructive'
+                  : 'text-orange-600'
+            }`}>
               <AlertTriangle className="h-4 w-4" />
               <span className="text-sm font-medium">
                 {progress >= 100 
-                  ? "تم تجاوز الميزانية!" 
-                  : "اقتراب من الحد الأقصى"}
+                  ? 'تجاوزت الميزانية!' 
+                  : progress >= 90 
+                    ? 'اقتربت من تجاوز الميزانية!'
+                    : 'تحذير: اقتربت من الحد المسموح!'
+                }
               </span>
             </div>
           </div>
