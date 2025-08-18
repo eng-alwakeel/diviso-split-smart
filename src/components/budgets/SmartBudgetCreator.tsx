@@ -69,6 +69,10 @@ export function SmartBudgetCreator({
         name: quickBudgetName,
         group_id: groupId,
         total_amount: parseFloat(quickBudgetAmount),
+        amount_limit: parseFloat(quickBudgetAmount), // Set amount_limit to total_amount for quick budgets
+        period: "monthly",
+        budget_type: "monthly",
+        start_date: new Date().toISOString().split('T')[0],
         categories: [], // Quick budget without specific categories
       });
       

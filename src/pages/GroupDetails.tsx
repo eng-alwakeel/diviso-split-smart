@@ -55,6 +55,8 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
 import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
 import { BudgetQuickActions } from "@/components/budgets/BudgetQuickActions";
+import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
+import { DeleteBudgetDialog } from "@/components/budgets/DeleteBudgetDialog";
 import { useCurrencies } from "@/hooks/useCurrencies";
 
 const GroupDetails = () => {
@@ -78,6 +80,10 @@ const GroupDetails = () => {
   
   // Budget state
   const [createBudgetOpen, setCreateBudgetOpen] = useState(false);
+  const [editBudgetOpen, setEditBudgetOpen] = useState(false);
+  const [deleteBudgetOpen, setDeleteBudgetOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [deletingBudget, setDeletingBudget] = useState<any>(null);
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -802,14 +808,23 @@ const GroupDetails = () => {
                 totalSpent={budgetTotals.spent}
                 onCreateBudget={async (budgetData) => {
                   try {
-                    await createBudget({
+                    const newBudget = await createBudget({
                       name: budgetData.name,
                       total_amount: budgetData.total_amount,
+                      amount_limit: budgetData.amount_limit || budgetData.total_amount,
                       group_id: budgetData.group_id,
-                      period: "monthly",
-                      start_date: new Date().toISOString().split('T')[0],
-                      budget_type: "monthly"
+                      period: budgetData.period || "monthly",
+                      start_date: budgetData.start_date || new Date().toISOString().split('T')[0],
+                      end_date: budgetData.end_date,
+                      budget_type: budgetData.budget_type || "monthly",
+                      category_id: budgetData.category_id
                     });
+                    
+                    // If budget has categories, create budget_categories entries
+                    if (budgetData.categories && budgetData.categories.length > 0) {
+                      // This will be handled by the useBudgetFromAI or similar hook
+                      console.log("Budget with categories created:", newBudget);
+                    }
                   } catch (error) {
                     console.error("Error creating budget:", error);
                     throw error;
@@ -832,13 +847,28 @@ const GroupDetails = () => {
                   
                   <div className="grid gap-4">
                     {budgets.map((budget) => {
-                      // Find budget tracking data for this budget - match by category if budget has category
-                      const trackingData = budgetTracking.find(bt => 
-                        budget.category_id && bt.category_id === budget.category_id
-                      );
-                      const spent = trackingData?.spent_amount || 0;
-                      const progress = budget.total_amount > 0 ? (spent / budget.total_amount) * 100 : 0;
-                      const remaining = budget.total_amount - spent;
+                      // For budgets with specific categories, match tracking data
+                      // For general budgets (no category), calculate total spending in the budget period
+                      let spent = 0;
+                      if (budget.category_id) {
+                        const trackingData = budgetTracking.find(bt => bt.category_id === budget.category_id);
+                        spent = trackingData?.spent_amount || 0;
+                      } else {
+                        // For general budgets, sum all approved expenses in the budget period
+                        const budgetStart = new Date(budget.start_date);
+                        const budgetEnd = budget.end_date ? new Date(budget.end_date) : new Date();
+                        spent = expenses
+                          .filter(expense => {
+                            if (expense.status !== 'approved') return false;
+                            const expenseDate = new Date(expense.spent_at || expense.created_at);
+                            return expenseDate >= budgetStart && expenseDate <= budgetEnd;
+                          })
+                          .reduce((sum, expense) => sum + expense.amount, 0);
+                      }
+                      
+                      const totalAmount = budget.amount_limit || budget.total_amount;
+                      const progress = totalAmount > 0 ? (spent / totalAmount) * 100 : 0;
+                      const remaining = totalAmount - spent;
                       
                       return (
                         <BudgetProgressCard
@@ -848,12 +878,12 @@ const GroupDetails = () => {
                           spent={spent}
                           remaining={remaining}
                           onEdit={() => {
-                            // TODO: Implement edit dialog
-                            console.log("Edit budget", budget.id);
+                            setEditingBudget(budget);
+                            setEditBudgetOpen(true);
                           }}
                           onDelete={() => {
-                            // TODO: Implement delete confirmation
-                            deleteBudget(budget.id);
+                            setDeletingBudget(budget);
+                            setDeleteBudgetOpen(true);
                           }}
                           formatCurrency={(amount) => formatCurrency(amount, group?.currency || 'SAR')}
                         />
@@ -974,6 +1004,34 @@ const GroupDetails = () => {
           refetch();
         }}
         isCreating={isCreating}
+      />
+
+      {/* Edit Budget Dialog */}
+      <EditBudgetDialog
+        open={editBudgetOpen}
+        onOpenChange={setEditBudgetOpen}
+        budget={editingBudget}
+        onUpdate={async (budgetId, updates) => {
+          await updateBudget({ id: budgetId, ...updates });
+          setEditBudgetOpen(false);
+          setEditingBudget(null);
+        }}
+        isUpdating={isCreating}
+      />
+
+      {/* Delete Budget Dialog */}
+      <DeleteBudgetDialog
+        open={deleteBudgetOpen}
+        onOpenChange={setDeleteBudgetOpen}
+        budget={deletingBudget}
+        onConfirm={async () => {
+          if (deletingBudget) {
+            await deleteBudget(deletingBudget.id);
+            setDeleteBudgetOpen(false);
+            setDeletingBudget(null);
+          }
+        }}
+        isDeleting={isCreating}
       />
       </div>
       <div className="h-16 md:hidden" />
