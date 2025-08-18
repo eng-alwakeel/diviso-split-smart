@@ -102,10 +102,11 @@ export const useUserEngagement = () => {
         .select('id')
         .eq('owner_id', user.id);
 
+      // Check OCR usage from expenses with receipts instead
       const { data: ocrUsage } = await supabase
-        .from('receipt_ocr')
+        .from('expense_receipts')
         .select('id')
-        .eq('created_by', user.id);
+        .eq('uploaded_by', user.id);
 
       setEngagement(prev => {
         const updated = { ...prev };
