@@ -1626,6 +1626,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_budget_warnings: {
+        Args: { p_amount: number; p_category_id: string; p_group_id: string }
+        Returns: {
+          budget_limit: number
+          current_spent: number
+          message: string
+          remaining_amount: number
+          warning_type: string
+        }[]
+      }
       get_current_count: {
         Args: { p_action: string; p_group_id: string; p_user_id: string }
         Returns: number

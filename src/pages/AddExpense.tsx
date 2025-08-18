@@ -33,6 +33,8 @@ import { SmartCategorySelector } from "@/components/expenses/SmartCategorySelect
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
+import { useBudgetWarnings, BudgetWarning } from "@/hooks/useBudgetWarnings";
+import { BudgetWarningAlert } from "@/components/expenses/BudgetWarningAlert";
 
 interface UserGroup {
   id: string;
@@ -52,6 +54,7 @@ const AddExpense = () => {
   // Removed useCategories as we now use SmartCategorySelector
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
+  const { mutateAsync: checkBudgetWarnings } = useBudgetWarnings();
   
   // Form state
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
@@ -80,6 +83,7 @@ const AddExpense = () => {
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApprovalInfo, setShowApprovalInfo] = useState(false);
+  const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -288,6 +292,30 @@ const AddExpense = () => {
       return;
     }
   }, [selectedGroup, splitType, members]);
+
+  // Check budget warnings when amount or category changes
+  const checkWarnings = async () => {
+    if (selectedGroup && selectedCategory && amount && parseFloat(amount) > 0) {
+      try {
+        const warning = await checkBudgetWarnings({
+          groupId: selectedGroup.id,
+          categoryId: selectedCategory,
+          amount: parseFloat(amount)
+        });
+        setBudgetWarning(warning);
+      } catch (error) {
+        // Ignore errors - budget warnings are not critical
+        setBudgetWarning(null);
+      }
+    } else {
+      setBudgetWarning(null);
+    }
+  };
+
+  // Check warnings when relevant fields change
+  useEffect(() => {
+    checkWarnings();
+  }, [selectedGroup, selectedCategory, amount]);
 
   // Update splits when amount changes for equal split
   useEffect(() => {
@@ -727,6 +755,15 @@ const AddExpense = () => {
                     />
                   </div>
                 </div>
+
+                {/* Budget Warning */}
+                {budgetWarning && (
+                  <BudgetWarningAlert
+                    warning={budgetWarning}
+                    currency={selectedGroup?.currency || 'SAR'}
+                    onDismiss={() => setBudgetWarning(null)}
+                  />
+                )}
               </CardContent>
             </Card>
 

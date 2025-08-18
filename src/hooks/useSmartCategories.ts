@@ -105,7 +105,7 @@ const suggestCategoriesForGroupType = (groupType: string, allCategories: any[]):
     case 'work':
     case 'project':
       const workCategories = [
-        'مكتب', 'اجتماعات', 'مواصلات', 'معدات', 'قرطاسية', 'طعام', 'تقنية'
+        'مكتب', 'اجتماعات', 'مواصلات', 'معدات', 'قرطاسية', 'طعام', 'تقنية', 'مشاريع', 'مبيعات'
       ];
       
       allCategories.forEach(cat => {
