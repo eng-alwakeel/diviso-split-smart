@@ -30,15 +30,23 @@ export default defineConfig(({ mode }) => ({
           supabase: ['@supabase/supabase-js'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs'],
           charts: ['recharts'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge']
+          utils: ['date-fns', 'clsx', 'tailwind-merge'],
+          query: ['@tanstack/react-query'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod']
         },
+        // Optimize chunk file names
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       },
     },
-    // Optimize chunk size
-    chunkSizeWarningLimit: 1000,
+    // Optimize chunk size and compression
+    chunkSizeWarningLimit: 800,
     target: 'esnext',
     minify: 'esbuild',
     sourcemap: false,
+    cssCodeSplit: true,
+    reportCompressedSize: false,
   },
   // Optimize dependencies
   optimizeDeps: {

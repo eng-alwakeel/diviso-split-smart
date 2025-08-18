@@ -8,6 +8,8 @@ interface OptimizedImageProps {
   height?: number;
   loading?: 'lazy' | 'eager';
   priority?: boolean;
+  onError?: () => void;
+  onLoad?: () => void;
 }
 
 export const OptimizedImage = ({
@@ -17,7 +19,9 @@ export const OptimizedImage = ({
   width,
   height,
   loading = 'lazy',
-  priority = false
+  priority = false,
+  onError,
+  onLoad
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -35,10 +39,12 @@ export const OptimizedImage = ({
 
   const handleLoad = () => {
     setIsLoaded(true);
+    onLoad?.();
   };
 
   const handleError = () => {
     setHasError(true);
+    onError?.();
   };
 
   if (hasError) {

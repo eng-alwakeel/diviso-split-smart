@@ -11,6 +11,7 @@ export const LazySettings = lazy(() => import('@/pages/Settings'));
 export const LazyPricing = lazy(() => import('@/pages/Pricing'));
 export const LazyNotifications = lazy(() => import('@/pages/Notifications'));
 
+
 // Loading skeleton component
 const ComponentSkeleton = () => (
   <div className="min-h-screen bg-background p-6">

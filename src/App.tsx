@@ -3,32 +3,50 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy } from "react";
 import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
+import { AdvancedPerformanceMonitor } from "@/components/AdvancedPerformanceMonitor";
+import { withLazyLoading } from "@/components/LazyComponents";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import CreateGroup from "./pages/CreateGroup";
-import AddExpense from "./pages/AddExpense";
-import ReferralCenter from "./pages/ReferralCenter";
-import GroupDetails from "./pages/GroupDetails";
-import FinancialPlan from "./pages/FinancialPlan";
-import CreateUnifiedBudget from "./pages/CreateUnifiedBudget";
-import MyExpenses from "./pages/MyExpenses";
-import MyGroups from "./pages/MyGroups";
-import Settings from "./pages/Settings";
-import PricingProtected from "./pages/PricingProtected";
-import Notifications from "./pages/Notifications";
-import Pricing from "./pages/Pricing";
-import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import EmailVerify from "./pages/EmailVerify";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import InviteRoute from "./pages/InviteRoute";
 import PhoneInviteRoute from "./pages/PhoneInviteRoute";
-import ReferralSignup from "./pages/ReferralSignup";
-import AdminDashboard from "./pages/AdminDashboard";
-const queryClient = new QueryClient();
+import NotFound from "./pages/NotFound";
+
+// Lazy load heavy components
+const LazyCreateGroup = withLazyLoading(lazy(() => import("./pages/CreateGroup")));
+const LazyAddExpense = withLazyLoading(lazy(() => import("./pages/AddExpense")));
+const LazyReferralCenter = withLazyLoading(lazy(() => import("./pages/ReferralCenter")));
+const LazyGroupDetails = withLazyLoading(lazy(() => import("./pages/GroupDetails")));
+const LazyFinancialPlan = withLazyLoading(lazy(() => import("./pages/FinancialPlan")));
+const LazyCreateUnifiedBudget = withLazyLoading(lazy(() => import("./pages/CreateUnifiedBudget")));
+const LazyMyExpenses = withLazyLoading(lazy(() => import("./pages/MyExpenses")));
+const LazyMyGroups = withLazyLoading(lazy(() => import("./pages/MyGroups")));
+const LazySettings = withLazyLoading(lazy(() => import("./pages/Settings")));
+const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingProtected")));
+const LazyNotifications = withLazyLoading(lazy(() => import("./pages/Notifications")));
+const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
+const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
+const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <ImprovedErrorBoundary>
@@ -36,6 +54,8 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PerformanceMonitor />
+        <AdvancedPerformanceMonitor />
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -43,22 +63,22 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/i/:code" element={<InviteRoute />} />
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
-            <Route path="/join/:referralCode" element={<ReferralSignup />} />
+            <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/create-group" element={<ProtectedRoute><CreateGroup /></ProtectedRoute>} />
-            <Route path="/group/:id" element={<ProtectedRoute><GroupDetails /></ProtectedRoute>} />
-            <Route path="/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
-            <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
-            <Route path="/my-groups" element={<ProtectedRoute><MyGroups /></ProtectedRoute>} />
-            <Route path="/financial-plan" element={<ProtectedRoute><FinancialPlan /></ProtectedRoute>} />
-            <Route path="/create-unified-budget" element={<ProtectedRoute><CreateUnifiedBudget /></ProtectedRoute>} />
-            <Route path="/referral" element={<ProtectedRoute><ReferralCenter /></ProtectedRoute>} />
+            <Route path="/create-group" element={<ProtectedRoute><LazyCreateGroup /></ProtectedRoute>} />
+            <Route path="/group/:id" element={<ProtectedRoute><LazyGroupDetails /></ProtectedRoute>} />
+            <Route path="/add-expense" element={<ProtectedRoute><LazyAddExpense /></ProtectedRoute>} />
+            <Route path="/my-expenses" element={<ProtectedRoute><LazyMyExpenses /></ProtectedRoute>} />
+            <Route path="/my-groups" element={<ProtectedRoute><LazyMyGroups /></ProtectedRoute>} />
+            <Route path="/financial-plan" element={<ProtectedRoute><LazyFinancialPlan /></ProtectedRoute>} />
+            <Route path="/create-unified-budget" element={<ProtectedRoute><LazyCreateUnifiedBudget /></ProtectedRoute>} />
+            <Route path="/referral" element={<ProtectedRoute><LazyReferralCenter /></ProtectedRoute>} />
             <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
-            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/pricing-protected" element={<ProtectedRoute><PricingProtected /></ProtectedRoute>} />
-            <Route path="/admin-dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/notifications" element={<ProtectedRoute><LazyNotifications /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><LazySettings /></ProtectedRoute>} />
+            <Route path="/pricing-protected" element={<ProtectedRoute><LazyPricingProtected /></ProtectedRoute>} />
+            <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
+            <Route path="/pricing" element={<LazyPricing />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
