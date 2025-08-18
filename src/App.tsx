@@ -49,14 +49,14 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <ImprovedErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <PerformanceMonitor />
-        <AdvancedPerformanceMonitor />
-        <BrowserRouter>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <PerformanceMonitor />
+      <AdvancedPerformanceMonitor />
+      <BrowserRouter>
+        <ImprovedErrorBoundary>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
@@ -82,10 +82,10 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ImprovedErrorBoundary>
+        </ImprovedErrorBoundary>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;
