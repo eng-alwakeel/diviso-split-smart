@@ -142,30 +142,32 @@ export function UnifiedBudgetCreator({ onSave, isLoading, groupId }: UnifiedBudg
             />
           </div>
 
-          <div>
-            <Label htmlFor="budget-group">المجموعة</Label>
-            <Select 
-              value={budgetData.group_id} 
-              onValueChange={(value) => setBudgetData(prev => ({ ...prev, group_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر المجموعة" />
-              </SelectTrigger>
-              <SelectContent>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>{group.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {group.member_count || 0} عضو
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!groupId && (
+            <div>
+              <Label htmlFor="budget-group">المجموعة</Label>
+              <Select 
+                value={budgetData.group_id} 
+                onValueChange={(value) => setBudgetData(prev => ({ ...prev, group_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر المجموعة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        <span>{group.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {group.member_count || 0} عضو
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
 
