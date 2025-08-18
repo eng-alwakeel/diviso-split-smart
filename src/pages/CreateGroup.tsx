@@ -78,10 +78,41 @@ const CreateGroup = () => {
     setPhoneNumbers(newPhones);
   };
 
-  const generateInviteLink = () => {
-    const randomId = Math.random().toString(36).substring(2, 8);
-    const link = `https://diviso.app/join/${randomId}`;
-    setInviteLink(link);
+  const generateInviteLink = async () => {
+    if (!createdGroupId) {
+      toast({
+        title: "خطأ",
+        description: "يجب إنشاء المجموعة أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("group_join_tokens")
+        .insert({ group_id: createdGroupId })
+        .select("token")
+        .single();
+
+      if (error) throw error;
+
+      const token = data?.token as string;
+      const link = `https://diviso.app/i/${token}`;
+      setInviteLink(link);
+      
+      toast({
+        title: "تم إنشاء رابط الدعوة",
+        description: "يمكنك الآن مشاركة الرابط مع الأعضاء",
+      });
+    } catch (error: any) {
+      console.error('Error generating invite link:', error);
+      toast({
+        title: "خطأ في إنشاء الرابط",
+        description: error.message || "حاول مرة أخرى",
+        variant: "destructive",
+      });
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -93,6 +124,15 @@ const CreateGroup = () => {
   };
 
   const sendSMSInvite = async (phone: string) => {
+    if (!inviteLink) {
+      toast({
+        title: "خطأ",
+        description: "يجب إنشاء رابط الدعوة أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('send-sms-invite', {
         body: {
@@ -119,6 +159,15 @@ const CreateGroup = () => {
   };
 
   const sendWhatsAppInvite = (phoneNumber: string) => {
+    if (!inviteLink) {
+      toast({
+        title: "خطأ",
+        description: "يجب إنشاء رابط الدعوة أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupData.name}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${inviteLink}`;
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
@@ -348,10 +397,10 @@ const CreateGroup = () => {
       setCurrentStep(2);
     } else if (currentStep === 1) {
       await createGroupOnly();
-      generateInviteLink();
+      await generateInviteLink();
       setCurrentStep(3); // Skip AI suggestions for general groups
     } else if (currentStep === 2 && showAISuggestions) {
-      generateInviteLink();
+      await generateInviteLink();
       setCurrentStep(3);
     } else if (currentStep < 4) {
       setCurrentStep(currentStep + 1);

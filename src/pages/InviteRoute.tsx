@@ -32,13 +32,21 @@ const InviteRoute = () => {
           toast({ title: 'تم الانضمام بنجاح', description: 'تمت إضافتك إلى المجموعة.' });
           navigate(`/group/${data}`);
         } else {
-          toast({ variant: 'destructive', title: 'رمز غير صالح', description: 'تعذر استخدام رابط الدعوة.' });
+          toast({ 
+            variant: 'destructive', 
+            title: 'رابط دعوة غير صالح', 
+            description: 'هذا الرابط غير صحيح أو منتهي الصلاحية. تأكد من أنه رابط دعوة مجموعة وليس رابط إحالة.' 
+          });
           navigate('/dashboard');
         }
       } catch (e) {
         // Handle quota errors first
         if (!handleQuotaError(e)) {
-          toast({ variant: 'destructive', title: 'خطأ في الانضمام', description: 'تحقق من صلاحية الرابط أو أعد المحاولة.' });
+          toast({ 
+            variant: 'destructive', 
+            title: 'خطأ في الانضمام للمجموعة', 
+            description: 'تحقق من صلاحية رابط الدعوة. إذا كان لديك رابط إحالة (/join/...)، فهو مخصص للأشخاص الجدد فقط.' 
+          });
         }
         navigate('/dashboard');
       } finally {
