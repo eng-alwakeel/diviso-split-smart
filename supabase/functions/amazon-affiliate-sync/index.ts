@@ -30,8 +30,10 @@ serve(async (req) => {
       associateId: Deno.env.get('AMAZON_ASSOCIATE_ID'),
       accessKey: Deno.env.get('AMAZON_ACCESS_KEY'),
       secretKey: Deno.env.get('AMAZON_SECRET_KEY'),
-      region: 'us-east-1', // يمكن تغييرها حسب المنطقة
-      endpoint: 'webservices.amazon.com'
+      region: 'me-south-1', // منطقة الشرق الأوسط
+      marketplace: 'www.amazon.sa', // السوق السعودي
+      endpoint: 'webservices.amazon.sa',
+      currency: 'SAR'
     };
 
     // التحقق من وجود جميع المفاتيح المطلوبة
@@ -201,7 +203,7 @@ function parseAmazonXML(xmlString: string) {
           priceRange: priceText || 'غير محدد',
           rating: rating ? parseFloat(rating) : null,
           imageUrl: imageUrl || null,
-          affiliateUrl: detailPageURL || `https://amazon.com/dp/${asin}?tag=${Deno.env.get('AMAZON_ASSOCIATE_ID')}`
+          affiliateUrl: detailPageURL || `https://amazon.sa/dp/${asin}?tag=${Deno.env.get('AMAZON_ASSOCIATE_ID')}`
         });
       }
     }
