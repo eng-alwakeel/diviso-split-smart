@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, DollarSign, TrendingUp, X } from "lucide-react";
+import { AlertTriangle, DollarSign, TrendingUp, X, Sparkles, ShieldCheck } from "lucide-react";
 import { BudgetWarning } from "@/hooks/useBudgetWarnings";
 
 interface BudgetWarningAlertProps {
@@ -13,9 +13,9 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
     switch (warning.warning_type) {
       case 'exceed':
         return 'destructive';
-      case 'critical':
-        return 'destructive';
-      case 'warning':
+      case 'depletion':
+        return 'default';
+      case 'savings':
         return 'default';
       default:
         return 'default';
@@ -26,10 +26,12 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
     switch (warning.warning_type) {
       case 'exceed':
         return <X className="h-4 w-4" />;
-      case 'critical':
+      case 'depletion':
         return <AlertTriangle className="h-4 w-4" />;
-      case 'warning':
-        return <TrendingUp className="h-4 w-4" />;
+      case 'savings':
+        return <Sparkles className="h-4 w-4" />;
+      case 'normal':
+        return <ShieldCheck className="h-4 w-4" />;
       default:
         return <DollarSign className="h-4 w-4" />;
     }
@@ -39,10 +41,12 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
     switch (warning.warning_type) {
       case 'exceed':
         return 'تجاوز الميزانية';
-      case 'critical':
-        return 'تحذير حرج';
-      case 'warning':
-        return 'تنبيه الميزانية';
+      case 'depletion':
+        return 'استنفاذ الميزانية';
+      case 'savings':
+        return 'توفير ممتاز';
+      case 'normal':
+        return 'في الحدود الطبيعية';
       default:
         return 'حالة الميزانية';
     }
@@ -57,8 +61,11 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
     }).format(amount);
   };
 
-  if (warning.warning_type === 'safe') {
-    return null; // لا نعرض تحذير للحالة الآمنة
+  // عرض جميع أنواع التحذيرات حسب النظام الجديد
+  const shouldShowAlert = ['exceed', 'depletion', 'savings'].includes(warning.warning_type);
+  
+  if (!shouldShowAlert) {
+    return null;
   }
 
   return (

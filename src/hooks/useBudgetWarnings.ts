@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type BudgetWarning = {
-  warning_type: 'safe' | 'warning' | 'critical' | 'exceed';
+  warning_type: 'exceed' | 'depletion' | 'savings' | 'normal';
   message: string;
   current_spent: number;
   budget_limit: number;
