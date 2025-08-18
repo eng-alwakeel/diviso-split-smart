@@ -8,6 +8,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
+import { LoyaltyPointsCard } from "@/components/promotions/LoyaltyPointsCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -122,6 +124,10 @@ const Dashboard = () => {
             ))}
           </div>
         )}
+
+        {/* Smart Promotion System */}
+        <SmartPromotionBanner />
+        <LoyaltyPointsCard />
 
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
