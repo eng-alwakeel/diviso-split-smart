@@ -97,7 +97,7 @@ const GroupDetails = () => {
   
   // Budget hooks
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
-  const { budgets, createBudget, updateBudget, deleteBudget, isCreating } = useBudgets();
+  const { budgets, createBudget, updateBudget, deleteBudget, isCreating } = useBudgets(id);
   
   // Currency hook
   const { formatCurrency, currencies } = useCurrencies();
@@ -115,9 +115,9 @@ const GroupDetails = () => {
 
   // Calculate budget totals for quick cards
   const budgetTotals = useMemo(() => {
-    if (!budgetTracking.length) return { total: 0, spent: 0, percentage: 0 };
+    if (!budgets.length) return { total: 0, spent: 0, percentage: 0 };
     
-    const total = budgetTracking.reduce((sum, item) => sum + (item.budgeted_amount || 0), 0);
+    const total = budgets.reduce((sum, budget) => sum + (budget.total_amount || 0), 0);
     const spent = budgetTracking.reduce((sum, item) => sum + (item.spent_amount || 0), 0);
     const percentage = total > 0 ? (spent / total) * 100 : 0;
     
@@ -797,7 +797,7 @@ const GroupDetails = () => {
                 groupName={group?.name}
                 groupType={group?.group_type}
                 memberCount={memberCount}
-                budgetCount={budgetTracking.length}
+                budgetCount={budgets.length}
                 totalBudget={budgetTotals.total}
                 totalSpent={budgetTotals.spent}
                 onCreateBudget={async (budgetData) => {
@@ -823,52 +823,42 @@ const GroupDetails = () => {
                   <div className="animate-spin mx-auto w-8 h-8 border-2 border-primary border-t-transparent rounded-full"></div>
                   <p className="text-muted-foreground mt-2">جاري تحميل الميزانيات...</p>
                 </div>
-              ) : budgetTracking.length > 0 && (
+              ) : budgets.length > 0 && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">الميزانيات الحالية</h3>
-                    <Badge variant="secondary">{budgetTracking.length} ميزانية</Badge>
+                    <Badge variant="secondary">{budgets.length} ميزانية</Badge>
                   </div>
                   
                   <div className="grid gap-4">
-                    {budgetTracking.map((budget) => (
-                      <Card key={budget.category_id} className="shadow-card">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h4 className="font-semibold">{budget.category_name || "فئة غير محددة"}</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className={getStatusColor(budget.status)}>
-                                  {getStatusLabel(budget.status)}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  {budget.expense_count} مصروف
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-left">
-                              <div className="text-2xl font-black">
-                                {formatCurrency(budget.spent_amount, groupCurrency)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                من {formatCurrency(budget.budgeted_amount, groupCurrency)}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>المتبقي: {formatCurrency(budget.remaining_amount, groupCurrency)}</span>
-                              <span>{budget.spent_percentage.toFixed(0)}%</span>
-                            </div>
-                            <Progress 
-                              value={Math.min(budget.spent_percentage, 100)} 
-                              className="h-2"
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {budgets.map((budget) => {
+                      // Find budget tracking data for this budget - match by category if budget has category
+                      const trackingData = budgetTracking.find(bt => 
+                        budget.category_id && bt.category_id === budget.category_id
+                      );
+                      const spent = trackingData?.spent_amount || 0;
+                      const progress = budget.total_amount > 0 ? (spent / budget.total_amount) * 100 : 0;
+                      const remaining = budget.total_amount - spent;
+                      
+                      return (
+                        <BudgetProgressCard
+                          key={budget.id}
+                          budget={budget}
+                          progress={progress}
+                          spent={spent}
+                          remaining={remaining}
+                          onEdit={() => {
+                            // TODO: Implement edit dialog
+                            console.log("Edit budget", budget.id);
+                          }}
+                          onDelete={() => {
+                            // TODO: Implement delete confirmation
+                            deleteBudget(budget.id);
+                          }}
+                          formatCurrency={(amount) => formatCurrency(amount, group?.currency || 'SAR')}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
