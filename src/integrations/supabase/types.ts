@@ -753,6 +753,147 @@ export type Database = {
           },
         ]
       }
+      income: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string | null
+          group_id: string
+          id: string
+          note_ar: string | null
+          received_at: string
+          received_by: string | null
+          status: Database["public"]["Enums"]["income_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string | null
+          group_id: string
+          id?: string
+          note_ar?: string | null
+          received_at?: string
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["income_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string | null
+          group_id?: string
+          id?: string
+          note_ar?: string | null
+          received_at?: string
+          received_by?: string | null
+          status?: Database["public"]["Enums"]["income_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      income_approvals: {
+        Row: {
+          approved_at: string
+          approved_by: string
+          id: string
+          income_id: string
+        }
+        Insert: {
+          approved_at?: string
+          approved_by: string
+          id?: string
+          income_id: string
+        }
+        Update: {
+          approved_at?: string
+          approved_by?: string
+          id?: string
+          income_id?: string
+        }
+        Relationships: []
+      }
+      income_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          income_id: string
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          income_id: string
+          storage_path: string
+          uploaded_by?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          income_id?: string
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
+      income_rejections: {
+        Row: {
+          created_at: string
+          id: string
+          income_id: string
+          rejected_at: string
+          rejected_by: string
+          rejection_reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          income_id: string
+          rejected_at?: string
+          rejected_by: string
+          rejection_reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          income_id?: string
+          rejected_at?: string
+          rejected_by?: string
+          rejection_reason?: string | null
+        }
+        Relationships: []
+      }
+      income_splits: {
+        Row: {
+          created_at: string
+          income_id: string
+          member_id: string
+          share_amount: number
+        }
+        Insert: {
+          created_at?: string
+          income_id: string
+          member_id: string
+          share_amount: number
+        }
+        Update: {
+          created_at?: string
+          income_id?: string
+          member_id?: string
+          share_amount?: number
+        }
+        Relationships: []
+      }
       invites: {
         Row: {
           accepted_at: string | null
@@ -1539,6 +1680,15 @@ export type Database = {
           status: string
         }[]
       }
+      get_group_income_balance: {
+        Args: { p_group_id: string }
+        Returns: {
+          amount_received: number
+          amount_shared: number
+          net_income_balance: number
+          user_id: string
+        }[]
+      }
       get_groups_for_admin: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1559,6 +1709,15 @@ export type Database = {
           pending_owed: number
           pending_paid: number
           user_id: string
+        }[]
+      }
+      get_profit_loss_summary: {
+        Args: { p_group_id: string }
+        Returns: {
+          net_profit: number
+          profit_margin: number
+          total_expenses: number
+          total_income: number
         }[]
       }
       get_remaining_trial_days: {
@@ -1662,6 +1821,7 @@ export type Database = {
         | "emergency"
         | "savings"
       expense_status: "pending" | "approved" | "rejected"
+      income_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
       referral_status: "pending" | "joined" | "blocked"
@@ -1804,6 +1964,7 @@ export const Constants = {
         "savings",
       ],
       expense_status: ["pending", "approved", "rejected"],
+      income_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
       referral_status: ["pending", "joined", "blocked"],
