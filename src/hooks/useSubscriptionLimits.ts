@@ -8,6 +8,8 @@ export interface SubscriptionLimits {
   expenses: number;
   invites: number;
   ocr: number;
+  reportExport: number;
+  dataRetentionMonths: number;
 }
 
 export interface SubscriptionLimitData {
@@ -63,7 +65,9 @@ export function useSubscriptionLimits() {
         groups: 0,
         expenses: 0,
         invites: 0,
-        ocr: 0
+        ocr: 0,
+        reportExport: 0,
+        dataRetentionMonths: 0
       };
 
       data.forEach((item) => {
@@ -83,6 +87,12 @@ export function useSubscriptionLimits() {
           case 'ocr_used':
             limitsMap.ocr = item.limit_value;
             break;
+          case 'report_export':
+            limitsMap.reportExport = item.limit_value;
+            break;
+          case 'data_retention_months':
+            limitsMap.dataRetentionMonths = item.limit_value;
+            break;
         }
       });
 
@@ -96,9 +106,11 @@ export function useSubscriptionLimits() {
       const defaultLimits: SubscriptionLimits = {
         members: 5,
         groups: 3,
-        expenses: 100,
+        expenses: 50,
         invites: 10,
-        ocr: 5
+        ocr: 10,
+        reportExport: 5,
+        dataRetentionMonths: 6
       };
       console.log('useSubscriptionLimits: Using fallback limits:', defaultLimits);
       setLimits(defaultLimits);

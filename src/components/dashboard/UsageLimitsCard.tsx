@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, TrendingUp } from "lucide-react";
+import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, TrendingUp, FileDown, Calendar } from "lucide-react";
 
 export const UsageLimitsCard = () => {
   const navigate = useNavigate();
@@ -45,9 +45,11 @@ export const UsageLimitsCard = () => {
   const currentUsage = {
     groups: groupsCount,
     members: 15, // سيتم جلبها من API
-    expenses: 45, // المصاريف الشهرية
+    expenses: 25, // تم تقليل الحد للخطة المجانية من 100 إلى 50
     invites: 8, // الدعوات الشهرية
-    ocr: 3 // استخدام OCR الشهري
+    ocr: 7, // تم زيادة الحد من 5 إلى 10
+    reportExport: 2, // استخدام تصدير التقارير الشهري
+    dataRetention: 6 // شهور حفظ البيانات (للعرض فقط)
   };
 
   const usageItems = [
@@ -84,12 +86,29 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-orange-50",
     },
     {
-      label: "OCR (شهرياً)",
+      label: "مسح الإيصالات (شهرياً)",
       current: currentUsage.ocr,
       limit: limits.ocr,
       icon: Scan,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
+    },
+    {
+      label: "تصدير التقارير (شهرياً)",
+      current: currentUsage.reportExport,
+      limit: limits.reportExport,
+      icon: FileDown,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50",
+    },
+    {
+      label: "مدة حفظ البيانات",
+      current: currentUsage.dataRetention,
+      limit: limits.dataRetentionMonths,
+      icon: Calendar,
+      color: "text-pink-600",
+      bgColor: "bg-pink-50",
+      unit: "شهر"
     },
   ];
 
@@ -139,6 +158,7 @@ export const UsageLimitsCard = () => {
                   <span className="text-sm text-foreground font-medium">{item.current}</span>
                   <span className="text-sm text-muted-foreground">/</span>
                   <span className="text-sm text-muted-foreground">{formatLimit(item.limit)}</span>
+                  {item.unit && <span className="text-xs text-muted-foreground mr-1">{item.unit}</span>}
                   {atLimit && <AlertTriangle className="w-3 h-3 text-destructive mr-1" />}
                   {nearLimit && !atLimit && <AlertTriangle className="w-3 h-3 text-orange-500 mr-1" />}
                 </div>
@@ -169,13 +189,18 @@ export const UsageLimitsCard = () => {
 
         {/* أزرار الإجراءات */}
         {isFreePlan && (hasWarnings || hasBlocked) && (
-          <Button 
-            onClick={() => navigate('/pricing')}
-            className="w-full bg-primary hover:bg-primary/90"
-            size="sm"
-          >
-            ترقية للحصول على حدود أعلى
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              onClick={() => navigate('/pricing-protected')}
+              className="w-full bg-gradient-primary hover:opacity-90"
+              size="sm"
+            >
+              ترقية للحصول على حدود أعلى
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              احصل على مصاريف غير محدودة ومسح إيصالات أكثر مع الباقات المدفوعة
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
