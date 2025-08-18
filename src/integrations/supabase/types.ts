@@ -14,6 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_impressions: {
+        Row: {
+          ad_category: string | null
+          ad_type: string
+          affiliate_partner: string | null
+          clicked: boolean | null
+          clicked_at: string | null
+          created_at: string
+          expense_category: string | null
+          group_id: string | null
+          id: string
+          impression_count: number | null
+          placement: string
+          product_id: string | null
+          revenue_amount: number | null
+          updated_at: string
+          user_id: string | null
+          user_location: string | null
+        }
+        Insert: {
+          ad_category?: string | null
+          ad_type: string
+          affiliate_partner?: string | null
+          clicked?: boolean | null
+          clicked_at?: string | null
+          created_at?: string
+          expense_category?: string | null
+          group_id?: string | null
+          id?: string
+          impression_count?: number | null
+          placement: string
+          product_id?: string | null
+          revenue_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+          user_location?: string | null
+        }
+        Update: {
+          ad_category?: string | null
+          ad_type?: string
+          affiliate_partner?: string | null
+          clicked?: boolean | null
+          clicked_at?: string | null
+          created_at?: string
+          expense_category?: string | null
+          group_id?: string | null
+          id?: string
+          impression_count?: number | null
+          placement?: string
+          product_id?: string | null
+          revenue_amount?: number | null
+          updated_at?: string
+          user_id?: string | null
+          user_location?: string | null
+        }
+        Relationships: []
+      }
+      affiliate_products: {
+        Row: {
+          active: boolean | null
+          affiliate_partner: string
+          affiliate_url: string
+          category: string
+          commission_rate: number | null
+          conversion_rate: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          keywords: string[] | null
+          price_range: string | null
+          product_id: string
+          rating: number | null
+          subcategory: string | null
+          target_audience: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          affiliate_partner?: string
+          affiliate_url: string
+          category: string
+          commission_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          keywords?: string[] | null
+          price_range?: string | null
+          product_id: string
+          rating?: number | null
+          subcategory?: string | null
+          target_audience?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          affiliate_partner?: string
+          affiliate_url?: string
+          category?: string
+          commission_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          keywords?: string[] | null
+          price_range?: string | null
+          product_id?: string
+          rating?: number | null
+          subcategory?: string | null
+          target_audience?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_suggestions: {
         Row: {
           confidence_score: number | null
@@ -1355,6 +1475,42 @@ export type Database = {
           limit_value?: number
           plan?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_ad_preferences: {
+        Row: {
+          blocked_categories: string[] | null
+          created_at: string
+          id: string
+          max_ads_per_session: number | null
+          personalized_ads: boolean | null
+          preferred_categories: string[] | null
+          show_ads: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_categories?: string[] | null
+          created_at?: string
+          id?: string
+          max_ads_per_session?: number | null
+          personalized_ads?: boolean | null
+          preferred_categories?: string[] | null
+          show_ads?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_categories?: string[] | null
+          created_at?: string
+          id?: string
+          max_ads_per_session?: number | null
+          personalized_ads?: boolean | null
+          preferred_categories?: string[] | null
+          show_ads?: boolean | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

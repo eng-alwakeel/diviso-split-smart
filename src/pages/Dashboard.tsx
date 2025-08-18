@@ -10,6 +10,9 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { LoyaltyPointsCard } from "@/components/promotions/LoyaltyPointsCard";
+import { ContextualAdBanner } from "@/components/ads/ContextualAdBanner";
+import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
+import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -156,9 +159,24 @@ const Dashboard = () => {
         />
 
         {/* Subscription and Usage Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <SubscriptionStatusCard />
           <UsageLimitsCard />
+          
+          {/* Smart Ad Sidebar */}
+          <SmartAdSidebar />
+        </div>
+        
+        {/* Contextual Ads */}
+        <ContextualAdBanner
+          context={{ type: 'dashboard' }}
+          placement="dashboard_main"
+          className="mt-4"
+        />
+        
+        {/* Ad Preferences */}
+        <div className="flex justify-center">
+          <AdPreferencesDialog />
         </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
