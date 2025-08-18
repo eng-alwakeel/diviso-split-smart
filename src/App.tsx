@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
-import { AdvancedPerformanceMonitor } from "@/components/AdvancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -54,7 +53,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <PerformanceMonitor />
-      <AdvancedPerformanceMonitor />
       <BrowserRouter>
         <ImprovedErrorBoundary>
           <Routes>

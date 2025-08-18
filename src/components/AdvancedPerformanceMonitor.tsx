@@ -14,22 +14,30 @@ export const AdvancedPerformanceMonitor = () => {
   const { measurePerformance } = usePerformanceOptimization();
 
   useEffect(() => {
+    let observers: PerformanceObserver[] = [];
+    let logInterval: NodeJS.Timeout | null = null;
+
     // Measure Core Web Vitals
     const measureWebVitals = () => {
-      // First Contentful Paint
+      // First Contentful Paint (one-time measurement)
       const fcpEntry = performance.getEntriesByName('first-contentful-paint')[0] as PerformanceEntry;
       if (fcpEntry) {
         setMetrics(prev => ({ ...prev, fcp: fcpEntry.startTime }));
       }
 
       // Largest Contentful Paint
-      const observer = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lcpEntry = entries[entries.length - 1] as any;
         setMetrics(prev => ({ ...prev, lcp: lcpEntry.startTime }));
       });
       
-      observer.observe({ entryTypes: ['largest-contentful-paint'] });
+      try {
+        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+        observers.push(lcpObserver);
+      } catch (e) {
+        console.warn('LCP observation not supported');
+      }
 
       // Cumulative Layout Shift
       const clsObserver = new PerformanceObserver((list) => {
@@ -39,10 +47,15 @@ export const AdvancedPerformanceMonitor = () => {
             clsValue += (entry as any).value;
           }
         }
-        setMetrics(prev => ({ ...prev, cls: clsValue }));
+        setMetrics(prev => ({ ...prev, cls: prev.cls ? prev.cls + clsValue : clsValue }));
       });
       
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
+      try {
+        clsObserver.observe({ entryTypes: ['layout-shift'] });
+        observers.push(clsObserver);
+      } catch (e) {
+        console.warn('CLS observation not supported');
+      }
 
       // First Input Delay
       const fidObserver = new PerformanceObserver((list) => {
@@ -51,53 +64,55 @@ export const AdvancedPerformanceMonitor = () => {
         }
       });
       
-      fidObserver.observe({ entryTypes: ['first-input'] });
+      try {
+        fidObserver.observe({ entryTypes: ['first-input'] });
+        observers.push(fidObserver);
+      } catch (e) {
+        console.warn('FID observation not supported');
+      }
 
-      // Time to First Byte
+      // Time to First Byte (one-time measurement)
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       if (navigation) {
         setMetrics(prev => ({ ...prev, ttfb: navigation.responseStart - navigation.requestStart }));
       }
-
-      return () => {
-        observer.disconnect();
-        clsObserver.disconnect();
-        fidObserver.disconnect();
-      };
     };
 
-    const cleanup = measureWebVitals();
+    measureWebVitals();
 
-    // Log performance metrics in development
+    // Log performance metrics in development (only once, then clear)
     if (process.env.NODE_ENV === 'development') {
-      const interval = setInterval(() => {
-        if (Object.keys(metrics).length > 0) {
-          console.group('🚀 Performance Metrics');
-          console.log('First Contentful Paint (FCP):', metrics.fcp?.toFixed(2), 'ms');
-          console.log('Largest Contentful Paint (LCP):', metrics.lcp?.toFixed(2), 'ms');
-          console.log('Cumulative Layout Shift (CLS):', metrics.cls?.toFixed(4));
-          console.log('First Input Delay (FID):', metrics.fid?.toFixed(2), 'ms');
-          console.log('Time to First Byte (TTFB):', metrics.ttfb?.toFixed(2), 'ms');
-          console.groupEnd();
-        }
-      }, 10000); // Log every 10 seconds
-
-      return () => {
-        cleanup?.();
-        clearInterval(interval);
-      };
+      logInterval = setTimeout(() => {
+        setMetrics(currentMetrics => {
+          if (Object.keys(currentMetrics).length > 0) {
+            console.group('🚀 Performance Metrics');
+            console.log('First Contentful Paint (FCP):', currentMetrics.fcp?.toFixed(2), 'ms');
+            console.log('Largest Contentful Paint (LCP):', currentMetrics.lcp?.toFixed(2), 'ms');
+            console.log('Cumulative Layout Shift (CLS):', currentMetrics.cls?.toFixed(4));
+            console.log('First Input Delay (FID):', currentMetrics.fid?.toFixed(2), 'ms');
+            console.log('Time to First Byte (TTFB):', currentMetrics.ttfb?.toFixed(2), 'ms');
+            console.groupEnd();
+          }
+          return currentMetrics;
+        });
+      }, 5000); // Log once after 5 seconds
     }
 
-    return cleanup;
-  }, [metrics, measurePerformance]);
+    return () => {
+      observers.forEach(observer => observer.disconnect());
+      if (logInterval) clearTimeout(logInterval);
+    };
+  }, []); // Remove dependencies to prevent infinite loop
 
-  // Monitor route changes performance
+  // Monitor route changes performance (stable reference)
   useEffect(() => {
     const handleRouteChange = () => {
-      measurePerformance('route-change', async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        return 'Route changed';
-      })();
+      if (measurePerformance) {
+        measurePerformance('route-change', async () => {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          return 'Route changed';
+        })();
+      }
     };
 
     // Listen for popstate events (back/forward navigation)
@@ -106,7 +121,7 @@ export const AdvancedPerformanceMonitor = () => {
     return () => {
       window.removeEventListener('popstate', handleRouteChange);
     };
-  }, [measurePerformance]);
+  }, []); // Remove dependency to prevent recreation
 
   return null; // This component doesn't render anything
 };
