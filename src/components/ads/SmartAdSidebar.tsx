@@ -81,7 +81,7 @@ export const SmartAdSidebar: React.FC<SmartAdSidebarProps> = ({ className = '' }
           
           <div className="space-y-3">
             {featuredProducts.map((product, index) => (
-              <div key={product.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <div key={product.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleProductClick(product, 'featured')}>
                 {product.image_url && (
                   <img
                     src={product.image_url}
@@ -101,7 +101,10 @@ export const SmartAdSidebar: React.FC<SmartAdSidebarProps> = ({ className = '' }
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleProductClick(product, 'featured')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleProductClick(product, 'featured');
+                  }}
                   className="flex-shrink-0"
                 >
                   <ExternalLink className="h-3 w-3" />
