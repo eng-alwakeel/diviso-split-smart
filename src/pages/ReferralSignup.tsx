@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Gift, UserPlus } from "lucide-react";
+import { Loader2, Gift, UserPlus, Users, ArrowRight } from "lucide-react";
 
 export default function ReferralSignup() {
   const { referralCode } = useParams<{ referralCode: string }>();
@@ -14,6 +14,7 @@ export default function ReferralSignup() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [referralData, setReferralData] = useState<any>(null);
+  const [isAlreadyAuthenticated, setIsAlreadyAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,6 +28,14 @@ export default function ReferralSignup() {
       if (!referralCode) {
         toast.error("رمز الإحالة غير صالح");
         navigate("/auth");
+        return;
+      }
+
+      // Check if user is already authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsAlreadyAuthenticated(true);
+        setLoading(false);
         return;
       }
 
@@ -165,6 +174,65 @@ export default function ReferralSignup() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">جاري التحقق من رمز الإحالة...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Handle already authenticated users
+  if (isAlreadyAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center mb-4">
+              <Users className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold">مرحباً بك مرة أخرى!</CardTitle>
+            <CardDescription>
+              أنت مسجل دخول بالفعل في التطبيق
+              <br />
+              هذا الرابط مخصص للأشخاص الجدد فقط
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg">
+              <div className="flex items-center gap-2 text-primary mb-2">
+                <Gift className="h-4 w-4" />
+                <span className="text-sm font-medium">رابط إحالة</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                هذا الرابط مخصص للأشخاص الجدد للحصول على <strong>7 أيام مجانية</strong> عند إنشاء حساب جديد
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => navigate("/dashboard")} 
+                className="w-full"
+                size="lg"
+              >
+                <ArrowRight className="ml-2 h-4 w-4" />
+                الذهاب للداشبورد
+              </Button>
+              
+              <Button 
+                onClick={() => navigate("/create-group")} 
+                variant="outline" 
+                className="w-full"
+                size="lg"
+              >
+                <Users className="ml-2 h-4 w-4" />
+                إنشاء مجموعة جديدة
+              </Button>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-xs text-muted-foreground">
+                إذا كنت تريد دعوة أصدقاء، يمكنك إنشاء رابط إحالة خاص بك من صفحة الإعدادات
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
