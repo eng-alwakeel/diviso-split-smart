@@ -380,7 +380,7 @@ const GroupDetails = () => {
                     variant="hero"
                     size="icon"
                     className="w-10 h-10 md:hidden mx-auto"
-                    onClick={() => navigate('/add-expense')}
+                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
                   >
                     <Plus className="w-4 h-4" />
                     <span className="sr-only">إضافة مصروف</span>
@@ -389,7 +389,7 @@ const GroupDetails = () => {
                     variant="hero"
                     size="sm"
                     className="hidden md:inline-flex text-xs md:text-sm"
-                    onClick={() => navigate('/add-expense')}
+                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
                   >
                     <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
                     إضافة مصروف
@@ -526,7 +526,7 @@ const GroupDetails = () => {
           <TabsContent value="expenses" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">المصاريف</h2>
-              <Button onClick={() => navigate('/add-expense')} variant="hero">
+              <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
                 <Plus className="w-4 h-4 ml-2" />
                 إضافة مصروف جديد
               </Button>

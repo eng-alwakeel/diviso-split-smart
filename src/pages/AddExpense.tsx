@@ -24,7 +24,7 @@ import {
   Info
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +47,7 @@ interface MemberSplit {
 
 const AddExpense = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   // Removed useCategories as we now use SmartCategorySelector
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
@@ -123,7 +124,17 @@ const AddExpense = () => {
         }));
 
         setUserGroups(groups);
-        if (groups.length > 0 && !selectedGroup) {
+        
+        // Check if groupId is passed from URL
+        const groupIdFromUrl = searchParams.get('groupId');
+        if (groupIdFromUrl) {
+          const preSelectedGroup = groups.find(g => g.id === groupIdFromUrl);
+          if (preSelectedGroup) {
+            setSelectedGroup(preSelectedGroup);
+          } else if (groups.length > 0) {
+            setSelectedGroup(groups[0]);
+          }
+        } else if (groups.length > 0 && !selectedGroup) {
           setSelectedGroup(groups[0]);
         }
       } catch (error) {
@@ -430,7 +441,13 @@ const AddExpense = () => {
       setMemberSplits([]);
       setReceipts([]);
       setOcrResults([]);
-      navigate('/dashboard');
+      // Navigate back to group if came from group, otherwise go to dashboard
+      const groupIdFromUrl = searchParams.get('groupId');
+      if (groupIdFromUrl) {
+        navigate(`/group/${groupIdFromUrl}`);
+      } else {
+        navigate('/dashboard');
+      }
 
     } catch (error) {
       console.error('Error saving expense:', error);
@@ -468,11 +485,18 @@ const AddExpense = () => {
         <div className="mb-8">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => {
+              const groupIdFromUrl = searchParams.get('groupId');
+              if (groupIdFromUrl) {
+                navigate(`/group/${groupIdFromUrl}`);
+              } else {
+                navigate('/dashboard');
+              }
+            }}
             className="mb-4"
           >
             <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
+            {searchParams.get('groupId') ? 'العودة للمجموعة' : 'العودة للوحة التحكم'}
           </Button>
           <h1 className="text-3xl font-bold mb-2">إضافة مصروف جديد</h1>
           <p className="text-muted-foreground">أضف مصروف وقسّمه مع أعضاء المجموعة</p>
