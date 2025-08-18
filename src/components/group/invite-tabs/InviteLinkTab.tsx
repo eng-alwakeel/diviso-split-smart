@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
-import { Copy, Link, RefreshCw } from "lucide-react";
+import { Copy, Link, RefreshCw, Users, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
@@ -19,6 +20,11 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [linkInfo, setLinkInfo] = useState<{
+    maxUses: number;
+    currentUses: number;
+    expiresAt: string;
+  } | null>(null);
 
   const disabledReason = useMemo(() => {
     if (!groupId) return "لا يوجد معرف مجموعة.";
@@ -35,16 +41,35 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
     setLoading(true);
     console.log("[InviteLinkTab] creating token for group:", groupId);
     
-    const { data, error } = await supabase
-      .from("group_join_tokens")
-      .insert({ group_id: groupId })
-      .select("token")
-      .single();
+    try {
+      const { data, error } = await supabase.rpc('create_group_join_token', {
+        p_group_id: groupId,
+        p_role: 'member',
+        p_link_type: 'general'
+      });
 
-    setLoading(false);
+      if (error) throw error;
 
-    if (error) {
-      console.error("[InviteLinkTab] insert token error:", error);
+      const tokenData = data[0];
+      const url = `${window.location.origin}/i/${tokenData.token}`;
+      setLink(url);
+      setLinkInfo({
+        maxUses: tokenData.max_uses,
+        currentUses: 0,
+        expiresAt: tokenData.expires_at
+      });
+      onLinkGenerated(url);
+      
+      const maxUsesText = tokenData.max_uses === -1 ? "غير محدود" : `${tokenData.max_uses} مستخدمين`;
+      const expiresAt = new Date(tokenData.expires_at);
+      const hoursLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60));
+      
+      toast({ 
+        title: "تم إنشاء رابط الدعوة", 
+        description: `العدد المسموح: ${maxUsesText}، صالح لـ ${hoursLeft} ساعة`
+      });
+    } catch (error: any) {
+      console.error("[InviteLinkTab] create token error:", error);
       
       if (!handleQuotaError(error)) {
         toast({
@@ -53,18 +78,9 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
           variant: "destructive",
         });
       }
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const token = data?.token as string;
-    const url = `${window.location.origin}/i/${token}`;
-    setLink(url);
-    onLinkGenerated(url);
-    
-    toast({ 
-      title: "تم إنشاء رابط الدعوة", 
-      description: "انسخ الرابط أو استخدم رمز QR لمشاركته." 
-    });
   };
 
   const copyLink = async () => {
@@ -117,9 +133,26 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
         </div>
       </div>
 
-      {link && (
-        <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-          <p className="text-sm text-accent font-medium mb-1">✅ الرابط جاهز للمشاركة</p>
+      {link && linkInfo && (
+        <div className="p-3 bg-accent/10 rounded-lg border border-accent/20 space-y-2">
+          <p className="text-sm text-accent font-medium mb-2">✅ الرابط جاهز للمشاركة</p>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              {linkInfo.maxUses === -1 ? "غير محدود" : `${linkInfo.currentUses}/${linkInfo.maxUses}`}
+            </Badge>
+            
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {(() => {
+                const expiresAt = new Date(linkInfo.expiresAt);
+                const hoursLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60));
+                return `${hoursLeft} ساعة متبقية`;
+              })()}
+            </Badge>
+          </div>
+          
           <p className="text-xs text-muted-foreground">
             يمكن للأعضاء الجدد استخدام هذا الرابط أو رمز QR للانضمام للمجموعة
           </p>

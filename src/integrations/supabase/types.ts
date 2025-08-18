@@ -630,9 +630,12 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          current_uses: number | null
           expires_at: string
           group_id: string
           id: string
+          link_type: string | null
+          max_uses: number | null
           role: Database["public"]["Enums"]["member_role"]
           token: string
           used_at: string | null
@@ -641,9 +644,12 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string
+          current_uses?: number | null
           expires_at?: string
           group_id: string
           id?: string
+          link_type?: string | null
+          max_uses?: number | null
           role?: Database["public"]["Enums"]["member_role"]
           token?: string
           used_at?: string | null
@@ -652,9 +658,12 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          current_uses?: number | null
           expires_at?: string
           group_id?: string
           id?: string
+          link_type?: string | null
+          max_uses?: number | null
           role?: Database["public"]["Enums"]["member_role"]
           token?: string
           used_at?: string | null
@@ -1568,6 +1577,18 @@ export type Database = {
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
         Returns: number
+      }
+      create_group_join_token: {
+        Args: {
+          p_group_id: string
+          p_link_type?: string
+          p_role?: Database["public"]["Enums"]["member_role"]
+        }
+        Returns: {
+          expires_at: string
+          max_uses: number
+          token: string
+        }[]
       }
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }

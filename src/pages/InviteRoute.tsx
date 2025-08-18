@@ -39,9 +39,31 @@ const InviteRoute = () => {
           });
           navigate('/dashboard');
         }
-      } catch (e) {
-        // Handle quota errors first
-        if (!handleQuotaError(e)) {
+      } catch (e: any) {
+        console.error('Join group error:', e);
+        
+        // Handle specific error cases
+        if (e.code === '22023') {
+          if (e.message === 'invalid_or_expired_token') {
+            toast({ 
+              variant: 'destructive', 
+              title: 'رابط الدعوة منتهي الصلاحية', 
+              description: 'هذا الرابط انتهت صلاحيته أو غير صحيح. اطلب رابط جديد من مدير المجموعة.' 
+            });
+          } else if (e.message === 'link_usage_exceeded') {
+            toast({ 
+              variant: 'destructive', 
+              title: 'تم استنفاد عدد المستخدمين المسموح', 
+              description: 'وصل هذا الرابط للحد الأقصى من المستخدمين. اطلب رابط جديد من مدير المجموعة.' 
+            });
+          } else {
+            toast({ 
+              variant: 'destructive', 
+              title: 'رابط دعوة غير صالح', 
+              description: 'هذا الرابط غير صحيح أو منتهي الصلاحية. تأكد من أنه رابط دعوة مجموعة وليس رابط إحالة.' 
+            });
+          }
+        } else if (!handleQuotaError(e)) {
           toast({ 
             variant: 'destructive', 
             title: 'خطأ في الانضمام للمجموعة', 
