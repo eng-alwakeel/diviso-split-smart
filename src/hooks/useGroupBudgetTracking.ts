@@ -23,39 +23,80 @@ export type BudgetAlert = {
 
 async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTrackingData[]> {
   try {
-    const { data, error } = await supabase.rpc('get_group_budget_tracking', {
+    // استخدام الـ function الجديدة المحسنة
+    const { data, error } = await supabase.rpc('get_group_budget_tracking_v2', {
       p_group_id: groupId
     });
     
-    if (error) {
-      // Fallback to direct query if RPC fails
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('budget_categories')
-        .select(`
-          category_id,
-          allocated_amount,
-          categories!inner(name_ar),
-          budgets!inner(group_id, start_date, end_date)
-        `)
-        .eq('budgets.group_id', groupId)
-        .lte('budgets.start_date', new Date().toISOString().split('T')[0])
-        .or(`end_date.is.null,end_date.gte.${new Date().toISOString().split('T')[0]}`, { foreignTable: 'budgets' });
-        
-      if (fallbackError) throw fallbackError;
-      
-      return (fallbackData || []).map(item => ({
+    if (!error && data) {
+      return data.map((item: any) => ({
         category_id: item.category_id,
-        category_name: item.categories?.name_ar || 'Unknown',
-        budgeted_amount: item.allocated_amount,
-        spent_amount: 0, // Will be calculated later
-        remaining_amount: item.allocated_amount,
-        spent_percentage: 0,
-        status: 'safe' as const,
-        expense_count: 0
+        category_name: item.category_name || 'غير محدد',
+        budgeted_amount: Number(item.budgeted_amount) || 0,
+        spent_amount: Number(item.spent_amount) || 0,
+        remaining_amount: Number(item.remaining_amount) || 0,
+        spent_percentage: Number(item.spent_percentage) || 0,
+        status: item.status as BudgetTrackingData['status'],
+        expense_count: Number(item.expense_count) || 0,
       }));
     }
     
-    return (data || []) as BudgetTrackingData[];
+    // Fallback to direct query if RPC fails
+    console.warn('RPC function failed, using fallback query:', error);
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('budget_categories')
+      .select(`
+        id,
+        category_id,
+        allocated_amount,
+        categories!inner(name_ar),
+        budgets!inner(group_id, start_date, end_date, name)
+      `)
+      .eq('budgets.group_id', groupId)
+      .lte('budgets.start_date', new Date().toISOString().split('T')[0])
+      .or(`end_date.is.null,end_date.gte.${new Date().toISOString().split('T')[0]}`, { foreignTable: 'budgets' });
+      
+    if (fallbackError) throw fallbackError;
+    
+    const result: BudgetTrackingData[] = [];
+    
+    for (const budget of fallbackData || []) {
+      if (!budget.category_id) continue;
+
+      // استخدام expense_budget_links للحصول على المصاريف المربوطة بدقة
+      const { data: expenseData } = await supabase
+        .from('expense_budget_links')
+        .select(`
+          expenses!inner(amount, status)
+        `)
+        .eq('budget_category_id', budget.id)
+        .eq('expenses.status', 'approved');
+
+      const spent_amount = expenseData?.reduce((sum, link: any) => 
+        sum + Number(link.expenses.amount), 0) || 0;
+      const budgeted_amount = Number(budget.allocated_amount) || 0;
+      const remaining_amount = budgeted_amount - spent_amount;
+      const spent_percentage = budgeted_amount > 0 ? (spent_amount / budgeted_amount) * 100 : 0;
+
+      let status: BudgetTrackingData['status'] = 'safe';
+      if (budgeted_amount === 0) status = 'no_budget';
+      else if (spent_amount > budgeted_amount) status = 'exceeded';
+      else if (spent_percentage >= 90) status = 'critical';
+      else if (spent_percentage >= 80) status = 'warning';
+
+      result.push({
+        category_id: budget.category_id,
+        category_name: (budget.categories as any)?.name_ar || 'غير محدد',
+        budgeted_amount,
+        spent_amount,
+        remaining_amount,
+        spent_percentage,
+        status,
+        expense_count: expenseData?.length || 0,
+      });
+    }
+
+    return result.sort((a, b) => b.spent_percentage - a.spent_percentage);
   } catch (error) {
     console.error('Error fetching group budget tracking:', error);
     throw error;

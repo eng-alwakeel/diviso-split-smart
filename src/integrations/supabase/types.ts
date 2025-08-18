@@ -304,6 +304,42 @@ export type Database = {
           },
         ]
       }
+      expense_budget_links: {
+        Row: {
+          budget_category_id: string
+          created_at: string
+          expense_id: string
+          id: string
+        }
+        Insert: {
+          budget_category_id: string
+          created_at?: string
+          expense_id: string
+          id?: string
+        }
+        Update: {
+          budget_category_id?: string
+          created_at?: string
+          expense_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_budget_links_budget_category_id_fkey"
+            columns: ["budget_category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_budget_links_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_category_links: {
         Row: {
           budget_category_id: string
@@ -1478,6 +1514,21 @@ export type Database = {
       get_group_budget_tracking: {
         Args: { p_group_id: string }
         Returns: {
+          budgeted_amount: number
+          category_id: string
+          category_name: string
+          expense_count: number
+          remaining_amount: number
+          spent_amount: number
+          spent_percentage: number
+          status: string
+        }[]
+      }
+      get_group_budget_tracking_v2: {
+        Args: { p_group_id: string }
+        Returns: {
+          budget_id: string
+          budget_name: string
           budgeted_amount: number
           category_id: string
           category_name: string
