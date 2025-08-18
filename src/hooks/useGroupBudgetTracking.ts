@@ -23,13 +23,16 @@ export type BudgetAlert = {
 
 async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTrackingData[]> {
   try {
-    // استخدام الـ function الجديدة المحسنة
-    const { data, error } = await supabase.rpc('get_group_budget_tracking_v2', {
+    console.log('Fetching budget tracking for group:', groupId);
+    
+    // محاولة استخدام الـ RPC function المحسنة أولاً
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_group_budget_tracking_v2', {
       p_group_id: groupId
     });
     
-    if (!error && data) {
-      return data.map((item: any) => ({
+    if (!rpcError && rpcData && rpcData.length > 0) {
+      console.log('RPC function succeeded, returning data:', rpcData.length, 'categories');
+      return rpcData.map((item: any) => ({
         category_id: item.category_id,
         category_name: item.category_name || 'غير محدد',
         budgeted_amount: Number(item.budgeted_amount) || 0,
@@ -41,40 +44,63 @@ async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTracking
       }));
     }
     
-    // Fallback to direct query if RPC fails
-    console.warn('RPC function failed, using fallback query:', error);
-    const { data: fallbackData, error: fallbackError } = await supabase
+    // استخدام fallback query محسن يعرض جميع الفئات
+    console.log('RPC failed or returned empty, using enhanced fallback query. Error:', rpcError?.message);
+    
+    const { data: budgetCategories, error: categoriesError } = await supabase
       .from('budget_categories')
       .select(`
         id,
         category_id,
         allocated_amount,
-        categories!inner(name_ar),
-        budgets!inner(group_id, start_date, end_date, name)
+        categories(id, name_ar),
+        budgets(id, group_id, start_date, end_date, name)
       `)
       .eq('budgets.group_id', groupId)
       .lte('budgets.start_date', new Date().toISOString().split('T')[0])
       .or(`end_date.is.null,end_date.gte.${new Date().toISOString().split('T')[0]}`, { foreignTable: 'budgets' });
       
-    if (fallbackError) throw fallbackError;
+    if (categoriesError) {
+      console.error('Fallback query failed:', categoriesError);
+      throw categoriesError;
+    }
+    
+    console.log('Fallback query returned:', budgetCategories?.length || 0, 'budget categories');
     
     const result: BudgetTrackingData[] = [];
     
-    for (const budget of fallbackData || []) {
-      if (!budget.category_id) continue;
+    for (const budgetCategory of budgetCategories || []) {
+      // التأكد من وجود category_id
+      if (!budgetCategory.category_id || !budgetCategory.categories) {
+        console.warn('Skipping budget category without category_id or categories:', budgetCategory);
+        continue;
+      }
 
-      // استخدام expense_budget_links للحصول على المصاريف المربوطة بدقة
-      const { data: expenseData } = await supabase
+      console.log('Processing category:', budgetCategory.categories.name_ar, 'ID:', budgetCategory.category_id);
+
+      // استخدام expense_budget_links للحصول على المصاريف المربوطة
+      const { data: expenseLinks, error: expenseError } = await supabase
         .from('expense_budget_links')
         .select(`
-          expenses!inner(amount, status)
+          expenses(id, amount, status, group_id)
         `)
-        .eq('budget_category_id', budget.id)
-        .eq('expenses.status', 'approved');
+        .eq('budget_category_id', budgetCategory.id);
 
-      const spent_amount = expenseData?.reduce((sum, link: any) => 
-        sum + Number(link.expenses.amount), 0) || 0;
-      const budgeted_amount = Number(budget.allocated_amount) || 0;
+      if (expenseError) {
+        console.error('Error fetching expense links for category:', budgetCategory.category_id, expenseError);
+      }
+
+      // حساب المصاريف المعتمدة فقط من نفس المجموعة
+      const approvedExpenses = expenseLinks?.filter((link: any) => 
+        link.expenses && 
+        link.expenses.status === 'approved' && 
+        link.expenses.group_id === groupId
+      ) || [];
+
+      const spent_amount = approvedExpenses.reduce((sum, link: any) => 
+        sum + Number(link.expenses.amount), 0);
+      
+      const budgeted_amount = Number(budgetCategory.allocated_amount) || 0;
       const remaining_amount = budgeted_amount - spent_amount;
       const spent_percentage = budgeted_amount > 0 ? (spent_amount / budgeted_amount) * 100 : 0;
 
@@ -84,19 +110,30 @@ async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTracking
       else if (spent_percentage >= 90) status = 'critical';
       else if (spent_percentage >= 80) status = 'warning';
 
+      console.log(`Category ${budgetCategory.categories.name_ar}: Budget=${budgeted_amount}, Spent=${spent_amount}, Status=${status}`);
+
       result.push({
-        category_id: budget.category_id,
-        category_name: (budget.categories as any)?.name_ar || 'غير محدد',
+        category_id: budgetCategory.category_id,
+        category_name: budgetCategory.categories.name_ar || 'غير محدد',
         budgeted_amount,
         spent_amount,
         remaining_amount,
         spent_percentage,
         status,
-        expense_count: expenseData?.length || 0,
+        expense_count: approvedExpenses.length,
       });
     }
 
-    return result.sort((a, b) => b.spent_percentage - a.spent_percentage);
+    console.log('Final result:', result.length, 'categories processed');
+    result.forEach(r => console.log(`- ${r.category_name}: ${r.budgeted_amount} (${r.status})`));
+
+    return result.sort((a, b) => {
+      // ترتيب حسب النسبة المنفقة ثم الميزانية
+      if (a.spent_percentage !== b.spent_percentage) {
+        return b.spent_percentage - a.spent_percentage;
+      }
+      return b.budgeted_amount - a.budgeted_amount;
+    });
   } catch (error) {
     console.error('Error fetching group budget tracking:', error);
     throw error;
