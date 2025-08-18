@@ -20,10 +20,10 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const { deleteExpense, deleting } = useExpenseActions();
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-success/10 text-success border-success/20';
-      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20';
-      case 'pending': return 'bg-warning/10 text-warning border-warning/20';
-      default: return 'bg-muted/10 text-muted-foreground border-muted/20';
+      case 'approved': return 'bg-success/10 text-success border-success/20 hover:bg-success/20';
+      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20';
+      case 'pending': return 'bg-warning/10 text-warning border-warning/20 hover:bg-warning/20';
+      default: return 'bg-muted/10 text-muted-foreground border-muted/20 hover:bg-muted/20';
     }
   };
 
@@ -50,7 +50,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   };
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-md hover:border-primary/20">
+    <Card className="transition-all duration-200 hover:shadow-card hover:border-primary/30 bg-card/50 backdrop-blur-sm">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-start gap-3 flex-1">
@@ -112,7 +112,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
           </div>
 
           {/* User's financial involvement */}
-          <div className="bg-muted/30 rounded-lg p-3 space-y-1">
+          <div className="bg-gradient-card rounded-lg p-3 space-y-1 border border-border/30">
             {isPayer && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">دفعت:</span>
