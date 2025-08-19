@@ -21,12 +21,12 @@ import { QuotaWarningBanner } from "@/components/quota/QuotaWarningBanner";
 import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
-
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
-  const { data: adminData } = useAdminAuth();
+  const {
+    data: adminData
+  } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
-  
   const {
     myPaid,
     myOwed,
@@ -37,16 +37,16 @@ const Dashboard = React.memo(() => {
     error,
     refetch
   } = useDashboardData();
-
-  const { 
-    checkQuotaWarning, 
-    upgradeDialogOpen, 
-    setUpgradeDialogOpen, 
+  const {
+    checkQuotaWarning,
+    upgradeDialogOpen,
+    setUpgradeDialogOpen,
     currentQuotaType,
-    isFreePlan 
+    isFreePlan
   } = useQuotaHandler();
-  
-  const { limits } = useSubscriptionLimits();
+  const {
+    limits
+  } = useSubscriptionLimits();
 
   // Memoized callbacks for better performance
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
@@ -56,11 +56,19 @@ const Dashboard = React.memo(() => {
   // Check for quota warnings with memoization
   const quotaWarnings = useMemo(() => {
     if (!limits || !isFreePlan) return [];
-    
-    return [
-      { type: 'groups', usage: groupsCount || 0, limit: limits.groups },
-      { type: 'expenses', usage: weeklyExpensesCount || 0, limit: limits.expenses },
-    ].map(({ type, usage, limit }) => ({
+    return [{
+      type: 'groups',
+      usage: groupsCount || 0,
+      limit: limits.groups
+    }, {
+      type: 'expenses',
+      usage: weeklyExpensesCount || 0,
+      limit: limits.expenses
+    }].map(({
+      type,
+      usage,
+      limit
+    }) => ({
       type,
       usage,
       limit,
@@ -73,29 +81,16 @@ const Dashboard = React.memo(() => {
     open: upgradeDialogOpen,
     onOpenChange: setUpgradeDialogOpen,
     quotaType: currentQuotaType,
-    currentUsage: currentQuotaType === 'groups' ? (groupsCount || 0) :
-                 currentQuotaType === 'expenses' ? (weeklyExpensesCount || 0) : 0,
-    limit: currentQuotaType === 'groups' ? limits?.groups :
-           currentQuotaType === 'expenses' ? limits?.expenses : 0
-  }), [
-    upgradeDialogOpen, 
-    setUpgradeDialogOpen, 
-    currentQuotaType, 
-    groupsCount, 
-    weeklyExpensesCount, 
-    limits
-  ]);
-
+    currentUsage: currentQuotaType === 'groups' ? groupsCount || 0 : currentQuotaType === 'expenses' ? weeklyExpensesCount || 0 : 0,
+    limit: currentQuotaType === 'groups' ? limits?.groups : currentQuotaType === 'expenses' ? limits?.expenses : 0
+  }), [upgradeDialogOpen, setUpgradeDialogOpen, currentQuotaType, groupsCount, weeklyExpensesCount, limits]);
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <AppHeader />
         <div className="page-container space-y-4">
           <Skeleton className="h-8 w-48" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))}
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
@@ -106,13 +101,10 @@ const Dashboard = React.memo(() => {
           </div>
         </div>
         <BottomNav />
-      </div>
-    );
+      </div>;
   }
-
   if (error) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <AppHeader />
         <div className="page-container">
           <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -125,30 +117,16 @@ const Dashboard = React.memo(() => {
             </Button>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <AppHeader />
       
       <div className="page-container space-y-6">
         {/* Quota Warning Banners */}
-        {quotaWarnings.length > 0 && (
-          <div className="space-y-2">
-            {quotaWarnings.map(warning => (
-              <QuotaWarningBanner
-                key={warning.type}
-                type={warning.type!}
-                quotaType={warning.type}
-                currentUsage={warning.usage}
-                limit={warning.limit}
-                percentage={warning.percentage}
-              />
-            ))}
-          </div>
-        )}
+        {quotaWarnings.length > 0 && <div className="space-y-2">
+            {quotaWarnings.map(warning => <QuotaWarningBanner key={warning.type} type={warning.type!} quotaType={warning.type} currentUsage={warning.usage} limit={warning.limit} percentage={warning.percentage} />)}
+          </div>}
 
         {/* Smart Promotion System */}
         <SmartPromotionBanner />
@@ -159,25 +137,14 @@ const Dashboard = React.memo(() => {
             <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
             <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleShowGuide}
-            className="text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="sm" onClick={handleShowGuide} className="text-muted-foreground hover:text-foreground">
             <HelpCircle className="w-4 h-4 ml-2" />
             المساعدة
           </Button>
         </div>
 
         {/* Stats Grid */}
-        <SimpleStatsGrid
-          monthlyTotalExpenses={monthlyTotalExpenses}
-          groupsCount={groupsCount}
-          weeklyExpensesCount={weeklyExpensesCount}
-          myPaid={myPaid}
-          myOwed={myOwed}
-        />
+        <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
 
         {/* Subscription and Usage Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -189,11 +156,9 @@ const Dashboard = React.memo(() => {
         </div>
         
         {/* Contextual Ads */}
-        <ContextualAdBanner
-          context={{ type: 'dashboard' }}
-          placement="dashboard_main"
-          className="mt-4"
-        />
+        <ContextualAdBanner context={{
+        type: 'dashboard'
+      }} placement="dashboard_main" className="mt-4" />
         
         {/* Ad Preferences */}
         <div className="flex justify-center">
@@ -201,24 +166,9 @@ const Dashboard = React.memo(() => {
         </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
-        {adminData?.isAdmin && (
-          <Card 
-            className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" 
-            onClick={() => navigate('/admin-dashboard')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-primary">لوحة التحكم الإدارية</p>
-                  <p className="text-xs text-muted-foreground mt-1">إدارة النظام والمستخدمين</p>
-                </div>
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
+            
+          </Card>}
 
         {/* Quick Actions - Centered */}
         <div className="flex justify-center">
@@ -232,16 +182,11 @@ const Dashboard = React.memo(() => {
       {showGuide && <AppGuide onClose={handleCloseGuide} />}
 
       {/* Quota Upgrade Dialog */}
-      {limits && (
-        <QuotaUpgradeDialog {...quotaDialogProps} />
-      )}
+      {limits && <QuotaUpgradeDialog {...quotaDialogProps} />}
       
       <div className="h-24" />
       <BottomNav />
-    </div>
-  );
+    </div>;
 });
-
 Dashboard.displayName = 'Dashboard';
-
 export default Dashboard;
