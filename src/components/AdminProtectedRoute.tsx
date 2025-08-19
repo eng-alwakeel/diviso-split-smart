@@ -2,13 +2,16 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, Lock, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AdminProtectedRouteProps {
   children: ReactNode;
 }
 
 export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
-  const { data: authData, isLoading } = useAdminAuth();
+  const { data: authData, isLoading, refetch } = useAdminAuth();
 
   if (isLoading) {
     return (
@@ -26,7 +29,67 @@ export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   }
 
   if (!authData?.isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return (
+      <div className="min-h-screen bg-background p-8 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            {authData?.error ? (
+              <>
+                <div className="flex justify-center">
+                  {authData.user ? (
+                    <Lock className="h-12 w-12 text-orange-500" />
+                  ) : (
+                    <AlertTriangle className="h-12 w-12 text-red-500" />
+                  )}
+                </div>
+                <h2 className="text-xl font-semibold text-foreground">
+                  {authData.user ? "غير مخول" : "يجب تسجيل الدخول"}
+                </h2>
+                <p className="text-muted-foreground">
+                  {authData.error}
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => refetch()}
+                    size="sm"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    إعادة المحاولة
+                  </Button>
+                  {!authData.user && (
+                    <Button 
+                      onClick={() => window.location.href = "/auth"}
+                      size="sm"
+                    >
+                      تسجيل الدخول
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-center">
+                  <Lock className="h-12 w-12 text-orange-500" />
+                </div>
+                <h2 className="text-xl font-semibold text-foreground">
+                  غير مخول
+                </h2>
+                <p className="text-muted-foreground">
+                  ليس لديك صلاحيات للوصول إلى هذه الصفحة
+                </p>
+                <Button 
+                  onClick={() => window.location.href = "/dashboard"}
+                  size="sm"
+                >
+                  العودة للرئيسية
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return <>{children}</>;

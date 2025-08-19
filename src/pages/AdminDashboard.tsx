@@ -20,6 +20,9 @@ import { Badge } from "@/components/ui/badge";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Settings, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const AdminDashboard = () => {
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
@@ -86,6 +89,24 @@ export const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       <div className="page-container">
         <AdminHeader />
+        
+        {/* Admin Management Link */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex gap-3">
+            <Link to="/admin-management">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                إدارة المديرين
+              </Button>
+            </Link>
+            <Link to="/settings">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                الإعدادات
+              </Button>
+            </Link>
+          </div>
+        </div>
         
         <AdminFilters 
           onFilterChange={handleFilterChange}

@@ -32,6 +32,7 @@ const LazyNotifications = withLazyLoading(lazy(() => import("./pages/Notificatio
 const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
 const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
+const LazyAdminManagement = withLazyLoading(lazy(() => import("./pages/AdminManagement")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><LazySettings /></ProtectedRoute>} />
             <Route path="/pricing-protected" element={<ProtectedRoute><LazyPricingProtected /></ProtectedRoute>} />
             <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
+            <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
