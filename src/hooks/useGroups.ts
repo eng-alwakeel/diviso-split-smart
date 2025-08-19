@@ -13,7 +13,7 @@ export type Group = {
   member_count?: number;
 };
 
-async function fetchUserGroups(includeArchived = false): Promise<Group[]> {
+async function fetchUserGroups(showArchived = false): Promise<Group[]> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) throw new Error("User not authenticated");
 
@@ -34,8 +34,12 @@ async function fetchUserGroups(includeArchived = false): Promise<Group[]> {
     `)
     .eq("user_id", userData.user.id);
 
-  // Filter archived groups unless specifically requested
-  if (!includeArchived) {
+  // Filter groups based on archived status
+  if (showArchived) {
+    // Show only archived groups (archived_at is not null)
+    query = query.not("groups.archived_at", "is", null);
+  } else {
+    // Show only active groups (archived_at is null)
     query = query.is("groups.archived_at", null);
   }
 
@@ -71,10 +75,10 @@ async function fetchUserGroups(includeArchived = false): Promise<Group[]> {
   return groupsWithDetails;
 }
 
-export function useGroups(includeArchived = false) {
+export function useGroups(showArchived = false) {
   return useQuery({
-    queryKey: ["user-groups", includeArchived],
-    queryFn: () => fetchUserGroups(includeArchived),
+    queryKey: ["user-groups", showArchived],
+    queryFn: () => fetchUserGroups(showArchived),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
