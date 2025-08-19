@@ -48,9 +48,9 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+const App: React.FC = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
       <Toaster />
       <Sonner />
       <PerformanceMonitor />
@@ -84,8 +84,8 @@ const App = () => (
           </Routes>
         </ImprovedErrorBoundary>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+};
 
 export default App;
