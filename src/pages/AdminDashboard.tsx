@@ -17,9 +17,8 @@ import { TopInsightsCards } from "@/components/admin/TopInsightsCards";
 import { AdminManagementTables } from "@/components/admin/AdminManagementTables";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-// Temporarily commented out for debugging
-// import { AdminFilters } from "@/components/admin/AdminFilters";
-// import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
+import { AdminFilters } from "@/components/admin/AdminFilters";
+import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 
 export const AdminDashboard = () => {
@@ -36,7 +35,7 @@ export const AdminDashboard = () => {
     console.log('Filters changed:', filters);
   };
   
-  const handleExport = (config: any) => {
+  const handleExport = (config: ExportConfig) => {
     // TODO: Implement export functionality
     toast({
       title: "بدء التصدير",
@@ -88,17 +87,16 @@ export const AdminDashboard = () => {
       <div className="page-container">
         <AdminHeader />
         
-        {/* Temporarily commented out to debug */}
-        {/* <AdminFilters 
+        <AdminFilters 
           onFilterChange={handleFilterChange}
-          onExport={() => {}}
+          onExport={() => handleExport({ format: 'excel', dataType: 'all', includeFields: ['basic_info'], dateRange: '30' })}
           onRefresh={handleRefresh}
           isLoading={statsLoading || enhancedLoading}
         />
         
         <div className="flex justify-end mb-4">
           <AdminExport onExport={handleExport} isLoading={false} />
-        </div> */}
+        </div>
 
         <Tabs defaultValue="revenue" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
