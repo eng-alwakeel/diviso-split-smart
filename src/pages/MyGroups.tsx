@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical } from "lucide-react";
+import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical, Activity, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 import { useGroups } from "@/hooks/useGroups";
+import { useGroupsStatistics } from "@/hooks/useGroupsStatistics";
 import { useGroupArchive } from "@/hooks/useGroupArchive";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -19,6 +21,7 @@ export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
   const { data: groups = [], isLoading, error } = useGroups(activeTab === "archived");
+  const { data: statistics, isLoading: statsLoading, error: statsError } = useGroupsStatistics();
   const { archiveGroup, unarchiveGroup } = useGroupArchive();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -62,7 +65,99 @@ export default function MyGroups() {
           <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
         </div>
         
-        {/* إحصائيات عامة */}
+        {/* إحصائيات شاملة */}
+        {statsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        ) : statistics ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* المجموعات النشطة */}
+            <Card className="relative overflow-hidden border-l-4 border-l-emerald-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-emerald-500/10 rounded-lg">
+                    <Activity className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">المجموعات النشطة</CardTitle>
+                    <CardDescription>المجموعات قيد الاستخدام</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-600">{statistics.activeGroups.total}</div>
+                    <div className="text-xs text-muted-foreground">المجموعات</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-600">{statistics.activeGroups.adminCount}</div>
+                    <div className="text-xs text-muted-foreground">أديرها</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-600">{statistics.activeGroups.totalMembers}</div>
+                    <div className="text-xs text-muted-foreground">الأعضاء</div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>نسبة الإدارة</span>
+                    <span>{statistics.activeGroups.total > 0 ? Math.round((statistics.activeGroups.adminCount / statistics.activeGroups.total) * 100) : 0}%</span>
+                  </div>
+                  <Progress 
+                    value={statistics.activeGroups.total > 0 ? (statistics.activeGroups.adminCount / statistics.activeGroups.total) * 100 : 0} 
+                    className="h-2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* المجموعات المؤرشفة */}
+            <Card className="relative overflow-hidden border-l-4 border-l-slate-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-slate-500/10 rounded-lg">
+                    <Archive className="h-5 w-5 text-slate-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">المجموعات المؤرشفة</CardTitle>
+                    <CardDescription>المجموعات المحفوظة</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-slate-600">{statistics.archivedGroups.total}</div>
+                    <div className="text-xs text-muted-foreground">المجموعات</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-slate-600">{statistics.archivedGroups.adminCount}</div>
+                    <div className="text-xs text-muted-foreground">أديرها</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-slate-600">{statistics.archivedGroups.totalMembers}</div>
+                    <div className="text-xs text-muted-foreground">الأعضاء</div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>نسبة الإدارة</span>
+                    <span>{statistics.archivedGroups.total > 0 ? Math.round((statistics.archivedGroups.adminCount / statistics.archivedGroups.total) * 100) : 0}%</span>
+                  </div>
+                  <Progress 
+                    value={statistics.archivedGroups.total > 0 ? (statistics.archivedGroups.adminCount / statistics.archivedGroups.total) * 100 : 0} 
+                    className="h-2"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+
+        {/* إحصائيات للتبويب الحالي */}
         <div className={`grid gap-3 ${isMobile ? 'grid-cols-3' : 'grid-cols-3 lg:grid-cols-6'}`}>
           <Card className="text-center">
             <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
