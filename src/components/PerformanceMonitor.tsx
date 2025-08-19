@@ -5,19 +5,23 @@ export const PerformanceMonitor = () => {
   const { measurePerformance } = usePerformanceOptimization();
 
   useEffect(() => {
-    // Monitor page load performance
+    // Monitor page load performance only in development
     const handleLoad = () => {
-      // Measure Core Web Vitals
-      if ('performance' in window) {
+      if ('performance' in window && process.env.NODE_ENV === 'development') {
         setTimeout(() => {
           const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          const paintMetrics = performance.getEntriesByType('paint');
+          const lcpMetrics = performance.getEntriesByType('largest-contentful-paint');
           
-          console.log('Performance Metrics:', {
-            'DOM Content Loaded': navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
-            'Load Event': navigation.loadEventEnd - navigation.loadEventStart,
-            'First Paint': performance.getEntriesByType('paint')[0]?.startTime,
-            'Largest Contentful Paint': performance.getEntriesByType('largest-contentful-paint')[0]?.startTime,
-          });
+          // Only log if we have meaningful metrics
+          if (navigation && (paintMetrics.length > 0 || lcpMetrics.length > 0)) {
+            console.group('🚀 Performance Metrics');
+            console.log('DOM Ready:', navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart + 'ms');
+            console.log('Load Complete:', navigation.loadEventEnd - navigation.loadEventStart + 'ms');
+            if (paintMetrics[0]) console.log('First Paint:', Math.round(paintMetrics[0].startTime) + 'ms');
+            if (lcpMetrics[0]) console.log('LCP:', Math.round(lcpMetrics[0].startTime) + 'ms');
+            console.groupEnd();
+          }
         }, 1000);
       }
     };

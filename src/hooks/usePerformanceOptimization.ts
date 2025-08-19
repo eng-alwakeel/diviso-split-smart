@@ -39,18 +39,23 @@ export function usePerformanceOptimization() {
     return observerRef.current;
   }, []);
 
-  // Performance measurement
+  // Performance measurement with conditional logging
   const measurePerformance = useCallback((name: string, fn: () => Promise<any>) => {
     return async (...args: any[]) => {
       const start = performance.now();
       try {
         const result = await fn();
         const end = performance.now();
-        console.log(`${name} took ${end - start} milliseconds`);
+        const duration = end - start;
+        
+        // Only log slow operations (>100ms) or in development
+        if (process.env.NODE_ENV === 'development' || duration > 100) {
+          console.log(`⏱️ ${name}: ${Math.round(duration)}ms`);
+        }
         return result;
       } catch (error) {
         const end = performance.now();
-        console.error(`${name} failed after ${end - start} milliseconds:`, error);
+        console.error(`❌ ${name} failed after ${Math.round(end - start)}ms:`, error);
         throw error;
       }
     };

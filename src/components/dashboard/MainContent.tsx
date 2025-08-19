@@ -1,3 +1,4 @@
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WalletStack } from "@/components/wallet/WalletStack";
@@ -33,7 +34,7 @@ interface MainContentProps {
   onNextGroup: () => void;
 }
 
-export const MainContent = ({
+export const MainContent = React.memo<MainContentProps>(({
   groups,
   recentExpenses,
   selectedGroupId,
@@ -44,33 +45,44 @@ export const MainContent = ({
   onSelectGroup,
   onPrevGroup,
   onNextGroup,
-}: MainContentProps) => {
+}) => {
   const navigate = useNavigate();
 
-  // Transform groups for WalletStack
-  const walletItems = groups.map(group => ({
-    id: group.id,
-    name: group.name,
-    totalPaid: groupPaidMap[group.id] ?? 0,
-    totalOwed: groupOwedMap[group.id] ?? 0,
-  }));
+  // Memoized navigation callbacks
+  const handleMyGroups = useCallback(() => navigate('/my-groups'), [navigate]);
+  const handleMyExpenses = useCallback(() => navigate('/my-expenses'), [navigate]);
+  const handleCreateGroup = useCallback(() => navigate('/create-group'), [navigate]);
 
-  // Transform expenses for RecentExpensesCards
-  const expenseItems = recentExpenses.map(expense => {
-    const group = groups.find(g => g.id === expense.group_id);
-    const spentDate = expense.spent_at || expense.created_at;
-    const date = spentDate ? new Date(spentDate).toLocaleDateString('ar-SA') : '';
-    
-    return {
-      id: expense.id,
-      title: expense.description || 'مصروف بدون وصف',
-      amount: Number(expense.amount || 0),
-      date,
-      groupName: group?.name || 'مجموعة غير معروفة',
-      myShare: mySplitByExpense[expense.id],
-      isPayer: expense.payer_id === currentUserId,
-    };
-  });
+  // Memoized wallet items transformation
+  const walletItems = useMemo(() => 
+    groups.map(group => ({
+      id: group.id,
+      name: group.name,
+      totalPaid: groupPaidMap[group.id] ?? 0,
+      totalOwed: groupOwedMap[group.id] ?? 0,
+    })), 
+    [groups, groupPaidMap, groupOwedMap]
+  );
+
+  // Memoized expense items transformation
+  const expenseItems = useMemo(() => 
+    recentExpenses.map(expense => {
+      const group = groups.find(g => g.id === expense.group_id);
+      const spentDate = expense.spent_at || expense.created_at;
+      const date = spentDate ? new Date(spentDate).toLocaleDateString('ar-SA') : '';
+      
+      return {
+        id: expense.id,
+        title: expense.description || 'مصروف بدون وصف',
+        amount: Number(expense.amount || 0),
+        date,
+        groupName: group?.name || 'مجموعة غير معروفة',
+        myShare: mySplitByExpense[expense.id],
+        isPayer: expense.payer_id === currentUserId,
+      };
+    }), 
+    [recentExpenses, groups, mySplitByExpense, currentUserId]
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -85,7 +97,7 @@ export const MainContent = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/my-groups')}
+                  onClick={handleMyGroups}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   عرض الكل
@@ -107,7 +119,7 @@ export const MainContent = ({
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">لا توجد مجموعات</h3>
                 <p className="text-muted-foreground mb-6">ابدأ بإنشاء أول مجموعة لك</p>
-                <Button onClick={() => navigate('/create-group')}>
+                <Button onClick={handleCreateGroup}>
                   <Plus className="w-4 h-4 ml-2" />
                   إنشاء مجموعة
                 </Button>
@@ -125,7 +137,7 @@ export const MainContent = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/my-expenses')}
+                  onClick={handleMyExpenses}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   عرض الكل
@@ -145,4 +157,6 @@ export const MainContent = ({
       </div>
     </div>
   );
-};
+});
+
+MainContent.displayName = 'MainContent';

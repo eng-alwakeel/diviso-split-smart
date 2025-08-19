@@ -22,7 +22,122 @@ import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
-const Dashboard = React.memo(() => {
+// Memoized loading skeleton for better performance
+const LoadingSkeleton = React.memo(() => (
+  <div className="min-h-screen bg-background">
+    <AppHeader />
+    <div className="page-container space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-20 w-full" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+    <BottomNav />
+  </div>
+));
+
+// Memoized error component
+const ErrorDisplay = React.memo(({ error, onRetry }: { error: string; onRetry: () => void }) => (
+  <div className="min-h-screen bg-background">
+    <AppHeader />
+    <div className="page-container">
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <AlertTriangle className="w-12 h-12 text-destructive" />
+        <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
+        <p className="text-muted-foreground text-center">{error}</p>
+        <Button onClick={onRetry} className="bg-primary hover:bg-primary/90">
+          <RefreshCw className="w-4 h-4 ml-2" />
+          إعادة المحاولة
+        </Button>
+      </div>
+    </div>
+  </div>
+));
+
+// Memoized admin card component
+const AdminCard = React.memo(() => {
+  const navigate = useNavigate();
+  
+  const handleAdminClick = useCallback(() => {
+    navigate('/admin-dashboard');
+  }, [navigate]);
+
+  return (
+    <Card 
+      className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" 
+      onClick={handleAdminClick}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-primary">لوحة التحكم الإدارية</p>
+            <p className="text-xs text-muted-foreground mt-1">إدارة النظام والمستخدمين</p>
+          </div>
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-primary" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+// Memoized quota warnings component
+const QuotaWarnings = React.memo(({ 
+  limits, 
+  isFreePlan, 
+  groupsCount, 
+  weeklyExpensesCount, 
+  checkQuotaWarning 
+}: {
+  limits: any;
+  isFreePlan: boolean;
+  groupsCount: number;
+  weeklyExpensesCount: number;
+  checkQuotaWarning: any;
+}) => {
+  const quotaWarnings = useMemo(() => {
+    if (!limits || !isFreePlan) return [];
+    
+    return [
+      { type: 'groups', usage: groupsCount || 0, limit: limits.groups },
+      { type: 'expenses', usage: weeklyExpensesCount || 0, limit: limits.expenses },
+    ].map(({ type, usage, limit }) => ({
+      type,
+      usage,
+      limit,
+      ...checkQuotaWarning(usage, limit, type)
+    })).filter(warning => warning.showWarning || warning.showCritical);
+  }, [limits, isFreePlan, groupsCount, weeklyExpensesCount, checkQuotaWarning]);
+
+  if (quotaWarnings.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      {quotaWarnings.map(warning => (
+        <QuotaWarningBanner
+          key={warning.type}
+          type={warning.type!}
+          quotaType={warning.type}
+          currentUsage={warning.usage}
+          limit={warning.limit}
+          percentage={warning.percentage}
+        />
+      ))}
+    </div>
+  );
+});
+
+const OptimizedDashboard = React.memo(() => {
   const navigate = useNavigate();
   const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
@@ -48,25 +163,10 @@ const Dashboard = React.memo(() => {
   
   const { limits } = useSubscriptionLimits();
 
-  // Memoized callbacks for better performance
+  // Memoized callbacks
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
   const handleCloseGuide = useCallback(() => setShowGuide(false), []);
   const handleRetry = useCallback(() => refetch(), [refetch]);
-
-  // Check for quota warnings with memoization
-  const quotaWarnings = useMemo(() => {
-    if (!limits || !isFreePlan) return [];
-    
-    return [
-      { type: 'groups', usage: groupsCount || 0, limit: limits.groups },
-      { type: 'expenses', usage: weeklyExpensesCount || 0, limit: limits.expenses },
-    ].map(({ type, usage, limit }) => ({
-      type,
-      usage,
-      limit,
-      ...checkQuotaWarning(usage, limit, type)
-    })).filter(warning => warning.showWarning || warning.showCritical);
-  }, [limits, isFreePlan, groupsCount, weeklyExpensesCount, checkQuotaWarning]);
 
   // Memoized quota dialog props
   const quotaDialogProps = useMemo(() => ({
@@ -87,46 +187,11 @@ const Dashboard = React.memo(() => {
   ]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <div className="page-container space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-48 w-full" />
-            </div>
-            <Skeleton className="h-64 w-full" />
-          </div>
-        </div>
-        <BottomNav />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <div className="page-container">
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-            <AlertTriangle className="w-12 h-12 text-destructive" />
-            <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
-            <p className="text-muted-foreground text-center">{error}</p>
-            <Button onClick={handleRetry} className="bg-primary hover:bg-primary/90">
-              <RefreshCw className="w-4 h-4 ml-2" />
-              إعادة المحاولة
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay error={error} onRetry={handleRetry} />;
   }
 
   return (
@@ -135,20 +200,13 @@ const Dashboard = React.memo(() => {
       
       <div className="page-container space-y-6">
         {/* Quota Warning Banners */}
-        {quotaWarnings.length > 0 && (
-          <div className="space-y-2">
-            {quotaWarnings.map(warning => (
-              <QuotaWarningBanner
-                key={warning.type}
-                type={warning.type!}
-                quotaType={warning.type}
-                currentUsage={warning.usage}
-                limit={warning.limit}
-                percentage={warning.percentage}
-              />
-            ))}
-          </div>
-        )}
+        <QuotaWarnings
+          limits={limits}
+          isFreePlan={isFreePlan}
+          groupsCount={groupsCount || 0}
+          weeklyExpensesCount={weeklyExpensesCount || 0}
+          checkQuotaWarning={checkQuotaWarning}
+        />
 
         {/* Smart Promotion System */}
         <SmartPromotionBanner />
@@ -183,8 +241,6 @@ const Dashboard = React.memo(() => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <SubscriptionStatusCard />
           <UsageLimitsCard />
-          
-          {/* Smart Ad Sidebar */}
           <SmartAdSidebar />
         </div>
         
@@ -201,24 +257,7 @@ const Dashboard = React.memo(() => {
         </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
-        {adminData?.isAdmin && (
-          <Card 
-            className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" 
-            onClick={() => navigate('/admin-dashboard')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-primary">لوحة التحكم الإدارية</p>
-                  <p className="text-xs text-muted-foreground mt-1">إدارة النظام والمستخدمين</p>
-                </div>
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {adminData?.isAdmin && <AdminCard />}
 
         {/* Quick Actions - Centered */}
         <div className="flex justify-center">
@@ -242,6 +281,6 @@ const Dashboard = React.memo(() => {
   );
 });
 
-Dashboard.displayName = 'Dashboard';
+OptimizedDashboard.displayName = 'OptimizedDashboard';
 
-export default Dashboard;
+export default OptimizedDashboard;
