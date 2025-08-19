@@ -9,7 +9,6 @@ import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
-import { LoyaltyPointsCard } from "@/components/promotions/LoyaltyPointsCard";
 import { ContextualAdBanner } from "@/components/ads/ContextualAdBanner";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
@@ -130,7 +129,6 @@ const Dashboard = () => {
 
         {/* Smart Promotion System */}
         <SmartPromotionBanner />
-        <LoyaltyPointsCard />
 
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
