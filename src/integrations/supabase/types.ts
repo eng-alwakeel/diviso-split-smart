@@ -1993,6 +1993,10 @@ export type Database = {
           role: string
         }[]
       }
+      validate_password_strength: {
+        Args: { password_input: string }
+        Returns: Json
+      }
       verify_user_password: {
         Args: { current_password: string }
         Returns: boolean
