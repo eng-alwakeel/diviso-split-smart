@@ -33,6 +33,7 @@ const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
 const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
 const LazyAdminManagement = withLazyLoading(lazy(() => import("./pages/AdminManagement")));
+const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPage")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -79,6 +80,7 @@ const App: React.FC = () => {
               <Route path="/pricing-protected" element={<ProtectedRoute><LazyPricingProtected /></ProtectedRoute>} />
               <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
               <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
+              <Route path="/ad-test" element={<AdTestPage />} />
               <Route path="/pricing" element={<LazyPricing />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

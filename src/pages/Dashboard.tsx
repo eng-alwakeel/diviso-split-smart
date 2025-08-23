@@ -12,6 +12,7 @@ import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBann
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
+import { SimplifiedAdManager } from "@/components/ads/SimplifiedAdManager";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -151,8 +152,16 @@ const Dashboard = React.memo(() => {
           <SubscriptionStatusCard />
           <UsageLimitsCard />
           
-          {/* Smart Ad Sidebar */}
-          <SmartAdSidebar />
+        {/* Smart Ad Sidebar */}
+          <SmartAdSidebar className="lg:block hidden" />
+          
+          {/* Mobile Ad Display */}
+          <div className="lg:hidden">
+            <SimplifiedAdManager 
+              placement="dashboard_mobile" 
+              showDebug={process.env.NODE_ENV === 'development'}
+            />
+          </div>
         </div>
         
         {/* Smart Contextual Ads */}
@@ -161,6 +170,13 @@ const Dashboard = React.memo(() => {
             type: 'dashboard'
           }}
           placement="dashboard_main"
+          className="mt-4"
+        />
+        
+        {/* Simplified Ad Manager - Always shows for debugging */}
+        <SimplifiedAdManager 
+          placement="dashboard_main_simple" 
+          showDebug={process.env.NODE_ENV === 'development'}
           className="mt-4"
         />
         

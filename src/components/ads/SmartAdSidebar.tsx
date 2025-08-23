@@ -6,6 +6,7 @@ import { ExternalLink, ShoppingBag, TrendingUp, Zap } from 'lucide-react';
 import { useAdTracking } from '@/hooks/useAdTracking';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { useUserBehavior } from '@/hooks/useUserBehavior';
+import { FallbackAds } from './FallbackAds';
 
 interface SmartAdSidebarProps {
   className?: string;
@@ -60,12 +61,26 @@ export const SmartAdSidebar: React.FC<SmartAdSidebarProps> = ({ className = '' }
     window.open(product.affiliate_url, '_blank', 'noopener,noreferrer');
   };
 
-  if (!shouldShowAds() || loading) {
+  console.log('🎯 SmartAdSidebar: State check', {
+    shouldShow: shouldShowAds(),
+    loading,
+    featuredCount: featuredProducts.length,
+    trendingCount: trendingProducts.length
+  });
+
+  if (!shouldShowAds()) {
+    console.log('🎯 SmartAdSidebar: Ads disabled, showing nothing');
     return null;
   }
 
+  if (loading) {
+    console.log('🎯 SmartAdSidebar: Still loading...');
+    return <FallbackAds placement="sidebar_loading" className={className} />;
+  }
+
   if (featuredProducts.length === 0 && trendingProducts.length === 0) {
-    return null;
+    console.log('🎯 SmartAdSidebar: No products, showing fallback');
+    return <FallbackAds placement="sidebar_fallback" className={className} />;
   }
 
   return (
