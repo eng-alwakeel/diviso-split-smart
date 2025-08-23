@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   ArrowRight, 
   Gift, 
@@ -45,10 +46,12 @@ import { ar } from "date-fns/locale";
 const ReferralCenter = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [newReferralPhone, setNewReferralPhone] = useState("");
   const [newReferralName, setNewReferralName] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   // استخدام البيانات الحقيقية
   const { 
@@ -245,74 +248,115 @@ const ReferralCenter = () => {
           <p className="text-muted-foreground">إدارة شاملة للإحالات مع إحصائيات متقدمة ونظام مستويات</p>
         </div>
 
-        {/* التبويبات الجديدة */}
-        <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 h-12">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <Crown className="w-4 h-4" />
-              لوحة التحكم
+        {/* التبويبات الجديدة - محسنة للمحمول */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 md:space-y-8">
+          <TabsList className={`${
+            isMobile 
+              ? "flex w-full overflow-x-auto scrollbar-hide gap-2 p-2 h-auto justify-start" 
+              : "grid w-full grid-cols-5 h-12"
+          } bg-muted`}>
+            <TabsTrigger 
+              value="dashboard" 
+              className={`${
+                isMobile 
+                  ? "flex flex-col items-center gap-1 min-w-fit px-4 py-3 text-xs" 
+                  : "flex items-center gap-2"
+              } whitespace-nowrap shrink-0`}
+            >
+              <Crown className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              {isMobile ? "لوحة" : "لوحة التحكم"}
             </TabsTrigger>
-            <TabsTrigger value="send" className="flex items-center gap-2">
-              <Phone className="w-4 h-4" />
-              إرسال دعوات
+            <TabsTrigger 
+              value="send" 
+              className={`${
+                isMobile 
+                  ? "flex flex-col items-center gap-1 min-w-fit px-4 py-3 text-xs" 
+                  : "flex items-center gap-2"
+              } whitespace-nowrap shrink-0`}
+            >
+              <Phone className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              {isMobile ? "إرسال" : "إرسال دعوات"}
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              سجل الإحالات
+            <TabsTrigger 
+              value="history" 
+              className={`${
+                isMobile 
+                  ? "flex flex-col items-center gap-1 min-w-fit px-4 py-3 text-xs" 
+                  : "flex items-center gap-2"
+              } whitespace-nowrap shrink-0`}
+            >
+              <Users className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              {isMobile ? "السجل" : "سجل الإحالات"}
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              التحليلات
+            <TabsTrigger 
+              value="analytics" 
+              className={`${
+                isMobile 
+                  ? "flex flex-col items-center gap-1 min-w-fit px-4 py-3 text-xs" 
+                  : "flex items-center gap-2"
+              } whitespace-nowrap shrink-0`}
+            >
+              <BarChart3 className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              {isMobile ? "التحليل" : "التحليلات"}
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              الإشعارات
+            <TabsTrigger 
+              value="notifications" 
+              className={`${
+                isMobile 
+                  ? "flex flex-col items-center gap-1 min-w-fit px-4 py-3 text-xs" 
+                  : "flex items-center gap-2"
+              } whitespace-nowrap shrink-0`}
+            >
+              <Bell className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+              {isMobile ? "الإشعارات" : "الإشعارات"}
             </TabsTrigger>
           </TabsList>
 
           {/* تبويب لوحة التحكم */}
-          <TabsContent value="dashboard" className="space-y-8">
-            <div className="grid lg:grid-cols-3 gap-8">
+          <TabsContent value="dashboard" className={isMobile ? "space-y-6" : "space-y-8"}>
+            <div className={isMobile ? "space-y-6" : "grid lg:grid-cols-3 gap-8"}>
               {/* إحصائيات سريعة */}
-              <div className="lg:col-span-2">
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className={isMobile ? "" : "lg:col-span-2"}>
+                <div className={`grid gap-4 mb-6 ${
+                  isMobile ? "grid-cols-2" : "md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                }`}>
                   <Card className="shadow-card hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Users className="w-6 h-6 text-primary" />
+                    <CardContent className={isMobile ? "p-4 text-center" : "p-6 text-center"}>
+                      <div className={`${isMobile ? "w-8 h-8 mb-2" : "w-12 h-12 mb-3"} bg-primary/10 rounded-xl flex items-center justify-center mx-auto`}>
+                        <Users className={isMobile ? "w-4 h-4 text-primary" : "w-6 h-6 text-primary"} />
                       </div>
-                      <p className="text-2xl font-bold text-primary">{totalReferrals}</p>
-                      <p className="text-sm text-muted-foreground">إجمالي الإحالات</p>
+                      <p className={`${isMobile ? "text-lg" : "text-2xl"} font-bold text-primary`}>{totalReferrals}</p>
+                      <p className={`${isMobile ? "text-xs" : "text-sm"} text-muted-foreground`}>إجمالي الإحالات</p>
                     </CardContent>
                   </Card>
 
                   <Card className="shadow-card hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <CheckCircle className="w-6 h-6 text-primary" />
+                    <CardContent className={isMobile ? "p-4 text-center" : "p-6 text-center"}>
+                      <div className={`${isMobile ? "w-8 h-8 mb-2" : "w-12 h-12 mb-3"} bg-primary/10 rounded-xl flex items-center justify-center mx-auto`}>
+                        <CheckCircle className={isMobile ? "w-4 h-4 text-primary" : "w-6 h-6 text-primary"} />
                       </div>
-                      <p className="text-2xl font-bold text-primary">{successfulReferrals}</p>
-                      <p className="text-sm text-muted-foreground">إحالات مكتملة</p>
+                      <p className={`${isMobile ? "text-lg" : "text-2xl"} font-bold text-primary`}>{successfulReferrals}</p>
+                      <p className={`${isMobile ? "text-xs" : "text-sm"} text-muted-foreground`}>إحالات مكتملة</p>
                     </CardContent>
                   </Card>
 
                   <Card className="shadow-card hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Gift className="w-6 h-6 text-primary" />
+                    <CardContent className={isMobile ? "p-4 text-center" : "p-6 text-center"}>
+                      <div className={`${isMobile ? "w-8 h-8 mb-2" : "w-12 h-12 mb-3"} bg-primary/10 rounded-xl flex items-center justify-center mx-auto`}>
+                        <Gift className={isMobile ? "w-4 h-4 text-primary" : "w-6 h-6 text-primary"} />
                       </div>
-                      <p className="text-2xl font-bold text-primary">{totalDaysEarned}</p>
-                      <p className="text-sm text-muted-foreground">أيام مكتسبة</p>
+                      <p className={`${isMobile ? "text-lg" : "text-2xl"} font-bold text-primary`}>{totalDaysEarned}</p>
+                      <p className={`${isMobile ? "text-xs" : "text-sm"} text-muted-foreground`}>أيام مكتسبة</p>
                     </CardContent>
                   </Card>
 
                   <Card className="shadow-card hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6 text-center">
-                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Calendar className="w-6 h-6 text-primary" />
+                    <CardContent className={isMobile ? "p-4 text-center" : "p-6 text-center"}>
+                      <div className={`${isMobile ? "w-8 h-8 mb-2" : "w-12 h-12 mb-3"} bg-primary/10 rounded-xl flex items-center justify-center mx-auto`}>
+                        <Calendar className={isMobile ? "w-4 h-4 text-primary" : "w-6 h-6 text-primary"} />
                       </div>
-                      <p className="text-2xl font-bold text-primary">{remainingDays}</p>
-                      <p className="text-sm text-muted-foreground">أيام متبقية</p>
+                      <p className={`${isMobile ? "text-lg" : "text-2xl"} font-bold text-primary`}>{remainingDays}</p>
+                      <p className={`${isMobile ? "text-xs" : "text-sm"} text-muted-foreground`}>أيام متبقية</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -327,7 +371,7 @@ const ReferralCenter = () => {
               </div>
 
               {/* الحالة الحالية والمكافآت */}
-              <div className="space-y-6">
+              <div className={isMobile ? "space-y-4" : "space-y-6"}>
                 <Card className="shadow-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -379,9 +423,9 @@ const ReferralCenter = () => {
                         </div>
                         
                         <Tabs defaultValue="link" className="w-full">
-                          <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="link">رابط نصي</TabsTrigger>
-                            <TabsTrigger value="qr">رمز QR</TabsTrigger>
+                          <TabsList className={`grid w-full grid-cols-2 ${isMobile ? "h-12" : ""}`}>
+                            <TabsTrigger value="link" className={isMobile ? "text-sm" : ""}>رابط نصي</TabsTrigger>
+                            <TabsTrigger value="qr" className={isMobile ? "text-sm" : ""}>رمز QR</TabsTrigger>
                           </TabsList>
                           
                           <TabsContent value="link" className="space-y-3 mt-4">
@@ -392,18 +436,19 @@ const ReferralCenter = () => {
                                 className="text-left text-xs"
                                 dir="ltr"
                               />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => copyToClipboard(referralLink)}
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
+                            <Button
+                              variant="outline"
+                              size={isMobile ? "default" : "sm"}
+                              onClick={() => copyToClipboard(referralLink)}
+                              className={isMobile ? "px-4" : ""}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
                             </div>
                             
                             <Button
                               variant="outline"
-                              className="w-full"
+                              className={`w-full ${isMobile ? "h-12 text-base" : ""}`}
                               onClick={() => {
                                 if (navigator.share) {
                                   navigator.share({
@@ -421,8 +466,8 @@ const ReferralCenter = () => {
                             </Button>
                           </TabsContent>
                           
-                          <TabsContent value="qr" className="mt-4">
-                            <QRCodeDisplay value={referralLink} size={180} />
+                          <TabsContent value="qr" className="mt-4 flex justify-center">
+                            <QRCodeDisplay value={referralLink} size={isMobile ? 150 : 180} />
                           </TabsContent>
                         </Tabs>
                       </>
@@ -434,8 +479,8 @@ const ReferralCenter = () => {
           </TabsContent>
 
           {/* تبويب إرسال الدعوات */}
-          <TabsContent value="send" className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
+          <TabsContent value="send" className={isMobile ? "space-y-6" : "space-y-8"}>
+            <div className={isMobile ? "space-y-6" : "grid md:grid-cols-2 gap-8"}>
               {/* إرسال دعوة فردية */}
               <Card className="shadow-card">
                 <CardHeader>
@@ -445,29 +490,31 @@ const ReferralCenter = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <Input
                       placeholder="الاسم (اختياري)"
                       value={newReferralName}
                       onChange={(e) => setNewReferralName(e.target.value)}
+                      className={isMobile ? "h-12 text-base" : ""}
                     />
-                    <div className="flex gap-3">
+                    <div className={isMobile ? "space-y-3" : "flex gap-3"}>
                       <Input
                         placeholder="05xxxxxxxx"
                         value={newReferralPhone}
                         onChange={(e) => setNewReferralPhone(e.target.value)}
-                        className="text-left"
+                        className={`text-left ${isMobile ? "h-12 text-base" : ""}`}
                         dir="ltr"
                       />
                       <Button 
                         onClick={handleSendReferralInvite} 
                         variant="hero"
                         disabled={isSending}
+                        className={isMobile ? "w-full h-12 text-base" : ""}
                       >
                         {isSending ? (
                           <>
                             <RefreshCw className="w-4 h-4 animate-spin ml-2" />
-                            جاري الإرسال
+                            {isMobile ? "جاري الإرسال..." : "جاري الإرسال"}
                           </>
                         ) : (
                           "إرسال دعوة"
@@ -496,7 +543,7 @@ const ReferralCenter = () => {
                   <Button 
                     onClick={() => setShowBulkDialog(true)}
                     variant="outline"
-                    className="w-full"
+                    className={`w-full ${isMobile ? "h-12 text-base" : ""}`}
                   >
                     <UsersRound className="w-4 h-4 ml-2" />
                     بدء الإرسال الجماعي
@@ -516,7 +563,7 @@ const ReferralCenter = () => {
                 <CardTitle>كيف يعمل البرنامج؟</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className={`grid gap-6 ${isMobile ? "grid-cols-1" : "md:grid-cols-3"}`}>
                   <div className="text-center">
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <span className="text-primary font-bold">1</span>
