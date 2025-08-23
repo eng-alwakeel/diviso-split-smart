@@ -20,7 +20,10 @@ import {
   Clock,
   Link as LinkIcon,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  BarChart3,
+  Bell,
+  UsersRound
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +31,14 @@ import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useReferralRewards } from "@/hooks/useReferralRewards";
+import { useReferralTiers } from "@/hooks/useReferralTiers";
+import { useReferralAnalytics } from "@/hooks/useReferralAnalytics";
+import { useReferralSecurity } from "@/hooks/useReferralSecurity";
+import { ReferralTierCard } from "@/components/referral/ReferralTierCard";
+import { ReferralAnalyticsChart } from "@/components/referral/ReferralAnalyticsChart";
+import { BulkReferralDialog } from "@/components/referral/BulkReferralDialog";
+import { EnhancedReferralHistory } from "@/components/referral/EnhancedReferralHistory";
+import { ReferralNotifications } from "@/components/referral/ReferralNotifications";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -37,6 +48,7 @@ const ReferralCenter = () => {
   const [newReferralPhone, setNewReferralPhone] = useState("");
   const [newReferralName, setNewReferralName] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
 
   // استخدام البيانات الحقيقية
   const { 
@@ -57,6 +69,11 @@ const ReferralCenter = () => {
     canApplyRewards
   } = useReferralRewards();
 
+  // الهوكس الجديدة
+  const { userTier, loading: tiersLoading, getProgressToNextTier } = useReferralTiers();
+  const { summary, getChartData, loading: analyticsLoading } = useReferralAnalytics();
+  const { checkSpamProtection } = useReferralSecurity();
+
   // وظائف النسخ والمشاركة
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -66,7 +83,7 @@ const ReferralCenter = () => {
     });
   };
 
-  // إرسال دعوة إحالة مع معالجة أفضل للأخطاء
+  // إرسال دعوة إحالة محدثة مع حماية spam
   const handleSendReferralInvite = async () => {
     if (!newReferralPhone.trim()) {
       toast({
@@ -75,6 +92,21 @@ const ReferralCenter = () => {
         variant: "destructive"
       });
       return;
+    }
+
+    // فحص الحماية ضد spam
+    try {
+      const securityCheck = await checkSpamProtection(newReferralPhone);
+      if (!securityCheck.is_allowed) {
+        toast({
+          title: "تحذير أمني",
+          description: securityCheck.reason || "تم تجاوز الحد المسموح للإرسال",
+          variant: "destructive"
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Security check failed:", error);
     }
 
     setIsSending(true);
@@ -97,7 +129,6 @@ const ReferralCenter = () => {
         setNewReferralPhone("");
         setNewReferralName("");
       } else {
-        // Error already handled by the hook with toast.error
         console.error("Referral invite failed:", result.error);
       }
     } catch (error) {
@@ -210,314 +241,348 @@ const ReferralCenter = () => {
             <ArrowRight className="w-4 h-4 ml-2" />
             العودة للوحة التحكم
           </Button>
-          <h1 className="text-3xl font-bold mb-2">مركز الإحالة</h1>
-          <p className="text-muted-foreground">ادع أصدقاءك واحصل على أيام مجانية من الاشتراك</p>
+          <h1 className="text-3xl font-bold mb-2">مركز الإحالة المتقدم</h1>
+          <p className="text-muted-foreground">إدارة شاملة للإحالات مع إحصائيات متقدمة ونظام مستويات</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Stats & Actions */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Overview Stats */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-6 h-6 text-primary" />
+        {/* التبويبات الجديدة */}
+        <Tabs defaultValue="dashboard" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-5 h-12">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <Crown className="w-4 h-4" />
+              لوحة التحكم
+            </TabsTrigger>
+            <TabsTrigger value="send" className="flex items-center gap-2">
+              <Phone className="w-4 h-4" />
+              إرسال دعوات
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              سجل الإحالات
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              التحليلات
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              الإشعارات
+            </TabsTrigger>
+          </TabsList>
+
+          {/* تبويب لوحة التحكم */}
+          <TabsContent value="dashboard" className="space-y-8">
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* إحصائيات سريعة */}
+              <div className="lg:col-span-2">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <Card className="shadow-card hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <Users className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-2xl font-bold text-primary">{totalReferrals}</p>
+                      <p className="text-sm text-muted-foreground">إجمالي الإحالات</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-card hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <CheckCircle className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-2xl font-bold text-primary">{successfulReferrals}</p>
+                      <p className="text-sm text-muted-foreground">إحالات مكتملة</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-card hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <Gift className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-2xl font-bold text-primary">{totalDaysEarned}</p>
+                      <p className="text-sm text-muted-foreground">أيام مكتسبة</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-card hover:shadow-xl transition-all duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <Calendar className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-2xl font-bold text-primary">{remainingDays}</p>
+                      <p className="text-sm text-muted-foreground">أيام متبقية</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* بطاقة المستوى */}
+                {userTier && !tiersLoading && (
+                  <ReferralTierCard 
+                    userTier={userTier} 
+                    progress={getProgressToNextTier()} 
+                  />
+                )}
+              </div>
+
+              {/* الحالة الحالية والمكافآت */}
+              <div className="space-y-6">
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="w-5 h-5" />
+                      حالتك الحالية
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-primary">{remainingDays}</p>
+                      <p className="text-sm text-muted-foreground">أيام مجانية متبقية</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-sm text-muted-foreground mb-1">الأيام المكتسبة إجمالياً</p>
+                      <p className="text-xl font-bold">{totalDaysEarned} يوم</p>
+                    </div>
+                    {canApplyRewards() && (
+                      <Button 
+                        onClick={handleApplyRewards}
+                        variant="hero"
+                        className="w-full"
+                      >
+                        <Gift className="w-4 h-4 ml-2" />
+                        تطبيق المكافآت على الاشتراك
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* كود الإحالة */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <LinkIcon className="w-5 h-5" />
+                      كود الإحالة الخاص بك
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {!referralCode ? (
+                      <div className="text-center py-4">
+                        <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">جاري تحميل كود الإحالة...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-muted/50 rounded-lg p-4 text-center">
+                          <p className="text-sm text-muted-foreground mb-2">الكود الخاص بك</p>
+                          <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
+                        </div>
+                        
+                        <Tabs defaultValue="link" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="link">رابط نصي</TabsTrigger>
+                            <TabsTrigger value="qr">رمز QR</TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="link" className="space-y-3 mt-4">
+                            <div className="flex gap-2">
+                              <Input
+                                value={referralLink}
+                                readOnly
+                                className="text-left text-xs"
+                                dir="ltr"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToClipboard(referralLink)}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            
+                            <Button
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                if (navigator.share) {
+                                  navigator.share({
+                                    title: "انضم إلى Diviso",
+                                    text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
+                                    url: referralLink
+                                  });
+                                } else {
+                                  copyToClipboard(referralLink);
+                                }
+                              }}
+                            >
+                              <Share2 className="w-4 h-4 ml-2" />
+                              مشاركة الرابط
+                            </Button>
+                          </TabsContent>
+                          
+                          <TabsContent value="qr" className="mt-4">
+                            <QRCodeDisplay value={referralLink} size={180} />
+                          </TabsContent>
+                        </Tabs>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* تبويب إرسال الدعوات */}
+          <TabsContent value="send" className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* إرسال دعوة فردية */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="w-5 h-5" />
+                    إرسال دعوة فردية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <Input
+                      placeholder="الاسم (اختياري)"
+                      value={newReferralName}
+                      onChange={(e) => setNewReferralName(e.target.value)}
+                    />
+                    <div className="flex gap-3">
+                      <Input
+                        placeholder="05xxxxxxxx"
+                        value={newReferralPhone}
+                        onChange={(e) => setNewReferralPhone(e.target.value)}
+                        className="text-left"
+                        dir="ltr"
+                      />
+                      <Button 
+                        onClick={handleSendReferralInvite} 
+                        variant="hero"
+                        disabled={isSending}
+                      >
+                        {isSending ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin ml-2" />
+                            جاري الإرسال
+                          </>
+                        ) : (
+                          "إرسال دعوة"
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-2xl font-bold text-primary">{totalReferrals}</p>
-                  <p className="text-sm text-muted-foreground">إجمالي الإحالات</p>
+                  <p className="text-sm text-muted-foreground">
+                    سيتم إرسال رسالة نصية تحتوي على رابط التسجيل الخاص بك
+                  </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-6 h-6 text-primary" />
+              {/* إرسال دعوات جماعية */}
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UsersRound className="w-5 h-5" />
+                    إرسال دعوات جماعية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    أرسل عدة دعوات في مرة واحدة لتوفير الوقت والجهد
+                  </p>
+                  <Button 
+                    onClick={() => setShowBulkDialog(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <UsersRound className="w-4 h-4 ml-2" />
+                    بدء الإرسال الجماعي
+                  </Button>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground">
+                      يمكنك إرسال عدة دعوات دفعة واحدة عبر إدخال قائمة بأرقام الهواتف
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-primary">{successfulReferrals}</p>
-                  <p className="text-sm text-muted-foreground">إحالات مكتملة</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Gift className="w-6 h-6 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-primary">{totalDaysEarned}</p>
-                  <p className="text-sm text-muted-foreground">أيام مكتسبة</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Calendar className="w-6 h-6 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-primary">{remainingDays}</p>
-                  <p className="text-sm text-muted-foreground">أيام متبقية</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Success Rate */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Crown className="w-5 h-5" />
-                  معدل نجاح الإحالات
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>معدل التحويل</span>
-                    <span className="font-bold text-secondary">{successRate.toFixed(0)}%</span>
-                  </div>
-                  <Progress value={successRate} className="h-3" />
-                  <p className="text-sm text-muted-foreground">
-                    {successfulReferrals} من أصل {totalReferrals} إحالة تم تفعيلها بنجاح
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Send New Referral */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="w-5 h-5" />
-                  إرسال دعوة جديدة
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <Input
-                    placeholder="الاسم (اختياري)"
-                    value={newReferralName}
-                    onChange={(e) => setNewReferralName(e.target.value)}
-                  />
-                  <div className="flex gap-3">
-                    <Input
-                      placeholder="05xxxxxxxx"
-                      value={newReferralPhone}
-                      onChange={(e) => setNewReferralPhone(e.target.value)}
-                      className="text-left"
-                      dir="ltr"
-                    />
-                    <Button 
-                      onClick={handleSendReferralInvite} 
-                      variant="hero"
-                      disabled={isSending}
-                    >
-                      {isSending ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin ml-2" />
-                          جاري الإرسال
-                        </>
-                      ) : (
-                        "إرسال دعوة"
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  سيتم إرسال رسالة نصية تحتوي على رابط التسجيل الخاص بك
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Referral History */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>سجل الإحالات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {referrals.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">لم تقم بإرسال أي دعوات بعد</p>
-                      <p className="text-sm text-muted-foreground">ابدأ بدعوة أصدقائك للحصول على أيام مجانية!</p>
-                    </div>
-                  ) : (
-                    referrals.map((referral) => (
-                      <Card key={referral.id} className="bg-card border border-border shadow-card hover:shadow-xl transition-all duration-300">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                <Users className="w-8 h-8 text-primary" />
-                              </div>
-                              <div className="text-foreground">
-                                <h3 className="font-bold text-lg">
-                                  {referral.invitee_name || "مستخدم جديد"}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {referral.invitee_phone}
-                                </p>
-                                <p className="text-sm font-medium text-muted-foreground">
-                                  تاريخ الدعوة: {formatDate(referral.created_at)}
-                                  {referral.joined_at && (
-                                    <span className="block">تاريخ الانضمام: {formatDate(referral.joined_at)}</span>
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-left flex flex-col items-end gap-2">
-                              {getStatusBadge(referral.status)}
-                              {referral.status === 'joined' && (
-                                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                                  +{referral.reward_days} أيام
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Referral Tools */}
-          <div className="space-y-6">
-            {/* Current Status */}
-            <Card className="bg-card border border-border shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="w-5 h-5" />
-                  حالتك الحالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">{remainingDays}</p>
-                  <p className="text-sm text-muted-foreground">أيام مجانية متبقية</p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground mb-1">الأيام المكتسبة إجمالياً</p>
-                  <p className="text-xl font-bold">{totalDaysEarned} يوم</p>
-                </div>
-                {canApplyRewards() && (
-                  <Button 
-                    onClick={handleApplyRewards}
-                    variant="hero"
-                    className="w-full"
-                  >
-                    <Gift className="w-4 h-4 ml-2" />
-                    تطبيق المكافآت على الاشتراك
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Referral Code */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5" />
-                  كود الإحالة الخاص بك
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!referralCode ? (
-                  <div className="text-center py-4">
-                    <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">جاري تحميل كود الإحالة...</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-muted/50 rounded-lg p-4 text-center">
-                      <p className="text-sm text-muted-foreground mb-2">الكود الخاص بك</p>
-                      <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
-                    </div>
-                    
-                    <Tabs defaultValue="link" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="link">رابط نصي</TabsTrigger>
-                        <TabsTrigger value="qr">رمز QR</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="link" className="space-y-3 mt-4">
-                        <div className="flex gap-2">
-                          <Input
-                            value={referralLink}
-                            readOnly
-                            className="text-left text-xs"
-                            dir="ltr"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(referralLink)}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            if (navigator.share) {
-                              navigator.share({
-                                title: "انضم إلى Diviso",
-                                text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
-                                url: referralLink
-                              });
-                            } else {
-                              copyToClipboard(referralLink);
-                            }
-                          }}
-                        >
-                          <Share2 className="w-4 h-4 ml-2" />
-                          مشاركة الرابط
-                        </Button>
-                      </TabsContent>
-                      
-                      <TabsContent value="qr" className="mt-4">
-                        <QRCodeDisplay value={referralLink} size={180} />
-                      </TabsContent>
-                    </Tabs>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* How it Works */}
+            {/* كيف يعمل البرنامج */}
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle>كيف يعمل البرنامج؟</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      1
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-primary font-bold">1</span>
                     </div>
-                    <p className="text-sm">ادع صديقك باستخدام رابطك الخاص</p>
+                    <h3 className="font-semibold mb-2">ادع صديقك</h3>
+                    <p className="text-sm text-muted-foreground">استخدم رابطك الخاص أو كود الإحالة</p>
                   </div>
-                  <div className="flex gap-3">
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      2
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-primary font-bold">2</span>
                     </div>
-                    <p className="text-sm">يسجل صديقك ويبدأ استخدام التطبيق</p>
+                    <h3 className="font-semibold mb-2">التسجيل والاستخدام</h3>
+                    <p className="text-sm text-muted-foreground">يسجل صديقك ويبدأ استخدام التطبيق</p>
                   </div>
-                  <div className="flex gap-3">
-                    <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      3
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-primary font-bold">3</span>
                     </div>
-                    <p className="text-sm">تحصل على 7 أيام مجانية فوراً!</p>
+                    <h3 className="font-semibold mb-2">احصل على المكافأة</h3>
+                    <p className="text-sm text-muted-foreground">تحصل على أيام مجانية فوراً!</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
+
+          {/* تبويب سجل الإحالات */}
+          <TabsContent value="history">
+            <EnhancedReferralHistory referrals={referrals} loading={referralsLoading} />
+          </TabsContent>
+
+          {/* تبويب التحليلات */}
+          <TabsContent value="analytics">
+            {analyticsLoading ? (
+              <div className="space-y-6">
+                <Skeleton className="h-64" />
+                <Skeleton className="h-48" />
+              </div>
+            ) : (
+              <ReferralAnalyticsChart 
+                chartData={getChartData()} 
+                summary={summary} 
+              />
+            )}
+          </TabsContent>
+
+          {/* تبويب الإشعارات */}
+          <TabsContent value="notifications">
+            <ReferralNotifications />
+          </TabsContent>
+        </Tabs>
+
+        {/* Dialog للإرسال الجماعي */}
+        {showBulkDialog && (
+          <BulkReferralDialog
+            sendReferralInvite={async (phone: string, name?: string) => {
+              const result = await sendInvite(phone, name);
+              return { success: result.success, error: result.error };
+            }}
+            onInviteSent={() => {
+              setShowBulkDialog(false);
+            }}
+          />
+        )}
       </div>
-      </div>
+      
       <div className="h-16 md:hidden" />
       <BottomNav />
     </div>
