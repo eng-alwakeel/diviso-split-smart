@@ -7,8 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Camera, Save, User, Crown, LogOut } from "lucide-react";
+import { Camera, Save, User, Crown, LogOut, Shield } from "lucide-react";
 import { PlanBadge } from "@/components/ui/plan-badge";
+import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 
 interface ProfileTabProps {
   profile: {
@@ -23,6 +24,7 @@ interface ProfileTabProps {
   validationErrors: Record<string, string>;
   setValidationErrors: (errors: any) => void;
   saveProfile: () => void;
+  onPhoneChange: (phone: string) => void;
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   uploading: boolean;
   isAdmin?: boolean;
@@ -38,6 +40,7 @@ export function ProfileTab({
   validationErrors,
   setValidationErrors,
   saveProfile,
+  onPhoneChange,
   handleImageUpload,
   uploading,
   isAdmin,
@@ -47,6 +50,9 @@ export function ProfileTab({
   logout
 }: ProfileTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [pendingPhone, setPendingPhone] = useState("");
+  const [originalPhone, setOriginalPhone] = useState(profile.phone);
 
   return (
     <div className="space-y-6">
@@ -160,24 +166,39 @@ export function ProfileTab({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-foreground">رقم الجوال</Label>
-              <Input
-                id="phone"
-                value={profile.phone}
-                onChange={(e) => {
-                  setProfile({...profile, phone: e.target.value});
-                  if (validationErrors.phone) {
-                    setValidationErrors(prev => ({...prev, phone: ""}));
-                  }
-                }}
-                className={`text-left bg-background/50 border-border text-foreground ${
-                  validationErrors.phone ? 'border-destructive' : ''
-                }`}
-                dir="ltr"
-                placeholder="+966xxxxxxxxx"
-              />
+              <Label htmlFor="phone" className="text-foreground flex items-center gap-2">
+                رقم الجوال
+                <Shield className="w-3 h-3 text-muted-foreground" />
+              </Label>
+              <div className="relative">
+                <Input
+                  id="phone"
+                  value={profile.phone}
+                  onChange={(e) => {
+                    const newPhone = e.target.value;
+                    setProfile({...profile, phone: newPhone});
+                    
+                    if (validationErrors.phone) {
+                      setValidationErrors(prev => ({...prev, phone: ""}));
+                    }
+                  }}
+                  className={`text-left bg-background/50 border-border text-foreground ${
+                    validationErrors.phone ? 'border-destructive' : ''
+                  }`}
+                  dir="ltr"
+                  placeholder="+966xxxxxxxxx"
+                />
+              </div>
               {validationErrors.phone && (
                 <p className="text-xs text-destructive">{validationErrors.phone}</p>
+              )}
+              {profile.phone !== originalPhone && profile.phone.trim() && (
+                <div className="flex items-center gap-2 p-2 bg-accent/10 border border-accent/20 rounded-md">
+                  <Shield className="w-4 h-4 text-accent flex-shrink-0" />
+                  <span className="text-xs text-accent">
+                    سيتم طلب التحقق من رقم الجوال الجديد عند الحفظ
+                  </span>
+                </div>
               )}
             </div>
 
@@ -210,13 +231,43 @@ export function ProfileTab({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={saveProfile} className="gap-2">
+            <Button 
+              onClick={() => {
+                // التحقق من تغيير رقم الهاتف
+                if (profile.phone !== originalPhone && profile.phone.trim()) {
+                  setPendingPhone(profile.phone);
+                  setShowPhoneVerification(true);
+                } else {
+                  saveProfile();
+                }
+              }} 
+              className="gap-2"
+            >
               <Save className="w-4 h-4" />
               حفظ التغييرات
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* نافذة التحقق من الهاتف */}
+      <PhoneVerificationDialog
+        open={showPhoneVerification}
+        onOpenChange={setShowPhoneVerification}
+        phoneNumber={pendingPhone}
+        onSuccess={(verifiedPhone) => {
+          setOriginalPhone(verifiedPhone);
+          onPhoneChange(verifiedPhone);
+          setShowPhoneVerification(false);
+          saveProfile();
+        }}
+        onCancel={() => {
+          // العودة للرقم الأصلي
+          setProfile({...profile, phone: originalPhone});
+          setPendingPhone("");
+          setShowPhoneVerification(false);
+        }}
+      />
     </div>
   );
 }

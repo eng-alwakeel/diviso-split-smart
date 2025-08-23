@@ -130,6 +130,10 @@ const Settings = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handlePhoneChange = (phone: string) => {
+    setProfile(prev => ({...prev, phone}));
+  };
+
   const saveProfile = async () => {
     if (!validateProfile()) return;
     
@@ -349,6 +353,7 @@ const Settings = () => {
               validationErrors={validationErrors}
               setValidationErrors={setValidationErrors}
               saveProfile={saveProfile}
+              onPhoneChange={handlePhoneChange}
               handleImageUpload={handleImageUpload}
               uploading={uploading}
               isAdmin={adminData?.isAdmin}
