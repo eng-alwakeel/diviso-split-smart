@@ -36,10 +36,18 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required parameters: phone, senderName, or referralCode");
     }
 
-    // Validate Saudi phone number format
+    // Normalize phone number to 05xxxxxxxx format
+    let normalizedPhone = phone;
+    if (phone.startsWith('+966')) {
+      normalizedPhone = '0' + phone.substring(4);
+    } else if (phone.startsWith('966')) {
+      normalizedPhone = '0' + phone.substring(3);
+    }
+    
+    // Validate Saudi phone number format (now accepts 05xxxxxxxx format only)
     const phoneRegex = /^05\d{8}$/;
-    if (!phoneRegex.test(phone)) {
-      throw new Error("Invalid Saudi phone number format. Must be 05xxxxxxxx");
+    if (!phoneRegex.test(normalizedPhone)) {
+      throw new Error("Invalid Saudi phone number format. Must be 05xxxxxxxx, +966xxxxxxxx, or 966xxxxxxxx");
     }
 
     // Create the referral invite message in Arabic
