@@ -1,10 +1,11 @@
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Lock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminErrorBoundary } from "./admin/AdminErrorBoundary";
 
 interface AdminProtectedRouteProps {
   children: ReactNode;
@@ -92,5 +93,24 @@ export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <AdminErrorBoundary>
+      <Suspense 
+        fallback={
+          <div className="min-h-screen bg-background p-8">
+            <div className="container mx-auto space-y-6">
+              <Skeleton className="h-8 w-64" />
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-32" />
+                ))}
+              </div>
+            </div>
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
+    </AdminErrorBoundary>
+  );
 };

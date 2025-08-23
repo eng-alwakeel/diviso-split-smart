@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export interface BusinessMetrics {
   // Revenue Metrics
@@ -35,6 +36,15 @@ export interface BusinessMetrics {
 }
 
 export function useBusinessMetrics() {
+  const queryClient = useQueryClient();
+
+  // Guard check for QueryClient context
+  useEffect(() => {
+    if (!queryClient) {
+      console.error("QueryClient not available in useBusinessMetrics");
+    }
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["business-metrics"],
     queryFn: async () => {
@@ -113,7 +123,13 @@ export function useBusinessMetrics() {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+    enabled: !!queryClient, // Only run if QueryClient is available
+    retry: (failureCount, error) => {
+      // Don't retry if it's a context error
+      if (error?.message?.includes('useContext')) return false;
+      return failureCount < 2;
+    },
+  }, queryClient);
 }
 
 // Mock data fallback for when RPC functions fail
@@ -141,6 +157,8 @@ function getMockBusinessMetrics(): BusinessMetrics {
 }
 
 export function useRevenueInsights() {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: ["revenue-insights"],
     queryFn: async () => {
@@ -158,6 +176,11 @@ export function useRevenueInsights() {
         ]
       };
     },
-    staleTime: 10 * 60 * 1000
-  });
+    staleTime: 10 * 60 * 1000,
+    enabled: !!queryClient,
+    retry: (failureCount, error) => {
+      if (error?.message?.includes('useContext')) return false;
+      return failureCount < 2;
+    },
+  }, queryClient);
 }

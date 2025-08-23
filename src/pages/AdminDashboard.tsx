@@ -21,13 +21,26 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const AdminDashboard = () => {
-  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
-  const { data: businessMetrics, isLoading: businessLoading, refetch: refetchBusiness } = useBusinessMetrics();
-  const { data: revenueInsights, isLoading: insightsLoading, refetch: refetchInsights } = useRevenueInsights();
+  const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminAuth();
+  
+  // Safe hook calls with error handling
+  const { 
+    data: businessMetrics, 
+    isLoading: businessLoading, 
+    error: businessError,
+    refetch: refetchBusiness 
+  } = useBusinessMetrics();
+  
+  const { 
+    data: revenueInsights, 
+    isLoading: insightsLoading, 
+    error: insightsError,
+    refetch: refetchInsights 
+  } = useRevenueInsights();
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
   const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useAdminUsers();
   const { data: groups, isLoading: groupsLoading, refetch: refetchGroups } = useAdminGroups();
@@ -69,6 +82,28 @@ export const AdminDashboard = () => {
       });
     });
   };
+
+  // Handle critical errors
+  if (adminError || businessError || insightsError) {
+    return (
+      <div className="min-h-screen bg-background p-8 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+            <h2 className="text-xl font-semibold">خطأ في تحميل البيانات</h2>
+            <p className="text-muted-foreground text-sm">
+              {adminError?.message || businessError?.message || insightsError?.message || 
+               'حدث خطأ في تحميل بيانات لوحة الإدارة'}
+            </p>
+            <Button onClick={handleRefresh} className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              إعادة المحاولة
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (adminLoading || statsLoading || enhancedLoading) {
     return (
