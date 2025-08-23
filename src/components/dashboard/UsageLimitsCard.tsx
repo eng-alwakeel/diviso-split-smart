@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useUsageData } from "@/hooks/useUsageData";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, TrendingUp, FileDown, Calendar } from "lucide-react";
 
@@ -11,6 +12,7 @@ export const UsageLimitsCard = () => {
   const navigate = useNavigate();
   const { limits, loading, isFreePlan, formatLimit, getUsagePercentage, isNearLimit, isAtLimit, currentPlan } = useSubscriptionLimits();
   const { groupsCount, monthlyTotalExpenses, loading: dashboardLoading } = useDashboardData();
+  const { usage, loading: usageLoading, error: usageError } = useUsageData();
 
   console.log('UsageLimitsCard: Rendering with:', {
     limits,
@@ -18,10 +20,13 @@ export const UsageLimitsCard = () => {
     isFreePlan,
     currentPlan,
     groupsCount,
-    dashboardLoading
+    dashboardLoading,
+    usage,
+    usageLoading,
+    usageError
   });
 
-  if (loading || !limits) {
+  if (loading || !limits || usageLoading) {
     return (
       <Card className="border border-border">
         <CardHeader>
@@ -41,15 +46,15 @@ export const UsageLimitsCard = () => {
     );
   }
 
-  // بيانات الاستخدام الفعلية - يجب تحديثها بالبيانات الفعلية من قاعدة البيانات
+  // استخدام البيانات الفعلية من قاعدة البيانات
   const currentUsage = {
-    groups: groupsCount,
-    members: 15, // سيتم جلبها من API
-    expenses: 25, // تم تقليل الحد للخطة المجانية من 100 إلى 50
-    invites: 8, // الدعوات الشهرية
-    ocr: 7, // تم زيادة الحد من 5 إلى 10
-    reportExport: 2, // استخدام تصدير التقارير الشهري
-    dataRetention: 6 // شهور حفظ البيانات (للعرض فقط)
+    groups: usage.groups,
+    members: usage.members,
+    expenses: usage.expenses,
+    invites: usage.invites,
+    ocr: usage.ocr,
+    reportExport: usage.reportExport,
+    dataRetention: usage.dataRetention
   };
 
   const usageItems = [
