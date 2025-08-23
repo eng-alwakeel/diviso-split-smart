@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AdminBadgeConfig } from "@/hooks/useAdminBadge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Shield } from "lucide-react";
 
 interface AdminBadgeProps {
@@ -29,30 +29,28 @@ export function AdminBadge({
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full font-bold border cursor-default",
-              "shadow-lg hover:shadow-xl transition-all duration-300",
-              "animate-pulse hover:animate-none",
-              sizeClasses[size],
-              config.color,
-              config.bgColor,
-              config.borderColor,
-              `hover:${config.glowColor}`,
-              className
-            )}
-          >
-            <Shield className={iconSizes[size]} />
-            {showLabel && <span>{config.label}</span>}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{config.label}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full font-bold border cursor-default",
+            "shadow-lg hover:shadow-xl transition-all duration-300",
+            "animate-pulse hover:animate-none",
+            sizeClasses[size],
+            config.color,
+            config.bgColor,
+            config.borderColor,
+            `hover:${config.glowColor}`,
+            className
+          )}
+        >
+          <Shield className={iconSizes[size]} />
+          {showLabel && <span>{config.label}</span>}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{config.label}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
