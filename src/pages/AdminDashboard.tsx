@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { SubscriptionStatsCards } from "@/components/admin/SubscriptionStatsCards";
 import { ActivityChart } from "@/components/admin/ActivityChart";
 import { TopInsightsCards } from "@/components/admin/TopInsightsCards";
@@ -25,6 +26,14 @@ import { Settings, Shield, AlertTriangle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const AdminDashboard = () => {
+  return (
+    <AdminErrorBoundary>
+      <AdminDashboardContent />
+    </AdminErrorBoundary>
+  );
+};
+
+const AdminDashboardContent = () => {
   const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminAuth();
   
   // Safe hook calls with error handling

@@ -15,9 +15,9 @@ interface AdminFiltersProps {
 
 export const AdminFilters = ({ onFilterChange, onExport, onRefresh, isLoading }: AdminFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [planFilter, setPlanFilter] = useState("");
+  const [planFilter, setPlanFilter] = useState("all");
   const [dateRange, setDateRange] = useState("30");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -41,13 +41,13 @@ export const AdminFilters = ({ onFilterChange, onExport, onRefresh, isLoading }:
 
   const clearFilters = () => {
     setSearchTerm("");
-    setPlanFilter("");
+    setPlanFilter("all");
     setDateRange("30");
-    setStatusFilter("");
-    onFilterChange({ search: "", plan: "", dateRange: "30", status: "" });
+    setStatusFilter("all");
+    onFilterChange({ search: "", plan: "all", dateRange: "30", status: "all" });
   };
 
-  const activeFiltersCount = [searchTerm, planFilter, statusFilter].filter(Boolean).length + 
+  const activeFiltersCount = [searchTerm, planFilter !== "all" ? planFilter : "", statusFilter !== "all" ? statusFilter : ""].filter(Boolean).length + 
     (dateRange !== "30" ? 1 : 0);
 
   return (
@@ -71,7 +71,7 @@ export const AdminFilters = ({ onFilterChange, onExport, onRefresh, isLoading }:
               <SelectValue placeholder="نوع الباقة" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">جميع الباقات</SelectItem>
+              <SelectItem value="all">جميع الباقات</SelectItem>
               <SelectItem value="free">مجاني</SelectItem>
               <SelectItem value="personal">شخصي</SelectItem>
               <SelectItem value="family">عائلي</SelectItem>
@@ -98,7 +98,7 @@ export const AdminFilters = ({ onFilterChange, onExport, onRefresh, isLoading }:
               <SelectValue placeholder="الحالة" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">جميع الحالات</SelectItem>
+              <SelectItem value="all">جميع الحالات</SelectItem>
               <SelectItem value="active">نشط</SelectItem>
               <SelectItem value="inactive">غير نشط</SelectItem>
               <SelectItem value="admin">مدير</SelectItem>
