@@ -34,6 +34,7 @@ export function useFamilyPlan() {
   const [invitations, setInvitations] = useState<FamilyInvitation[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [hasFamilyPlan, setHasFamilyPlan] = useState(false);
 
   const fetchFamilyMembers = useCallback(async () => {
     setLoading(true);
@@ -41,15 +42,32 @@ export function useFamilyPlan() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Check user's subscription to determine if they can have a family plan
+      const { data: subscription } = await supabase
+        .from("user_subscriptions")
+        .select("plan, status, expires_at")
+        .eq("user_id", user.id)
+        .single();
+
+      const hasActiveFamilyPlan = subscription && 
+        subscription.plan === 'family' && 
+        (subscription.status === 'active' || 
+         (subscription.status === 'trialing' && new Date(subscription.expires_at) > new Date()));
+
+      setHasFamilyPlan(!!hasActiveFamilyPlan);
+
       // Check if user is family owner
       const { data: ownedMembers } = await supabase
         .from("family_members")
         .select("*")
         .eq("family_owner_id", user.id);
 
+      // Set owner status based on family plan subscription OR existing owned members
+      const isOwnerBySubscription = hasActiveFamilyPlan;
+      const isOwnerByMembers = ownedMembers && ownedMembers.length > 0;
+      setIsOwner(isOwnerBySubscription || isOwnerByMembers);
+
       if (ownedMembers && ownedMembers.length > 0) {
-        setIsOwner(true);
-        
         // Fetch profiles for all members
         const membersWithProfiles: FamilyMember[] = [];
         for (const member of ownedMembers) {
@@ -285,6 +303,7 @@ export function useFamilyPlan() {
     invitations,
     loading,
     isOwner,
+    hasFamilyPlan,
     inviteMember,
     removeMember,
     cancelInvitation,

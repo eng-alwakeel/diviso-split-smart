@@ -13,7 +13,7 @@ import { useFamilyPlan } from "@/hooks/useFamilyPlan";
 import { toast } from "sonner";
 
 export function FamilyPlanManagement() {
-  const { members, invitations, loading, isOwner, inviteMember, removeMember, cancelInvitation, leaveFamily } = useFamilyPlan();
+  const { members, invitations, loading, isOwner, hasFamilyPlan, inviteMember, removeMember, cancelInvitation, leaveFamily } = useFamilyPlan();
   const [inviteForm, setInviteForm] = useState({
     emailOrPhone: "",
     role: "member" as "admin" | "member"
@@ -77,17 +77,26 @@ export function FamilyPlanManagement() {
             إدارة الخطة العائلية
           </CardTitle>
           <CardDescription>
-            لا يوجد خطة عائلية حالياً. يمكنك البدء بدعوة أعضاء جدد للانضمام لخطتك.
+            {hasFamilyPlan 
+              ? "لا يوجد أعضاء في خطتك العائلية حالياً. يمكنك دعوة أعضاء جدد للانضمام."
+              : "تحتاج إلى اشتراك عائلي لإدارة أعضاء العائلة."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={() => setShowInviteForm(true)}
-            className="w-full"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            دعوة عضو جديد
-          </Button>
+          {hasFamilyPlan ? (
+            <Button 
+              onClick={() => setShowInviteForm(true)}
+              className="w-full"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              دعوة عضو جديد
+            </Button>
+          ) : (
+            <p className="text-center text-muted-foreground">
+              قم بترقية اشتراكك إلى الخطة العائلية لبدء دعوة الأعضاء
+            </p>
+          )}
         </CardContent>
       </Card>
     );
