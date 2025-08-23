@@ -2,15 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserBehavior } from './useUserBehavior';
 
-interface AdInteraction {
-  ad_id: string;
-  ad_category: string;
-  interaction_type: 'view' | 'click' | 'dismiss' | 'ignore';
-  context: string;
-  timestamp: string;
-  success_score: number; // 0-100 based on interaction quality
-}
-
 interface SmartAdProfile {
   preferred_categories: string[];
   avoided_categories: string[];
@@ -45,23 +36,23 @@ export const useSmartAdLearning = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Load existing profile or create new one
-      const { data: profile } = await supabase
-        .from('user_ad_profiles')
+      // Load existing profile from user_ad_preferences (using existing table)
+      const { data: preferences } = await supabase
+        .from('user_ad_preferences')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (profile) {
+      if (preferences) {
         setAdProfile({
-          preferred_categories: profile.preferred_categories || [],
-          avoided_categories: profile.avoided_categories || [],
-          best_times: profile.best_times || [],
-          successful_placements: profile.successful_placements || [],
-          click_through_rate: profile.click_through_rate || 0,
-          engagement_patterns: profile.engagement_patterns || {
+          preferred_categories: preferences.preferred_categories || [],
+          avoided_categories: preferences.blocked_categories || [],
+          best_times: ['evening'], // Default
+          successful_placements: [],
+          click_through_rate: 0,
+          engagement_patterns: {
             responds_to_urgency: false,
-            prefers_discounts: false,
+            prefers_discounts: preferences.personalized_ads,
             likes_premium_products: false,
             responds_to_social_proof: false,
           }
@@ -99,7 +90,7 @@ export const useSmartAdLearning = () => {
     const updatedProfile = { ...adProfile };
 
     // Update categories based on expense patterns
-    if (behavior.topExpenseCategories.length > 0) {
+    if (behavior.topExpenseCategories && behavior.topExpenseCategories.length > 0) {
       behavior.topExpenseCategories.forEach(category => {
         if (!updatedProfile.preferred_categories.includes(category)) {
           updatedProfile.preferred_categories.push(category);
@@ -126,58 +117,41 @@ export const useSmartAdLearning = () => {
     setAdProfile(updatedProfile);
   };
 
-  const recordAdInteraction = async (interaction: Omit<AdInteraction, 'timestamp' | 'success_score'>) => {
+  const recordAdInteraction = async (adData: { ad_type: string; ad_category: string; context: string; interaction_type: 'view' | 'click' | 'dismiss' | 'ignore' }) => {
     if (!learningActive || !adProfile) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const successScore = calculateSuccessScore(interaction);
-      
-      const fullInteraction: AdInteraction = {
-        ...interaction,
-        timestamp: new Date().toISOString(),
-        success_score: successScore
-      };
-
-      // Save interaction to database
+      // Use ad_impressions table to track interactions (simplified)
       await supabase
-        .from('ad_interactions')
+        .from('ad_impressions')
         .insert({
           user_id: user.id,
-          ...fullInteraction
+          ad_type: adData.ad_type,
+          ad_category: adData.ad_category,
+          placement: adData.context,
+          clicked: adData.interaction_type === 'click'
         });
 
       // Update profile based on interaction
-      await updateProfileFromInteraction(fullInteraction);
+      await updateProfileFromInteraction(adData);
 
     } catch (error) {
       console.error('Error recording ad interaction:', error);
     }
   };
 
-  const calculateSuccessScore = (interaction: Omit<AdInteraction, 'timestamp' | 'success_score'>): number => {
-    switch (interaction.interaction_type) {
-      case 'click':
-        return 100;
-      case 'view':
-        return 30;
-      case 'dismiss':
-        return -50;
-      case 'ignore':
-        return -10;
-      default:
-        return 0;
-    }
-  };
-
-  const updateProfileFromInteraction = async (interaction: AdInteraction) => {
+  const updateProfileFromInteraction = async (interaction: { ad_type: string; ad_category: string; context: string; interaction_type: 'view' | 'click' | 'dismiss' | 'ignore' }) => {
     if (!adProfile) return;
 
     const updatedProfile = { ...adProfile };
+    const successScore = interaction.interaction_type === 'click' ? 100 : 
+                        interaction.interaction_type === 'view' ? 30 :
+                        interaction.interaction_type === 'dismiss' ? -50 : -10;
 
-    if (interaction.success_score > 50) {
+    if (successScore > 50) {
       // Positive interaction
       if (!updatedProfile.preferred_categories.includes(interaction.ad_category)) {
         updatedProfile.preferred_categories.push(interaction.ad_category);
@@ -190,7 +164,7 @@ export const useSmartAdLearning = () => {
       updatedProfile.avoided_categories = updatedProfile.avoided_categories.filter(
         cat => cat !== interaction.ad_category
       );
-    } else if (interaction.success_score < -20) {
+    } else if (successScore < -20) {
       // Negative interaction
       if (!updatedProfile.avoided_categories.includes(interaction.ad_category)) {
         updatedProfile.avoided_categories.push(interaction.ad_category);
@@ -202,18 +176,6 @@ export const useSmartAdLearning = () => {
       );
     }
 
-    // Update CTR
-    const { data: allInteractions } = await supabase
-      .from('ad_interactions')
-      .select('interaction_type')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
-
-    if (allInteractions) {
-      const clicks = allInteractions.filter(i => i.interaction_type === 'click').length;
-      const views = allInteractions.filter(i => ['view', 'click'].includes(i.interaction_type)).length;
-      updatedProfile.click_through_rate = views > 0 ? (clicks / views) * 100 : 0;
-    }
-
     setAdProfile(updatedProfile);
     await saveAdProfile(updatedProfile);
   };
@@ -223,17 +185,16 @@ export const useSmartAdLearning = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Update user_ad_preferences with new data
       await supabase
-        .from('user_ad_profiles')
+        .from('user_ad_preferences')
         .upsert({
           user_id: user.id,
           preferred_categories: profile.preferred_categories,
-          avoided_categories: profile.avoided_categories,
-          best_times: profile.best_times,
-          successful_placements: profile.successful_placements,
-          click_through_rate: profile.click_through_rate,
-          engagement_patterns: profile.engagement_patterns,
-          updated_at: new Date().toISOString()
+          blocked_categories: profile.avoided_categories,
+          personalized_ads: profile.engagement_patterns.prefers_discounts,
+          show_ads: true,
+          max_ads_per_session: 5
         });
     } catch (error) {
       console.error('Error saving ad profile:', error);

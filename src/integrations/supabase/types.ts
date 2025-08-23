@@ -71,6 +71,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_interactions: {
+        Row: {
+          ad_category: string
+          ad_id: string
+          context: string
+          created_at: string
+          id: string
+          interaction_type: string
+          success_score: number
+          user_id: string
+        }
+        Insert: {
+          ad_category: string
+          ad_id: string
+          context: string
+          created_at?: string
+          id?: string
+          interaction_type: string
+          success_score?: number
+          user_id: string
+        }
+        Update: {
+          ad_category?: string
+          ad_id?: string
+          context?: string
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          success_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       affiliate_products: {
         Row: {
           active: boolean | null
@@ -1712,6 +1745,45 @@ export type Database = {
           personalized_ads?: boolean | null
           preferred_categories?: string[] | null
           show_ads?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_ad_profiles: {
+        Row: {
+          avoided_categories: string[] | null
+          best_times: string[] | null
+          click_through_rate: number | null
+          created_at: string
+          engagement_patterns: Json | null
+          id: string
+          preferred_categories: string[] | null
+          successful_placements: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avoided_categories?: string[] | null
+          best_times?: string[] | null
+          click_through_rate?: number | null
+          created_at?: string
+          engagement_patterns?: Json | null
+          id?: string
+          preferred_categories?: string[] | null
+          successful_placements?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avoided_categories?: string[] | null
+          best_times?: string[] | null
+          click_through_rate?: number | null
+          created_at?: string
+          engagement_patterns?: Json | null
+          id?: string
+          preferred_categories?: string[] | null
+          successful_placements?: string[] | null
           updated_at?: string
           user_id?: string
         }

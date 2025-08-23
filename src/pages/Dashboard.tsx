@@ -9,7 +9,7 @@ import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
-import { ContextualAdBanner } from "@/components/ads/ContextualAdBanner";
+import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -155,10 +155,14 @@ const Dashboard = React.memo(() => {
           <SmartAdSidebar />
         </div>
         
-        {/* Contextual Ads */}
-        <ContextualAdBanner context={{
-        type: 'dashboard'
-      }} placement="dashboard_main" className="mt-4" />
+        {/* Smart Contextual Ads */}
+        <SmartAdManager
+          context={{
+            type: 'dashboard'
+          }}
+          placement="dashboard_main"
+          className="mt-4"
+        />
         
         {/* Ad Preferences */}
         <div className="flex justify-center">

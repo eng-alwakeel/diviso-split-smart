@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, X, Tag, Star } from 'lucide-react';
 import { useAdTracking } from '@/hooks/useAdTracking';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
+import { useSmartAdLearning } from '@/hooks/useSmartAdLearning';
 
 interface ContextualAdBannerProps {
   context: {
@@ -32,10 +33,11 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
   
   const { shouldShowAds, trackAdImpression, trackAdClick, getTargetedCategories } = useAdTracking();
   const { getProductsForExpenseCategory, getProductsForGroupType, getAmazonProducts } = useAffiliateProducts();
+  const { recordAdInteraction, getSmartAdRecommendations } = useSmartAdLearning();
 
   useEffect(() => {
     if (shouldShowAds() && isVisible) {
-      loadContextualAds();
+      loadSmartContextualAds();
     }
   }, [context, shouldShowAds, isVisible]);
 
@@ -43,15 +45,16 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
     if (products.length > 0) {
       const interval = setInterval(() => {
         setCurrentAdIndex(prev => (prev + 1) % products.length);
-      }, 30000); // Rotate every 30 seconds
+      }, 45000); // Longer rotation for less intrusion
 
       return () => clearInterval(interval);
     }
   }, [products.length]);
 
-  const loadContextualAds = async () => {
+  const loadSmartContextualAds = async () => {
     try {
       let fetchedProducts: any[] = [];
+      const targetedCategories = getTargetedCategories();
 
       switch (context.type) {
         case 'expense':
@@ -67,9 +70,12 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
           break;
           
         case 'dashboard':
-          const targetedCategories = getTargetedCategories();
           if (targetedCategories.length > 0) {
-            fetchedProducts = await getAmazonProducts(targetedCategories[0]);
+            // Use smart recommendations
+            const smartCategories = getSmartAdRecommendations(placement, targetedCategories);
+            if (smartCategories.length > 0) {
+              fetchedProducts = await getAmazonProducts(smartCategories[0]);
+            }
           }
           break;
           
@@ -84,43 +90,69 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
         const limitedProducts = fetchedProducts.slice(0, maxAds);
         setProducts(limitedProducts);
         
-        // Track impression for first product
+        // Track smart impression
         const firstProduct = limitedProducts[0];
         await trackAdImpression({
-          ad_type: 'affiliate_banner',
+          ad_type: 'smart_affiliate_banner',
           ad_category: firstProduct.category,
           placement,
           product_id: firstProduct.product_id,
           affiliate_partner: firstProduct.affiliate_partner,
           expense_category: context.category
         });
+
+        // Record learning interaction
+        recordAdInteraction({
+          ad_type: 'smart_banner',
+          ad_category: firstProduct.category,
+          context: placement,
+          interaction_type: 'view'
+        });
         
-        setImpressionId('temp-id'); // Use temp ID for now
+        setImpressionId('temp-id');
       }
     } catch (error) {
-      console.error('Error loading contextual ads:', error);
+      console.error('Error loading smart contextual ads:', error);
     }
   };
 
-  const handleAdClick = async (product: any) => {
+  const handleSmartAdClick = async (product: any) => {
     if (impressionId) {
       await trackAdClick(impressionId, product.product_id, product.commission_rate);
     }
+
+    // Record smart click
+    recordAdInteraction({
+      ad_type: 'smart_banner',
+      ad_category: product.category,
+      context: placement,
+      interaction_type: 'click'
+    });
     
     // Open affiliate link
     window.open(product.affiliate_url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleDismiss = () => {
+  const handleSmartDismiss = () => {
     setIsVisible(false);
     
+    // Record dismissal for learning
+    if (products[currentAdIndex]) {
+      recordAdInteraction({
+        ad_type: 'smart_banner',
+        ad_category: products[currentAdIndex].category,
+        context: placement,
+        interaction_type: 'dismiss'
+      });
+    }
+    
     // Remember dismissal for this session
-    sessionStorage.setItem(`ad_dismissed_${placement}`, 'true');
+    sessionStorage.setItem(`smart_ad_dismissed_${placement}`, 'true');
   };
 
   // Check if ad was dismissed this session
   useEffect(() => {
-    const wasDismissed = sessionStorage.getItem(`ad_dismissed_${placement}`);
+    const wasDismissed = sessionStorage.getItem(`smart_ad_dismissed_${placement}`);
     if (wasDismissed) {
       setIsVisible(false);
     }
@@ -141,7 +173,7 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleDismiss}
+          onClick={handleSmartDismiss}
           className="h-6 w-6 p-0 hover:bg-destructive/10"
         >
           <X className="h-3 w-3" />
@@ -194,7 +226,7 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
         </div>
 
         <Button
-          onClick={() => handleAdClick(currentProduct)}
+          onClick={() => handleSmartAdClick(currentProduct)}
           className="flex-shrink-0"
           size="sm"
         >
