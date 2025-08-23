@@ -1734,6 +1734,10 @@ export type Database = {
         Args: { p_months_old?: number }
         Returns: number
       }
+      cleanup_old_referrals: {
+        Args: { p_months_old?: number }
+        Returns: number
+      }
       create_group_join_token: {
         Args: {
           p_group_id: string
@@ -1907,6 +1911,19 @@ export type Database = {
           total_income: number
         }[]
       }
+      get_referral_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          available_rewards_days: number
+          expired_referrals: number
+          last_referral_date: string
+          pending_referrals: number
+          success_rate: number
+          successful_referrals: number
+          total_referrals: number
+          total_rewards_days: number
+        }[]
+      }
       get_remaining_trial_days: {
         Args: { p_user_id: string }
         Returns: number
@@ -1985,6 +2002,10 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      update_expired_referrals: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       validate_family_invitation_token: {
         Args: { p_token: string }
         Returns: {
@@ -2015,7 +2036,7 @@ export type Database = {
       income_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
-      referral_status: "pending" | "joined" | "blocked"
+      referral_status: "pending" | "joined" | "blocked" | "expired"
       subscription_plan: "personal" | "family" | "lifetime"
       subscription_status: "trialing" | "active" | "expired" | "canceled"
     }
@@ -2158,7 +2179,7 @@ export const Constants = {
       income_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
-      referral_status: ["pending", "joined", "blocked"],
+      referral_status: ["pending", "joined", "blocked", "expired"],
       subscription_plan: ["personal", "family", "lifetime"],
       subscription_status: ["trialing", "active", "expired", "canceled"],
     },

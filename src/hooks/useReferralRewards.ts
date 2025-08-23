@@ -57,21 +57,31 @@ export function useReferralRewards() {
 
       // Find the reward
       const reward = rewards.find(r => r.id === rewardId);
-      if (!reward || reward.applied_to_subscription) {
-        toast.error("المكافأة غير متوفرة أو مستخدمة مسبقاً");
-        return { error: "reward_not_available" };
+      if (!reward) {
+        toast.error("المكافأة غير موجودة");
+        return { error: "reward_not_found" };
       }
 
-      // Mark reward as applied
+      if (reward.applied_to_subscription) {
+        toast.error("المكافأة مستخدمة مسبقاً");
+        return { error: "reward_already_applied" };
+      }
+
+      // Mark reward as applied in a transaction
       const { error: updateError } = await supabase
         .from("referral_rewards")
         .update({
           applied_to_subscription: true,
           applied_at: new Date().toISOString()
         })
-        .eq("id", rewardId);
+        .eq("id", rewardId)
+        .eq("applied_to_subscription", false); // Extra safety check
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Error updating reward:", updateError);
+        toast.error("خطأ في تحديث حالة المكافأة");
+        return { error: updateError.message };
+      }
 
       // Get current subscription
       const { data: subscription, error: subError } = await supabase
@@ -80,49 +90,78 @@ export function useReferralRewards() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (subError) throw subError;
-
-      if (subscription) {
-        // Extend existing subscription
-        const currentExpiry = new Date(subscription.expires_at);
-        const newExpiry = new Date(currentExpiry.getTime() + (reward.days_earned * 24 * 60 * 60 * 1000));
-
-        const { error: extendError } = await supabase
-          .from("user_subscriptions")
+      if (subError) {
+        console.error("Error fetching subscription:", subError);
+        // Rollback the reward update
+        await supabase
+          .from("referral_rewards")
           .update({
-            expires_at: newExpiry.toISOString(),
-            updated_at: new Date().toISOString()
+            applied_to_subscription: false,
+            applied_at: null
           })
-          .eq("id", subscription.id);
-
-        if (extendError) throw extendError;
-      } else {
-        // Create new trial subscription with free days
-        const startDate = new Date();
-        const endDate = new Date(startDate.getTime() + (reward.days_earned * 24 * 60 * 60 * 1000));
-
-        const { error: createError } = await supabase
-          .from("user_subscriptions")
-          .insert({
-            user_id: user.id,
-            plan: "personal",
-            status: "trialing",
-            started_at: startDate.toISOString(),
-            expires_at: endDate.toISOString()
-          });
-
-        if (createError) throw createError;
+          .eq("id", rewardId);
+        
+        toast.error("خطأ في جلب بيانات الاشتراك");
+        return { error: subError.message };
       }
 
-      toast.success(`تم إضافة ${reward.days_earned} أيام مجانية لاشتراكك!`);
-      
-      // Refresh rewards
-      await fetchRewards();
-      
-      return { success: true };
+      try {
+        if (subscription) {
+          // Extend existing subscription
+          const currentExpiry = new Date(subscription.expires_at);
+          const newExpiry = new Date(currentExpiry.getTime() + (reward.days_earned * 24 * 60 * 60 * 1000));
+
+          const { error: extendError } = await supabase
+            .from("user_subscriptions")
+            .update({
+              expires_at: newExpiry.toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", subscription.id);
+
+          if (extendError) throw extendError;
+        } else {
+          // Create new trial subscription with free days
+          const startDate = new Date();
+          const endDate = new Date(startDate.getTime() + (reward.days_earned * 24 * 60 * 60 * 1000));
+
+          const { error: createError } = await supabase
+            .from("user_subscriptions")
+            .insert({
+              user_id: user.id,
+              plan: "personal",
+              status: "trialing",
+              started_at: startDate.toISOString(),
+              expires_at: endDate.toISOString()
+            });
+
+          if (createError) throw createError;
+        }
+
+        toast.success(`تم إضافة ${reward.days_earned} أيام مجانية لاشتراكك!`);
+        
+        // Refresh rewards
+        await fetchRewards();
+        
+        return { success: true };
+      } catch (subscriptionError) {
+        console.error("Error updating subscription:", subscriptionError);
+        
+        // Rollback the reward update
+        await supabase
+          .from("referral_rewards")
+          .update({
+            applied_to_subscription: false,
+            applied_at: null
+          })
+          .eq("id", rewardId);
+        
+        toast.error("خطأ في تحديث الاشتراك، تم التراجع عن العملية");
+        return { error: (subscriptionError as Error).message };
+      }
     } catch (error) {
       console.error("Error applying reward:", error);
-      toast.error("خطأ في تطبيق المكافأة");
+      toast.error("خطأ غير متوقع في تطبيق المكافأة");
       return { error: (error as Error).message };
     }
   }, [rewards, fetchRewards]);

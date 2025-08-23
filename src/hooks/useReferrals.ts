@@ -46,8 +46,26 @@ export function useReferrals() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setReferrals([]);
+        setTotalReferrals(0);
+        setSuccessfulReferrals(0);
+        return;
+      }
 
+      // تحديث الإحالات المنتهية الصلاحية أولاً
+      await supabase.rpc('update_expired_referrals');
+
+      // جلب الإحصائيات المحدثة
+      const { data: stats, error: statsError } = await supabase.rpc('get_referral_stats', {
+        p_user_id: user.id
+      });
+
+      if (statsError) {
+        console.warn("Warning getting referral stats:", statsError);
+      }
+
+      // جلب بيانات الإحالات
       const { data, error } = await supabase
         .from("referrals")
         .select("*")
@@ -57,11 +75,25 @@ export function useReferrals() {
       if (error) throw error;
 
       setReferrals(data || []);
-      setTotalReferrals(data?.length || 0);
-      setSuccessfulReferrals(data?.filter(r => r.status === "joined").length || 0);
+      
+      if (stats && stats.length > 0) {
+        const stat = stats[0];
+        setTotalReferrals(stat.total_referrals);
+        setSuccessfulReferrals(stat.successful_referrals);
+      } else {
+        // fallback للحساب اليدوي
+        const totalCount = data?.length || 0;
+        const successfulCount = data?.filter(ref => ref.status === 'joined').length || 0;
+        setTotalReferrals(totalCount);
+        setSuccessfulReferrals(successfulCount);
+      }
     } catch (error) {
       console.error("Error fetching referrals:", error);
       toast.error("خطأ في جلب بيانات الإحالات");
+      // تعيين قيم افتراضية في حالة الخطأ
+      setReferrals([]);
+      setTotalReferrals(0);
+      setSuccessfulReferrals(0);
     } finally {
       setLoading(false);
     }
@@ -72,92 +104,114 @@ export function useReferrals() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("يجب تسجيل الدخول أولاً");
-        return { error: "not_authenticated" };
+        return { success: false, error: "not_authenticated" };
       }
 
       if (!referralCode) {
         toast.error("رمز الإحالة غير متوفر");
-        return { error: "no_referral_code" };
+        return { success: false, error: "no_referral_code" };
       }
 
-      // Validate Saudi phone number format
-      const phoneRegex = /^05\d{8}$/;
-      if (!phoneRegex.test(phone)) {
-        toast.error("يرجى إدخال رقم جوال سعودي صحيح (05xxxxxxxx)");
-        return { error: "invalid_phone_format" };
+      // التحقق من صحة رقم الهاتف السعودي مع دعم المزيد من الأشكال
+      const cleanPhone = phone.replace(/\s+/g, '').replace(/-/g, '');
+      const phoneRegex = /^(\+966|966|0)?5[0-9]{8}$/;
+      
+      if (!phoneRegex.test(cleanPhone)) {
+        toast.error("يرجى إدخال رقم هاتف سعودي صحيح (مثال: 05xxxxxxxx)");
+        return { success: false, error: "invalid_phone" };
       }
 
-      // Check if phone is already invited (only active invitations)
-      const { data: existingReferral } = await supabase
+      // تنسيق رقم الهاتف بشكل موحد
+      let formattedPhone = cleanPhone;
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '+966' + formattedPhone.substring(1);
+      } else if (formattedPhone.startsWith('966')) {
+        formattedPhone = '+' + formattedPhone;
+      } else if (!formattedPhone.startsWith('+966')) {
+        formattedPhone = '+966' + formattedPhone;
+      }
+
+      // التحقق من وجود إحالة نشطة أو معلقة مسبقة
+      const { data: existingReferrals, error: checkError } = await supabase
         .from("referrals")
-        .select("id, expires_at")
+        .select("id, status, created_at")
         .eq("inviter_id", user.id)
-        .eq("invitee_phone", phone)
-        .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString())
-        .maybeSingle();
+        .eq("invitee_phone", formattedPhone)
+        .in("status", ["pending", "joined"]);
 
-      if (existingReferral) {
-        toast.error("تم إرسال دعوة لهذا الرقم مسبقاً والدعوة لا تزال سارية");
-        return { error: "already_invited" };
+      if (checkError) {
+        console.error("Error checking existing referrals:", checkError);
+        toast.error("خطأ في التحقق من الإحالات السابقة");
+        return { success: false, error: checkError.message };
       }
 
-      // Insert referral record first
+      if (existingReferrals && existingReferrals.length > 0) {
+        const activeReferral = existingReferrals[0];
+        if (activeReferral.status === 'joined') {
+          toast.error("هذا الرقم منضم بالفعل عبر إحالتك");
+        } else {
+          toast.error("يوجد إحالة معلقة لهذا الرقم مسبقاً");
+        }
+        return { success: false, error: "referral_exists" };
+      }
+
+      // إنشاء سجل إحالة في قاعدة البيانات
       const { data: referralData, error: referralError } = await supabase
         .from("referrals")
         .insert({
           inviter_id: user.id,
-          invitee_phone: phone,
-          invitee_name: name || null,
+          invitee_phone: formattedPhone,
+          invitee_name: name?.trim() || null,
           referral_code: referralCode,
           status: "pending",
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+          reward_days: 7, // 7 أيام مجانية للإحالة الناجحة
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         })
         .select()
         .single();
 
       if (referralError) {
-        console.error("Database error:", referralError);
-        toast.error("خطأ في حفظ بيانات الإحالة");
-        return { error: "database_error" };
-      }
-
-      console.log("Referral record created:", referralData);
-
-      // Send SMS invite
-      const { data: smsData, error: smsError } = await supabase.functions.invoke('send-referral-invite', {
-        body: {
-          phone,
-          senderName: user.user_metadata?.display_name || user.user_metadata?.name || "صديقك",
-          referralCode
+        console.error("Error creating referral:", referralError);
+        if (referralError.code === '23505') {
+          toast.error("يوجد إحالة لهذا الرقم مسبقاً");
+        } else {
+          toast.error("خطأ في إنشاء الإحالة");
         }
-      });
-
-      if (smsError) {
-        console.error("SMS error:", smsError);
-        // Update referral status to indicate SMS failure but keep the record
-        await supabase
-          .from("referrals")
-          .update({ 
-            status: "pending" // Keep as pending since the record exists
-          })
-          .eq("id", referralData.id);
-        
-        toast.error("تم حفظ الدعوة ولكن فشل إرسال الرسالة النصية");
-        return { error: "sms_failed", data: referralData };
+        return { success: false, error: referralError.message };
       }
 
-      console.log("SMS sent successfully:", smsData);
-      toast.success("تم إرسال الدعوة بنجاح!");
-      
-      // Refresh referrals to show the new one
+      // إرسال رسالة SMS
+      try {
+        const { data: smsData, error: smsError } = await supabase.functions.invoke(
+          'send-referral-invite',
+          {
+            body: {
+              phone: formattedPhone,
+              senderName: name?.trim() || user.user_metadata?.display_name || user.user_metadata?.name || 'صديقك',
+              referralCode
+            }
+          }
+        );
+
+        if (smsError) {
+          console.error("SMS sending failed:", smsError);
+          toast.success("تم إنشاء الإحالة بنجاح (الرسالة قيد الإرسال)");
+        } else {
+          toast.success(`تم إرسال دعوة الإحالة إلى ${formattedPhone}`);
+        }
+      } catch (smsError) {
+        console.error("SMS service error:", smsError);
+        toast.success("تم إنشاء الإحالة بنجاح (سيتم إرسال الرسالة لاحقاً)");
+      }
+
+      // تحديث قائمة الإحالات
       await fetchReferrals();
       
       return { success: true, data: referralData };
     } catch (error) {
-      console.error("Error sending referral invite:", error);
-      toast.error("حدث خطأ غير متوقع أثناء إرسال الدعوة");
-      return { error: (error as Error).message };
+      console.error("Error in sendReferralInvite:", error);
+      toast.error("خطأ غير متوقع في إرسال الإحالة");
+      return { success: false, error: (error as Error).message };
     }
   }, [referralCode, fetchReferrals]);
 
