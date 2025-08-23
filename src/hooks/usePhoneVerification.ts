@@ -7,6 +7,10 @@ export function usePhoneVerification() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // وضع التطوير - استخدم OTP ثابت للاختبار
+  const DEV_MODE = true;
+  const DEV_OTP = "123456";
+
   const validatePhoneNumber = (phone: string): boolean => {
     // تحقق من صحة رقم الهاتف السعودي
     const phoneRegex = /^(\+966|966|0)?5[0-9]{8}$/;
@@ -42,7 +46,19 @@ export function usePhoneVerification() {
 
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      // استخدام Supabase Auth لإرسال OTP
+      if (DEV_MODE) {
+        // وضع التطوير - محاكاة إرسال OTP
+        console.log(`وضع التطوير: OTP المرسل إلى ${formattedPhone}: ${DEV_OTP}`);
+        
+        toast({
+          title: "تم إرسال رمز التحقق (وضع التطوير)",
+          description: `رمز التحقق: ${DEV_OTP}`,
+        });
+
+        return true;
+      }
+
+      // استخدام Supabase Auth لإرسال OTP (للإنتاج)
       const { error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
         options: {
@@ -78,7 +94,21 @@ export function usePhoneVerification() {
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
 
-      // التحقق من OTP
+      if (DEV_MODE) {
+        // وضع التطوير - التحقق من OTP الثابت
+        if (otp === DEV_OTP) {
+          toast({
+            title: "تم تأكيد رقم الجوال بنجاح! (وضع التطوير)",
+            description: "تم التحقق من رقم الجوال وحفظه في حسابك",
+          });
+          return true;
+        } else {
+          setError("رمز التحقق غير صحيح. استخدم: " + DEV_OTP);
+          return false;
+        }
+      }
+
+      // التحقق من OTP (للإنتاج)
       const { error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
         token: otp,

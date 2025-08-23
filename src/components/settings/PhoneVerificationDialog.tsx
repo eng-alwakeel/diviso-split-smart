@@ -80,6 +80,13 @@ export function PhoneVerificationDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* إشعار وضع التطوير */}
+          <div className="bg-blue-50 dark:bg-blue-950/50 p-3 rounded-md border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              <strong>وضع التطوير:</strong> استخدم الرمز <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded font-mono">123456</code> للتحقق
+            </p>
+          </div>
+
           {/* عرض رقم الهاتف */}
           <div className="bg-muted/30 p-4 rounded-lg border border-border">
             <div className="flex items-center gap-2 justify-center">
