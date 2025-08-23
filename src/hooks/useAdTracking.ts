@@ -102,7 +102,13 @@ export const useAdTracking = () => {
   const updateAdPreferences = async (newPreferences: Partial<AdPreferences>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) return false;
+
+      // Free users cannot disable ads
+      if (newPreferences.show_ads === false && 
+          (!subscription || !subscription.plan || subscription.status !== 'active')) {
+        return false;
+      }
 
       const { data } = await supabase
         .from('user_ad_preferences')
@@ -113,14 +119,24 @@ export const useAdTracking = () => {
 
       if (data) {
         setPreferences(data);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Error updating ad preferences:', error);
+      return false;
     }
   };
 
   const shouldShowAds = () => {
     if (!preferences) return true; // Default to showing ads for better user experience
+    
+    // Free users MUST see ads - cannot disable them
+    if (!subscription || !subscription.plan || subscription.status !== 'active') {
+      return sessionAdCount < (preferences?.max_ads_per_session || 5);
+    }
+    
+    // Paid subscribers can disable ads
     if (!preferences.show_ads) return false;
     if (sessionAdCount >= preferences.max_ads_per_session) return false;
 
@@ -201,6 +217,10 @@ export const useAdTracking = () => {
     return [...new Set(categories)].slice(0, 5);
   };
 
+  const canDisableAds = () => {
+    return subscription && subscription.plan && subscription.status === 'active';
+  };
+
   return {
     preferences,
     sessionAdCount,
@@ -209,6 +229,7 @@ export const useAdTracking = () => {
     trackAdImpression,
     trackAdClick,
     updateAdPreferences,
-    loadAdPreferences
+    loadAdPreferences,
+    canDisableAds
   };
 };
