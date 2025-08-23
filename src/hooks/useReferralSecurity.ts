@@ -26,7 +26,7 @@ export function useReferralSecurity() {
 
       if (error) throw error;
 
-      return data && data.length > 0 ? data[0] : { 
+      return data ? (data as unknown as SecurityCheck) : { 
         is_allowed: true, 
         reason: "مسموح", 
         retry_after: 0 

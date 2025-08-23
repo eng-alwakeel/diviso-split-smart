@@ -143,8 +143,8 @@ export function useReferrals() {
         return { success: false, error: "spam_check_failed" };
       }
 
-      if (spamCheck && spamCheck.length > 0 && !spamCheck[0].is_allowed) {
-        toast.error(spamCheck[0].reason);
+      if (spamCheck && !(spamCheck as any).is_allowed) {
+        toast.error((spamCheck as any).reason);
         return { success: false, error: "blocked_by_spam_protection" };
       }
 

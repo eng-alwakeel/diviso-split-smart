@@ -9,7 +9,17 @@ import { useNavigate } from "react-router-dom";
 import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, TrendingUp, FileDown, Calendar } from "lucide-react";
 
 export const UsageLimitsCard = () => {
-  const navigate = useNavigate();
+  // Safe navigation hook that handles missing router context
+  const getNavigate = () => {
+    try {
+      return useNavigate();
+    } catch (error) {
+      console.warn('Navigation context not available:', error);
+      return null;
+    }
+  };
+  
+  const navigate = getNavigate();
   const { limits, loading, isFreePlan, formatLimit, getUsagePercentage, isNearLimit, isAtLimit, currentPlan } = useSubscriptionLimits();
   const { groupsCount, monthlyTotalExpenses, loading: dashboardLoading } = useDashboardData();
   const { usage, loading: usageLoading, error: usageError } = useUsageData();
@@ -196,9 +206,10 @@ export const UsageLimitsCard = () => {
         {isFreePlan && (hasWarnings || hasBlocked) && (
           <div className="space-y-2">
             <Button 
-              onClick={() => navigate('/pricing-protected')}
+              onClick={() => navigate?.('/pricing-protected')}
               className="w-full bg-gradient-primary hover:opacity-90"
               size="sm"
+              disabled={!navigate}
             >
               ترقية للحصول على حدود أعلى
             </Button>
