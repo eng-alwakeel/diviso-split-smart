@@ -11,7 +11,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
-import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -251,10 +251,6 @@ const OptimizedDashboard = React.memo(() => {
           className="mt-4"
         />
         
-        {/* Ad Preferences */}
-        <div className="flex justify-center">
-          <AdPreferencesDialog />
-        </div>
 
         {/* Admin Dashboard Card - Only for Admins */}
         {adminData?.isAdmin && <AdminCard />}

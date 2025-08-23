@@ -39,11 +39,6 @@ const LazySmartAdSidebar = React.lazy(() =>
   }))
 );
 
-const LazyAdPreferencesDialog = React.lazy(() => 
-  import("@/components/ads/AdPreferencesDialog").then(module => ({
-    default: module.AdPreferencesDialog
-  }))
-);
 
 // Component fallbacks
 const ComponentFallback = memo(() => (
@@ -276,12 +271,6 @@ const OptimizedDashboard = memo(() => {
           />
         </Suspense>
         
-        {/* Ad Preferences */}
-        <div className="flex justify-center">
-          <Suspense fallback={<SmallComponentFallback />}>
-            <LazyAdPreferencesDialog />
-          </Suspense>
-        </div>
 
         {/* Admin Dashboard Card */}
         {adminData?.isAdmin && (
