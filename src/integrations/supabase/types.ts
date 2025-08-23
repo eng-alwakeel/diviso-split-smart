@@ -2007,11 +2007,7 @@ export type Database = {
       }
       check_referral_spam_protection: {
         Args: { p_phone: string; p_user_id: string }
-        Returns: {
-          is_allowed: boolean
-          reason: string
-          retry_after: number
-        }[]
+        Returns: Json
       }
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
