@@ -295,6 +295,45 @@ export type Database = {
           },
         ]
       }
+      bulk_referrals: {
+        Row: {
+          batch_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_log: Json | null
+          failed_invites: number | null
+          id: string
+          status: string | null
+          successful_invites: number | null
+          total_invites: number | null
+          user_id: string
+        }
+        Insert: {
+          batch_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          failed_invites?: number | null
+          id?: string
+          status?: string | null
+          successful_invites?: number | null
+          total_invites?: number | null
+          user_id: string
+        }
+        Update: {
+          batch_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          failed_invites?: number | null
+          id?: string
+          status?: string | null
+          successful_invites?: number | null
+          total_invites?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -1286,6 +1325,42 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_analytics: {
+        Row: {
+          conversion_rate: number | null
+          created_at: string | null
+          date: string | null
+          id: string
+          invites_accepted: number | null
+          invites_sent: number | null
+          rewards_earned: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          invites_accepted?: number | null
+          invites_sent?: number | null
+          rewards_earned?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          invites_accepted?: number | null
+          invites_sent?: number | null
+          rewards_earned?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       referral_rewards: {
         Row: {
           applied_at: string | null
@@ -1316,8 +1391,125 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_security: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          last_attempt: string | null
+          phone_number: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt?: string | null
+          phone_number: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt?: string | null
+          phone_number?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_sources: {
+        Row: {
+          clicked_at: string | null
+          converted_at: string | null
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          referral_id: string
+          source_details: Json | null
+          source_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          referral_id: string
+          source_details?: Json | null
+          source_type?: string
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          referral_id?: string
+          source_details?: Json | null
+          source_type?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_sources_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_tiers: {
+        Row: {
+          bonus_multiplier: number | null
+          created_at: string | null
+          days_reward: number
+          id: string
+          max_referrals: number | null
+          min_referrals: number
+          tier_color: string | null
+          tier_icon: string | null
+          tier_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          days_reward?: number
+          id?: string
+          max_referrals?: number | null
+          min_referrals: number
+          tier_color?: string | null
+          tier_icon?: string | null
+          tier_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          days_reward?: number
+          id?: string
+          max_referrals?: number | null
+          min_referrals?: number
+          tier_color?: string | null
+          tier_icon?: string | null
+          tier_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
+          bonus_applied: boolean | null
           created_at: string
           expires_at: string
           id: string
@@ -1325,11 +1517,15 @@ export type Database = {
           invitee_phone: string
           inviter_id: string
           joined_at: string | null
+          original_reward_days: number | null
           referral_code: string | null
+          referral_source: string | null
           reward_days: number | null
           status: Database["public"]["Enums"]["referral_status"]
+          tier_at_time: string | null
         }
         Insert: {
+          bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
           id?: string
@@ -1337,11 +1533,15 @@ export type Database = {
           invitee_phone: string
           inviter_id: string
           joined_at?: string | null
+          original_reward_days?: number | null
           referral_code?: string | null
+          referral_source?: string | null
           reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
+          tier_at_time?: string | null
         }
         Update: {
+          bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
           id?: string
@@ -1349,9 +1549,12 @@ export type Database = {
           invitee_phone?: string
           inviter_id?: string
           joined_at?: string | null
+          original_reward_days?: number | null
           referral_code?: string | null
+          referral_source?: string | null
           reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
+          tier_at_time?: string | null
         }
         Relationships: [
           {
@@ -1730,6 +1933,14 @@ export type Database = {
           remaining: number
         }[]
       }
+      check_referral_spam_protection: {
+        Args: { p_phone: string; p_user_id: string }
+        Returns: {
+          is_allowed: boolean
+          reason: string
+          retry_after: number
+        }[]
+      }
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
         Returns: number
@@ -1940,6 +2151,18 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_user_referral_tier: {
+        Args: { p_user_id: string }
+        Returns: {
+          current_referrals: number
+          next_tier_name: string
+          referrals_needed: number
+          tier_color: string
+          tier_icon: string
+          tier_name: string
+          total_reward_days: number
+        }[]
+      }
       get_users_for_admin: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1994,6 +2217,10 @@ export type Database = {
         Args: { p_action: string; p_details?: Json; p_table_name?: string }
         Returns: undefined
       }
+      log_suspicious_referral: {
+        Args: { p_phone: string; p_reason: string; p_user_id: string }
+        Returns: undefined
+      }
       seed_demo_for_user: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2001,6 +2228,10 @@ export type Database = {
       unarchive_group: {
         Args: { p_group_id: string }
         Returns: boolean
+      }
+      update_daily_referral_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       update_expired_referrals: {
         Args: Record<PropertyKey, never>

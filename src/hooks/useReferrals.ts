@@ -131,6 +131,23 @@ export function useReferrals() {
         formattedPhone = '+966' + formattedPhone;
       }
 
+      // التحقق من الحماية ضد spam
+      const { data: spamCheck, error: spamError } = await supabase.rpc('check_referral_spam_protection', {
+        p_user_id: user.id,
+        p_phone: formattedPhone
+      });
+
+      if (spamError) {
+        console.error("Error checking spam protection:", spamError);
+        toast.error("خطأ في التحقق من الحماية");
+        return { success: false, error: "spam_check_failed" };
+      }
+
+      if (spamCheck && spamCheck.length > 0 && !spamCheck[0].is_allowed) {
+        toast.error(spamCheck[0].reason);
+        return { success: false, error: "blocked_by_spam_protection" };
+      }
+
       // التحقق من وجود إحالة نشطة أو معلقة مسبقة
       const { data: existingReferrals, error: checkError } = await supabase
         .from("referrals")
@@ -155,6 +172,13 @@ export function useReferrals() {
         return { success: false, error: "referral_exists" };
       }
 
+      // الحصول على المستوى الحالي للمستخدم
+      const { data: tierData } = await supabase.rpc('get_user_referral_tier', {
+        p_user_id: user.id
+      });
+
+      const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+
       // إنشاء سجل إحالة في قاعدة البيانات
       const { data: referralData, error: referralError } = await supabase
         .from("referrals")
@@ -164,7 +188,10 @@ export function useReferrals() {
           invitee_name: name?.trim() || null,
           referral_code: referralCode,
           status: "pending",
-          reward_days: 7, // 7 أيام مجانية للإحالة الناجحة
+          reward_days: 7, // سيتم تطبيق المضاعف لاحقاً عند النجاح
+          referral_source: "manual",
+          tier_at_time: currentTier?.tier_name || "المبتدئ",
+          original_reward_days: 7,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         })
         .select()
@@ -202,6 +229,23 @@ export function useReferrals() {
       } catch (smsError) {
         console.error("SMS service error:", smsError);
         toast.success("تم إنشاء الإحالة بنجاح (سيتم إرسال الرسالة لاحقاً)");
+      }
+
+      // تسجيل مصدر الإحالة
+      try {
+        await supabase
+          .from("referral_sources")
+          .insert({
+            referral_id: referralData.id,
+            source_type: "sms",
+            source_details: {
+              method: "manual",
+              has_name: !!name?.trim()
+            }
+          });
+      } catch (sourceError) {
+        console.error("Error logging referral source:", sourceError);
+        // لا نوقف العملية بسبب خطأ في التتبع
       }
 
       // تحديث قائمة الإحالات
