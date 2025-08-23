@@ -3,7 +3,8 @@ import { HeroSection } from "@/components/HeroSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { PricingSection } from "@/components/PricingSection";
 import { Footer } from "@/components/Footer";
-import { SimplifiedAdManager } from "@/components/ads/SimplifiedAdManager";
+import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
+import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
 
 const Index = () => {
   return (
@@ -12,9 +13,9 @@ const Index = () => {
       <HeroSection />
       <FeaturesSection />
       
-      {/* Ads for visitors */}
+      {/* Persistent ads for all visitors */}
       <div className="container mx-auto px-4 py-8">
-        <SimplifiedAdManager 
+        <PersistentAdBanner 
           placement="homepage_features" 
           className="max-w-2xl mx-auto"
         />
@@ -22,12 +23,9 @@ const Index = () => {
       
       <PricingSection />
       
-      {/* Another ad placement */}
+      {/* Sidebar-style ad placement */}
       <div className="container mx-auto px-4 py-8">
-        <SimplifiedAdManager 
-          placement="homepage_pricing" 
-          className="max-w-2xl mx-auto"
-        />
+        <PersistentAdSidebar className="max-w-sm mx-auto" />
       </div>
       <Footer />
     </div>

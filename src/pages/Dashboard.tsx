@@ -9,10 +9,8 @@ import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
-import { SmartAdManager } from "@/components/ads/SmartAdManager";
-import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
-import { AdPreferencesDialog } from "@/components/ads/AdPreferencesDialog";
-import { SimplifiedAdManager } from "@/components/ads/SimplifiedAdManager";
+import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
+import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -152,38 +150,17 @@ const Dashboard = React.memo(() => {
           <SubscriptionStatusCard />
           <UsageLimitsCard />
           
-        {/* Smart Ad Sidebar */}
-          <SmartAdSidebar className="lg:block hidden" />
+          {/* Persistent Ad Sidebar - Always visible for free users */}
+          <PersistentAdSidebar className="lg:block hidden" />
           
           {/* Mobile Ad Display */}
           <div className="lg:hidden">
-            <SimplifiedAdManager 
-              placement="dashboard_mobile" 
-              showDebug={process.env.NODE_ENV === 'development'}
-            />
+            <PersistentAdBanner placement="dashboard_mobile" />
           </div>
         </div>
         
-        {/* Smart Contextual Ads */}
-        <SmartAdManager
-          context={{
-            type: 'dashboard'
-          }}
-          placement="dashboard_main"
-          className="mt-4"
-        />
-        
-        {/* Simplified Ad Manager - Always shows for debugging */}
-        <SimplifiedAdManager 
-          placement="dashboard_main_simple" 
-          showDebug={process.env.NODE_ENV === 'development'}
-          className="mt-4"
-        />
-        
-        {/* Ad Preferences */}
-        <div className="flex justify-center">
-          <AdPreferencesDialog />
-        </div>
+        {/* Persistent Ad Banners - Always visible for free users */}
+        <PersistentAdBanner placement="dashboard_main" className="mt-4" />
 
         {/* Admin Dashboard Card - Only for Admins */}
         {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>

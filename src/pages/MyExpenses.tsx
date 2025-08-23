@@ -15,6 +15,7 @@ import { ExpenseChart } from "@/components/expenses/ExpenseChart";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { BottomNav } from "@/components/BottomNav";
+import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
@@ -126,6 +127,9 @@ const MyExpenses = () => {
 
       {/* Stats Overview */}
       <ExpenseStats stats={stats} currency="SAR" />
+
+      {/* Persistent Ad Banner */}
+      <PersistentAdBanner placement="expenses_main" className="my-4" />
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
