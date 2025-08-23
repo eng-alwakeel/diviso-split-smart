@@ -7,8 +7,8 @@ export function usePhoneVerification() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // وضع التطوير - استخدم OTP ثابت للاختبار
-  const DEV_MODE = true;
+  // وضع التطوير - يتحدد تلقائياً حسب البيئة
+  const DEV_MODE = import.meta.env.DEV && false; // تم إيقاف وضع التطوير للإنتاج
   const DEV_OTP = "123456";
 
   const validatePhoneNumber = (phone: string): boolean => {
