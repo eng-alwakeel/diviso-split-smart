@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw, Tv } from "lucide-react";
+import { ArrowRight, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -25,7 +25,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ProfileTab } from "@/components/settings/ProfileTab";
 import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
-import { SubscriptionAwareAdSettings } from "@/components/settings/SubscriptionAwareAdSettings";
+
 
 const getPlanDisplayName = (plan: string) => {
   switch (plan) {
@@ -334,10 +334,6 @@ const Settings = () => {
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">الإشعارات</span>
             </TabsTrigger>
-            <TabsTrigger value="ads" className="flex items-center gap-2">
-              <Tv className="w-4 h-4" />
-              <span className="hidden sm:inline">الإعلانات</span>
-            </TabsTrigger>
             <TabsTrigger value="privacy" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">الأمان</span>
@@ -602,10 +598,6 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Ads Tab */}
-          <TabsContent value="ads" className="space-y-6">
-            <SubscriptionAwareAdSettings />
-          </TabsContent>
 
           {/* Privacy/Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
