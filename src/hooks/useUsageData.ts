@@ -98,8 +98,44 @@ export const useUsageData = () => {
 
         if (ocrError) throw ocrError;
 
-        // Note: Report export and data retention would need specific tracking tables
-        // For now, we'll set them to 0 as placeholders
+        // Calculate actual data retention (age of oldest data in months)
+        let dataRetentionMonths = 0;
+        
+        // Get oldest expense
+        const { data: oldestExpense } = await supabase
+          .from('expenses')
+          .select('created_at')
+          .eq('created_by', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        // Get oldest group
+        const { data: oldestGroup } = await supabase
+          .from('groups')
+          .select('created_at')
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        // Find the oldest date between expenses and groups
+        let oldestDate = null;
+        if (oldestExpense && oldestExpense.length > 0) {
+          oldestDate = new Date(oldestExpense[0].created_at);
+        }
+        if (oldestGroup && oldestGroup.length > 0) {
+          const groupDate = new Date(oldestGroup[0].created_at);
+          if (!oldestDate || groupDate < oldestDate) {
+            oldestDate = groupDate;
+          }
+        }
+
+        // Calculate months difference
+        if (oldestDate) {
+          const now = new Date();
+          const yearsDiff = now.getFullYear() - oldestDate.getFullYear();
+          const monthsDiff = now.getMonth() - oldestDate.getMonth();
+          dataRetentionMonths = Math.max(1, yearsDiff * 12 + monthsDiff);
+        }
 
         const usageData: UsageData = {
           groups: groupsData?.length || 0,
@@ -108,7 +144,7 @@ export const useUsageData = () => {
           invites: invitesData?.length || 0,
           ocr: ocrData?.length || 0,
           reportExport: 0, // Placeholder - needs specific tracking
-          dataRetention: 6 // Placeholder - this would be plan-specific
+          dataRetention: dataRetentionMonths
         };
 
         console.log('Usage data fetched:', {
