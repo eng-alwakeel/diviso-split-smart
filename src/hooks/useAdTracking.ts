@@ -120,32 +120,85 @@ export const useAdTracking = () => {
   };
 
   const shouldShowAds = () => {
-    if (!preferences) return false;
+    if (!preferences) return true; // Default to showing ads for better user experience
     if (!preferences.show_ads) return false;
     if (sessionAdCount >= preferences.max_ads_per_session) return false;
+
+    // Smart timing: only show ads during user's preferred usage times
+    if (behavior?.preferredUsageTime) {
+      const currentHour = new Date().getHours();
+      const currentTimeSlot = 
+        currentHour >= 6 && currentHour < 12 ? 'morning' :
+        currentHour >= 12 && currentHour < 17 ? 'afternoon' :
+        currentHour >= 17 && currentHour < 22 ? 'evening' : 'night';
+      
+      // Show ads more frequently during user's active time
+      if (currentTimeSlot !== behavior.preferredUsageTime && sessionAdCount >= 2) {
+        return false;
+      }
+    }
+
+    // Don't overwhelm high-engagement users
+    if (behavior?.engagementLevel === 'high' && sessionAdCount >= 3) {
+      return false;
+    }
+
     return true;
   };
 
   const getTargetedCategories = () => {
-    if (!behavior || !preferences?.personalized_ads) return [];
+    if (!behavior) return [];
     
     const categories = [];
     
-    // Based on user behavior patterns
+    // Enhanced targeting based on behavior
+    if (behavior.topExpenseCategories && behavior.topExpenseCategories.length > 0) {
+      categories.push(...behavior.topExpenseCategories);
+    }
+
+    // Based on user type with enhanced logic
     if (behavior.userType === 'saver') {
-      categories.push('finance', 'savings', 'investments');
+      categories.push('finance', 'savings', 'investments', 'budgeting-tools');
+      if (behavior.averageExpenseAmount < 100) {
+        categories.push('discount', 'affordable');
+      }
     } else if (behavior.userType === 'social') {
-      categories.push('social', 'entertainment', 'travel');
+      categories.push('social', 'entertainment', 'travel', 'dining');
+      if (behavior.groupUsage > 3) {
+        categories.push('group-activities', 'team-tools');
+      }
     } else if (behavior.userType === 'organizer') {
-      categories.push('productivity', 'organization', 'business');
+      categories.push('productivity', 'organization', 'business', 'premium-tools');
+      if (behavior.clickThroughPatterns.reportViews > 5) {
+        categories.push('analytics', 'reporting');
+      }
     }
     
-    // Based on OCR usage
+    // Based on financial goals
+    switch (behavior.financialGoals) {
+      case 'budgeting':
+        categories.push('budgeting', 'financial-planning');
+        break;
+      case 'analysis':
+        categories.push('analytics', 'reporting', 'insights');
+        break;
+      case 'group_management':
+        categories.push('collaboration', 'group-tools');
+        break;
+    }
+
+    // Based on OCR usage patterns
     if (behavior.ocrUsage > 10) {
-      categories.push('apps', 'productivity', 'business');
+      categories.push('apps', 'productivity', 'business', 'scanning-tools');
     }
-    
-    return categories.filter(cat => !preferences.blocked_categories.includes(cat));
+
+    // Device-specific categories
+    if (behavior.devicePreference === 'mobile') {
+      categories.push('mobile-apps', 'on-the-go');
+    }
+
+    // Remove duplicates and limit to top categories
+    return [...new Set(categories)].slice(0, 5);
   };
 
   return {
