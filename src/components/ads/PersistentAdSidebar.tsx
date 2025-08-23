@@ -4,72 +4,66 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Crown, Zap } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
+import { ImageWithFallback } from '@/components/ImageWithFallback';
 
 export const PersistentAdSidebar: React.FC<{ className?: string }> = ({ 
   className = '' 
 }) => {
   const { subscription } = useSubscription();
+  const { getTrendingProducts, getAmazonProducts } = useAffiliateProducts();
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [sidebarProducts, setSidebarProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Don't show ads for paid subscribers
   const isFreePlan = !subscription || subscription.status !== 'active';
 
-  const sidebarProducts = [
-    {
-      id: 1,
-      title: 'آيفون 15 برو',
-      description: 'أحدث إصدار من آبل بمواصفات متطورة',
-      price: '4,999 ريال',
-      originalPrice: '5,299 ريال',
-      partner: 'Amazon.sa',
-      category: 'electronics',
-      image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png',
-      discount: '6%',
-      url: 'https://amazon.sa'
-    },
-    {
-      id: 2,
-      title: 'كتاب الاستثمار الذكي',
-      description: 'دليلك الشامل للاستثمار والادخار',
-      price: '89 ريال',
-      originalPrice: '120 ريال',
-      partner: 'Jarir Bookstore',
-      category: 'finance',
-      image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png',
-      discount: '26%',
-      url: '#'
-    },
-    {
-      id: 3,
-      title: 'ساعة ذكية سامسونج',
-      description: 'تتبع الصحة واللياقة البدنية',
-      price: '799 ريال',
-      originalPrice: '999 ريال',
-      partner: 'Extra',
-      category: 'electronics',
-      image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png',
-      discount: '20%',
-      url: '#'
-    }
-  ];
+  // Load featured products from database
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (!isFreePlan) return;
+      
+      setLoading(true);
+      try {
+        // Try to get Amazon products first, fallback to trending products
+        let products = await getAmazonProducts('electronics', '100-500');
+        if (products.length === 0) {
+          products = await getTrendingProducts(3);
+        }
+        setSidebarProducts(products.slice(0, 3)); // Limit to 3 products
+      } catch (error) {
+        console.error('Error loading sidebar products:', error);
+        setSidebarProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [isFreePlan, getTrendingProducts, getAmazonProducts]);
 
   useEffect(() => {
-    if (!isFreePlan) return;
+    if (!isFreePlan || sidebarProducts.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentProductIndex((prev) => (prev + 1) % sidebarProducts.length);
     }, 12000); // Rotate every 12 seconds
 
     return () => clearInterval(interval);
-  }, [isFreePlan]);
+  }, [isFreePlan, sidebarProducts.length]);
 
-  if (!isFreePlan) return null;
+  if (!isFreePlan || loading) return null;
 
-  const handleProductClick = (product: typeof sidebarProducts[0]) => {
-    if (product.url !== '#') {
-      window.open(product.url, '_blank');
+  if (sidebarProducts.length === 0) return null;
+
+  const handleProductClick = (product: any) => {
+    if (product.affiliate_url) {
+      window.open(product.affiliate_url, '_blank');
     }
   };
+
+  const currentProduct = sidebarProducts[currentProductIndex];
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -85,49 +79,50 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
 
           <div className="space-y-3">
             <div className="aspect-square w-full rounded-lg overflow-hidden bg-background">
-              <img 
-                src={sidebarProducts[currentProductIndex].image} 
-                alt={sidebarProducts[currentProductIndex].title}
+              <ImageWithFallback
+                src={currentProduct.image_url || '/placeholder.svg'} 
+                alt={currentProduct.title}
                 className="w-full h-full object-cover"
+                width={200}
+                height={200}
+                loading="lazy"
               />
             </div>
 
             <div className="space-y-2">
               <h3 className="font-semibold text-sm line-clamp-2">
-                {sidebarProducts[currentProductIndex].title}
+                {currentProduct.title}
               </h3>
               <p className="text-xs text-muted-foreground line-clamp-2">
-                {sidebarProducts[currentProductIndex].description}
+                {currentProduct.description || 'منتج مميز من أمازون'}
               </p>
               
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-primary">
-                    {sidebarProducts[currentProductIndex].price}
+                    {currentProduct.price_range || 'اعرف السعر'}
                   </span>
-                  {sidebarProducts[currentProductIndex].originalPrice && (
-                    <span className="text-xs text-muted-foreground line-through">
-                      {sidebarProducts[currentProductIndex].originalPrice}
+                  {currentProduct.rating && (
+                    <span className="text-xs text-amber-500">
+                      ⭐ {currentProduct.rating}
                     </span>
                   )}
                 </div>
                 
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">
-                    {sidebarProducts[currentProductIndex].partner}
+                    {currentProduct.affiliate_partner}
                   </span>
-                  {sidebarProducts[currentProductIndex].discount && (
-                    <Badge variant="destructive" className="text-xs py-0">
-                      خصم {sidebarProducts[currentProductIndex].discount}
-                    </Badge>
-                  )}
+                  <Badge variant="secondary" className="text-xs py-0">
+                    {currentProduct.category}
+                  </Badge>
                 </div>
               </div>
 
               <Button
                 size="sm"
                 className="w-full"
-                onClick={() => handleProductClick(sidebarProducts[currentProductIndex])}
+                onClick={() => handleProductClick(currentProduct)}
               >
                 <ShoppingCart className="h-3 w-3 mr-2" />
                 تسوق الآن

@@ -4,71 +4,72 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
+import { ImageWithFallback } from '@/components/ImageWithFallback';
 
 interface PersistentAdBannerProps {
   placement: string;
   className?: string;
 }
 
-const sampleAds = [
-  {
-    title: 'عروض أمازون الحصرية',
-    description: 'خصم 50% على الإلكترونيات والأجهزة المنزلية',
-    price: 'من 199 ريال',
-    partner: 'Amazon.sa',
-    url: 'https://amazon.sa',
-    image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png'
-  },
-  {
-    title: 'أدوات التوفير المالي',
-    description: 'اكتشف أفضل التطبيقات لإدارة أموالك بذكاء',
-    price: 'مجاناً',
-    partner: 'تطبيقات مالية',
-    url: '#',
-    image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png'
-  },
-  {
-    title: 'بطاقات الائتمان المميزة',
-    description: 'احصل على أفضل المزايا والكاش باك',
-    price: 'بدون رسوم سنوية',
-    partner: 'البنوك الشريكة',
-    url: '#',
-    image: '/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png'
-  }
-];
-
 export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
   placement,
   className = ''
 }) => {
   const { subscription } = useSubscription();
+  const { getTrendingProducts } = useAffiliateProducts();
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Don't show ads for paid subscribers
   const isFreePlan = !subscription || subscription.status !== 'active';
 
+  // Load trending products from database
   useEffect(() => {
-    if (!isFreePlan) return;
+    const loadProducts = async () => {
+      if (!isFreePlan) return;
+      
+      setLoading(true);
+      try {
+        const trendingProducts = await getTrendingProducts(3);
+        setProducts(trendingProducts);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        // Fallback to sample data if needed
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [isFreePlan, getTrendingProducts]);
+
+  useEffect(() => {
+    if (!isFreePlan || products.length === 0) return;
 
     const interval = setInterval(() => {
       setIsRotating(true);
       setTimeout(() => {
-        setCurrentAdIndex((prev) => (prev + 1) % sampleAds.length);
+        setCurrentAdIndex((prev) => (prev + 1) % products.length);
         setIsRotating(false);
       }, 300);
     }, 15000); // Rotate every 15 seconds
 
     return () => clearInterval(interval);
-  }, [isFreePlan]);
+  }, [isFreePlan, products.length]);
 
-  if (!isFreePlan) return null;
+  if (!isFreePlan || loading) return null;
 
-  const currentAd = sampleAds[currentAdIndex];
+  if (products.length === 0) return null;
+
+  const currentProduct = products[currentAdIndex];
 
   const handleAdClick = () => {
-    if (currentAd.url !== '#') {
-      window.open(currentAd.url, '_blank');
+    if (currentProduct.affiliate_url) {
+      window.open(currentProduct.affiliate_url, '_blank');
     }
   };
 
@@ -82,30 +83,35 @@ export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
           <div className="flex items-center gap-1">
             <RotateCcw className={`h-3 w-3 text-muted-foreground ${isRotating ? 'animate-spin' : ''}`} />
             <span className="text-xs text-muted-foreground">
-              {currentAdIndex + 1}/{sampleAds.length}
+              {currentAdIndex + 1}/{products.length}
             </span>
           </div>
         </div>
 
         <div className={`grid grid-cols-[auto,1fr,auto] gap-3 items-center transition-opacity duration-300 ${isRotating ? 'opacity-50' : 'opacity-100'}`}>
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-            <img 
-              src={currentAd.image} 
-              alt={currentAd.title}
+            <ImageWithFallback
+              src={currentProduct.image_url || '/placeholder.svg'} 
+              alt={currentProduct.title}
               className="w-full h-full object-cover"
+              width={48}
+              height={48}
+              loading="lazy"
             />
           </div>
 
           <div className="min-w-0 space-y-1">
             <h4 className="font-medium text-sm text-foreground line-clamp-1">
-              {currentAd.title}
+              {currentProduct.title}
             </h4>
             <p className="text-xs text-muted-foreground line-clamp-1">
-              {currentAd.description}
+              {currentProduct.description || 'منتج مميز من أمازون'}
             </p>
             <div className="flex items-center gap-2 text-xs">
-              <span className="font-medium text-primary">{currentAd.price}</span>
-              <span className="text-muted-foreground">• {currentAd.partner}</span>
+              <span className="font-medium text-primary">
+                {currentProduct.price_range || 'اعرف السعر'}
+              </span>
+              <span className="text-muted-foreground">• {currentProduct.affiliate_partner}</span>
             </div>
           </div>
 
@@ -120,7 +126,7 @@ export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
         </div>
 
         <div className="flex justify-center gap-1 pt-1">
-          {sampleAds.map((_, index) => (
+          {products.map((_, index) => (
             <div
               key={index}
               className={`h-1 w-6 rounded-full transition-all duration-300 ${
