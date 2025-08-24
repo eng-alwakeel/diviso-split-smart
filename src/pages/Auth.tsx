@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Mail, Phone } from "lucide-react";
+import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 
 const Auth = () => {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ const Auth = () => {
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   useEffect(() => {
     const location = window.location;
@@ -106,6 +108,15 @@ const Auth = () => {
   };
 
   const handleSignup = async () => {
+    if (!privacyAccepted) {
+      toast({ 
+        title: "يجب الموافقة على سياسة الخصوصية", 
+        description: "يرجى الموافقة على سياسة الخصوصية وشروط الاستخدام للمتابعة",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
     
     const signUpData = authType === "email" 
@@ -113,7 +124,11 @@ const Auth = () => {
           email, 
           password,
           options: {
-            data: { name },
+            data: { 
+              name,
+              privacy_policy_accepted: true,
+              privacy_policy_accepted_at: new Date().toISOString()
+            },
             emailRedirectTo: `${window.location.origin}/auth/verify`
           }
         }
@@ -121,7 +136,11 @@ const Auth = () => {
           phone, 
           password,
           options: {
-            data: { name }
+            data: { 
+              name,
+              privacy_policy_accepted: true,
+              privacy_policy_accepted_at: new Date().toISOString()
+            }
           }
         };
     
@@ -273,6 +292,14 @@ const Auth = () => {
                     </div>
                   </TabsContent>
                 </Tabs>
+                
+                {mode === "signup" && (
+                  <PrivacyPolicyCheckbox
+                    checked={privacyAccepted}
+                    onCheckedChange={setPrivacyAccepted}
+                    className="my-4"
+                  />
+                )}
                 
                 <Button className="w-full" onClick={mode === "login" ? handleLogin : handleSignup} disabled={loading}>
                   {loading ? "جاري المعالجة..." : mode === "login" ? "دخول" : "إنشاء حساب"}

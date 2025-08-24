@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Gift, UserPlus, Users, ArrowRight } from "lucide-react";
+import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 
 export default function ReferralSignup() {
   const { referralCode } = useParams<{ referralCode: string }>();
@@ -22,6 +23,7 @@ export default function ReferralSignup() {
     password: "",
     confirmPassword: ""
   });
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   useEffect(() => {
     const validateReferralCode = async () => {
@@ -101,6 +103,11 @@ export default function ReferralSignup() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!privacyAccepted) {
+      toast.error("يجب الموافقة على سياسة الخصوصية وشروط الاستخدام للمتابعة");
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       toast.error("كلمة المرور وتأكيدها غير متطابقين");
       return;
@@ -124,7 +131,9 @@ export default function ReferralSignup() {
             name: formData.name,
             display_name: formData.name,
             phone: formData.phone,
-            referral_code: referralCode
+            referral_code: referralCode,
+            privacy_policy_accepted: true,
+            privacy_policy_accepted_at: new Date().toISOString()
           }
         }
       });
@@ -317,6 +326,12 @@ export default function ReferralSignup() {
               />
             </div>
 
+            <PrivacyPolicyCheckbox
+              checked={privacyAccepted}
+              onCheckedChange={setPrivacyAccepted}
+              className="my-4"
+            />
+
             <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg">
               <div className="flex items-center gap-2 text-primary mb-2">
                 <UserPlus className="h-4 w-4" />
@@ -330,7 +345,7 @@ export default function ReferralSignup() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={submitting}
+              disabled={submitting || !privacyAccepted}
             >
               {submitting ? (
                 <>

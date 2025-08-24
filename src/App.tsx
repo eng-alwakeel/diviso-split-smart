@@ -31,6 +31,7 @@ const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingP
 const LazyNotifications = withLazyLoading(lazy(() => import("./pages/Notifications")));
 const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
 const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
+const LazyPrivacyPolicy = withLazyLoading(lazy(() => import("./pages/PrivacyPolicy")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
 const LazyAdminManagement = withLazyLoading(lazy(() => import("./pages/AdminManagement")));
 const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPage")));
@@ -65,6 +66,7 @@ const App: React.FC = () => {
               <Route path="/i/:code" element={<InviteRoute />} />
               <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
               <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
+              <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/create-group" element={<ProtectedRoute><LazyCreateGroup /></ProtectedRoute>} />
               <Route path="/group/:id" element={<ProtectedRoute><LazyGroupDetails /></ProtectedRoute>} />
