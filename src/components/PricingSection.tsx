@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Check, Star, Users, User } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -92,13 +93,48 @@ const plans = [
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
-  const { startTrial } = useSubscription();
+  const { startTrial, subscription, canStartTrial, remainingTrialDays, isTrialActive } = useSubscription();
   const { toast } = useToast();
   const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
   const { getPlanBadgeConfig } = usePlanBadge();
   const navigate = useNavigate();
 
-  // تمت إزالة معالجة joinToken من هنا - يتم التعامل معها في InviteRoute الآن
+  // دالة لتحديد نص الزر
+  const getButtonText = (planName: string) => {
+    const planKey = planName === "شخصي" ? "personal" : planName === "العائلية" ? "family" : planName === "مدى الحياة" ? "lifetime" : "free";
+    
+    // إذا كانت الباقة الحالية
+    if (subscription?.plan === planKey && (subscription.status === 'active' || isTrialActive)) {
+      return "الباقة الحالية";
+    }
+    
+    // إذا كانت مجانية أو مدى الحياة
+    if (planName === "مجاني") return "ابدأ مجاناً";
+    if (planName === "مدى الحياة") return "اشترك مدى الحياة";
+    
+    // إذا يمكنه بدء تجربة
+    if (canStartTrial && remainingTrialDays > 0) {
+      return `ابدأ تجربة ${remainingTrialDays} أيام`;
+    }
+    
+    // إذا انتهت التجربة
+    return "اشترك الآن";
+  };
+
+  // دالة للتحقق إذا كانت الباقة الحالية
+  const isCurrentPlan = (planName: string) => {
+    const planKey = planName === "شخصي" ? "personal" : planName === "العائلية" ? "family" : planName === "مدى الحياة" ? "lifetime" : "free";
+    return subscription?.plan === planKey && (subscription.status === 'active' || isTrialActive);
+  };
+
+  // دالة للتوجيه للدفع
+  const redirectToPayment = (planKey: string) => {
+    toast({ 
+      title: "جاري التوجيه", 
+      description: "جاري إعداد صفحة الدفع..." 
+    });
+    // TODO: Implement RevenueCat payment flow
+  };
 
   return (
     <section id="pricing" className="py-20 bg-background">
@@ -152,6 +188,12 @@ export const PricingSection = () => {
                       الأكثر شعبية
                     </div>
                   </div>
+                )}
+                
+                {isCurrentPlan(plan.name) && (
+                  <Badge className="absolute top-4 left-4 bg-success/10 text-success border-success/20">
+                    الباقة الحالية ✓
+                  </Badge>
                 )}
 
                 <CardHeader className="text-center pb-6">
@@ -222,6 +264,7 @@ export const PricingSection = () => {
                         variant={plan.popular ? "hero" : "outline"}
                         className="w-full"
                         size="lg"
+                        disabled={isCurrentPlan(plan.name)}
                         onClick={async () => {
                           let planKey = "personal";
                           if (plan.name === "العائلية") planKey = "family";
@@ -231,6 +274,15 @@ export const PricingSection = () => {
                           if (!session?.user) {
                             const params = new URLSearchParams({ startTrial: planKey, redirectTo: "/dashboard" });
                             navigate(`/auth?${params.toString()}`);
+                            return;
+                          }
+                          
+                          // إذا كانت الباقة الحالية
+                          if (isCurrentPlan(plan.name)) {
+                            toast({ 
+                              title: "أنت مشترك بالفعل", 
+                              description: "هذه باقتك الحالية" 
+                            });
                             return;
                           }
                           
@@ -244,24 +296,40 @@ export const PricingSection = () => {
                               });
                               return;
                             }
-                            // Handle lifetime plan - redirect to payment
-                            toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
-                            // This will be implemented later with payment integration
+                            redirectToPayment(planKey);
                             return;
                           }
                           
-                          const res = await startTrial(planKey as any);
-                          if ((res as any).error) {
-                            const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
-                            toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
-                          } else {
-                            toast({ title: "بدأت التجربة المجانية", description: "صالحة لمدة ٧ أيام" });
-                            navigate("/dashboard");
+                          // إذا لديه تجربة متاحة
+                          if (canStartTrial && remainingTrialDays > 0) {
+                            const res = await startTrial(planKey as any);
+                            if ((res as any).error) {
+                              if ((res as any).error === "trial_expired") {
+                                toast({ 
+                                  title: "انتهت التجربة المجانية", 
+                                  description: "يمكنك الاشتراك الآن للاستمتاع بجميع المزايا",
+                                  action: <Button onClick={() => redirectToPayment(planKey)}>اشترك الآن</Button>
+                                });
+                              } else {
+                                const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
+                                toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
+                              }
+                            } else {
+                              toast({ 
+                                title: "بدأت التجربة المجانية", 
+                                description: `صالحة لمدة ${remainingTrialDays} أيام` 
+                              });
+                              navigate("/dashboard");
+                            }
+                            return;
                           }
+                          
+                          // إذا لا يوجد تجربة متاحة
+                          redirectToPayment(planKey);
                         }}
-                        aria-label={`ابدأ تجربة ٧ أيام لخطة ${plan.name}`}
+                        aria-label={`${getButtonText(plan.name)} لخطة ${plan.name}`}
                       >
-                        {plan.isLifetime ? plan.buttonText : "ابدأ تجربة ٧ أيام"}
+                        {getButtonText(plan.name)}
                       </Button>
                     )}
                   </div>
