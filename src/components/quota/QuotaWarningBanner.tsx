@@ -36,11 +36,12 @@ export const QuotaWarningBanner = ({
   const isCritical = type === 'critical';
 
   return (
-    <Alert 
-      variant={isCritical ? "destructive" : "warning"}
-      className={`border-l-4 ${isWarning ? 'border-l-warning' : 'border-l-destructive'}`}
-    >
-      <AlertTriangle className="w-4 h-4" />
+    <Alert className={`
+      border-l-4 
+      ${isWarning ? 'border-l-orange-500 bg-orange-50 dark:bg-orange-950/20' : ''}
+      ${isCritical ? 'border-l-red-500 bg-red-50 dark:bg-red-950/20' : ''}
+    `}>
+      <AlertTriangle className={`w-4 h-4 ${isWarning ? 'text-orange-600' : 'text-red-600'}`} />
       <AlertDescription className="flex items-center justify-between">
         <div className="flex-1 ml-2">
           <div className="font-medium">

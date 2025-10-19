@@ -72,13 +72,13 @@ export const SubscriptionStatusCard = () => {
     if (!subscription) return "bg-muted";
     
     if (subscription.status === 'trialing') {
-      return isTrialActive ? "bg-info/10 text-info-foreground border-info/20" : "bg-destructive/10 text-destructive-foreground border-destructive/20";
+      return isTrialActive ? "bg-blue-50 dark:bg-blue-950" : "bg-red-50 dark:bg-red-950";
     }
     
     switch (subscription.status) {
-      case 'active': return "bg-success/10 text-success-foreground border-success/20";
+      case 'active': return "bg-green-50 dark:bg-green-950";
       case 'expired': 
-      case 'canceled': return "bg-destructive/10 text-destructive-foreground border-destructive/20";
+      case 'canceled': return "bg-red-50 dark:bg-red-950";
       default: return "bg-muted";
     }
   };
@@ -182,8 +182,8 @@ export const SubscriptionStatusCard = () => {
 
         {/* تحذير انتهاء التجربة */}
         {isTrialActive && daysLeft <= 2 && daysLeft > 0 && (
-          <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-            <p className="text-xs text-warning-foreground text-center">
+          <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <p className="text-xs text-orange-700 dark:text-orange-300 text-center">
               ⚠️ ستنتهي فترة التجربة خلال {daysLeft} يوم. قم بالترقية للاستمرار في استخدام جميع الميزات.
             </p>
           </div>
