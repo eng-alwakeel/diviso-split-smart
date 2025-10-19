@@ -307,9 +307,10 @@ export const PricingSection = () => {
                               if ((res as any).error === "trial_expired") {
                                 toast({ 
                                   title: "انتهت التجربة المجانية", 
-                                  description: "يمكنك الاشتراك الآن للاستمتاع بجميع المزايا",
-                                  action: <Button onClick={() => redirectToPayment(planKey)}>اشترك الآن</Button>
+                                  description: "يمكنك الاشتراك الآن للاستمتاع بجميع المزايا"
                                 });
+                                // Redirect to payment after showing message
+                                setTimeout(() => redirectToPayment(planKey), 1500);
                               } else {
                                 const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
                                 toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
