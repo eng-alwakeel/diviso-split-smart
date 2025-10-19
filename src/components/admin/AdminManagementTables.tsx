@@ -76,12 +76,12 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
 
   const getPlanBadge = (plan: string) => {
     const config = {
-      'free': { label: 'مجاني', className: 'bg-gray-100 text-gray-800' },
-      'personal': { label: 'شخصي', className: 'bg-blue-100 text-blue-800' },
-      'family': { label: 'عائلي', className: 'bg-purple-100 text-purple-800' },
-      'lifetime': { label: 'مدى الحياة', className: 'bg-yellow-100 text-yellow-800' }
+      'free': { label: 'مجاني', className: 'bg-muted/20 text-muted-foreground' },
+      'personal': { label: 'شخصي', className: 'bg-info/20 text-info-foreground' },
+      'family': { label: 'عائلي', className: 'bg-primary/20 text-primary-foreground' },
+      'lifetime': { label: 'مدى الحياة', className: 'bg-warning/20 text-warning-foreground' }
     };
-    const planConfig = config[plan as keyof typeof config] || { label: plan, className: 'bg-gray-100 text-gray-800' };
+    const planConfig = config[plan as keyof typeof config] || { label: plan, className: 'bg-muted/20 text-muted-foreground' };
     return <Badge className={planConfig.className}>{planConfig.label}</Badge>;
   };
 
@@ -185,7 +185,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                     <TableCell>{group.currency}</TableCell>
                     <TableCell>{group.members_count}</TableCell>
                     <TableCell>{group.expenses_count}</TableCell>
-                    <TableCell className="text-green-600 font-medium">
+                    <TableCell className="text-success font-medium">
                       {group.total_amount.toFixed(2)} {group.currency}
                     </TableCell>
                     <TableCell>

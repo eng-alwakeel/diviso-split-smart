@@ -33,6 +33,9 @@ All colors MUST be HSL.
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 20% 96%;
+    
+    --info: 217 91% 60%;              /* Blue for informational alerts */
+    --info-foreground: 222 47% 11%;
 
     --border: 218 10% 25%;            /* Subtle borders */
     --input: 218 10% 18%;             /* Same as card */

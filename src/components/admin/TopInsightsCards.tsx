@@ -50,12 +50,12 @@ export const TopInsightsCards = ({ data }: TopInsightsCardsProps) => {
 
   const getPlanBadge = (plan: string) => {
     const colors = {
-      'free': 'bg-gray-100 text-gray-800',
-      'personal': 'bg-blue-100 text-blue-800',
-      'family': 'bg-purple-100 text-purple-800',
-      'lifetime': 'bg-yellow-100 text-yellow-800'
+      'free': 'bg-muted/20 text-muted-foreground',
+      'personal': 'bg-info/20 text-info-foreground',
+      'family': 'bg-primary/20 text-primary-foreground',
+      'lifetime': 'bg-warning/20 text-warning-foreground'
     };
-    return colors[plan as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[plan as keyof typeof colors] || 'bg-muted/20 text-muted-foreground';
   };
 
   return (
@@ -92,7 +92,7 @@ export const TopInsightsCards = ({ data }: TopInsightsCardsProps) => {
                         </div>
                         <div className="flex justify-between">
                           <span>إجمالي المبلغ:</span>
-                          <span className="text-green-600 font-medium">
+                          <span className="text-success font-medium">
                             {Number(item.additional_info.total_amount).toFixed(2)} ر.س
                           </span>
                         </div>
@@ -103,7 +103,7 @@ export const TopInsightsCards = ({ data }: TopInsightsCardsProps) => {
                       <>
                         <div className="flex justify-between">
                           <span>إجمالي الإنفاق:</span>
-                          <span className="text-green-600 font-medium">
+                          <span className="text-success font-medium">
                             {Number(item.additional_info.total_spent).toFixed(2)} ر.س
                           </span>
                         </div>
@@ -128,7 +128,7 @@ export const TopInsightsCards = ({ data }: TopInsightsCardsProps) => {
                       <>
                         <div className="flex justify-between">
                           <span>إجمالي المبلغ:</span>
-                          <span className="text-green-600 font-medium">
+                          <span className="text-success font-medium">
                             {Number(item.additional_info.total_amount).toFixed(2)} ر.س
                           </span>
                         </div>

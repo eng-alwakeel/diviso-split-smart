@@ -19,11 +19,11 @@ interface SubscriptionStatsCardsProps {
 export const SubscriptionStatsCards = ({ data }: SubscriptionStatsCardsProps) => {
   const getPlanColor = (plan: string) => {
     switch (plan) {
-      case 'free': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'personal': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'family': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'lifetime': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'free': return 'bg-muted/20 text-muted-foreground border-muted/30';
+      case 'personal': return 'bg-info/20 text-info-foreground border-info/30';
+      case 'family': return 'bg-primary/20 text-primary-foreground border-primary/30';
+      case 'lifetime': return 'bg-warning/20 text-warning-foreground border-warning/30';
+      default: return 'bg-muted/20 text-muted-foreground border-muted/30';
     }
   };
 
@@ -104,13 +104,13 @@ export const SubscriptionStatsCards = ({ data }: SubscriptionStatsCardsProps) =>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                  <p className="text-green-700 font-medium">{plan.active_users}</p>
-                  <p className="text-green-600">نشط</p>
+                <div className="bg-success/10 p-3 rounded-lg border border-success/20">
+                  <p className="text-success font-medium">{plan.active_users}</p>
+                  <p className="text-success-foreground">نشط</p>
                 </div>
-                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                  <p className="text-yellow-700 font-medium">{plan.trial_users}</p>
-                  <p className="text-yellow-600">تجريبي</p>
+                <div className="bg-warning/10 p-3 rounded-lg border border-warning/20">
+                  <p className="text-warning font-medium">{plan.trial_users}</p>
+                  <p className="text-warning-foreground">تجريبي</p>
                 </div>
               </div>
               
@@ -118,7 +118,7 @@ export const SubscriptionStatsCards = ({ data }: SubscriptionStatsCardsProps) =>
                 <div className="pt-2 border-t">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">الإيرادات الشهرية</span>
-                    <span className="font-medium text-green-600">
+                    <span className="font-medium text-success">
                       {plan.monthly_revenue.toFixed(2)} ر.س
                     </span>
                   </div>
@@ -128,7 +128,7 @@ export const SubscriptionStatsCards = ({ data }: SubscriptionStatsCardsProps) =>
               {plan.conversion_rate > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">معدل التحويل</span>
-                  <span className="font-medium text-blue-600">{plan.conversion_rate.toFixed(1)}%</span>
+                  <span className="font-medium text-info">{plan.conversion_rate.toFixed(1)}%</span>
                 </div>
               )}
             </CardContent>
