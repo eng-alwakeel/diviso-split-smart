@@ -14,13 +14,11 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
       case 'exceed':
         return 'destructive';
       case 'depletion':
-        return 'warning';
+        return 'default';
       case 'savings':
-        return 'success';
-      case 'normal':
-        return 'info';
+        return 'default';
       default:
-        return 'info';
+        return 'default';
     }
   };
 
