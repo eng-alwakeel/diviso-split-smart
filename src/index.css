@@ -35,7 +35,7 @@ All colors MUST be HSL.
     --destructive-foreground: 210 20% 96%;
     
     --info: 217 91% 60%;              /* Blue for informational alerts */
-    --info-foreground: 222 47% 11%;
+    --info-foreground: 217 100% 96%;
 
     --border: 218 10% 25%;            /* Subtle borders */
     --input: 218 10% 18%;             /* Same as card */
@@ -43,9 +43,9 @@ All colors MUST be HSL.
 
     /* Status and semantic colors */
     --success: 142 76% 36%;           /* Green for success states */
-    --success-foreground: 142 76% 96%;
-    --warning: 43 96% 56%;            /* Orange for warning states */
-    --warning-foreground: 43 96% 8%;
+    --success-foreground: 142 85% 96%;
+    --warning: 38 92% 50%;            /* Balanced orange for warning states */
+    --warning-foreground: 48 100% 96%;
     
     /* Modern card colors with dark theme */
     --expense-light: 73 66% 71%;      /* Primary accent #C8F169 */
