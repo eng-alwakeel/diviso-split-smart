@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { PlanBadgeConfig } from "@/hooks/usePlanBadge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/safe-tooltip";
 
 interface PlanBadgeProps {
   config: PlanBadgeConfig;

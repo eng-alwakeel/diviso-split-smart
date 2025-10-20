@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AdminBadgeConfig } from "@/hooks/useAdminBadge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/safe-tooltip";
 import { Shield } from "lucide-react";
 
 interface AdminBadgeProps {
