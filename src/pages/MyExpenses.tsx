@@ -15,7 +15,8 @@ import { ExpenseChart } from "@/components/expenses/ExpenseChart";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { BottomNav } from "@/components/BottomNav";
-import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
+import { AppHeader } from "@/components/AppHeader";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
@@ -97,39 +98,45 @@ const MyExpenses = () => {
   }
 
   return (
-    <div className="page-container space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">مصاريفي</h1>
-          <p className="text-muted-foreground">
-            عرض وإدارة جميع مصاريفك الشخصية
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshExpenses}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            تحديث
-          </Button>
-          
-          <Button onClick={() => navigate('/add-expense')}>
-            <Plus className="h-4 w-4 mr-1" />
-            إضافة مصروف
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      
+      <UnifiedAdLayout 
+        placement="my_expenses"
+        showTopBanner={true}
+        showSidebar={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">مصاريفي</h1>
+              <p className="text-muted-foreground">
+                عرض وإدارة جميع مصاريفك الشخصية
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshExpenses}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                تحديث
+              </Button>
+              
+              <Button onClick={() => navigate('/add-expense')}>
+                <Plus className="h-4 w-4 mr-1" />
+                إضافة مصروف
+              </Button>
+            </div>
+          </div>
 
-      {/* Stats Overview */}
-      <ExpenseStats stats={stats} currency="SAR" />
-
-      {/* Persistent Ad Banner */}
-      <PersistentAdBanner placement="expenses_main" className="my-4" />
+          {/* Stats Overview */}
+          <ExpenseStats stats={stats} currency="SAR" />
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -287,8 +294,10 @@ const MyExpenses = () => {
         </div>
       )}
       
-      {/* Bottom spacing for mobile navigation */}
-      <div className="h-24 lg:hidden" />
+        {/* Bottom spacing for mobile navigation */}
+        <div className="h-24 lg:hidden" />
+        </div>
+      </UnifiedAdLayout>
       
       {/* Bottom Navigation */}
       <BottomNav />

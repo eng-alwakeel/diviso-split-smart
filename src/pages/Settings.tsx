@@ -25,6 +25,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ProfileTab } from "@/components/settings/ProfileTab";
 import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 
 
 const getPlanDisplayName = (plan: string) => {
@@ -296,20 +297,26 @@ const Settings = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="form-container">
-        {/* Header */}
-        <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/dashboard')}
-            className="mb-4"
-          >
-            <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
-          </Button>
-          <h1 className="text-3xl font-bold mb-2">الإعدادات</h1>
-          <p className="text-muted-foreground">إدارة حسابك وتخصيص التطبيق</p>
-        </div>
+      <UnifiedAdLayout 
+        placement="settings"
+        showTopBanner={false}
+        showSidebar={false}
+        showBottomBanner={true}
+      >
+        <div className="form-container">
+          {/* Header */}
+          <div className="mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-4"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              العودة للوحة التحكم
+            </Button>
+            <h1 className="text-3xl font-bold mb-2">الإعدادات</h1>
+            <p className="text-muted-foreground">إدارة حسابك وتخصيص التطبيق</p>
+          </div>
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -637,7 +644,8 @@ const Settings = () => {
             </TabsContent>
           )}
         </Tabs>
-      </div>
+        </div>
+      </UnifiedAdLayout>
       
       <div className="h-16 md:hidden" />
       <BottomNav />

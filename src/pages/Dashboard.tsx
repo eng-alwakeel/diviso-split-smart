@@ -9,8 +9,7 @@ import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
-import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
-import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
@@ -121,59 +120,55 @@ const Dashboard = React.memo(() => {
   return <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="page-container space-y-6">
-        {/* Quota Warning Banners */}
-        {quotaWarnings.length > 0 && <div className="space-y-2">
-            {quotaWarnings.map(warning => <QuotaWarningBanner key={warning.type} type={warning.type!} quotaType={warning.type} currentUsage={warning.usage} limit={warning.limit} percentage={warning.percentage} />)}
-          </div>}
+      <UnifiedAdLayout 
+        placement="dashboard"
+        showTopBanner={true}
+        showSidebar={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          {/* Quota Warning Banners */}
+          {quotaWarnings.length > 0 && <div className="space-y-2">
+              {quotaWarnings.map(warning => <QuotaWarningBanner key={warning.type} type={warning.type!} quotaType={warning.type} currentUsage={warning.usage} limit={warning.limit} percentage={warning.percentage} />)}
+            </div>}
 
-        {/* Smart Promotion System */}
-        <SmartPromotionBanner />
+          {/* Smart Promotion System */}
+          <SmartPromotionBanner />
 
-        {/* Welcome Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
-            <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
+          {/* Welcome Section */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
+              <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleShowGuide} className="text-muted-foreground hover:text-foreground">
+              <HelpCircle className="w-4 h-4 ml-2" />
+              المساعدة
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleShowGuide} className="text-muted-foreground hover:text-foreground">
-            <HelpCircle className="w-4 h-4 ml-2" />
-            المساعدة
-          </Button>
-        </div>
 
-        {/* Stats Grid */}
-        <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
+          {/* Stats Grid */}
+          <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
 
-        {/* Subscription and Usage Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <SubscriptionStatusCard />
-          <UsageLimitsCard />
-          
-          {/* Persistent Ad Sidebar - Always visible for free users */}
-          <PersistentAdSidebar className="lg:block hidden" />
-          
-          {/* Mobile Ad Display */}
-          <div className="lg:hidden">
-            <PersistentAdBanner placement="dashboard_mobile" />
+          {/* Subscription and Usage Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SubscriptionStatusCard />
+            <UsageLimitsCard />
           </div>
-        </div>
-        
-        {/* Persistent Ad Banners - Always visible for free users */}
-        <PersistentAdBanner placement="dashboard_main" className="mt-4" />
 
-        {/* Admin Dashboard Card - Only for Admins */}
-        {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
-            
-          </Card>}
+          {/* Admin Dashboard Card - Only for Admins */}
+          {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
+              
+            </Card>}
 
-        {/* Quick Actions - Centered */}
-        <div className="flex justify-center">
-          <div className="w-full max-w-md">
-            <SimpleQuickActions />
+          {/* Quick Actions - Centered */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <SimpleQuickActions />
+            </div>
           </div>
         </div>
-      </div>
+      </UnifiedAdLayout>
       
       {/* App Guide */}
       {showGuide && <AppGuide onClose={handleCloseGuide} />}

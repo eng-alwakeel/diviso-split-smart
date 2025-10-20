@@ -14,6 +14,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
@@ -52,12 +53,18 @@ export default function MyGroups() {
   return <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="page-container space-y-6">
-        {/* عنوان الصفحة */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">مجموعاتي</h1>
-          <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
-        </div>
+      <UnifiedAdLayout 
+        placement="my_groups"
+        showTopBanner={true}
+        showSidebar={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          {/* عنوان الصفحة */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">مجموعاتي</h1>
+            <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
+          </div>
         
         {/* إحصائيات بسيطة */}
         <Card>
@@ -140,7 +147,8 @@ export default function MyGroups() {
             </div>}
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </UnifiedAdLayout>
 
       <BottomNav />
     </div>;
