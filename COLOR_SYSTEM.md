@@ -149,6 +149,75 @@ colors: {
 - [ ] له معنى واضح ودلالي
 - [ ] موثّق في هذا الملف
 
+## ألوان الإشعارات (Notifications)
+
+### 🚨 Critical (حرج)
+- **الاستخدام**: أخطاء حرجة، تجاوز الحدود
+- **الكلاس**: `text-notification-critical`, `bg-notification-critical-bg`
+- **المتغير**: `--notification-critical`, `--notification-critical-bg`
+- **المثال**: رسائل الخطأ الحرجة، تجاوز الحدود القصوى
+
+### ⚠️ Warning (تحذير - إشعارات)
+- **الاستخدام**: تحذيرات إشعارات، اقتراب من الحد
+- **الكلاس**: `text-notification-warning`, `bg-notification-warning-bg`
+- **المتغير**: `--notification-warning`, `--notification-warning-bg`
+- **المثال**: اقتراب من الحد، تنبيهات مهمة
+
+### ℹ️ Info (معلومات - إشعارات)
+- **الاستخدام**: معلومات إشعارات عامة
+- **الكلاس**: `text-notification-info`, `bg-notification-info-bg`
+- **المتغير**: `--notification-info`, `--notification-info-bg`
+- **المثال**: معلومات تعليمية، نصائح
+
+### ✅ Success (نجاح - إشعارات)
+- **الاستخدام**: عمليات ناجحة في الإشعارات
+- **الكلاس**: `text-notification-success`, `bg-notification-success-bg`
+- **المتغير**: `--notification-success`, `--notification-success-bg`
+- **المثال**: نجاح العمليات، تأكيدات
+
+---
+
+## ألوان Usage Categories
+
+| الفئة | الكلاس | المتغير | الاستخدام |
+|------|--------|---------|----------|
+| 📁 المجموعات | `text-usage-groups` | `--usage-groups` | عدد المجموعات |
+| 👥 الأعضاء | `text-usage-members` | `--usage-members` | عدد الأعضاء |
+| 💰 المصاريف | `text-usage-expenses` | `--usage-expenses` | المصاريف الشهرية |
+| ✉️ الدعوات | `text-usage-invites` | `--usage-invites` | الدعوات الشهرية |
+| 📸 OCR | `text-usage-ocr` | `--usage-ocr` | مسح الإيصالات |
+| 📥 التصدير | `text-usage-export` | `--usage-export` | تصدير التقارير |
+| 🗃️ الاحتفاظ | `text-usage-retention` | `--usage-retention` | مدة حفظ البيانات |
+
+### أمثلة الاستخدام:
+
+```tsx
+// Usage item with semantic color
+<div className="flex items-center gap-2">
+  <Users className="text-usage-members" />
+  <span>الأعضاء</span>
+</div>
+
+// Notification with semantic color
+<Alert variant="warning">
+  <AlertTriangle className="h-5 w-5" />
+  <AlertTitle>تحذير</AlertTitle>
+  <AlertDescription>اقترب من الحد الأقصى</AlertDescription>
+</Alert>
+
+// Progress bar with conditional colors
+<Progress 
+  value={percentage} 
+  className={`h-2 ${
+    atLimit ? '[&>*]:bg-destructive' : 
+    nearLimit ? '[&>*]:bg-warning' : 
+    '[&>*]:bg-primary'
+  }`}
+/>
+```
+
+---
+
 ## الصيانة
 
 - مراجعة الألوان كل 3 أشهر

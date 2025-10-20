@@ -71,6 +71,29 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				'notification-critical': {
+					DEFAULT: 'hsl(var(--notification-critical))',
+					bg: 'hsl(var(--notification-critical-bg))'
+				},
+				'notification-warning': {
+					DEFAULT: 'hsl(var(--notification-warning))',
+					bg: 'hsl(var(--notification-warning-bg))'
+				},
+				'notification-info': {
+					DEFAULT: 'hsl(var(--notification-info))',
+					bg: 'hsl(var(--notification-info-bg))'
+				},
+				'notification-success': {
+					DEFAULT: 'hsl(var(--notification-success))',
+					bg: 'hsl(var(--notification-success-bg))'
+				},
+				'usage-groups': 'hsl(var(--usage-groups))',
+				'usage-members': 'hsl(var(--usage-members))',
+				'usage-expenses': 'hsl(var(--usage-expenses))',
+				'usage-invites': 'hsl(var(--usage-invites))',
+				'usage-ocr': 'hsl(var(--usage-ocr))',
+				'usage-export': 'hsl(var(--usage-export))',
+				'usage-retention': 'hsl(var(--usage-retention))',
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'

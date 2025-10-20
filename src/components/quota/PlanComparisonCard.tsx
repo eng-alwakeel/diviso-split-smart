@@ -110,22 +110,22 @@ export const PlanComparisonCard = ({ onUpgrade }: PlanComparisonCardProps) => {
                 <tr key={index} className="border-b">
                   <td className="p-2 font-medium">{feature.feature}</td>
                   <td className="text-center p-2">
-                    {typeof feature.free === 'boolean' ? (
-                      feature.free ? (
-                        <Check className="w-4 h-4 text-green-600 mx-auto" />
-                      ) : (
-                        <X className="w-4 h-4 text-red-500 mx-auto" />
-                      )
+                  {typeof feature.free === 'boolean' ? (
+                    feature.free ? (
+                      <Check className="w-4 h-4 text-success mx-auto" />
                     ) : (
-                      <span className="text-xs">{feature.free}</span>
-                    )}
+                      <X className="w-4 h-4 text-destructive mx-auto" />
+                    )
+                  ) : (
+                    <span className="text-xs">{feature.free}</span>
+                  )}
                   </td>
                   <td className="text-center p-2">
                     {typeof feature.personal === 'boolean' ? (
                       feature.personal ? (
-                        <Check className="w-4 h-4 text-green-600 mx-auto" />
+                        <Check className="w-4 h-4 text-success mx-auto" />
                       ) : (
-                        <X className="w-4 h-4 text-red-500 mx-auto" />
+                        <X className="w-4 h-4 text-destructive mx-auto" />
                       )
                     ) : (
                       <span className="text-xs text-primary font-medium">{feature.personal}</span>
@@ -134,9 +134,9 @@ export const PlanComparisonCard = ({ onUpgrade }: PlanComparisonCardProps) => {
                   <td className="text-center p-2">
                     {typeof feature.family === 'boolean' ? (
                       feature.family ? (
-                        <Check className="w-4 h-4 text-green-600 mx-auto" />
+                        <Check className="w-4 h-4 text-success mx-auto" />
                       ) : (
-                        <X className="w-4 h-4 text-red-500 mx-auto" />
+                        <X className="w-4 h-4 text-destructive mx-auto" />
                       )
                     ) : (
                       <span className="text-xs text-primary font-medium">{feature.family}</span>

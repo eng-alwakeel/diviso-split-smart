@@ -73,56 +73,56 @@ export const UsageLimitsCard = () => {
       current: currentUsage.groups,
       limit: limits.groups,
       icon: Layers,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-usage-groups",
+      bgColor: "bg-usage-groups/10",
     },
     {
       label: "الأعضاء",
       current: currentUsage.members,
       limit: limits.members,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-usage-members",
+      bgColor: "bg-usage-members/10",
     },
     {
       label: "المصاريف (شهرياً)",
       current: currentUsage.expenses,
       limit: limits.expenses,
       icon: Receipt,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-usage-expenses",
+      bgColor: "bg-usage-expenses/10",
     },
     {
       label: "الدعوات (شهرياً)",
       current: currentUsage.invites,
       limit: limits.invites,
       icon: MessageSquare,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-usage-invites",
+      bgColor: "bg-usage-invites/10",
     },
     {
       label: "مسح الإيصالات (شهرياً)",
       current: currentUsage.ocr,
       limit: limits.ocr,
       icon: Scan,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
+      color: "text-usage-ocr",
+      bgColor: "bg-usage-ocr/10",
     },
     {
       label: "تصدير التقارير (شهرياً)",
       current: currentUsage.reportExport,
       limit: limits.reportExport,
       icon: FileDown,
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50",
+      color: "text-usage-export",
+      bgColor: "bg-usage-export/10",
     },
     {
       label: "مدة حفظ البيانات",
       current: currentUsage.dataRetention,
       limit: limits.dataRetentionMonths,
       icon: Calendar,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
+      color: "text-usage-retention",
+      bgColor: "bg-usage-retention/10",
       unit: "شهر"
     },
   ];
@@ -145,7 +145,7 @@ export const UsageLimitsCard = () => {
             </Badge>
           )}
           {hasWarnings && !hasBlocked && (
-            <Badge className="bg-orange-50 text-orange-700 border-orange-200">
+            <Badge variant="warning">
               <AlertTriangle className="w-3 h-3 mr-1" />
               تحذير
             </Badge>
@@ -175,14 +175,14 @@ export const UsageLimitsCard = () => {
                   <span className="text-sm text-muted-foreground">{formatLimit(item.limit)}</span>
                   {item.unit && <span className="text-xs text-muted-foreground mr-1">{item.unit}</span>}
                   {atLimit && <AlertTriangle className="w-3 h-3 text-destructive mr-1" />}
-                  {nearLimit && !atLimit && <AlertTriangle className="w-3 h-3 text-orange-500 mr-1" />}
+                  {nearLimit && !atLimit && <AlertTriangle className="w-3 h-3 text-warning mr-1" />}
                 </div>
               </div>
               
               {item.limit !== -1 && (
                 <Progress 
                   value={percentage} 
-                  className={`h-2 ${atLimit ? '[&>*]:bg-destructive' : nearLimit ? '[&>*]:bg-orange-500' : ''}`}
+                  className={`h-2 ${atLimit ? '[&>*]:bg-destructive' : nearLimit ? '[&>*]:bg-warning' : ''}`}
                 />
               )}
             </div>

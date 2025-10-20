@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
@@ -68,18 +69,18 @@ export const SubscriptionStatusCard = () => {
     }
   };
 
-  const getStatusColor = () => {
-    if (!subscription) return "bg-muted";
+  const getStatusVariant = (): "default" | "destructive" | "info" | "success" => {
+    if (!subscription) return "default";
     
     if (subscription.status === 'trialing') {
-      return isTrialActive ? "bg-blue-50 dark:bg-blue-950" : "bg-red-50 dark:bg-red-950";
+      return isTrialActive ? "info" : "destructive";
     }
     
     switch (subscription.status) {
-      case 'active': return "bg-green-50 dark:bg-green-950";
+      case 'active': return "success";
       case 'expired': 
-      case 'canceled': return "bg-red-50 dark:bg-red-950";
-      default: return "bg-muted";
+      case 'canceled': return "destructive";
+      default: return "default";
     }
   };
 
@@ -111,7 +112,7 @@ export const SubscriptionStatusCard = () => {
         {/* حالة الاشتراك */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">الحالة:</span>
-          <Badge className={`${getStatusColor()} text-foreground border-0`}>
+          <Badge variant={getStatusVariant()}>
             {getStatusText()}
           </Badge>
         </div>
@@ -139,7 +140,7 @@ export const SubscriptionStatusCard = () => {
               <Gift className="w-4 h-4" />
               أيام مجانية من الإحالات:
             </span>
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">
+            <span className="text-sm font-medium text-success">
               {freeDaysFromReferrals} يوم
             </span>
           </div>
@@ -182,11 +183,11 @@ export const SubscriptionStatusCard = () => {
 
         {/* تحذير انتهاء التجربة */}
         {isTrialActive && daysLeft <= 2 && daysLeft > 0 && (
-          <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-            <p className="text-xs text-orange-700 dark:text-orange-300 text-center">
+          <Alert variant="warning" className="p-3">
+            <AlertDescription className="text-xs text-center">
               ⚠️ ستنتهي فترة التجربة خلال {daysLeft} يوم. قم بالترقية للاستمرار في استخدام جميع الميزات.
-            </p>
-          </div>
+            </AlertDescription>
+          </Alert>
         )}
       </CardContent>
     </Card>

@@ -62,6 +62,25 @@ All colors MUST be HSL.
     --warning: 43 96% 56%;            /* Orange for warning states */
     --warning-foreground: 43 96% 8%;
     
+    /* Notification status colors */
+    --notification-critical: 0 70% 50%;
+    --notification-critical-bg: 0 70% 15%;
+    --notification-warning: 30 80% 55%;
+    --notification-warning-bg: 30 80% 15%;
+    --notification-info: 73 50% 55%;
+    --notification-info-bg: 73 50% 15%;
+    --notification-success: 142 76% 36%;
+    --notification-success-bg: 142 76% 15%;
+    
+    /* Usage category colors */
+    --usage-groups: 73 66% 71%;
+    --usage-members: 73 50% 60%;
+    --usage-expenses: 142 76% 36%;
+    --usage-invites: 30 80% 55%;
+    --usage-ocr: 73 60% 65%;
+    --usage-export: 73 55% 58%;
+    --usage-retention: 73 45% 55%;
+    
     /* Modern card colors with dark theme */
     --expense-light: 73 66% 71%;      /* Primary accent #C8F169 */
     --expense-light-foreground: 218 11% 10%;

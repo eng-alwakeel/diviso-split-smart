@@ -97,15 +97,15 @@ export function ReferralNotifications() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'referral_joined':
-        return <Users className="h-5 w-5 text-green-500" />;
+        return <Users className="h-5 w-5 text-success" />;
       case 'reward_earned':
-        return <Gift className="h-5 w-5 text-blue-500" />;
+        return <Gift className="h-5 w-5 text-primary" />;
       case 'tier_upgraded':
-        return <TrendingUp className="h-5 w-5 text-purple-500" />;
+        return <TrendingUp className="h-5 w-5 text-accent" />;
       case 'referral_milestone':
-        return <CheckCircle2 className="h-5 w-5 text-yellow-500" />;
+        return <CheckCircle2 className="h-5 w-5 text-warning" />;
       default:
-        return <Bell className="h-5 w-5 text-gray-500" />;
+        return <Bell className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
