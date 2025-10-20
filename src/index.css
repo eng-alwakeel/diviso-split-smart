@@ -31,8 +31,26 @@ All colors MUST be HSL.
     --accent: 73 66% 71%;             /* Same as primary */
     --accent-foreground: 218 11% 10%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 210 20% 96%;
+    
+    --info: 73 50% 55%;
+    --info-foreground: 218 11% 10%;
+    
+    --notification-badge: 73 66% 71%;
+    --notification-badge-foreground: 218 11% 10%;
+    
+    --status-positive: 73 66% 71%;
+    --status-positive-foreground: 218 11% 10%;
+    --status-positive-bg: 73 66% 15%;
+    
+    --status-negative: 0 70% 50%;
+    --status-negative-foreground: 210 20% 96%;
+    --status-negative-bg: 0 70% 15%;
+    
+    --status-neutral: 210 10% 60%;
+    --status-neutral-foreground: 210 20% 96%;
+    --status-neutral-bg: 218 10% 18%;
 
     --border: 218 10% 25%;            /* Subtle borders */
     --input: 218 10% 18%;             /* Same as card */
@@ -117,8 +135,26 @@ All colors MUST be HSL.
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 210 20% 96%;
+    
+    --info: 73 50% 55%;
+    --info-foreground: 218 11% 10%;
+    
+    --notification-badge: 73 66% 71%;
+    --notification-badge-foreground: 218 11% 10%;
+    
+    --status-positive: 73 66% 71%;
+    --status-positive-foreground: 218 11% 10%;
+    --status-positive-bg: 73 66% 15%;
+    
+    --status-negative: 0 70% 50%;
+    --status-negative-foreground: 210 20% 96%;
+    --status-negative-bg: 0 70% 15%;
+    
+    --status-neutral: 210 10% 60%;
+    --status-neutral-foreground: 210 20% 96%;
+    --status-neutral-bg: 218 10% 18%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;

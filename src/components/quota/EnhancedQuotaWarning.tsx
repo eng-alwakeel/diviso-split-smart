@@ -85,7 +85,7 @@ export const EnhancedQuotaWarning = ({
   const getProgressColor = () => {
     if (percentage >= 100) return 'bg-destructive';
     if (percentage >= 80) return 'bg-destructive';
-    if (percentage >= 60) return 'bg-orange-500';
+    if (percentage >= 60) return 'bg-warning';
     return 'bg-primary';
   };
 

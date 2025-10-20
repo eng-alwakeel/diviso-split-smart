@@ -12,13 +12,15 @@ export const BudgetWarningAlert = ({ warning, currency, onDismiss }: BudgetWarni
   const getAlertVariant = () => {
     switch (warning.warning_type) {
       case 'exceed':
-        return 'destructive';
+        return 'destructive' as const;
       case 'depletion':
-        return 'default';
+        return 'warning' as const;
       case 'savings':
-        return 'default';
+        return 'success' as const;
+      case 'normal':
+        return 'info' as const;
       default:
-        return 'default';
+        return 'default' as const;
     }
   };
 

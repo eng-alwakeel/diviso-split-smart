@@ -40,6 +40,29 @@ export default {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
+				'notification-badge': {
+					DEFAULT: 'hsl(var(--notification-badge))',
+					foreground: 'hsl(var(--notification-badge-foreground))'
+				},
+				'status-positive': {
+					DEFAULT: 'hsl(var(--status-positive))',
+					foreground: 'hsl(var(--status-positive-foreground))',
+					bg: 'hsl(var(--status-positive-bg))'
+				},
+				'status-negative': {
+					DEFAULT: 'hsl(var(--status-negative))',
+					foreground: 'hsl(var(--status-negative-foreground))',
+					bg: 'hsl(var(--status-negative-bg))'
+				},
+				'status-neutral': {
+					DEFAULT: 'hsl(var(--status-neutral))',
+					foreground: 'hsl(var(--status-neutral-foreground))',
+					bg: 'hsl(var(--status-neutral-bg))'
+				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'

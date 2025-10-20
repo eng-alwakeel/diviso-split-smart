@@ -194,7 +194,7 @@ export default function Notifications() {
                     <Card
                       key={notification.id}
                       className={`transition-colors hover:bg-muted/50 ${
-                        !notification.read_at ? 'bg-primary/5 border-primary/20' : ''
+                        !notification.read_at ? 'bg-primary/5 border-primary/20 shadow-primary/10' : 'border-border'
                       }`}
                     >
                       <CardContent className="flex items-start gap-4 p-4">
@@ -214,7 +214,7 @@ export default function Notifications() {
                               {getNotificationText(notification)}
                             </p>
                             {!notification.read_at && (
-                              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0 animate-pulse shadow-primary" />
                             )}
                           </div>
                           

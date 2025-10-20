@@ -26,8 +26,8 @@ export const SimpleStatsGrid = ({
       value: `${netBalance.toLocaleString()} ر.س`,
       subtitle: netBalance >= 0 ? "لك" : "عليك",
       icon: TrendingUp,
-      color: netBalance >= 0 ? "text-green-600" : "text-red-600",
-      bgColor: netBalance >= 0 ? "bg-green-50" : "bg-red-50",
+      color: netBalance >= 0 ? "text-status-positive" : "text-status-negative",
+      bgColor: netBalance >= 0 ? "bg-status-positive-bg" : "bg-status-negative-bg",
       onClick: () => navigate('/my-expenses'),
     },
     {
@@ -35,8 +35,8 @@ export const SimpleStatsGrid = ({
       value: `${monthlyTotalExpenses.toLocaleString()} ر.س`,
       subtitle: "هذا الشهر",
       icon: DollarSign,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       onClick: () => navigate('/my-expenses'),
     },
     {
@@ -44,8 +44,8 @@ export const SimpleStatsGrid = ({
       value: groupsCount.toString(),
       subtitle: "نشطة",
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-accent",
+      bgColor: "bg-accent/10",
       onClick: () => navigate('/my-groups'),
     },
     {
@@ -53,8 +53,8 @@ export const SimpleStatsGrid = ({
       value: `${myPaid.toLocaleString()} ر.س`,
       subtitle: "إجمالي",
       icon: Receipt,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-warning",
+      bgColor: "bg-warning/10",
       onClick: () => navigate('/my-expenses'),
     },
   ];
