@@ -29,7 +29,11 @@ export function useReferralRewards() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Silent error handling - don't show toast on every fetch
+        console.warn("Error fetching referral rewards:", error);
+        return;
+      }
 
       setRewards(data || []);
       
@@ -40,8 +44,8 @@ export function useReferralRewards() {
       setTotalDaysEarned(totalEarned);
       setRemainingDays(remainingUnused);
     } catch (error) {
-      console.error("Error fetching referral rewards:", error);
-      toast.error("خطأ في جلب بيانات المكافآت");
+      console.warn("Unexpected error fetching referral rewards:", error);
+      // Don't show toast for background fetches
     } finally {
       setLoading(false);
     }

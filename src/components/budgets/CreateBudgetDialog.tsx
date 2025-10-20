@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   MapPin, 
   Calendar, 
@@ -289,16 +289,14 @@ export function CreateBudgetDialog({
       <div>
         <div className="flex items-center gap-2">
           <Label htmlFor="budget-amount">المبلغ الإجمالي *</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>المبلغ الكامل المخصص لهذه الميزانية</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>المبلغ الكامل المخصص لهذه الميزانية</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         <Input
           id="budget-amount"
@@ -314,16 +312,14 @@ export function CreateBudgetDialog({
       <div>
         <div className="flex items-center gap-2">
           <Label htmlFor="budget-limit">الحد الأقصى للإنفاق (اختياري)</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>الحد الأقصى للإنفاق قبل إرسال تنبيه. اتركه فارغاً لاستخدام المبلغ الإجمالي</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>الحد الأقصى للإنفاق قبل إرسال تنبيه. اتركه فارغاً لاستخدام المبلغ الإجمالي</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         <Input
           id="budget-limit"
@@ -432,16 +428,14 @@ export function CreateBudgetDialog({
       <div>
         <div className="flex items-center gap-2">
           <Label htmlFor="budget-period">الفترة</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>فترة الميزانية. سيتم حساب تاريخ النهاية تلقائياً</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>فترة الميزانية. سيتم حساب تاريخ النهاية تلقائياً</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         <Select 
           value={formData.period} 

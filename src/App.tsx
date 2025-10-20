@@ -43,6 +43,8 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      refetchOnReconnect: false,
+      networkMode: 'offlineFirst',
     },
     mutations: {
       retry: 1,
