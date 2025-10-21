@@ -1055,7 +1055,7 @@ const GroupDetails = () => {
       </div>
       </UnifiedAdLayout>
       
-      <div className="h-16 md:hidden" />
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );

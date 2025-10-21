@@ -6,6 +6,7 @@ import { UnifiedBudgetCreator } from "@/components/budgets/UnifiedBudgetCreator"
 import { useBudgets, CreateBudgetData } from "@/hooks/useBudgets";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
 import { supabase } from "@/integrations/supabase/client";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 
 export default function CreateUnifiedBudget() {
   const navigate = useNavigate();
@@ -83,14 +84,21 @@ export default function CreateUnifiedBudget() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 pt-6 pb-20">
-        <UnifiedBudgetCreator 
-          onSave={handleSave}
-          isLoading={isCreating}
-          groupId={groupId}
-        />
-      </div>
+      <UnifiedAdLayout 
+        placement="create_unified_budget"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          <UnifiedBudgetCreator 
+            onSave={handleSave}
+            isLoading={isCreating}
+            groupId={groupId}
+          />
+        </div>
+      </UnifiedAdLayout>
       
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );

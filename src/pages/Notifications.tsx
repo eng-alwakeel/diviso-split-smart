@@ -2,6 +2,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
 import { useNotifications } from '@/hooks/useNotifications';
 import { GroupInviteCard } from '@/components/GroupInviteCard';
+import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -100,8 +101,13 @@ export default function Notifications() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <main className="page-container">
-        <div className="flex items-center justify-between mb-6">
+      <UnifiedAdLayout 
+        placement="notifications"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <main className="page-container space-y-6">
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <Bell className="w-6 h-6 text-primary" />
@@ -325,8 +331,10 @@ export default function Notifications() {
             )}
           </TabsContent>
         </Tabs>
-      </main>
+        </main>
+      </UnifiedAdLayout>
 
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );

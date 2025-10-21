@@ -27,6 +27,7 @@ import { useCurrencies } from "@/hooks/useCurrencies";
 import { AIGroupCategorySuggestions } from '@/components/group/AIGroupCategorySuggestions';
 import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
 import { Bot } from 'lucide-react';
+import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -463,7 +464,12 @@ const CreateGroup = () => {
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
       
-      <div className="simple-container">
+      <UnifiedAdLayout 
+        placement="create_group"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
         {/* Header */}
         <div className="mb-8">
           <Button 
@@ -766,13 +772,15 @@ const CreateGroup = () => {
                 className="flex-1"
                 variant="hero"
               >
-                {loading ? 'جاري الإنشاء...' : 'إنشاء المجموعة'}
-              </Button>
-            </div>
+              {loading ? 'جاري الإنشاء...' : 'إنشاء المجموعة'}
+            </Button>
           </div>
-        )}
+        </div>
+      )}
       </div>
-      <div className="h-16 md:hidden" />
+      </UnifiedAdLayout>
+      
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );

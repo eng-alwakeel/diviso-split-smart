@@ -22,6 +22,8 @@ import { useGroups } from "@/hooks/useGroups";
 import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
 import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
 import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 
 export default function FinancialPlan() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -119,9 +121,14 @@ export default function FinancialPlan() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="container mx-auto px-4 pt-6 pb-20">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <UnifiedAdLayout 
+        placement="financial_plan"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-primary">
@@ -156,8 +163,10 @@ export default function FinancialPlan() {
           </Card>
         </div>
 
+        <FixedStatsAdBanner placement="financial_plan_stats" />
+
         {/* Create Budget Button */}
-        <div className="mb-6 flex gap-4">
+        <div className="flex gap-4">
           <Button 
             className="flex-1 md:flex-none"
             onClick={() => setIsCreatingBudget(true)}
@@ -374,8 +383,10 @@ export default function FinancialPlan() {
           onUpdate={handleUpdateBudget}
           isUpdating={isUpdating}
         />
-      </div>
+        </div>
+      </UnifiedAdLayout>
       
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );
