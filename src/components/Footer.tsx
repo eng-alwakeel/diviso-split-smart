@@ -16,8 +16,13 @@ export const Footer = () => {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground/80">
+                قسّم بذكاء، سافر براحة | Split Smart, Travel Easy
+              </p>
             </div>
             <p className="text-muted-foreground">
               إدارة المصاريف المشتركة بذكاء وسهولة. قسّم النفقات واتبع الميزانية مع أصدقائك وعائلتك.

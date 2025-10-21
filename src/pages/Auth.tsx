@@ -190,6 +190,18 @@ const Auth = () => {
       <div className="auth-container">
         <Card className="bg-card border border-border rounded-2xl">
           <CardHeader>
+            <div className="flex flex-col items-center gap-3 mb-2">
+              <img 
+                src="/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png" 
+                alt="شعار Diviso" 
+                className="h-10 w-auto" 
+                width={160} 
+                height={40} 
+              />
+              <p className="text-xs text-muted-foreground font-medium">
+                قسّم بذكاء، سافر براحة
+              </p>
+            </div>
             <CardTitle className="text-center">
               {mode === "login" ? "تسجيل الدخول" : mode === "signup" ? "إنشاء حساب" : 
                authType === "phone" ? "تحقق من رقم الهاتف" : "تحقق من البريد الإلكتروني"}

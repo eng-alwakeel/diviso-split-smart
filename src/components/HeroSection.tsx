@@ -13,6 +13,17 @@ export const HeroSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="text-center lg:text-right">
+            {/* Slogan Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 border border-white/20">
+              <span className="text-sm font-medium text-white">
+                قسّم بذكاء، سافر براحة
+              </span>
+              <span className="text-xs text-white/70">|</span>
+              <span className="text-xs font-medium text-white/80">
+                Split Smart, Travel Easy
+              </span>
+            </div>
+
             <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
               إدارة المصاريف
               <br />

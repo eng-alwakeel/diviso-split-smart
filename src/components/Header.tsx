@@ -51,9 +51,13 @@ export const Header = () => {
           </div>
 
           {/* Center: Logo */}
-          <Link to="/" className="justify-self-center inline-flex items-center gap-3">
-            <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
-            <span className="sr-only">Diviso</span>
+          <Link to="/" className="justify-self-center inline-flex flex-col items-center gap-1">
+            <div className="flex items-center gap-3">
+              <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+            </div>
+            <span className="hidden md:block text-xs text-muted-foreground font-medium">
+              قسّم بذكاء، سافر براحة
+            </span>
           </Link>
 
           {/* Right: Navigation / Menu */}
