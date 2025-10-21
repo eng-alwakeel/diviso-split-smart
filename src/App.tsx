@@ -8,26 +8,27 @@ import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import EmailVerify from "./pages/EmailVerify";
+import MyExpenses from "./pages/MyExpenses";
+import MyGroups from "./pages/MyGroups";
+import Settings from "./pages/Settings";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import InviteRoute from "./pages/InviteRoute";
 import PhoneInviteRoute from "./pages/PhoneInviteRoute";
 import NotFound from "./pages/NotFound";
 
-// Lazy load heavy components
+// Lazy load heavy components (excluding core pages)
 const LazyCreateGroup = withLazyLoading(lazy(() => import("./pages/CreateGroup")));
 const LazyAddExpense = withLazyLoading(lazy(() => import("./pages/AddExpense")));
 const LazyReferralCenter = withLazyLoading(lazy(() => import("./pages/ReferralCenter")));
 const LazyGroupDetails = withLazyLoading(lazy(() => import("./pages/GroupDetails")));
 const LazyFinancialPlan = withLazyLoading(lazy(() => import("./pages/FinancialPlan")));
 const LazyCreateUnifiedBudget = withLazyLoading(lazy(() => import("./pages/CreateUnifiedBudget")));
-const LazyMyExpenses = withLazyLoading(lazy(() => import("./pages/MyExpenses")));
-const LazyMyGroups = withLazyLoading(lazy(() => import("./pages/MyGroups")));
-const LazySettings = withLazyLoading(lazy(() => import("./pages/Settings")));
 const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingProtected")));
 const LazyNotifications = withLazyLoading(lazy(() => import("./pages/Notifications")));
 const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
@@ -39,13 +40,14 @@ const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPag
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchOnReconnect: false,
       networkMode: 'offlineFirst',
+      placeholderData: (previousData) => previousData,
     },
     mutations: {
       retry: 1,
@@ -56,8 +58,9 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdPreferencesProvider>
-        <BrowserRouter>
+      <AuthProvider>
+        <AdPreferencesProvider>
+          <BrowserRouter>
           <EnhancedPerformanceMonitor />
           <Toaster />
           <Sonner />
@@ -74,14 +77,14 @@ const App: React.FC = () => {
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
-            <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
-            <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><MyExpenses /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><MyGroups /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/financial-plan" element={<ProtectedRoute><PageErrorBoundary><LazyFinancialPlan /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-unified-budget" element={<ProtectedRoute><PageErrorBoundary><LazyCreateUnifiedBudget /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/referral" element={<ProtectedRoute><PageErrorBoundary><LazyReferralCenter /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
             <Route path="/notifications" element={<ProtectedRoute><PageErrorBoundary><LazyNotifications /></PageErrorBoundary></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><PageErrorBoundary><LazySettings /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><PageErrorBoundary><Settings /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing-protected" element={<ProtectedRoute><PageErrorBoundary><LazyPricingProtected /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
@@ -90,8 +93,9 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
             </Routes>
           </ImprovedErrorBoundary>
-        </BrowserRouter>
-      </AdPreferencesProvider>
+          </BrowserRouter>
+        </AdPreferencesProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

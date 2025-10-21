@@ -49,54 +49,29 @@ export interface ExpenseStats {
   groups_count: number;
 }
 
-const useMyExpenses = () => {
+const useMyExpenses = (userId?: string) => {
   const [expenses, setExpenses] = useState<MyExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ExpenseFilters>({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string>('');
   const { toast } = useToast();
 
   const ITEMS_PER_PAGE = 20;
 
-  // Get current user ID for stats calculation with better error handling
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          console.error('Error getting user in useMyExpenses:', error);
-          return;
-        }
-        if (user) {
-          setCurrentUserId(user.id);
-        }
-      } catch (error) {
-        console.error('Failed to get user in useMyExpenses:', error);
-      }
-    };
-    
-    // Add a small delay to avoid race conditions
-    const timeoutId = setTimeout(getCurrentUser, 50);
-    return () => clearTimeout(timeoutId);
-  }, []);
-
   const fetchExpenses = useCallback(async (reset = false) => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const currentUser = await supabase.auth.getUser();
-      if (!currentUser.data.user) {
-        // Don't show error immediately, just return silently and let ProtectedRoute handle auth
-        setLoading(false);
-        return;
-      }
-
-      // First, get expenses where user is creator or payer
-      const createdOrPaidQuery = supabase
+      // Single optimized query combining all expense sources
+      let query = supabase
         .from('expenses')
         .select(`
           *,
@@ -108,83 +83,40 @@ const useMyExpenses = () => {
             profiles(name, display_name)
           )
         `)
-        .or(`created_by.eq.${currentUser.data.user.id},payer_id.eq.${currentUser.data.user.id}`)
+        .or(`created_by.eq.${userId},payer_id.eq.${userId},expense_splits.member_id.eq.${userId}`)
         .order('spent_at', { ascending: false });
 
-      // Then, get expenses where user has a split
-      const splitQuery = supabase
-        .from('expenses')
-        .select(`
-          *,
-          groups!inner(name, currency),
-          categories(name_ar, icon),
-          expense_splits!inner(
-            member_id,
-            share_amount,
-            profiles(name, display_name)
-          )
-        `)
-        .eq('expense_splits.member_id', currentUser.data.user.id)
-        .order('spent_at', { ascending: false });
+      // Apply filters
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+      if (filters.group_id) {
+        query = query.eq('group_id', filters.group_id);
+      }
+      if (filters.date_from) {
+        query = query.gte('spent_at', filters.date_from);
+      }
+      if (filters.date_to) {
+        query = query.lte('spent_at', filters.date_to);
+      }
+      if (filters.min_amount) {
+        query = query.gte('amount', filters.min_amount);
+      }
+      if (filters.max_amount) {
+        query = query.lte('amount', filters.max_amount);
+      }
+      if (filters.search) {
+        query = query.or(`description.ilike.%${filters.search}%,note_ar.ilike.%${filters.search}%`);
+      }
 
-      // Apply filters to both queries
-      const applyFilters = (query: any) => {
-        if (filters.status && filters.status !== 'all') {
-          query = query.eq('status', filters.status);
-        }
-        if (filters.group_id) {
-          query = query.eq('group_id', filters.group_id);
-        }
-        if (filters.date_from) {
-          query = query.gte('spent_at', filters.date_from);
-        }
-        if (filters.date_to) {
-          query = query.lte('spent_at', filters.date_to);
-        }
-        if (filters.min_amount) {
-          query = query.gte('amount', filters.min_amount);
-        }
-        if (filters.max_amount) {
-          query = query.lte('amount', filters.max_amount);
-        }
-        if (filters.search) {
-          query = query.or(`description.ilike.%${filters.search}%,note_ar.ilike.%${filters.search}%`);
-        }
-        return query;
-      };
-
-      // Apply pagination to both queries
+      // Apply pagination
       const from = reset ? 0 : (page - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
 
-      const filteredCreatedOrPaidQuery = applyFilters(createdOrPaidQuery).range(from, to);
-      const filteredSplitQuery = applyFilters(splitQuery).range(from, to);
+      const { data, error: queryError, count } = await query;
 
-      // Execute both queries
-      const [createdOrPaidResult, splitResult] = await Promise.all([
-        filteredCreatedOrPaidQuery,
-        filteredSplitQuery
-      ]);
-
-      if (createdOrPaidResult.error) throw createdOrPaidResult.error;
-      if (splitResult.error) throw splitResult.error;
-
-      // Merge and deduplicate results
-      const allExpenses = [...(createdOrPaidResult.data || []), ...(splitResult.data || [])];
-      const uniqueExpenses = allExpenses.reduce((acc, expense) => {
-        if (!acc.find(e => e.id === expense.id)) {
-          acc.push(expense);
-        }
-        return acc;
-      }, [] as any[]);
-
-      // Sort by spent_at
-      uniqueExpenses.sort((a, b) => new Date(b.spent_at).getTime() - new Date(a.spent_at).getTime());
-
-      const data = uniqueExpenses;
-      const count = Math.max(createdOrPaidResult.count || 0, splitResult.count || 0);
-
-      if (error) throw error;
+      if (queryError) throw queryError;
 
       const transformedExpenses: MyExpense[] = (data || []).map((expense: any) => ({
         id: expense.id,
@@ -229,7 +161,7 @@ const useMyExpenses = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, page, toast, expenses.length]);
+  }, [userId, filters, page, toast, expenses.length]);
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
@@ -250,10 +182,25 @@ const useMyExpenses = () => {
 
   // Stats calculation
   const stats = useMemo((): ExpenseStats => {
+    if (!userId) {
+      return {
+        total_paid: 0,
+        total_owed: 0,
+        total_net: 0,
+        pending_paid: 0,
+        pending_owed: 0,
+        approved_paid: 0,
+        approved_owed: 0,
+        rejected_count: 0,
+        total_count: 0,
+        groups_count: 0
+      };
+    }
+
     return expenses.reduce((acc, expense) => {
-      const userSplit = expense.splits.find(split => split.member_id === currentUserId);
+      const userSplit = expense.splits.find(split => split.member_id === userId);
       const shareAmount = userSplit?.share_amount || 0;
-      const isPayer = expense.payer_id === currentUserId;
+      const isPayer = expense.payer_id === userId;
 
       acc.total_count++;
 
@@ -283,34 +230,37 @@ const useMyExpenses = () => {
       total_count: 0,
       groups_count: new Set(expenses.map(e => e.group_id)).size
     });
-  }, [expenses, currentUserId]);
+  }, [expenses, userId]);
 
   stats.total_net = stats.total_paid - stats.total_owed;
 
-  // Real-time updates
+  // Real-time updates - lazy initialization
   useEffect(() => {
-    const channel = supabase
-      .channel('my-expenses-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'expenses'
-      }, () => {
-        refreshExpenses();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'expense_splits'
-      }, () => {
-        refreshExpenses();
-      })
-      .subscribe();
+    // Only subscribe after initial load
+    if (!loading && expenses.length > 0 && userId) {
+      const channel = supabase
+        .channel('my-expenses-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'expenses'
+        }, () => {
+          refreshExpenses();
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'expense_splits'
+        }, () => {
+          refreshExpenses();
+        })
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refreshExpenses]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [loading, expenses.length, userId, refreshExpenses]);
 
   useEffect(() => {
     fetchExpenses(true);
