@@ -7,6 +7,7 @@ import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
+import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -55,12 +56,13 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <EnhancedPerformanceMonitor />
-        <Toaster />
-        <Sonner />
-        <ImprovedErrorBoundary>
-          <Routes>
+      <AdPreferencesProvider>
+        <BrowserRouter>
+          <EnhancedPerformanceMonitor />
+          <Toaster />
+          <Sonner />
+          <ImprovedErrorBoundary>
+            <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
             <Route path="/" element={<Index />} />
@@ -86,9 +88,10 @@ const App: React.FC = () => {
             <Route path="/ad-test" element={<AdTestPage />} />
             <Route path="/pricing" element={<LazyPricing />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </ImprovedErrorBoundary>
-      </BrowserRouter>
+            </Routes>
+          </ImprovedErrorBoundary>
+        </BrowserRouter>
+      </AdPreferencesProvider>
     </QueryClientProvider>
   );
 };

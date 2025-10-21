@@ -33,9 +33,9 @@ const Dashboard = React.memo(() => {
     refetch
   } = useOptimizedDashboardData();
 
-  const myPaid = dashboardData?.totalPaid ?? 0;
-  const myOwed = dashboardData?.totalOwed ?? 0;
-  const monthlyTotalExpenses = dashboardData?.monthlyTotal ?? 0;
+  const myPaid = dashboardData?.myPaid ?? 0;
+  const myOwed = dashboardData?.myOwed ?? 0;
+  const monthlyTotalExpenses = dashboardData?.monthlyTotalExpenses ?? 0;
   const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
   const {
@@ -111,7 +111,7 @@ const Dashboard = React.memo(() => {
           <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <AlertTriangle className="w-12 h-12 text-destructive" />
             <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
-            <p className="text-muted-foreground text-center">{error}</p>
+            <p className="text-muted-foreground text-center">{error?.message || 'حدث خطأ غير متوقع'}</p>
             <Button onClick={handleRetry} className="bg-primary hover:bg-primary/90">
               <RefreshCw className="w-4 h-4 ml-2" />
               إعادة المحاولة

@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingBag, ExternalLink } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useAffiliateProducts } from "@/hooks/useAffiliateProducts";
-import { useAdTracking } from "@/hooks/useAdTracking";
+import { useOptimizedAffiliateProducts } from "@/hooks/useOptimizedAffiliateProducts";
+import { useOptimizedAdTracking } from "@/hooks/useOptimizedAdTracking";
 import { useToast } from "@/hooks/use-toast";
 
 interface FixedStatsAdBannerProps {
@@ -14,10 +14,10 @@ interface FixedStatsAdBannerProps {
   className?: string;
 }
 
-export const FixedStatsAdBanner = ({ placement, className = "" }: FixedStatsAdBannerProps) => {
+export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStatsAdBannerProps) => {
   const { subscription } = useSubscription();
-  const { getTrendingProducts, loading } = useAffiliateProducts();
-  const { trackAdImpression, trackAdClick, shouldShowAds } = useAdTracking();
+  const { getTrendingProducts, loading } = useOptimizedAffiliateProducts();
+  const { trackAdImpression, trackAdClick, shouldShowAds } = useOptimizedAdTracking();
   const { toast } = useToast();
 
   const [products, setProducts] = useState<any[]>([]);

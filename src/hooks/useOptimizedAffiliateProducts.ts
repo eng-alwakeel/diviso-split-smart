@@ -60,7 +60,7 @@ export const useOptimizedAffiliateProducts = () => {
     try {
       const { data } = await supabase
         .from('affiliate_products')
-        .select('id, product_id, affiliate_partner, category, title, price_range, rating, image_url, affiliate_url, conversion_rate, commission_rate')
+        .select('*')
         .eq('active', true)
         .order('conversion_rate', { ascending: false })
         .limit(limit);
@@ -89,7 +89,7 @@ export const useOptimizedAffiliateProducts = () => {
     try {
       const { data } = await supabase
         .from('affiliate_products')
-        .select('id, product_id, affiliate_partner, category, title, price_range, rating, image_url, affiliate_url, conversion_rate')
+        .select('*')
         .eq('active', true)
         .order('click_count', { ascending: false })
         .limit(1)
