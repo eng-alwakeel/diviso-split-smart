@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Crown, Zap } from 'lucide-react';
+import { ShoppingCart, Crown, Star, ExternalLink } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
+import { AD_SIZES } from '@/lib/adConfig';
 
 export const PersistentAdSidebar: React.FC<{ className?: string }> = ({ 
   className = '' 
@@ -64,125 +65,159 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
   };
 
   const currentProduct = sidebarProducts[currentProductIndex];
+  const halfPageSize = AD_SIZES.desktop.halfPage;
+  const mediumRectSize = AD_SIZES.desktop.mediumRectangle;
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Featured Product */}
-      <Card className="overflow-hidden border-2 border-border/50 shadow-md bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="p-4 space-y-3">
+    <div className={`space-y-6 ${className}`}>
+      {/* Featured Product Card - Half Page (300x600) */}
+      <Card 
+        className="overflow-hidden border-2 border-border/40 bg-gradient-to-br from-background/95 to-muted/20 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow"
+        style={{
+          width: `${halfPageSize.width}px`,
+          minHeight: `${halfPageSize.height}px`
+        }}
+      >
+        <div className="p-5 space-y-4">
+          {/* Ad Badge */}
           <div className="flex items-center justify-between">
-            <Badge variant="secondary" className="text-xs">
+            <Badge 
+              variant="outline" 
+              className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1"
+            >
               إعلان
             </Badge>
-            <Badge variant="default" className="text-xs">
+            <Badge variant="default" className="text-xs gap-1 font-medium">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
               منتج مميز
             </Badge>
           </div>
 
-          <div className="space-y-3">
-            <div className="aspect-square w-full rounded-lg overflow-hidden bg-background">
+          <div className="space-y-4">
+            {/* Product Image - Square aspect ratio */}
+            <div 
+              className="w-full rounded-lg overflow-hidden bg-muted border border-border/30"
+              style={{ height: '260px' }}
+            >
               <ImageWithFallback
-                src={currentProduct.image_url || '/placeholder.svg'} 
+                src={currentProduct.image_url || '/placeholder.svg'}
                 alt={currentProduct.title}
-                className="w-full h-full object-cover"
-                width={200}
-                height={200}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                width={260}
+                height={260}
                 loading="lazy"
               />
             </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm line-clamp-2">
+            {/* Product Info */}
+            <div className="space-y-3">
+              <h3 className="font-bold text-base text-foreground line-clamp-2 leading-tight">
                 {currentProduct.title}
               </h3>
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {currentProduct.description || 'منتج مميز من أمازون'}
+              <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                {currentProduct.description || 'منتج مميز من أمازون - جودة عالية وسعر مناسب'}
               </p>
               
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary">
-                    {currentProduct.price_range || 'اعرف السعر'}
+              {/* Price & Rating */}
+              <div className="space-y-2 pt-2">
+                <p className="text-2xl font-bold text-primary">
+                  {currentProduct.price_range || 'اعرف السعر'}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < Math.floor(currentProduct.rating || 4)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-muted'
+                      }`}
+                    />
+                  ))}
+                  <span className="text-sm text-muted-foreground mr-1 font-medium">
+                    ({currentProduct.rating || 4.0})
                   </span>
-                  {currentProduct.rating && (
-                    <span className="text-xs text-amber-500">
-                      ⭐ {currentProduct.rating}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    {currentProduct.affiliate_partner}
-                  </span>
-                  <Badge variant="secondary" className="text-xs py-0">
-                    {currentProduct.category}
-                  </Badge>
                 </div>
               </div>
 
+              {/* CTA Button */}
               <Button
-                size="sm"
-                className="w-full"
                 onClick={() => handleProductClick(currentProduct)}
+                className="w-full gap-2 h-10 font-semibold"
               >
-                <ShoppingCart className="h-3 w-3 mr-2" />
+                <ShoppingCart className="h-4 w-4" />
                 تسوق الآن
+                <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </div>
+          </div>
+
+          {/* Product Indicators */}
+          <div className="flex justify-center gap-1.5 pt-2">
+            {sidebarProducts.map((_, index) => (
+              <div
+                key={index}
+                className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
+                  index === currentProductIndex ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </Card>
 
-      {/* Amazon Prime Promotion */}
-      <Card className="overflow-hidden border-2 border-amber-200 shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between mb-2">
-            <Badge variant="secondary" className="text-xs">
+      {/* Amazon Prime Promotion - Medium Rectangle (300x250) */}
+      <Card 
+        className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm hover:shadow-md transition-shadow"
+        style={{
+          width: `${mediumRectSize.width}px`,
+          minHeight: `${mediumRectSize.height}px`
+        }}
+      >
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <Badge 
+              variant="outline" 
+              className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1"
+            >
               إعلان
             </Badge>
+            <Crown className="h-5 w-5 text-primary" />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm text-amber-900 dark:text-amber-100">
-                Amazon Prime
-              </h4>
-              <p className="text-xs text-amber-700 dark:text-amber-200">
-                شحن مجاني وسريع
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs text-amber-800 dark:text-amber-200">
-              اشترك في Prime واحصل على شحن مجاني لآلاف المنتجات
+          
+          <div className="space-y-3">
+            <h3 className="font-bold text-xl text-foreground">
+              Amazon Prime
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              شحن مجاني، عروض حصرية، ومزايا أكثر
             </p>
             
-            <Button 
-              size="sm" 
-              className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-              onClick={() => window.open('https://amazon.sa/prime', '_blank')}
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+                <span>شحن مجاني سريع</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+                <span>عروض Prime Day حصرية</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+                <span>Prime Video & Music</span>
+              </li>
+            </ul>
+
+            <Button
+              onClick={() => window.open('https://www.amazon.sa/prime', '_blank')}
+              className="w-full gap-2 mt-3 h-10 font-semibold"
             >
-              جرب Prime مجاناً
+              جرّب Prime مجاناً
+              <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
       </Card>
-
-      {/* Indicator dots */}
-      <div className="flex justify-center gap-1 py-2">
-        {sidebarProducts.map((_, index) => (
-          <div
-            key={index}
-            className={`h-1.5 w-1.5 rounded-full transition-all duration-300 ${
-              index === currentProductIndex ? 'bg-primary' : 'bg-muted'
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 };
