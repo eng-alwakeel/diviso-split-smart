@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useSocialShareTracking } from '@/hooks/useSocialShareTracking';
@@ -8,7 +9,7 @@ import {
   isMobileDevice,
   type SocialPlatform 
 } from '@/lib/socialShareConfig';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SocialShareButtonsProps {
   referralLink: string;
@@ -28,7 +29,13 @@ export const SocialShareButtons = ({
   showLabels = true
 }: SocialShareButtonsProps) => {
   const { trackShare } = useSocialShareTracking();
-  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id);
+    });
+  }, []);
 
   const handleShare = async (platform: SocialPlatform) => {
     const config = PLATFORM_CONFIGS[platform];
@@ -36,7 +43,7 @@ export const SocialShareButtons = ({
     const shareMessage = message || getDefaultMessage(referralCode, platform);
 
     // Track the share
-    await trackShare(platform, referralCode, user?.id);
+    await trackShare(platform, referralCode, userId);
 
     // Handle special platforms
     if (platform === 'instagram') {
@@ -54,7 +61,7 @@ export const SocialShareButtons = ({
     // Open share URL
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
-      toast.success({
+      toast({
         title: 'تم فتح المشاركة',
         description: `يمكنك الآن مشاركة إحالتك على ${config.name}`
       });
@@ -66,7 +73,7 @@ export const SocialShareButtons = ({
       // Copy text to clipboard
       await navigator.clipboard.writeText(`${text}\n\n${link}`);
       
-      toast.info({
+      toast({
         title: 'تم نسخ النص',
         description: 'الصق الآن في Instagram Story! 📸',
         duration: 5000
@@ -90,9 +97,10 @@ export const SocialShareButtons = ({
         window.open('https://www.instagram.com/', '_blank');
       }
     } catch (error) {
-      toast.error({
+      toast({
         title: 'خطأ',
-        description: 'فشل نسخ النص'
+        description: 'فشل نسخ النص',
+        variant: 'destructive'
       });
     }
   };

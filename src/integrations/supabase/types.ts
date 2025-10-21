@@ -1690,6 +1690,48 @@ export type Database = {
           },
         ]
       }
+      social_share_analytics: {
+        Row: {
+          action: string
+          browser: string | null
+          converted_at: string | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          platform: string
+          referral_code: string
+          shared_at: string | null
+          user_id: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          action: string
+          browser?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          platform: string
+          referral_code: string
+          shared_at?: string | null
+          user_id?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          action?: string
+          browser?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          platform?: string
+          referral_code?: string
+          shared_at?: string | null
+          user_id?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       subscription_limits: {
         Row: {
           action: string

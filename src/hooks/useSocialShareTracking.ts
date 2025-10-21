@@ -8,9 +8,11 @@ export const useSocialShareTracking = () => {
     referralCode: string,
     userId?: string
   ) => {
+    if (!userId) return;
+    
     try {
       const { error } = await supabase
-        .from('social_share_analytics')
+        .from('social_share_analytics' as any)
         .insert({
           user_id: userId,
           referral_code: referralCode,
@@ -35,7 +37,7 @@ export const useSocialShareTracking = () => {
     try {
       // Update the analytics record to mark conversion
       const { error } = await supabase
-        .from('social_share_analytics')
+        .from('social_share_analytics' as any)
         .update({
           action: 'converted',
           converted_at: new Date().toISOString()
@@ -57,7 +59,7 @@ export const useSocialShareTracking = () => {
   const getShareStats = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('social_share_analytics')
+        .from('social_share_analytics' as any)
         .select('platform, action, shared_at, converted_at')
         .eq('user_id', userId)
         .order('shared_at', { ascending: false });
@@ -65,7 +67,7 @@ export const useSocialShareTracking = () => {
       if (error) throw error;
 
       // Calculate stats by platform
-      const statsByPlatform = data?.reduce((acc, record) => {
+      const statsByPlatform = (data as any[])?.reduce((acc: any, record: any) => {
         const platform = record.platform;
         if (!acc[platform]) {
           acc[platform] = {

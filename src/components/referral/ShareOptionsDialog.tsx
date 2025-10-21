@@ -13,7 +13,7 @@ import { SharePerformanceChart } from './SharePerformanceChart';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSocialShareTracking } from '@/hooks/useSocialShareTracking';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Share2, MessageSquare, QrCode, TrendingUp } from 'lucide-react';
 
 interface ShareOptionsDialogProps {
@@ -31,18 +31,24 @@ export const ShareOptionsDialog = ({
 }: ShareOptionsDialogProps) => {
   const [customMessage, setCustomMessage] = useState('');
   const [stats, setStats] = useState({});
+  const [userId, setUserId] = useState<string | undefined>();
   const { getShareStats } = useSocialShareTracking();
-  const { user } = useAuth();
 
   useEffect(() => {
-    if (open && user?.id) {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (open && userId) {
       loadStats();
     }
-  }, [open, user?.id]);
+  }, [open, userId]);
 
   const loadStats = async () => {
-    if (user?.id) {
-      const data = await getShareStats(user.id);
+    if (userId) {
+      const data = await getShareStats(userId);
       setStats(data);
     }
   };

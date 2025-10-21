@@ -40,6 +40,8 @@ import { ReferralAnalyticsChart } from "@/components/referral/ReferralAnalyticsC
 import { BulkReferralDialog } from "@/components/referral/BulkReferralDialog";
 import { EnhancedReferralHistory } from "@/components/referral/EnhancedReferralHistory";
 import { ReferralNotifications } from "@/components/referral/ReferralNotifications";
+import { ShareOptionsDialog } from "@/components/referral/ShareOptionsDialog";
+import { SocialShareButtons } from "@/components/referral/SocialShareButtons";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { format } from "date-fns";
@@ -53,6 +55,7 @@ const ReferralCenter = () => {
   const [newReferralName, setNewReferralName] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
 
   // استخدام البيانات الحقيقية
@@ -456,24 +459,35 @@ const ReferralCenter = () => {
                             </Button>
                             </div>
                             
-                            <Button
-                              variant="outline"
-                              className={`w-full ${isMobile ? "h-12 text-base" : ""}`}
-                              onClick={() => {
-                                if (navigator.share) {
-                                  navigator.share({
-                                    title: "انضم إلى Diviso",
-                                    text: "انضم إلى Diviso لإدارة المصاريف المشتركة بذكاء",
-                                    url: referralLink
-                                  });
-                                } else {
-                                  copyToClipboard(referralLink);
-                                }
-                              }}
-                            >
-                              <Share2 className="w-4 h-4 ml-2" />
-                              مشاركة الرابط
-                            </Button>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                className={isMobile ? "h-12" : ""}
+                                onClick={() => copyToClipboard(referralLink)}
+                              >
+                                <Copy className="w-4 h-4 ml-2" />
+                                نسخ
+                              </Button>
+                              <Button
+                                variant="default"
+                                className={isMobile ? "h-12" : ""}
+                                onClick={() => setShowShareDialog(true)}
+                              >
+                                <Share2 className="w-4 h-4 ml-2" />
+                                مشاركة
+                              </Button>
+                            </div>
+
+                            <div className="pt-3 border-t">
+                              <p className="text-xs text-muted-foreground mb-3">مشاركة سريعة:</p>
+                              <SocialShareButtons
+                                referralLink={referralLink}
+                                referralCode={referralCode || ''}
+                                layout="grid"
+                                showLabels={false}
+                                platforms={['whatsapp', 'telegram', 'twitter', 'snapchat']}
+                              />
+                            </div>
                           </TabsContent>
                           
                           <TabsContent value="qr" className="mt-4 flex justify-center">
@@ -638,6 +652,14 @@ const ReferralCenter = () => {
             }}
           />
         )}
+
+        {/* Dialog خيارات المشاركة المتقدمة */}
+        <ShareOptionsDialog
+          open={showShareDialog}
+          onOpenChange={setShowShareDialog}
+          referralLink={referralLink}
+          referralCode={referralCode || ''}
+        />
         </div>
       </UnifiedAdLayout>
       

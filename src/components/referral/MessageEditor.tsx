@@ -32,7 +32,7 @@ export const MessageEditor = ({
   const handleReset = () => {
     const defaultMsg = getDefaultMessage(referralCode, selectedPlatform);
     handleMessageChange(defaultMsg);
-    toast.success({
+    toast({
       title: 'تم إعادة التعيين',
       description: 'تم استعادة الرسالة الافتراضية'
     });
@@ -41,14 +41,15 @@ export const MessageEditor = ({
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(`${message}\n\n${referralLink}`);
-      toast.success({
+      toast({
         title: 'تم النسخ',
         description: 'تم نسخ الرسالة والرابط'
       });
     } catch (error) {
-      toast.error({
+      toast({
         title: 'خطأ',
-        description: 'فشل نسخ الرسالة'
+        description: 'فشل نسخ الرسالة',
+        variant: 'destructive'
       });
     }
   };
