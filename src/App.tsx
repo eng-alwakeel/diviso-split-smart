@@ -58,8 +58,8 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AdPreferencesProvider>
+      <AdPreferencesProvider>
+        <AuthProvider>
           <BrowserRouter>
           <EnhancedPerformanceMonitor />
           <Toaster />
@@ -94,8 +94,8 @@ const App: React.FC = () => {
             </Routes>
           </ImprovedErrorBoundary>
           </BrowserRouter>
-        </AdPreferencesProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </AdPreferencesProvider>
     </QueryClientProvider>
   );
 };
