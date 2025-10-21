@@ -17,18 +17,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Single auth check on mount
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    console.log('🔐 AuthContext: Initializing...');
+    
+    // Non-blocking auth check with timeout fallback
+    const authCheckTimeout = setTimeout(() => {
+      console.warn('⚠️ AuthContext: Timeout reached');
       setLoading(false);
-    });
+    }, 3000);
+
+    supabase.auth.getUser()
+      .then(({ data }) => {
+        console.log('✅ AuthContext: User loaded', data.user ? 'authenticated' : 'not authenticated');
+        clearTimeout(authCheckTimeout);
+        setUser(data.user);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('❌ AuthContext: Error', error);
+        clearTimeout(authCheckTimeout);
+        setLoading(false);
+      });
 
     // Listen to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('🔄 AuthContext: Auth state changed', session ? 'authenticated' : 'not authenticated');
       setUser(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🧹 AuthContext: Cleanup');
+      clearTimeout(authCheckTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

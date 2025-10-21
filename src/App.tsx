@@ -8,7 +8,8 @@ import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ContextErrorBoundary } from "@/contexts/ContextErrorBoundary";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -55,12 +56,31 @@ const queryClient = new QueryClient({
   },
 });
 
+const AuthLoadingWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AdPreferencesProvider>
+      <ContextErrorBoundary>
         <AuthProvider>
-          <BrowserRouter>
+          <AuthLoadingWrapper>
+            <AdPreferencesProvider>
+              <BrowserRouter>
           <EnhancedPerformanceMonitor />
           <Toaster />
           <Sonner />
@@ -94,8 +114,10 @@ const App: React.FC = () => {
             </Routes>
           </ImprovedErrorBoundary>
           </BrowserRouter>
+            </AdPreferencesProvider>
+          </AuthLoadingWrapper>
         </AuthProvider>
-      </AdPreferencesProvider>
+      </ContextErrorBoundary>
     </QueryClientProvider>
   );
 };
