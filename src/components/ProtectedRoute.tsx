@@ -3,11 +3,26 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+  // وضع المطور: تعطيل الحماية للمراجعة
+  const DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+  
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authed, setAuthed] = useState(false);
   const authCheckTimeout = useRef<NodeJS.Timeout>();
   const redirectTimeout = useRef<NodeJS.Timeout>();
+  
+  // تعطيل الحماية في وضع المطور
+  if (DEV_MODE) {
+    return (
+      <>
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-yellow-500 text-black text-center py-1 text-xs font-bold">
+          ⚠️ وضع المطور نشط - الحماية معطلة
+        </div>
+        <div className="pt-6">{children}</div>
+      </>
+    );
+  }
 
   useEffect(() => {
     let isMounted = true;
