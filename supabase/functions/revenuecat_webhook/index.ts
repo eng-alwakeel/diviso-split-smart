@@ -19,9 +19,40 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Accept either X-REVENUECAT-SIGNATURE or Authorization header for simple shared-secret validation
+    // Secure constant-time signature verification to prevent timing attacks
     const sig = req.headers.get("x-revenuecat-signature") || req.headers.get("authorization") || "";
-    if (!sig || !sig.includes(secret)) {
+    
+    if (!sig) {
+      return new Response(JSON.stringify({ error: "Unauthorized: Missing signature" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const encoder = new TextEncoder();
+    const expectedBytes = encoder.encode(secret);
+    const receivedBytes = encoder.encode(sig);
+    
+    // Check length first (not vulnerable to timing attacks)
+    if (expectedBytes.length !== receivedBytes.length) {
+      console.warn("Webhook auth failed: length mismatch");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    
+    // Constant-time comparison
+    let isValid = true;
+    for (let i = 0; i < expectedBytes.length; i++) {
+      if (expectedBytes[i] !== receivedBytes[i]) {
+        isValid = false;
+      }
+    }
+    
+    if (!isValid) {
+      console.warn("Webhook auth failed: invalid signature");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },

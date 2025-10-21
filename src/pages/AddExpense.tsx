@@ -36,6 +36,7 @@ import { useAISuggestions } from "@/hooks/useAISuggestions";
 import { useBudgetWarnings, BudgetWarning } from "@/hooks/useBudgetWarnings";
 import { BudgetWarningAlert } from "@/components/expenses/BudgetWarningAlert";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { expenseSchema, expenseSplitSchema, safeValidateInput } from "@/lib/validation";
 
 interface UserGroup {
   id: string;
@@ -377,15 +378,36 @@ const AddExpense = () => {
 
     setIsSubmitting(true);
     try {
-      const expenseData = {
+      // Validate expense data
+      const validation = safeValidateInput(expenseSchema, {
         group_id: selectedGroup.id,
-        created_by: user.id,
         payer_id: user.id,
         amount: parseFloat(amount),
         description: description.trim(),
         category_id: selectedCategory,
         spent_at: new Date(spentAt).toISOString(),
-        currency: selectedGroup.currency,
+        currency: selectedGroup.currency
+      });
+
+      if (validation.success === false) {
+        toast({
+          title: "خطأ في البيانات",
+          description: validation.error,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const expenseData = {
+        group_id: validation.data.group_id,
+        created_by: user.id,
+        payer_id: validation.data.payer_id,
+        amount: validation.data.amount,
+        description: validation.data.description,
+        category_id: validation.data.category_id,
+        spent_at: validation.data.spent_at,
+        currency: validation.data.currency,
         status: 'pending' as const
       };
 
@@ -407,18 +429,38 @@ const AddExpense = () => {
         return;
       }
 
-      // Create expense splits
-      const splits = memberSplits.map(split => ({
-        expense_id: expense.id,
-        member_id: split.member_id,
-        share_amount: splitType === 'percentage' 
+      // Validate and create expense splits
+      const validatedSplits: any[] = [];
+      for (const split of memberSplits) {
+        const shareAmount = splitType === 'percentage' 
           ? (parseFloat(amount) * split.share_amount) / 100
-          : split.share_amount
-      }));
+          : split.share_amount;
+          
+        const splitValidation = safeValidateInput(expenseSplitSchema, {
+          member_id: split.member_id,
+          share_amount: shareAmount
+        });
+        
+        if (splitValidation.success === false) {
+          toast({
+            title: "خطأ في تقسيم المصروف",
+            description: splitValidation.error,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        
+        validatedSplits.push({
+          expense_id: expense.id,
+          member_id: splitValidation.data.member_id,
+          share_amount: splitValidation.data.share_amount
+        });
+      }
 
       const { error: splitsError } = await supabase
         .from('expense_splits')
-        .insert(splits);
+        .insert(validatedSplits);
 
       if (splitsError) {
         console.error('Error creating splits:', splitsError);

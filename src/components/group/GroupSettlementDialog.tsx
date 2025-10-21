@@ -11,6 +11,7 @@ import { BalancePreview } from "./BalancePreview";
 import { BalanceBreakdown } from "./BalanceBreakdown";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { settlementSchema, safeValidateInput } from "@/lib/validation";
 
 export interface MemberRow {
   user_id: string;
@@ -142,15 +143,35 @@ export const GroupSettlementDialog = ({
     try {
       if (!canSubmit) return;
       setSubmitting(true);
-      const payload = rows.map(r => ({
-        group_id: groupId!,
-        from_user_id: currentUserId!,
-        to_user_id: r.to_user_id,
-        amount: Number(r.amount),
-        note: r.note && r.note.trim() ? r.note.trim() : null,
-        created_by: currentUserId!,
-      }));
-      const { error } = await supabase.from("settlements").insert(payload);
+      
+      // Validate each settlement row before submission
+      const validatedPayload: any[] = [];
+      for (const r of rows) {
+        const validation = safeValidateInput(settlementSchema, {
+          group_id: groupId!,
+          from_user_id: currentUserId!,
+          to_user_id: r.to_user_id,
+          amount: Number(r.amount),
+          note: r.note && r.note.trim() ? r.note.trim() : undefined,
+        });
+        
+        if (validation.success === false) {
+          toast({ 
+            title: "خطأ في البيانات", 
+            description: validation.error, 
+            variant: "destructive" 
+          });
+          setSubmitting(false);
+          return;
+        }
+        
+        validatedPayload.push({
+          ...validation.data,
+          created_by: currentUserId!,
+        });
+      }
+      
+      const { error } = await supabase.from("settlements").insert(validatedPayload);
       if (error) {
         throw error;
       }

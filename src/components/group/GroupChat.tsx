@@ -10,6 +10,7 @@ import { PlanBadge } from "@/components/ui/plan-badge";
 import { AdminBadge } from "@/components/ui/admin-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useAdminBadge } from "@/hooks/useAdminBadge";
+import { messageSchema, safeValidateInput } from "@/lib/validation";
 
 interface Message {
   id: string;
@@ -122,11 +123,26 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
       return;
     }
 
+    // Validate input before sending
+    const validation = safeValidateInput(messageSchema, {
+      content,
+      group_id: groupId
+    });
+
+    if (validation.success === false) {
+      toast({
+        title: "خطأ في البيانات",
+        description: validation.error,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSending(true);
     console.log("[GroupChat] inserting message:", { groupId, content });
     const { error } = await supabase.from("messages").insert({
-      group_id: groupId,
-      content,
+      group_id: validation.data.group_id,
+      content: validation.data.content,
       sender_id: user.id,
     });
 
