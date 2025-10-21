@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Target,
   Brain,
-  Users
+  Users,
+  ShoppingCart
 } from 'lucide-react';
 import { useSmartAffiliateRecommendations } from '@/hooks/useSmartAffiliateRecommendations';
 import { useAdTracking } from '@/hooks/useAdTracking';
@@ -157,7 +158,7 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
   }
 
   return (
-    <Card className={`bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20 ${className}`}>
+    <Card className={`bg-gradient-to-br from-primary/5 to-accent/5 border-2 border-primary/20 ${className}`}>
       {showTitle && (
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -168,9 +169,9 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
               </CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="outline" className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1.5">
                 <Brain className="h-3 w-3 mr-1" />
-                ذكي
+                إعلان ذكي
               </Badge>
               <Button
                 variant="ghost"
@@ -190,22 +191,25 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
         {recommendations.slice(0, maxProducts).map((product, index) => (
           <div 
             key={product.id} 
-            className={`flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ${
-              compact ? 'py-1' : 'py-2'
+            className={`flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border ${
+              compact ? 'py-2' : 'py-3'
             }`}
             onClick={() => handleProductClick(product)}
           >
             <div className="flex-shrink-0">
-              <img
-                src={product.image_url || 'https://via.placeholder.com/48x48?text=Product'}
-                alt={product.title}
-                className={`object-cover rounded ${compact ? 'w-10 h-10' : 'w-12 h-12'}`}
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/48x48?text=Product';
-                  e.currentTarget.onerror = null;
-                }}
-              />
+              <div className={`rounded-lg overflow-hidden border-2 bg-muted ${compact ? 'w-16 h-16' : 'w-20 h-20'}`}
+                   style={{ aspectRatio: '1/1' }}>
+                <img
+                  src={product.image_url || 'https://via.placeholder.com/80x80?text=Product'}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://via.placeholder.com/80x80?text=Product';
+                    e.currentTarget.onerror = null;
+                  }}
+                />
+              </div>
             </div>
 
             <div className="flex-1 min-w-0">
@@ -246,15 +250,15 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
 
             <Button
               size="sm"
-              variant="outline"
-              className={`flex-shrink-0 ${compact ? 'h-7 w-7 p-0' : ''}`}
+              className={`flex-shrink-0 gap-2 ${compact ? 'h-8 px-3' : 'h-9 px-4'}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleProductClick(product);
               }}
             >
+              {!compact && <ShoppingCart className="h-4 w-4" />}
+              <span className="text-xs font-medium">تسوق الآن</span>
               <ExternalLink className="h-3 w-3" />
-              {!compact && <span className="mr-2 text-xs">تسوق</span>}
             </Button>
           </div>
         ))}

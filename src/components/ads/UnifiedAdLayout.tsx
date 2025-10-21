@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
 import { PersistentAdBanner } from './PersistentAdBanner';
 import { PersistentAdSidebar } from './PersistentAdSidebar';
+import { LazyAdLoader } from './LazyAdLoader';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AD_DISPLAY_RULES } from '@/lib/adConfig';
+import { AD_DISPLAY_RULES, AD_DENSITY_RULES } from '@/lib/adConfig';
 
 interface UnifiedAdLayoutProps {
   children: ReactNode;
@@ -56,39 +57,46 @@ export const UnifiedAdLayout = ({
     <div className={`unified-ad-layout ${className}`}>
       {/* Top Banner Ad - Only shown based on device rules */}
       {finalShowTopBanner && (
-        <div className="mb-6 animate-fade-in">
-          <PersistentAdBanner 
-            placement={`${placement}_top`}
-            className="rounded-lg"
-          />
-        </div>
+        <LazyAdLoader minViewportScroll={AD_DENSITY_RULES.minViewportBeforeFirstAd} minHeight={90}>
+          <div className="mb-6 animate-fade-in">
+            <PersistentAdBanner 
+              placement={`${placement}_top`}
+              className="rounded-lg"
+            />
+          </div>
+        </LazyAdLoader>
       )}
 
       {/* Main Content with Sidebar */}
       <div className="flex gap-6 relative">
         {/* Main Content Area */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0" style={{ minHeight: `${AD_DENSITY_RULES.minContentBetweenAds}px` }}>
           {children}
         </div>
 
         {/* Sidebar Ad - Desktop only (1024px+) */}
         {finalShowSidebar && (
           <aside className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-24 space-y-6">
-              <PersistentAdSidebar className="animate-fade-in" />
-            </div>
+            <LazyAdLoader minViewportScroll={0.2} minHeight={600}>
+              <div className="sticky top-24 space-y-6">
+                <PersistentAdSidebar className="animate-fade-in" />
+              </div>
+            </LazyAdLoader>
           </aside>
         )}
       </div>
 
       {/* Bottom Banner Ad - Mobile/Tablet only */}
       {finalShowBottomBanner && (
-        <div className="fixed bottom-20 left-0 right-0 z-40 px-4 lg:hidden animate-slide-up">
-          <PersistentAdBanner 
-            placement={`${placement}_bottom`}
-            className="shadow-lg rounded-lg"
-          />
-        </div>
+        <LazyAdLoader minViewportScroll={0.5} minHeight={100}>
+          <div className="fixed bottom-20 left-0 right-0 z-40 px-4 lg:hidden animate-slide-up" 
+               style={{ marginTop: `${AD_DENSITY_RULES.minContentBetweenAds / 2}px` }}>
+            <PersistentAdBanner 
+              placement={`${placement}_bottom`}
+              className="shadow-lg rounded-lg"
+            />
+          </div>
+        </LazyAdLoader>
       )}
     </div>
   );

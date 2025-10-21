@@ -11,9 +11,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { ExternalLink, Star, Tag, Sparkles } from 'lucide-react';
+import { ExternalLink, Star, Tag, Sparkles, ShoppingCart } from 'lucide-react';
 import { useAdTracking } from '@/hooks/useAdTracking';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
+import { AD_SIZES } from '@/lib/adConfig';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProductCarouselAdProps {
   context: {
@@ -38,9 +40,15 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [api, setApi] = useState<any>();
+  const isMobile = useIsMobile();
   
   const { shouldShowAds, trackAdImpression, trackAdClick } = useAdTracking();
   const { getProductsForExpenseCategory, getProductsForGroupType, getAmazonProducts } = useAffiliateProducts();
+
+  // Get appropriate ad size based on device
+  const adSize = isMobile 
+    ? AD_SIZES.mobile.mediumRectangle 
+    : AD_SIZES.desktop.mediumRectangle;
 
   useEffect(() => {
     if (shouldShowAds()) {
@@ -117,33 +125,41 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
   if (loading) {
     return (
       <div className={`${className}`}>
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold">منتجات مُوصى بها</h3>
-          <Badge variant="secondary" className="text-xs mr-auto">إعلان</Badge>
-        </div>
-        <div className="flex gap-3 overflow-hidden">
-          {Array.from({ length: 2 }).map((_, index) => (
-            <Card key={index} className="flex-shrink-0 w-[300px]">
-              <Skeleton className="w-full h-[150px]" />
-              <CardContent className="p-3">
-                <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-3 w-1/2 mb-3" />
-                <Skeleton className="h-8 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="flex items-center gap-2 mb-4">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">منتجات مُوصى بها</h3>
+        <Badge variant="outline" className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1.5 mr-auto">
+          إعلان
+        </Badge>
+      </div>
+      <div className="flex gap-4 overflow-hidden">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <Card 
+            key={index} 
+            className="flex-shrink-0"
+            style={{ width: `${adSize.width}px`, minHeight: `${adSize.height}px` }}
+          >
+            <Skeleton className="w-full h-[160px]" />
+            <CardContent className="p-4">
+              <Skeleton className="h-4 w-3/4 mb-2" />
+              <Skeleton className="h-3 w-1/2 mb-3" />
+              <Skeleton className="h-9 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       </div>
     );
   }
 
   return (
     <div className={`${className}`}>
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-4">
         <Sparkles className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold">منتجات مُوصى بها</h3>
-        <Badge variant="secondary" className="text-xs mr-auto">إعلان</Badge>
+        <Badge variant="outline" className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1.5 mr-auto">
+          إعلان
+        </Badge>
       </div>
       
       <Carousel
@@ -155,28 +171,29 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
         setApi={setApi}
         className="w-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-3">
+        <CarouselContent className="-ml-3 md:-ml-4">
           {products.map((product) => (
-            <CarouselItem key={product.id} className="pl-2 md:pl-3 basis-full md:basis-1/2 lg:basis-1/3">
+            <CarouselItem key={product.id} className="pl-3 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
               <Card 
-                className="overflow-hidden hover:shadow-elevated transition-all cursor-pointer group h-full"
+                className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group h-full border-2"
+                style={{ width: `${adSize.width}px`, minHeight: `${adSize.height}px` }}
                 onClick={() => handleProductClick(product)}
               >
                 {/* Image Section */}
-                <div className="relative w-full h-[150px] bg-muted overflow-hidden">
+                <div className="relative w-full h-[160px] bg-muted overflow-hidden" style={{ aspectRatio: '1/1' }}>
                   <OptimizedImage
-                    src={product.image_url || 'https://via.placeholder.com/300x150?text=Product'}
+                    src={product.image_url || 'https://via.placeholder.com/300x250?text=Product'}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    width={300}
-                    height={150}
+                    width={adSize.width}
+                    height={160}
                     loading="lazy"
                     onError={() => {}}
                   />
                   
                   {/* Partner Badge */}
                   <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm">
+                    <Badge variant="secondary" className="text-xs bg-background/90 backdrop-blur-sm border">
                       <Tag className="h-3 w-3 ml-1" />
                       {product.affiliate_partner === 'amazon' ? 'أمازون' : product.affiliate_partner}
                     </Badge>
@@ -185,7 +202,7 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
                   {/* Rating Badge */}
                   {product.rating && (
                     <div className="absolute top-2 right-2">
-                      <Badge variant="secondary" className="text-xs bg-background/80 backdrop-blur-sm">
+                      <Badge variant="secondary" className="text-xs bg-background/90 backdrop-blur-sm border">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 ml-1" />
                         {product.rating}
                       </Badge>
@@ -194,7 +211,7 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
                 </div>
 
                 {/* Content Section */}
-                <CardContent className="p-3 flex flex-col gap-2">
+                <CardContent className="p-4 flex flex-col gap-2">
                   <h4 className="text-sm font-semibold line-clamp-2 min-h-[40px]">
                     {product.title}
                   </h4>
@@ -207,14 +224,15 @@ export const ProductCarouselAd: React.FC<ProductCarouselAdProps> = ({
 
                   <Button 
                     size="sm" 
-                    className="w-full"
+                    className="w-full h-9 gap-2"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleProductClick(product);
                     }}
                   >
-                    <ExternalLink className="h-3 w-3 mr-2" />
+                    <ShoppingCart className="h-4 w-4" />
                     تسوق الآن
+                    <ExternalLink className="h-3 w-3" />
                   </Button>
                 </CardContent>
               </Card>
