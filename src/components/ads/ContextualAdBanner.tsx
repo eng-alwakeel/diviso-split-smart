@@ -184,11 +184,13 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
         {currentProduct.image_url && (
           <div className="flex-shrink-0">
             <img
-              src={currentProduct.image_url}
+              src={currentProduct.image_url || 'https://via.placeholder.com/64x64?text=Product'}
               alt={currentProduct.title}
               className="w-16 h-16 object-cover rounded-lg"
+              loading="lazy"
               onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
+                e.currentTarget.src = 'https://via.placeholder.com/64x64?text=Product';
+                e.currentTarget.onerror = null;
               }}
             />
           </div>

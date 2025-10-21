@@ -195,18 +195,18 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
             }`}
             onClick={() => handleProductClick(product)}
           >
-            {product.image_url && (
-              <div className="flex-shrink-0">
-                <img
-                  src={product.image_url}
-                  alt={product.title}
-                  className={`object-cover rounded ${compact ? 'w-10 h-10' : 'w-12 h-12'}`}
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder.svg';
-                  }}
-                />
-              </div>
-            )}
+            <div className="flex-shrink-0">
+              <img
+                src={product.image_url || 'https://via.placeholder.com/48x48?text=Product'}
+                alt={product.title}
+                className={`object-cover rounded ${compact ? 'w-10 h-10' : 'w-12 h-12'}`}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/48x48?text=Product';
+                  e.currentTarget.onerror = null;
+                }}
+              />
+            </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">

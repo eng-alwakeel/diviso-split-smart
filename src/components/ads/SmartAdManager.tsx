@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ContextualAdBanner } from './ContextualAdBanner';
 import { SmartProductRecommendations } from './SmartProductRecommendations';
+import { ProductGridAd } from './ProductGridAd';
+import { ProductCarouselAd } from './ProductCarouselAd';
 import { useAdTracking } from '@/hooks/useAdTracking';
 import { useSmartAdLearning } from '@/hooks/useSmartAdLearning';
 import { useUserBehavior } from '@/hooks/useUserBehavior';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SmartAdManagerProps {
   context: {
@@ -17,6 +20,7 @@ interface SmartAdManagerProps {
   maxAds?: number;
   className?: string;
   compact?: boolean;
+  layout?: 'banner' | 'grid' | 'carousel' | 'recommendations' | 'auto';
 }
 
 export const SmartAdManager: React.FC<SmartAdManagerProps> = ({
@@ -24,9 +28,11 @@ export const SmartAdManager: React.FC<SmartAdManagerProps> = ({
   placement,
   maxAds = 1,
   className = '',
-  compact = false
+  compact = false,
+  layout = 'auto'
 }) => {
-  const [adType, setAdType] = useState<'banner' | 'recommendations' | 'none'>('none');
+  const [adType, setAdType] = useState<'banner' | 'grid' | 'carousel' | 'recommendations' | 'none'>('none');
+  const isMobile = useIsMobile();
   const { shouldShowAds, getTargetedCategories, trackAdImpression } = useAdTracking();
   const { 
     shouldShowAdInContext, 
@@ -59,29 +65,50 @@ export const SmartAdManager: React.FC<SmartAdManagerProps> = ({
       return;
     }
 
-    // Determine best ad type based on context and user behavior
+    // If layout is specified and not 'auto', use it
+    if (layout !== 'auto') {
+      setAdType(layout);
+      recordAdInteraction({
+        ad_type: layout,
+        ad_category: context.category || 'general',
+        context: placement,
+        interaction_type: 'view'
+      });
+      return;
+    }
+
+    // Auto-determine best ad type based on context, device, and user behavior
+    let selectedType: 'banner' | 'grid' | 'carousel' | 'recommendations' = 'banner';
+
     if (context.type === 'dashboard') {
-      // Dashboard gets personalized recommendations for engaged users
-      if (behavior?.engagementLevel === 'high') {
-        setAdType('recommendations');
-      } else if (behavior?.engagementLevel === 'medium') {
-        setAdType(Math.random() > 0.5 ? 'banner' : 'recommendations');
+      // Dashboard: Grid for desktop, Carousel for mobile
+      if (isMobile) {
+        selectedType = 'carousel';
+      } else if (behavior?.engagementLevel === 'high') {
+        selectedType = 'grid'; // Grid layout for engaged users on desktop
       } else {
-        setAdType('banner'); // Simple banner for low engagement
+        selectedType = 'recommendations'; // Smart recommendations for others
       }
     } else if (context.type === 'expense' && context.category) {
-      // Expense context gets targeted recommendations
-      setAdType('recommendations');
+      // Expense context: Recommendations or Grid
+      if (behavior?.engagementLevel === 'high' && !isMobile) {
+        selectedType = 'grid';
+      } else {
+        selectedType = 'recommendations';
+      }
     } else if (context.type === 'group') {
-      // Group context gets banners
-      setAdType('banner');
+      // Group context: Carousel for mobile, Banner for desktop
+      selectedType = isMobile ? 'carousel' : 'banner';
     } else {
-      setAdType('banner');
+      // Default: Banner
+      selectedType = 'banner';
     }
+
+    setAdType(selectedType);
 
     // Track that we decided to show an ad
     recordAdInteraction({
-      ad_type: adType,
+      ad_type: selectedType,
       ad_category: context.category || 'general',
       context: placement,
       interaction_type: 'view'
@@ -116,6 +143,34 @@ export const SmartAdManager: React.FC<SmartAdManagerProps> = ({
     );
   }
 
+  if (adType === 'grid') {
+    return (
+      <div className={`smart-ad-container ${className}`}>
+        <ProductGridAd
+          context={context}
+          placement={placement}
+          maxProducts={compact ? 2 : 4}
+          className="opacity-90 hover:opacity-100 transition-opacity"
+        />
+      </div>
+    );
+  }
+
+  if (adType === 'carousel') {
+    return (
+      <div className={`smart-ad-container ${className}`}>
+        <ProductCarouselAd
+          context={context}
+          placement={placement}
+          maxProducts={6}
+          autoRotate={true}
+          className="opacity-90 hover:opacity-100 transition-opacity"
+        />
+      </div>
+    );
+  }
+
+  // Default: Banner
   return (
     <div className={`smart-ad-container ${className}`}>
       <ContextualAdBanner
