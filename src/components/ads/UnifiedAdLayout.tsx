@@ -16,7 +16,7 @@ export const UnifiedAdLayout = ({
   children,
   placement,
   showTopBanner = true,
-  showSidebar = true,
+  showSidebar = false,
   showBottomBanner = false,
   className = ""
 }: UnifiedAdLayoutProps) => {
