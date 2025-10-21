@@ -8,6 +8,7 @@ import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
+import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -54,6 +55,9 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
+  // Monitor service worker for updates
+  useServiceWorkerUpdate();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AdPreferencesProvider>
