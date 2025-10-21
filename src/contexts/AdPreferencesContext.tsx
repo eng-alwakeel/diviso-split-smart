@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './AuthContext';
 
 interface AdPreferences {
   show_ads: boolean;
@@ -20,26 +19,16 @@ interface AdPreferencesContextType {
 const AdPreferencesContext = createContext<AdPreferencesContextType | undefined>(undefined);
 
 export function AdPreferencesProvider({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth();
   const [preferences, setPreferences] = useState<AdPreferences | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadPreferences = useCallback(async () => {
-    console.log('📢 AdPreferencesContext: Loading preferences...', { authLoading, user: !!user });
-    
-    if (authLoading) {
-      console.log('⏳ AdPreferencesContext: Waiting for auth...');
-      return;
-    }
-    
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('👤 AdPreferencesContext: No user, setting loading to false');
         setLoading(false);
         return;
       }
-
-      console.log('🔍 AdPreferencesContext: Fetching preferences for user', user.id);
 
       const { data, error } = await supabase
         .from('user_ad_preferences')
@@ -75,19 +64,17 @@ export function AdPreferencesProvider({ children }: { children: ReactNode }) {
 
         setPreferences(defaultPrefs);
       }
-      
-      console.log('✅ AdPreferencesContext: Preferences loaded successfully');
     } catch (error) {
-      console.error('❌ AdPreferencesContext: Error', error);
+      console.error('Error in loadPreferences:', error);
     } finally {
       setLoading(false);
     }
-  }, [authLoading, user]);
+  }, []);
 
   const updatePreferences = useCallback(async (newPreferences: Partial<AdPreferences>) => {
-    if (!user) return false;
-    
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
 
       const { data, error } = await supabase
         .from('user_ad_preferences')
@@ -110,13 +97,11 @@ export function AdPreferencesProvider({ children }: { children: ReactNode }) {
       console.error('Error in updatePreferences:', error);
       return false;
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (!authLoading) {
-      loadPreferences();
-    }
-  }, [authLoading, loadPreferences]);
+    loadPreferences();
+  }, [loadPreferences]);
 
   return (
     <AdPreferencesContext.Provider

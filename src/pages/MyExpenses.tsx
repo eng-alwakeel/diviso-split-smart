@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RefreshCw, Plus, BarChart3, List, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import useMyExpenses from "@/hooks/useMyExpenses";
 import { ExpenseCard } from "@/components/expenses/ExpenseCard";
 import { ExpenseFilters } from "@/components/expenses/ExpenseFilters";
@@ -19,12 +18,10 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
-import { MyExpensesSkeleton } from "@/components/MyExpensesSkeleton";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const currentUserId = user?.id || '';
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [selectedExpense, setSelectedExpense] = useState<MyExpense | null>(null);
   const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
   const [activeTab, setActiveTab] = useState("list");
@@ -39,7 +36,29 @@ const MyExpenses = () => {
     applyFilters,
     loadMore,
     refreshExpenses
-  } = useMyExpenses(currentUserId);
+  } = useMyExpenses();
+
+  // Get current user with better error handling
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Error getting user:', error);
+          return;
+        }
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Failed to get current user:', error);
+      }
+    };
+    
+    // Debounce the user check to avoid rapid calls
+    const timeoutId = setTimeout(getCurrentUser, 100);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   // Fetch user's groups for filtering
   useEffect(() => {
@@ -67,13 +86,14 @@ const MyExpenses = () => {
     setSelectedExpense(expense);
   };
 
-  // Show skeleton during initial auth check
-  if (authLoading || (loading && expenses.length === 0 && !currentUserId)) {
+  // Show loading while getting user ID, but don't redirect immediately
+  if (!currentUserId) {
     return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <MyExpensesSkeleton />
-        <BottomNav />
+      <div className="page-container space-y-6">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+        </div>
       </div>
     );
   }
