@@ -162,11 +162,11 @@ export const SmartPromotionBanner = () => {
   const getVariantStyles = () => {
     switch (currentPromotion.variant) {
       case 'warning':
-        return 'border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50';
+        return 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20';
       case 'premium':
-        return 'border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50';
+        return 'border-purple-300 bg-purple-50/50 dark:bg-purple-950/20';
       default:
-        return 'border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10';
+        return 'border-primary/30 bg-primary/5';
     }
   };
 
@@ -184,27 +184,27 @@ export const SmartPromotionBanner = () => {
   const IconComponent = currentPromotion.icon;
 
   return (
-    <Card className={`mb-4 ${getVariantStyles()} transition-all duration-300 hover:shadow-md`}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="mt-1">
-              <IconComponent className="h-5 w-5 text-primary" />
+    <Card className={`mb-3 max-w-full ${getVariantStyles()} transition-all duration-300 hover:shadow-md`}>
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 flex-1">
+            <div className="mt-0.5">
+              <IconComponent className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <h4 className="font-medium text-sm">{currentPromotion.title}</h4>
+                <h4 className="font-medium text-xs">{currentPromotion.title}</h4>
                 {isFreePlan && (
-                  <Badge variant={getBadgeVariant()} className="text-xs">
+                  <Badge variant={getBadgeVariant()} className="text-[10px] px-1.5 py-0">
                     ترقية مميزة
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">{currentPromotion.description}</p>
+              <p className="text-xs text-muted-foreground">{currentPromotion.description}</p>
               <Button 
                 onClick={currentPromotion.ctaAction}
                 size="sm" 
-                className="text-xs h-8"
+                className="text-xs h-7"
                 variant={currentPromotion.variant === 'warning' ? 'default' : 'outline'}
               >
                 {currentPromotion.ctaText}
@@ -214,10 +214,10 @@ export const SmartPromotionBanner = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            className="h-5 w-5 text-muted-foreground hover:text-foreground"
             onClick={() => dismissPromotion(currentPromotion.id)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3" />
           </Button>
         </div>
       </CardContent>

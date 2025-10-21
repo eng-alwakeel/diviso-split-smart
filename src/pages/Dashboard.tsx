@@ -132,9 +132,6 @@ const Dashboard = React.memo(() => {
               {quotaWarnings.map(warning => <QuotaWarningBanner key={warning.type} type={warning.type!} quotaType={warning.type} currentUsage={warning.usage} limit={warning.limit} percentage={warning.percentage} />)}
             </div>}
 
-          {/* Smart Promotion System */}
-          <SmartPromotionBanner />
-
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
             <div>
@@ -149,6 +146,9 @@ const Dashboard = React.memo(() => {
 
           {/* Stats Grid */}
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
+
+          {/* Smart Promotion System */}
+          <SmartPromotionBanner />
 
           {/* Subscription and Usage Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
