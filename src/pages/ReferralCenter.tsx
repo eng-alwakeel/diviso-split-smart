@@ -242,7 +242,7 @@ const ReferralCenter = () => {
       >
         <div className="page-container space-y-6">
         {/* Header */}
-        <div className="mb-8">
+        <div>
           <Button 
             variant="ghost" 
             onClick={() => navigate('/dashboard')}
@@ -641,7 +641,7 @@ const ReferralCenter = () => {
         </div>
       </UnifiedAdLayout>
       
-      <div className="h-16 md:hidden" />
+      <div className="h-32 lg:hidden" />
       <BottomNav />
     </div>
   );

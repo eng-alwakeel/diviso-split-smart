@@ -62,7 +62,7 @@ export const UnifiedAdLayout = ({
 
       {/* Bottom Banner Ad - Fixed at bottom for mobile/tablet */}
       {showBottomBanner && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 lg:hidden animate-slide-up">
+        <div className="fixed bottom-[100px] left-0 right-0 z-40 px-4 lg:hidden animate-slide-up">
           <PersistentAdBanner 
             placement={`${placement}_bottom`}
             className="shadow-lg rounded-lg backdrop-blur-sm"

@@ -181,7 +181,7 @@ const Dashboard = React.memo(() => {
       {/* Quota Upgrade Dialog */}
       {limits && <QuotaUpgradeDialog {...quotaDialogProps} />}
       
-      <div className="h-24" />
+      <div className="h-32" />
       <BottomNav />
     </div>;
 });

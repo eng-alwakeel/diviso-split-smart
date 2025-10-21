@@ -1103,7 +1103,7 @@ const AddExpense = () => {
       </UnifiedAdLayout>
       
       <BottomNav />
-      <div className="h-24 lg:hidden" />
+      <div className="h-32 lg:hidden" />
 
     </div>
   );
