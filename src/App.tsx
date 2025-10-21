@@ -80,11 +80,11 @@ const App: React.FC = () => {
         <AuthProvider>
           <AuthLoadingWrapper>
             <AdPreferencesProvider>
-              <BrowserRouter>
-          <EnhancedPerformanceMonitor />
-          <Toaster />
-          <Sonner />
+        <BrowserRouter>
           <ImprovedErrorBoundary>
+            {/* <EnhancedPerformanceMonitor /> - معطل مؤقتاً للـ debugging */}
+            <Toaster />
+            <Sonner />
             <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
