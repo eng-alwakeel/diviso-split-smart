@@ -162,11 +162,11 @@ export const SmartPromotionBanner = () => {
   const getVariantStyles = () => {
     switch (currentPromotion.variant) {
       case 'warning':
-        return 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20';
+        return 'border-warning/30 bg-card backdrop-blur-sm';
       case 'premium':
-        return 'border-purple-300 bg-purple-50/50 dark:bg-purple-950/20';
+        return 'border-purple-400/30 bg-card backdrop-blur-sm';
       default:
-        return 'border-primary/30 bg-primary/5';
+        return 'border-primary/30 bg-card backdrop-blur-sm';
     }
   };
 
@@ -184,7 +184,7 @@ export const SmartPromotionBanner = () => {
   const IconComponent = currentPromotion.icon;
 
   return (
-    <Card className={`mb-3 max-w-full ${getVariantStyles()} transition-all duration-300 hover:shadow-md`}>
+    <Card className={`mb-3 max-w-full ${getVariantStyles()} shadow-card hover:shadow-elevated transition-all duration-300`}>
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2 flex-1">
