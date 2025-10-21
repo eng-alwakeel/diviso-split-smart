@@ -122,7 +122,7 @@ const Dashboard = React.memo(() => {
       
       <UnifiedAdLayout 
         placement="dashboard"
-        showTopBanner={true}
+        showTopBanner={false}
         showSidebar={true}
         showBottomBanner={true}
       >

@@ -68,13 +68,15 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Featured Product */}
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+      <Card className="overflow-hidden border-2 border-border/50 shadow-md bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="text-xs">
+              إعلان
+            </Badge>
             <Badge variant="default" className="text-xs">
               منتج مميز
             </Badge>
-            <Crown className="h-4 w-4 text-primary" />
           </div>
 
           <div className="space-y-3">
@@ -133,8 +135,13 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
       </Card>
 
       {/* Amazon Prime Promotion */}
-      <Card className="overflow-hidden border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
+      <Card className="overflow-hidden border-2 border-amber-200 shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20">
         <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between mb-2">
+            <Badge variant="secondary" className="text-xs">
+              إعلان
+            </Badge>
+          </div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
               <Zap className="h-4 w-4 text-white" />

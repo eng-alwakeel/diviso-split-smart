@@ -1,8 +1,6 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { CompactAlert } from "@/components/ui/compact-alert";
 
 interface QuotaWarningBannerProps {
   type: 'warning' | 'critical';
@@ -32,43 +30,17 @@ export const QuotaWarningBanner = ({
     ocr: 'مسح الإيصالات'
   };
 
-  const isWarning = type === 'warning';
-  const isCritical = type === 'critical';
+  const message = type === 'critical' 
+    ? `وصلت للحد الأقصى من ${quotaNames[quotaType]} (${currentUsage}/${limit})`
+    : `اقتراب من الحد: ${quotaNames[quotaType]} (${currentUsage}/${limit})`;
 
   return (
-    <Alert
-      variant={isCritical ? 'destructive' : 'warning'}
-      className="border-l-4"
-    >
-      <AlertTriangle className="w-4 h-4" />
-      <AlertDescription className="flex items-center justify-between">
-        <div className="flex-1 ml-2">
-          <div className="font-medium">
-            {isCritical ? 'وصلت للحد الأقصى!' : 'تحذير: اقتراب من الحد الأقصى'}
-          </div>
-          <div className="text-sm mt-1">
-            {quotaNames[quotaType] || quotaType}: {currentUsage} من {limit} ({Math.round(percentage)}%)
-            {isCritical ? ' - لا يمكن إضافة المزيد' : ''}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            size="sm" 
-            variant={isCritical ? "destructive" : "default"}
-            onClick={() => navigate('/pricing-protected')}
-          >
-            ترقية الباقة
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => setDismissed(true)}
-            className="p-1 h-8 w-8"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </AlertDescription>
-    </Alert>
+    <CompactAlert
+      variant={type === 'critical' ? 'destructive' : 'warning'}
+      message={message}
+      actionLabel="ترقية"
+      onAction={() => navigate('/pricing-protected')}
+      onDismiss={() => setDismissed(true)}
+    />
   );
 };

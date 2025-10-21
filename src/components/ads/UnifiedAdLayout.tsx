@@ -35,10 +35,10 @@ export const UnifiedAdLayout = ({
     <div className={`unified-ad-layout ${className}`}>
       {/* Top Banner Ad - Fixed position for all pages */}
       {showTopBanner && (
-        <div className="mb-6 animate-fade-in">
+        <div className="mb-4 animate-fade-in">
           <PersistentAdBanner 
             placement={`${placement}_top`}
-            className="sticky top-[72px] z-40 backdrop-blur-sm"
+            className="rounded-lg"
           />
         </div>
       )}
@@ -50,9 +50,9 @@ export const UnifiedAdLayout = ({
           {children}
         </div>
 
-        {/* Sidebar Ad - Visible on larger screens */}
+        {/* Sidebar Ad - Visible on larger screens (lg+ instead of xl+) */}
         {showSidebar && (
-          <aside className="hidden xl:block w-80 flex-shrink-0">
+          <aside className="hidden lg:block w-72 xl:w-80 flex-shrink-0">
             <div className="sticky top-24 space-y-4">
               <PersistentAdSidebar className="animate-fade-in" />
             </div>
@@ -60,12 +60,12 @@ export const UnifiedAdLayout = ({
         )}
       </div>
 
-      {/* Bottom Banner Ad - For mobile devices */}
+      {/* Bottom Banner Ad - Fixed at bottom for mobile/tablet */}
       {showBottomBanner && (
-        <div className="mt-6 lg:hidden animate-fade-in">
+        <div className="fixed bottom-16 left-0 right-0 z-40 px-4 lg:hidden animate-slide-up">
           <PersistentAdBanner 
             placement={`${placement}_bottom`}
-            className="sticky bottom-20 z-40 backdrop-blur-sm"
+            className="shadow-lg rounded-lg backdrop-blur-sm"
           />
         </div>
       )}
