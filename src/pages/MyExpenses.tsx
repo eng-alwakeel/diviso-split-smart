@@ -105,7 +105,6 @@ const MyExpenses = () => {
       <UnifiedAdLayout 
         placement="my_expenses"
         showTopBanner={true}
-        showSidebar={true}
         showBottomBanner={true}
       >
         <div className="page-container space-y-6">

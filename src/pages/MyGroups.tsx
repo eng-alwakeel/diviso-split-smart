@@ -56,8 +56,7 @@ export default function MyGroups() {
       
       <UnifiedAdLayout 
         placement="my_groups"
-        showTopBanner={true}
-        showSidebar={true}
+        showTopBanner={false}
         showBottomBanner={true}
       >
         <div className="page-container space-y-6">

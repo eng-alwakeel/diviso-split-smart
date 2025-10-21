@@ -58,6 +58,8 @@ import { BudgetQuickActions } from "@/components/budgets/BudgetQuickActions";
 import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
 import { DeleteBudgetDialog } from "@/components/budgets/DeleteBudgetDialog";
 import { useCurrencies } from "@/hooks/useCurrencies";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+
 
 const GroupDetails = () => {
   const navigate = useNavigate();
@@ -300,6 +302,12 @@ const GroupDetails = () => {
   return (
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
       <AppHeader />
+      
+      <UnifiedAdLayout 
+        placement="group_details"
+        showTopBanner={false}
+        showBottomBanner={true}
+      >
 
       <InviteManagementDialog 
         open={openInvite} 
@@ -1045,6 +1053,8 @@ const GroupDetails = () => {
         isDeleting={isCreating}
       />
       </div>
+      </UnifiedAdLayout>
+      
       <div className="h-16 md:hidden" />
       <BottomNav />
     </div>
