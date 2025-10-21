@@ -27,30 +27,47 @@ export const FixedStatsAdBanner = ({ placement, className = "" }: FixedStatsAdBa
 
   // Load trending products
   useEffect(() => {
+    let isMounted = true;
+
     const loadProducts = async () => {
       if (shouldShowAds()) {
-        const data = await getTrendingProducts(5);
-        setProducts(data);
+        try {
+          const data = await getTrendingProducts(5);
+          if (isMounted && data && data.length > 0) {
+            setProducts(data);
+          }
+        } catch (error) {
+          console.error("Error loading products:", error);
+        }
       }
     };
 
     loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Track impression when product changes
   useEffect(() => {
+    let isMounted = true;
+
     if (products.length > 0 && shouldShowAds()) {
       const currentProduct = products[currentIndex];
       const trackImpression = async () => {
         try {
-          await trackAdImpression({
-            ad_type: 'stats_banner',
-            placement: placement,
-            product_id: currentProduct.product_id,
-            affiliate_partner: currentProduct.affiliate_partner
-          });
-          // Store impression ID from product for tracking
-          setImpressionId(currentProduct.id);
+          if (isMounted) {
+            await trackAdImpression({
+              ad_type: 'stats_banner',
+              placement: placement,
+              product_id: currentProduct.product_id,
+              affiliate_partner: currentProduct.affiliate_partner
+            });
+            if (isMounted) {
+              setImpressionId(currentProduct.id);
+            }
+          }
         } catch (error) {
           console.error("Error tracking impression:", error);
         }
@@ -58,6 +75,10 @@ export const FixedStatsAdBanner = ({ placement, className = "" }: FixedStatsAdBa
 
       trackImpression();
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentIndex, products, placement]);
 
   // Auto-rotate every 20 seconds
@@ -77,21 +98,25 @@ export const FixedStatsAdBanner = ({ placement, className = "" }: FixedStatsAdBa
 
   // Handle product click
   const handleClick = async () => {
-    const currentProduct = products[currentIndex];
-    
-    // Track click
-    if (impressionId) {
-      await trackAdClick(impressionId, currentProduct.product_id);
+    try {
+      const currentProduct = products[currentIndex];
+      
+      // Track click
+      if (impressionId) {
+        await trackAdClick(impressionId, currentProduct.product_id);
+      }
+
+      // Open affiliate link
+      window.open(currentProduct.affiliate_url, "_blank", "noopener,noreferrer");
+
+      // Show toast
+      toast({
+        title: "شكراً لدعمك! 💚",
+        description: "تم فتح رابط المنتج في نافذة جديدة",
+      });
+    } catch (error) {
+      console.error("Error handling click:", error);
     }
-
-    // Open affiliate link
-    window.open(currentProduct.affiliate_url, "_blank", "noopener,noreferrer");
-
-    // Show toast
-    toast({
-      title: "شكراً لدعمك! 💚",
-      description: "تم فتح رابط المنتج في نافذة جديدة",
-    });
   };
 
   // Don't show for active subscribers (non-free plans)

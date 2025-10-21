@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -61,8 +60,6 @@ interface DefaultErrorFallbackProps {
 }
 
 const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retry }) => {
-  const navigate = useNavigate();
-
   const getErrorMessage = (error: Error) => {
     if (error.message.includes('Network')) {
       return {
@@ -99,9 +96,9 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
 
   const handleAction = () => {
     if (errorInfo.action === 'تسجيل الدخول') {
-      navigate('/auth');
+      window.location.href = '/auth';
     } else if (errorInfo.action === 'العودة للرئيسية') {
-      navigate('/');
+      window.location.href = '/';
     } else {
       retry();
     }
@@ -139,7 +136,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
             </Button>
             
             {errorInfo.action !== 'العودة للرئيسية' && (
-              <Button variant="outline" onClick={() => navigate('/')}>
+              <Button variant="outline" onClick={() => window.location.href = '/'}>
                 <Home className="w-4 h-4 ml-2" />
                 الرئيسية
               </Button>

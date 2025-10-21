@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
+import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import Index from "./pages/Index";
@@ -55,9 +56,9 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <EnhancedPerformanceMonitor />
         <Toaster />
         <Sonner />
-        <EnhancedPerformanceMonitor />
         <ImprovedErrorBoundary>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -67,19 +68,19 @@ const App: React.FC = () => {
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
             <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
             <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/create-group" element={<ProtectedRoute><LazyCreateGroup /></ProtectedRoute>} />
-            <Route path="/group/:id" element={<ProtectedRoute><LazyGroupDetails /></ProtectedRoute>} />
-            <Route path="/add-expense" element={<ProtectedRoute><LazyAddExpense /></ProtectedRoute>} />
-            <Route path="/my-expenses" element={<ProtectedRoute><LazyMyExpenses /></ProtectedRoute>} />
-            <Route path="/my-groups" element={<ProtectedRoute><LazyMyGroups /></ProtectedRoute>} />
-            <Route path="/financial-plan" element={<ProtectedRoute><LazyFinancialPlan /></ProtectedRoute>} />
-            <Route path="/create-unified-budget" element={<ProtectedRoute><LazyCreateUnifiedBudget /></ProtectedRoute>} />
-            <Route path="/referral" element={<ProtectedRoute><LazyReferralCenter /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/financial-plan" element={<ProtectedRoute><PageErrorBoundary><LazyFinancialPlan /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/create-unified-budget" element={<ProtectedRoute><PageErrorBoundary><LazyCreateUnifiedBudget /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/referral" element={<ProtectedRoute><PageErrorBoundary><LazyReferralCenter /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
-            <Route path="/notifications" element={<ProtectedRoute><LazyNotifications /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><LazySettings /></ProtectedRoute>} />
-            <Route path="/pricing-protected" element={<ProtectedRoute><LazyPricingProtected /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><PageErrorBoundary><LazyNotifications /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><PageErrorBoundary><LazySettings /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/pricing-protected" element={<ProtectedRoute><PageErrorBoundary><LazyPricingProtected /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
             <Route path="/ad-test" element={<AdTestPage />} />
