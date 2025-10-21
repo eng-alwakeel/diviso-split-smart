@@ -228,4 +228,6 @@ export const FixedStatsAdBanner = ({ placement, className = "" }: FixedStatsAdBa
       )}
     </Card>
   );
-};
+});
+
+FixedStatsAdBanner.displayName = 'FixedStatsAdBanner';

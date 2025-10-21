@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useOptimizedDashboardData } from "@/hooks/useOptimizedQueries";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
@@ -27,15 +27,17 @@ const Dashboard = React.memo(() => {
   } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   const {
-    myPaid,
-    myOwed,
-    monthlyTotalExpenses,
-    weeklyExpensesCount,
-    groupsCount,
-    loading,
+    data: dashboardData,
+    isLoading: loading,
     error,
     refetch
-  } = useDashboardData();
+  } = useOptimizedDashboardData();
+
+  const myPaid = dashboardData?.totalPaid ?? 0;
+  const myOwed = dashboardData?.totalOwed ?? 0;
+  const monthlyTotalExpenses = dashboardData?.monthlyTotal ?? 0;
+  const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
+  const groupsCount = dashboardData?.groupsCount ?? 0;
   const {
     checkQuotaWarning,
     upgradeDialogOpen,
