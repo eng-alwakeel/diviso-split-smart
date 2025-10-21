@@ -21,7 +21,9 @@ export class ContextErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Context Error Boundary caught error:', error, errorInfo);
+    console.error('🚨 Context Error Boundary caught error:', error);
+    console.error('📍 Error occurred at:', errorInfo.componentStack);
+    console.error('📝 Full error info:', errorInfo);
   }
 
   render() {
