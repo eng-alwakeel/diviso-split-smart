@@ -376,10 +376,12 @@ const ReferralCenter = () => {
 
                 {/* بطاقة المستوى */}
                 {userTier && !tiersLoading && (
-                  <ReferralTierCard 
-                    userTier={userTier} 
-                    progress={getProgressToNextTier()} 
-                  />
+                  <div className={isMobile ? "mt-6" : "mt-8"}>
+                    <ReferralTierCard 
+                      userTier={userTier} 
+                      progress={getProgressToNextTier()} 
+                    />
+                  </div>
                 )}
               </div>
 
