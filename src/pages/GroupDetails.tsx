@@ -340,9 +340,9 @@ const GroupDetails = () => {
         totalExpenses={totals.totalExpenses}
       />
 
-      <div className="page-container">
+      <div className="page-container space-y-6">
         {/* Header */}
-        <div className="mb-8">
+        <div>
           <Button 
             variant="ghost" 
             onClick={() => navigate('/dashboard')}
@@ -423,7 +423,7 @@ const GroupDetails = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

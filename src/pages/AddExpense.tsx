@@ -35,6 +35,7 @@ import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
 import { useBudgetWarnings, BudgetWarning } from "@/hooks/useBudgetWarnings";
 import { BudgetWarningAlert } from "@/components/expenses/BudgetWarningAlert";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 
 interface UserGroup {
   id: string;
@@ -493,8 +494,8 @@ const AddExpense = () => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="form-container">
-          <div className="space-y-6 animate-pulse">
+        <div className="page-container space-y-6">
+          <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3"></div>
             <div className="h-64 bg-muted rounded"></div>
             <div className="h-96 bg-muted rounded"></div>
@@ -508,9 +509,14 @@ const AddExpense = () => {
     <div className="min-h-screen bg-background">
       <AppHeader />
       
-      <div className="form-container">
-        {/* Header */}
-        <div className="mb-8">
+      <UnifiedAdLayout 
+        placement="add_expense"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
+          {/* Header */}
+          <div>
           <Button 
             variant="ghost" 
             onClick={() => {
@@ -1093,7 +1099,8 @@ const AddExpense = () => {
             </Card>
           </div>
         </div>
-      </div>
+        </div>
+      </UnifiedAdLayout>
       
       <BottomNav />
       <div className="h-24 lg:hidden" />

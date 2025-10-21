@@ -41,6 +41,7 @@ import { BulkReferralDialog } from "@/components/referral/BulkReferralDialog";
 import { EnhancedReferralHistory } from "@/components/referral/EnhancedReferralHistory";
 import { ReferralNotifications } from "@/components/referral/ReferralNotifications";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -234,7 +235,12 @@ const ReferralCenter = () => {
     <div className="min-h-screen bg-dark-background">
       <AppHeader />
       
-      <div className="page-container">
+      <UnifiedAdLayout 
+        placement="referral_center"
+        showTopBanner={true}
+        showBottomBanner={true}
+      >
+        <div className="page-container space-y-6">
         {/* Header */}
         <div className="mb-8">
           <Button 
@@ -632,7 +638,8 @@ const ReferralCenter = () => {
             }}
           />
         )}
-      </div>
+        </div>
+      </UnifiedAdLayout>
       
       <div className="h-16 md:hidden" />
       <BottomNav />

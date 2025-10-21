@@ -245,4 +245,13 @@ All colors MUST be HSL.
   .animate-slide-up {
     animation: slide-up 0.3s ease-out;
   }
+
+  /* Unified Card Styles - for consistent appearance across all pages */
+  .unified-card {
+    @apply bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm;
+  }
+
+  .unified-card-elevated {
+    @apply bg-card border border-border/50 shadow-elevated hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur;
+  }
 }

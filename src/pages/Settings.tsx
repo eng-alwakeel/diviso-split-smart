@@ -304,9 +304,9 @@ const Settings = () => {
         showSidebar={false}
         showBottomBanner={true}
       >
-        <div className="form-container">
+        <div className="page-container space-y-6">
           {/* Header */}
-          <div className="mb-8">
+          <div>
             <Button 
               variant="ghost" 
               onClick={() => navigate('/dashboard')}
