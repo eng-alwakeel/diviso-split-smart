@@ -6,6 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// HTML entity escaping function to prevent XSS
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 interface EmailInviteRequest {
   email: string;
   groupName: string;
@@ -47,7 +57,12 @@ serve(async (req) => {
       throw new Error('Missing required parameters');
     }
 
-    console.log('Processing email invite:', { email, groupName, groupId });
+    // Sanitize all user inputs to prevent XSS
+    const safeGroupName = escapeHtml(groupName);
+    const safeCustomMessage = customMessage ? escapeHtml(customMessage) : '';
+    const safeInviteLink = escapeHtml(inviteLink);
+
+    console.log('Processing email invite:', { email, groupName: safeGroupName, groupId });
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,8 +101,8 @@ serve(async (req) => {
       }
     }
 
-    // Create the email content
-    const subject = `دعوة للانضمام لمجموعة "${groupName}" على ديفيزو`;
+    // Create the email content with sanitized inputs
+    const subject = `دعوة للانضمام لمجموعة "${safeGroupName}" على ديفيزو`;
     const htmlContent = `
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
@@ -107,19 +122,19 @@ serve(async (req) => {
             <h2 style="color: #333; margin: 0 0 20px 0; font-size: 24px;">مرحباً!</h2>
             
             <p style="color: #666; line-height: 1.6; font-size: 16px; margin: 0 0 20px 0;">
-              تمت دعوتك للانضمام لمجموعة <strong>"${groupName}"</strong> على تطبيق ديفيزو لتقسيم المصاريف.
+              تمت دعوتك للانضمام لمجموعة <strong>"${safeGroupName}"</strong> على تطبيق ديفيزو لتقسيم المصاريف.
             </p>
             
-            ${customMessage ? `
+            ${safeCustomMessage ? `
               <div style="background: #f8f9fa; border-right: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 6px;">
                 <p style="margin: 0; color: #555; font-style: italic; line-height: 1.6;">
-                  "${customMessage}"
+                  "${safeCustomMessage}"
                 </p>
               </div>
             ` : ''}
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${inviteLink}" 
+              <a href="${safeInviteLink}"
                  style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                         color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; 
                         font-weight: bold; font-size: 16px;">
@@ -132,8 +147,8 @@ serve(async (req) => {
             </p>
             
             <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef; word-break: break-all; text-align: center;">
-              <a href="${inviteLink}" style="color: #667eea; text-decoration: none; font-size: 14px;">
-                ${inviteLink}
+              <a href="${safeInviteLink}" style="color: #667eea; text-decoration: none; font-size: 14px;">
+                ${safeInviteLink}
               </a>
             </div>
             
