@@ -92,7 +92,7 @@ const plans = [
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
-  const { startTrial } = useSubscription();
+  const { startTrial, canStartTrial, subscription } = useSubscription();
   const { toast } = useToast();
   const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
   const { getPlanBadgeConfig } = usePlanBadge();
@@ -217,6 +217,36 @@ export const PricingSection = () => {
                       >
                         ابدأ مجاناً
                       </Button>
+                    ) : plan.isLifetime ? (
+                      <Button
+                        variant={plan.popular ? "hero" : "outline"}
+                        className="w-full"
+                        size="lg"
+                        onClick={async () => {
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session?.user) {
+                            const params = new URLSearchParams({ startTrial: "lifetime", redirectTo: "/dashboard" });
+                            navigate(`/auth?${params.toString()}`);
+                            return;
+                          }
+                          
+                          // Check if lifetime offer is still available
+                          if (!lifetimeAvailable || lifetimeRemaining <= 0) {
+                            toast({ 
+                              title: "العرض منتهي", 
+                              description: "نأسف، لقد انتهى العرض المحدود لـ 100 شخص فقط", 
+                              variant: "destructive" 
+                            });
+                            return;
+                          }
+                          // Handle lifetime plan - redirect to payment
+                          toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
+                          // This will be implemented later with payment integration
+                        }}
+                        aria-label={`${plan.buttonText} لخطة ${plan.name}`}
+                      >
+                        {plan.buttonText}
+                      </Button>
                     ) : (
                       <Button
                         variant={plan.popular ? "hero" : "outline"}
@@ -225,7 +255,6 @@ export const PricingSection = () => {
                         onClick={async () => {
                           let planKey = "personal";
                           if (plan.name === "العائلية") planKey = "family";
-                          else if (plan.name === "مدى الحياة") planKey = "lifetime";
                           
                           const { data: { session } } = await supabase.auth.getSession();
                           if (!session?.user) {
@@ -234,34 +263,41 @@ export const PricingSection = () => {
                             return;
                           }
                           
-                          if (plan.isLifetime) {
-                            // Check if lifetime offer is still available
-                            if (!lifetimeAvailable || lifetimeRemaining <= 0) {
-                              toast({ 
-                                title: "العرض منتهي", 
-                                description: "نأسف، لقد انتهى العرض المحدود لـ 100 شخص فقط", 
-                                variant: "destructive" 
-                              });
-                              return;
-                            }
-                            // Handle lifetime plan - redirect to payment
-                            toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
-                            // This will be implemented later with payment integration
+                          // إذا انتهت التجربة، أظهر رسالة واضحة
+                          if (!canStartTrial) {
+                            toast({ 
+                              title: "انتهت فترة التجربة المجانية", 
+                              description: "يرجى الاشتراك في الباقة للاستمرار في استخدام المزايا المتقدمة", 
+                              variant: "default" 
+                            });
+                            // TODO: إضافة رابط صفحة الدفع لاحقاً
                             return;
                           }
                           
+                          // بدء التجربة المجانية
                           const res = await startTrial(planKey as any);
                           if ((res as any).error) {
-                            const msg = (res as any).error === "trial_exists" ? "لديك تجربة سابقة أو نشطة." : (res as any).error;
-                            toast({ title: "لا يمكن بدء التجربة", description: msg, variant: "destructive" });
+                            const msg = (res as any).error === "trial_expired" 
+                              ? "لقد استنفدت أيام التجربة المجانية. يرجى الاشتراك للاستمرار." 
+                              : (res as any).error === "trial_exists" 
+                              ? "لديك تجربة سابقة أو نشطة." 
+                              : (res as any).error;
+                            toast({ 
+                              title: "لا يمكن بدء التجربة", 
+                              description: msg, 
+                              variant: "destructive" 
+                            });
                           } else {
-                            toast({ title: "بدأت التجربة المجانية", description: "صالحة لمدة ٧ أيام" });
+                            toast({ 
+                              title: "بدأت التجربة المجانية", 
+                              description: "صالحة لمدة ٧ أيام" 
+                            });
                             navigate("/dashboard");
                           }
                         }}
-                        aria-label={`ابدأ تجربة ٧ أيام لخطة ${plan.name}`}
+                        aria-label={`${canStartTrial ? 'ابدأ تجربة ٧ أيام' : 'اشترك الآن'} لخطة ${plan.name}`}
                       >
-                        {plan.isLifetime ? plan.buttonText : "ابدأ تجربة ٧ أيام"}
+                        {canStartTrial ? "ابدأ تجربة ٧ أيام" : "اشترك الآن"}
                       </Button>
                     )}
                   </div>
