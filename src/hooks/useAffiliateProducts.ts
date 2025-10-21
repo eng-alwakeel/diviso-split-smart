@@ -141,6 +141,27 @@ export const useAffiliateProducts = () => {
     }
   };
 
+  // Get single product for stats banner (most popular)
+  const getStatsBannerProduct = async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('affiliate_products')
+        .select('*')
+        .eq('active', true)
+        .order('click_count', { ascending: false })
+        .limit(1)
+        .single();
+
+      return data || null;
+    } catch (error) {
+      console.error('Error fetching stats banner product:', error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     products,
     loading,
@@ -149,6 +170,7 @@ export const useAffiliateProducts = () => {
     getProductsForExpenseCategory,
     getProductsForGroupType,
     getAmazonProducts,
-    getTrendingProducts
+    getTrendingProducts,
+    getStatsBannerProduct
   };
 };

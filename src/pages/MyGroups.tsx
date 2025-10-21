@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 export default function MyGroups() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
@@ -86,6 +87,8 @@ export default function MyGroups() {
           </CardContent>
         </Card>
         
+        {/* Fixed Ad Banner Below Stats */}
+        <FixedStatsAdBanner placement="groups_stats" />
 
         {/* شريط البحث وزر الإنشاء */}
         <div className={`${isMobile ? 'space-y-4' : 'flex gap-4 items-center'}`}>

@@ -19,6 +19,7 @@ import { QuotaWarningBanner } from "@/components/quota/QuotaWarningBanner";
 import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
   const {
@@ -146,6 +147,9 @@ const Dashboard = React.memo(() => {
 
           {/* Stats Grid */}
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
+
+          {/* Fixed Ad Banner Below Stats */}
+          <FixedStatsAdBanner placement="dashboard_stats" />
 
           {/* Smart Promotion System */}
           <SmartPromotionBanner />

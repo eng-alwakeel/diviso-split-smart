@@ -17,6 +17,7 @@ import { MyExpense } from "@/hooks/useMyExpenses";
 import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
@@ -137,6 +138,9 @@ const MyExpenses = () => {
 
           {/* Stats Overview */}
           <ExpenseStats stats={stats} currency="SAR" />
+
+          {/* Fixed Ad Banner Below Stats */}
+          <FixedStatsAdBanner placement="expenses_stats" />
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>

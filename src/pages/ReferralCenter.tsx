@@ -40,6 +40,7 @@ import { ReferralAnalyticsChart } from "@/components/referral/ReferralAnalyticsC
 import { BulkReferralDialog } from "@/components/referral/BulkReferralDialog";
 import { EnhancedReferralHistory } from "@/components/referral/EnhancedReferralHistory";
 import { ReferralNotifications } from "@/components/referral/ReferralNotifications";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -360,6 +361,9 @@ const ReferralCenter = () => {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Fixed Ad Banner Below Stats */}
+                <FixedStatsAdBanner placement="referral_stats" />
 
                 {/* بطاقة المستوى */}
                 {userTier && !tiersLoading && (

@@ -26,6 +26,7 @@ import { ProfileTab } from "@/components/settings/ProfileTab";
 import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 
 
 const getPlanDisplayName = (plan: string) => {
@@ -352,6 +353,9 @@ const Settings = () => {
               </TabsTrigger>
             )}
           </TabsList>
+
+          {/* Fixed Ad Banner After Tabs */}
+          <FixedStatsAdBanner placement="settings_tabs" />
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="space-y-6">
