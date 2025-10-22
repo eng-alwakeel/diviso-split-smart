@@ -9,6 +9,8 @@ import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPer
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
+import { useNativeFeatures } from "@/hooks/useNativeFeatures";
+import { useDeepLinks } from "@/hooks/useDeepLinks";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -57,6 +59,12 @@ const queryClient = new QueryClient({
 const App: React.FC = () => {
   // Monitor service worker for updates
   useServiceWorkerUpdate();
+  
+  // Initialize native features (status bar, back button, etc.)
+  useNativeFeatures();
+  
+  // Handle deep links
+  useDeepLinks();
 
   return (
     <QueryClientProvider client={queryClient}>

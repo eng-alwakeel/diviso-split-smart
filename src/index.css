@@ -197,6 +197,16 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans;
   }
+
+  /* Mobile safe areas for notched devices */
+  @supports (padding: env(safe-area-inset-top)) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+    }
+  }
 }
 
 @layer utilities {

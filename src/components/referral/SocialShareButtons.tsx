@@ -10,6 +10,7 @@ import {
   type SocialPlatform 
 } from '@/lib/socialShareConfig';
 import { supabase } from '@/integrations/supabase/client';
+import { shareNative, isNativePlatform } from '@/lib/native';
 
 interface SocialShareButtonsProps {
   referralLink: string;
@@ -45,13 +46,31 @@ export const SocialShareButtons = ({
     // Track the share
     await trackShare(platform, referralCode, userId);
 
+    // Try native sharing first (if on mobile app)
+    if (isNativePlatform()) {
+      const shared = await shareNative({
+        title: 'انضم إلى Diviso',
+        text: shareMessage,
+        url: trackedLink,
+        dialogTitle: `مشاركة عبر ${config.name}`
+      });
+
+      if (shared) {
+        toast({
+          title: 'تم المشاركة',
+          description: 'تم مشاركة رابط الإحالة بنجاح'
+        });
+        return;
+      }
+    }
+
     // Handle special platforms
     if (platform === 'instagram') {
       await handleInstagramShare(shareMessage, trackedLink);
       return;
     }
 
-    // Generate share URL
+    // Generate share URL (fallback for web or if native sharing failed)
     const shareUrl = config.shareUrl({
       referralLink: trackedLink,
       message: shareMessage,
