@@ -21,7 +21,14 @@ export function useReferralRewards() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        // Reset to default values for unauthenticated users
+        setRewards([]);
+        setTotalDaysEarned(0);
+        setRemainingDays(0);
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("referral_rewards")

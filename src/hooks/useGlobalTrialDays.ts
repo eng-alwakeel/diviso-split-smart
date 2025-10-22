@@ -36,7 +36,9 @@ export function useGlobalTrialDays() {
     gcTime: 15 * 60 * 1000, // 15 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    retry: 1
+    retry: 1,
+    enabled: true, // Always enabled, returns default safely if no user
+    throwOnError: false // Don't throw errors, return them in error state
   });
 
   // Invalidate cache when needed
