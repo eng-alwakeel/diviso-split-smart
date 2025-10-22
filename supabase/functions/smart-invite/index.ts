@@ -47,7 +47,11 @@ serve(async (req) => {
       throw new Error('Missing required parameters');
     }
 
-    console.log('Processing smart invite:', { groupId, phoneNumber, groupName, senderName });
+    // Logging sanitized for security - no PII in production logs
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    if (isDev) {
+      console.log('Processing smart invite for group:', groupName);
+    }
 
     // Clean phone number (remove all non-digits)
     const cleanPhone = phoneNumber.replace(/\D/g, '');

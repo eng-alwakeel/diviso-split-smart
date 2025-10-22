@@ -30,7 +30,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Parse request body
     const { phone, senderName, referralCode }: ReferralInviteRequest = await req.json();
-    console.log(`Sending referral invite to: ${phone} from: ${senderName} with code: ${referralCode}`);
+    
+    // Logging sanitized for security - no PII in production logs
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    if (isDev) {
+      console.log('Sending referral invite with code:', referralCode);
+    }
 
     if (!phone || !senderName || !referralCode) {
       throw new Error("Missing required parameters: phone, senderName, or referralCode");
@@ -71,22 +76,10 @@ ${inviteLink}
 لا تفوت الفرصة! 🚀
     `.trim();
 
-    console.log("SMS Message to be sent:");
-    console.log(`To: ${phone}`);
-    console.log(`Message: ${message}`);
-
-    // For now, we'll simulate SMS sending success
-    // In production, integrate with your SMS service provider (Twilio, AWS SNS, etc.)
-    
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Log the SMS sending attempt (replace with actual SMS service in production)
-    console.log("📱 SMS Invite Details:");
-    console.log(`Recipient: ${phone}`);
-    console.log(`Sender: ${senderName}`);
-    console.log(`Referral Code: ${referralCode}`);
-    console.log(`Invite Link: ${inviteLink}`);
+    // SMS details sanitized for security - no PII in production logs
+    if (isDev) {
+      console.log("SMS message prepared with referral code:", referralCode);
+    }
 
     // Here you would integrate with your SMS service
     /*

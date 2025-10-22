@@ -62,7 +62,11 @@ serve(async (req) => {
     const safeCustomMessage = customMessage ? escapeHtml(customMessage) : '';
     const safeInviteLink = escapeHtml(inviteLink);
 
-    console.log('Processing email invite:', { email, groupName: safeGroupName, groupId });
+    // Logging sanitized for security - no PII in production logs
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    if (isDev) {
+      console.log('Processing email invite for group:', safeGroupName);
+    }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -171,12 +175,10 @@ serve(async (req) => {
       </html>
     `;
 
-    // For now, we'll log the email content (you would integrate with an email service here)
-    console.log('Email invite would be sent:', {
-      to: email,
-      subject,
-      content: htmlContent
-    });
+    // Email content sanitized for security - no PII logged in production
+    if (isDev) {
+      console.log('Email invite prepared for:', email.substring(0, 3) + '***');
+    }
 
     // Create invite record in database
     const { error: inviteError } = await supabaseClient
