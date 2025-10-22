@@ -5,12 +5,66 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-revenuecat-signature",
 };
 
+// Rate limiting to prevent abuse
+const FAILED_ATTEMPTS = new Map<string, { count: number; resetAt: number }>();
+const MAX_ATTEMPTS = 10;
+const WINDOW_MS = 60000; // 1 minute
+
+function checkRateLimit(clientIp: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const attempts = FAILED_ATTEMPTS.get(clientIp);
+  
+  // Clean up expired entries
+  if (attempts && now >= attempts.resetAt) {
+    FAILED_ATTEMPTS.delete(clientIp);
+    return { allowed: true };
+  }
+  
+  if (attempts && attempts.count >= MAX_ATTEMPTS) {
+    const retryAfter = Math.ceil((attempts.resetAt - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+  
+  return { allowed: true };
+}
+
+function recordFailedAttempt(clientIp: string): void {
+  const now = Date.now();
+  const attempts = FAILED_ATTEMPTS.get(clientIp);
+  
+  if (!attempts || now >= attempts.resetAt) {
+    FAILED_ATTEMPTS.set(clientIp, { count: 1, resetAt: now + WINDOW_MS });
+  } else {
+    attempts.count++;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting check
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    const rateCheck = checkRateLimit(clientIp);
+    if (!rateCheck.allowed) {
+      return new Response(JSON.stringify({ 
+        error: "Too many failed attempts", 
+        retry_after: rateCheck.retryAfter 
+      }), {
+        status: 429,
+        headers: { 
+          "Content-Type": "application/json", 
+          "Retry-After": String(rateCheck.retryAfter),
+          ...corsHeaders 
+        },
+      });
+    }
+
     const secret = Deno.env.get("REVENUECAT_WEBHOOK_SECRET");
     if (!secret) {
       return new Response(JSON.stringify({ error: "Missing REVENUECAT_WEBHOOK_SECRET" }), {
@@ -23,6 +77,7 @@ Deno.serve(async (req) => {
     const sig = req.headers.get("x-revenuecat-signature") || req.headers.get("authorization") || "";
     
     if (!sig) {
+      recordFailedAttempt(clientIp);
       return new Response(JSON.stringify({ error: "Unauthorized: Missing signature" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -53,11 +108,15 @@ Deno.serve(async (req) => {
     
     if (!isValid) {
       console.warn("Webhook auth failed: invalid signature");
+      recordFailedAttempt(clientIp);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
+    
+    // Clear any failed attempts on successful auth
+    FAILED_ATTEMPTS.delete(clientIp);
 
     const body = await req.json().catch(() => ({}));
 
