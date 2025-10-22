@@ -2,11 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CreditCard, Calendar, Clock, Gift, Zap, Crown } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { CreditCard, Calendar, Clock, Gift, Zap, Crown, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { QuotaStatus } from "@/components/QuotaStatus";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface SubscriptionTabProps {
   subscription: any;
@@ -20,6 +23,7 @@ interface SubscriptionTabProps {
   loading: boolean;
   handleStartTrial: (plan: 'personal' | 'family') => Promise<void>;
   handleSwitchPlan: (plan: 'personal' | 'family') => Promise<void>;
+  handleCancelSubscription?: () => Promise<void>;
   getPlanDisplayName: (plan: string) => string;
   getStatusDisplayName: (status: string) => string;
 }
@@ -36,13 +40,37 @@ export function SubscriptionTab({
   loading,
   handleStartTrial,
   handleSwitchPlan,
+  handleCancelSubscription,
   getPlanDisplayName,
   getStatusDisplayName
 }: SubscriptionTabProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const formatDate = (date: string) => {
     return format(new Date(date), "d MMMM yyyy", { locale: ar });
+  };
+
+  const onCancelSubscription = async () => {
+    if (!handleCancelSubscription) return;
+    
+    setCancelLoading(true);
+    try {
+      await handleCancelSubscription();
+      toast({
+        title: "تم إلغاء الاشتراك",
+        description: "تم إلغاء اشتراكك بنجاح",
+      });
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إلغاء الاشتراك",
+        variant: "destructive"
+      });
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
   return (
@@ -263,13 +291,47 @@ export function SubscriptionTab({
                   </div>
                 </div>
               ) : (
-                <div className="pt-4 border-t border-border">
+                <div className="pt-4 border-t border-border space-y-3">
                   <Button 
                     onClick={() => navigate('/pricing')}
                     className="w-full"
                   >
                     إدارة الاشتراك
                   </Button>
+                  
+                  {/* Cancel Subscription Button */}
+                  {subscription && subscription.status !== 'canceled' && subscription.status !== 'expired' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          className="w-full border-destructive text-destructive hover:bg-destructive/10"
+                          disabled={cancelLoading}
+                        >
+                          <XCircle className="w-4 h-4 ml-2" />
+                          إلغاء الاشتراك
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>تأكيد إلغاء الاشتراك</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            هل أنت متأكد من رغبتك في إلغاء اشتراكك؟ سيتم إلغاء الاشتراك فوراً ولن تتمكن من استخدام المميزات المدفوعة.
+                            يمكنك الاشتراك مجدداً في أي وقت.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={onCancelSubscription}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {cancelLoading ? "جاري الإلغاء..." : "تأكيد الإلغاء"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </div>
               )}
             </>

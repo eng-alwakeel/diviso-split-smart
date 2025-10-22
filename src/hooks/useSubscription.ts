@@ -125,6 +125,135 @@ export function useSubscription() {
     return subscription?.status === 'trialing' && remainingTrialDays > 0;
   }, [subscription?.status, remainingTrialDays]);
 
+  // Cancel subscription function
+  const cancelSubscription = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "not_authenticated" } as const;
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .update({ 
+          status: "canceled" as const,
+          canceled_at: new Date().toISOString()
+        })
+        .eq("user_id", user.id)
+        .select("*")
+        .single();
+        
+      if (error) throw error;
+      
+      updateCache(() => data as UserSubscription);
+      invalidate();
+      return { data: data as UserSubscription } as const;
+    } catch (err) {
+      return { error: (err as Error).message } as const;
+    }
+  }, [updateCache, invalidate]);
+
+  // Dev-only functions for testing
+  const devSetSubscription = useCallback(async (plan: SubscriptionPlan, status: SubscriptionStatus, daysToExpire: number) => {
+    if (!import.meta.env.DEV) {
+      console.warn('devSetSubscription is only available in development mode');
+      return { error: "dev_only" } as const;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "not_authenticated" } as const;
+    }
+    
+    try {
+      const expiresAt = new Date(Date.now() + daysToExpire * 24 * 60 * 60 * 1000).toISOString();
+      const startedAt = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .upsert({ 
+          user_id: user.id,
+          plan,
+          status,
+          started_at: startedAt,
+          expires_at: expiresAt,
+          canceled_at: status === 'canceled' ? new Date().toISOString() : null,
+          first_trial_started_at: status === 'trialing' ? startedAt : null
+        })
+        .select("*")
+        .single();
+        
+      if (error) throw error;
+      
+      updateCache(() => data as UserSubscription);
+      invalidate();
+      return { data: data as UserSubscription } as const;
+    } catch (err) {
+      return { error: (err as Error).message } as const;
+    }
+  }, [updateCache, invalidate]);
+
+  const devResetToFree = useCallback(async () => {
+    if (!import.meta.env.DEV) {
+      console.warn('devResetToFree is only available in development mode');
+      return { error: "dev_only" } as const;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "not_authenticated" } as const;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from("user_subscriptions")
+        .delete()
+        .eq("user_id", user.id);
+        
+      if (error) throw error;
+      
+      updateCache(() => null);
+      invalidate();
+      return { data: "success" } as const;
+    } catch (err) {
+      return { error: (err as Error).message } as const;
+    }
+  }, [updateCache, invalidate]);
+
+  const devAddDays = useCallback(async (days: number) => {
+    if (!import.meta.env.DEV) {
+      console.warn('devAddDays is only available in development mode');
+      return { error: "dev_only" } as const;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !subscription) {
+      return { error: "not_authenticated_or_no_subscription" } as const;
+    }
+    
+    try {
+      const currentExpiry = new Date(subscription.expires_at);
+      const newExpiry = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000);
+      
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .update({ 
+          expires_at: newExpiry.toISOString()
+        })
+        .eq("user_id", user.id)
+        .select("*")
+        .single();
+        
+      if (error) throw error;
+      
+      updateCache(() => data as UserSubscription);
+      invalidate();
+      return { data: data as UserSubscription } as const;
+    } catch (err) {
+      return { error: (err as Error).message } as const;
+    }
+  }, [subscription, updateCache, invalidate]);
+
   return {
     subscription,
     isTrialActive,
@@ -137,6 +266,11 @@ export function useSubscription() {
     refresh: refetch,
     startTrial,
     switchPlan,
+    cancelSubscription,
     freeDaysFromReferrals,
+    // Dev-only functions
+    devSetSubscription,
+    devResetToFree,
+    devAddDays,
   };
 }

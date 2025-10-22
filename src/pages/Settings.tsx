@@ -27,6 +27,7 @@ import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
 
 
 const getPlanDisplayName = (plan: string) => {
@@ -58,7 +59,7 @@ const getStatusDisplayName = (status: string) => {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan } = useSubscription();
+  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
@@ -294,6 +295,23 @@ const Settings = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    const result = await cancelSubscription();
+    if (result.error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء إلغاء الاشتراك",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "تم الإلغاء!",
+        description: "تم إلغاء اشتراكك بنجاح",
+      });
+      await refresh();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -318,6 +336,11 @@ const Settings = () => {
             <h1 className="text-3xl font-bold mb-2">الإعدادات</h1>
             <p className="text-muted-foreground">إدارة حسابك وتخصيص التطبيق</p>
           </div>
+
+          {/* Dev Tools - Only in Development */}
+          {import.meta.env.DEV && (
+            <DevSubscriptionTester />
+          )}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -390,6 +413,7 @@ const Settings = () => {
               loading={loading}
               handleStartTrial={handleStartTrial}
               handleSwitchPlan={handleSwitchPlan}
+              handleCancelSubscription={handleCancelSubscription}
               getPlanDisplayName={getPlanDisplayName}
               getStatusDisplayName={getStatusDisplayName}
             />
