@@ -254,6 +254,14 @@ export function useSubscription() {
     }
   }, [subscription, updateCache, invalidate]);
 
+  // Force refresh function that clears cache and refetches
+  const forceRefresh = useCallback(async () => {
+    console.log('🔄 Force refreshing subscription data...');
+    invalidate();
+    await refetch();
+    console.log('✅ Force refresh complete');
+  }, [invalidate, refetch]);
+
   return {
     subscription,
     isTrialActive,
@@ -264,6 +272,7 @@ export function useSubscription() {
     canSwitchPlan,
     loading,
     refresh: refetch,
+    forceRefresh,
     startTrial,
     switchPlan,
     cancelSubscription,
