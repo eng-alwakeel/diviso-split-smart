@@ -21,23 +21,28 @@ export interface UserSubscription {
 
 const SUBSCRIPTION_QUERY_KEY = ['user-subscription'];
 
-// Centralized subscription fetcher
+// Centralized subscription fetcher - never throws, always returns null on error
 async function fetchUserSubscription(): Promise<UserSubscription | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return null;
 
-  const { data, error } = await supabase
-    .from("user_subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+    const { data, error } = await supabase
+      .from("user_subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-  if (error) {
-    console.error('Error fetching subscription:', error);
-    throw error;
+    if (error) {
+      console.warn('Error fetching subscription:', error);
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    console.warn('Unexpected error in fetchUserSubscription:', err);
+    return null;
   }
-
-  return data;
 }
 
 // Global subscription hook using React Query

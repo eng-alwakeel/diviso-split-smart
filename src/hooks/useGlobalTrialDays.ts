@@ -4,20 +4,25 @@ import { useCallback } from 'react';
 
 const TRIAL_DAYS_QUERY_KEY = ['remaining-trial-days'];
 
-// Centralized trial days fetcher
+// Centralized trial days fetcher - never throws, always returns default on error
 async function fetchRemainingTrialDays(): Promise<number> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return 7; // Default trial days
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return 7; // Default trial days
 
-  const { data, error } = await supabase
-    .rpc('get_remaining_trial_days', { p_user_id: user.id });
+    const { data, error } = await supabase
+      .rpc('get_remaining_trial_days', { p_user_id: user.id });
 
-  if (error) {
-    console.error('Error fetching trial days:', error);
-    return 7; // Fallback to default
+    if (error) {
+      console.warn('Error fetching trial days:', error);
+      return 7; // Fallback to default
+    }
+
+    return data ?? 7;
+  } catch (err) {
+    console.warn('Unexpected error in fetchRemainingTrialDays:', err);
+    return 7;
   }
-
-  return data ?? 7;
 }
 
 // Global trial days hook using React Query

@@ -42,10 +42,13 @@ export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
       setLoading(true);
       try {
         const trendingProducts = await getTrendingProducts(3);
-        setProducts(trendingProducts);
+        if (Array.isArray(trendingProducts)) {
+          setProducts(trendingProducts);
+        } else {
+          setProducts([]);
+        }
       } catch (error) {
         console.error('Error loading products:', error);
-        // Fallback to sample data if needed
         setProducts([]);
       } finally {
         setLoading(false);
@@ -71,9 +74,10 @@ export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
 
   if (!isFreePlan || loading) return null;
 
-  if (products.length === 0) return null;
+  if (!Array.isArray(products) || products.length === 0) return null;
 
   const currentProduct = products[currentAdIndex];
+  if (!currentProduct) return null;
 
   const handleAdClick = () => {
     if (currentProduct.affiliate_url) {

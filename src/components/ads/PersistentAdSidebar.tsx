@@ -29,8 +29,11 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
       try {
         // Try to get Amazon products first, fallback to trending products
         let products = await getAmazonProducts('electronics', '100-500');
+        if (!Array.isArray(products)) products = [];
+        
         if (products.length === 0) {
           products = await getTrendingProducts(3);
+          if (!Array.isArray(products)) products = [];
         }
         setSidebarProducts(products.slice(0, 3)); // Limit to 3 products
       } catch (error) {
@@ -56,7 +59,10 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
 
   if (!isFreePlan || loading) return null;
 
-  if (sidebarProducts.length === 0) return null;
+  if (!Array.isArray(sidebarProducts) || sidebarProducts.length === 0) return null;
+
+  const currentProduct = sidebarProducts[currentProductIndex];
+  if (!currentProduct) return null;
 
   const handleProductClick = (product: any) => {
     if (product.affiliate_url) {
@@ -64,7 +70,6 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
     }
   };
 
-  const currentProduct = sidebarProducts[currentProductIndex];
   const halfPageSize = AD_SIZES.desktop.halfPage;
   const mediumRectSize = AD_SIZES.desktop.mediumRectangle;
 

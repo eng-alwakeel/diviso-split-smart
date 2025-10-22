@@ -26,7 +26,7 @@ export const useAffiliateProducts = () => {
   const getProductsByCategory = async (category: string, limit = 5) => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('affiliate_products')
         .select('*')
         .eq('category', category)
@@ -34,9 +34,14 @@ export const useAffiliateProducts = () => {
         .order('conversion_rate', { ascending: false })
         .limit(limit);
 
+      if (error) {
+        console.warn('Error fetching affiliate products:', error);
+        return [];
+      }
+
       return data || [];
     } catch (error) {
-      console.error('Error fetching affiliate products:', error);
+      console.warn('Unexpected error fetching affiliate products:', error);
       return [];
     } finally {
       setLoading(false);
@@ -46,7 +51,7 @@ export const useAffiliateProducts = () => {
   const getProductsByKeywords = async (keywords: string[], limit = 5) => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('affiliate_products')
         .select('*')
         .overlaps('keywords', keywords)
@@ -54,9 +59,14 @@ export const useAffiliateProducts = () => {
         .order('conversion_rate', { ascending: false })
         .limit(limit);
 
+      if (error) {
+        console.warn('Error fetching affiliate products by keywords:', error);
+        return [];
+      }
+
       return data || [];
     } catch (error) {
-      console.error('Error fetching affiliate products by keywords:', error);
+      console.warn('Unexpected error fetching affiliate products by keywords:', error);
       return [];
     } finally {
       setLoading(false);
@@ -108,13 +118,18 @@ export const useAffiliateProducts = () => {
         query = query.eq('price_range', priceRange);
       }
 
-      const { data } = await query
+      const { data, error } = await query
         .order('rating', { ascending: false })
         .limit(5);
 
+      if (error) {
+        console.warn('Error fetching Amazon products:', error);
+        return [];
+      }
+
       return data || [];
     } catch (error) {
-      console.error('Error fetching Amazon products:', error);
+      console.warn('Unexpected error fetching Amazon products:', error);
       return [];
     } finally {
       setLoading(false);
@@ -125,16 +140,21 @@ export const useAffiliateProducts = () => {
   const getTrendingProducts = async (limit = 5) => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('affiliate_products')
         .select('*')
         .eq('active', true)
         .order('conversion_rate', { ascending: false })
         .limit(limit);
 
+      if (error) {
+        console.warn('Error fetching trending products:', error);
+        return [];
+      }
+
       return data || [];
     } catch (error) {
-      console.error('Error fetching trending products:', error);
+      console.warn('Unexpected error fetching trending products:', error);
       return [];
     } finally {
       setLoading(false);
@@ -145,7 +165,7 @@ export const useAffiliateProducts = () => {
   const getStatsBannerProduct = async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('affiliate_products')
         .select('*')
         .eq('active', true)
@@ -153,9 +173,14 @@ export const useAffiliateProducts = () => {
         .limit(1)
         .single();
 
+      if (error) {
+        console.warn('Error fetching stats banner product:', error);
+        return null;
+      }
+
       return data || null;
     } catch (error) {
-      console.error('Error fetching stats banner product:', error);
+      console.warn('Unexpected error fetching stats banner product:', error);
       return null;
     } finally {
       setLoading(false);
