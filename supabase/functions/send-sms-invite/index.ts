@@ -55,10 +55,11 @@ ${inviteLink}
 
 أو قم بتحميل التطبيق من متجر التطبيقات واستخدم الرابط أعلاه.`;
 
-    // في هذا المثال سنستخدم console.log فقط
-    // يمكن تكامل مع خدمات SMS مثل Twilio, AWS SNS, إلخ
-    console.log('SMS would be sent to:', phone);
-    console.log('Message:', message);
+    // Logging sanitized for security - no PII in production logs
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    if (isDev) {
+      console.log('Processing SMS invite for group:', groupName);
+    }
 
     // TODO: إضافة تكامل حقيقي مع خدمة SMS
     // مثال للتكامل مع Twilio:

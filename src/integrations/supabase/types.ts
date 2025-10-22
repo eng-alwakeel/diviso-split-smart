@@ -1466,7 +1466,7 @@ export type Database = {
           converted_at: string | null
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           referral_id: string
           source_details: Json | null
           source_type: string
@@ -1477,7 +1477,7 @@ export type Database = {
           converted_at?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referral_id: string
           source_details?: Json | null
           source_type?: string
@@ -1488,7 +1488,7 @@ export type Database = {
           converted_at?: string | null
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referral_id?: string
           source_details?: Json | null
           source_type?: string
@@ -1608,7 +1608,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           table_name: string | null
           user_agent: string | null
           user_id: string | null
@@ -1618,7 +1618,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           table_name?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1628,7 +1628,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           table_name?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -2032,18 +2032,12 @@ export type Database = {
           success: boolean
         }[]
       }
-      admin_delete_group: {
-        Args: { p_group_id: string }
-        Returns: boolean
-      }
+      admin_delete_group: { Args: { p_group_id: string }; Returns: boolean }
       admin_toggle_user_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
         Returns: boolean
       }
-      archive_group: {
-        Args: { p_group_id: string }
-        Returns: boolean
-      }
+      archive_group: { Args: { p_group_id: string }; Returns: boolean }
       archive_old_notifications: {
         Args: { p_days_old?: number; p_user_id: string }
         Returns: number
@@ -2068,7 +2062,7 @@ export type Database = {
         }[]
       }
       check_lifetime_offer_availability: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           available: boolean
           remaining: number
@@ -2102,12 +2096,9 @@ export type Database = {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
         Returns: string
       }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_referral_code: { Args: never; Returns: string }
       get_admin_activity_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_users: number
           date: string
@@ -2118,7 +2109,7 @@ export type Database = {
         }[]
       }
       get_admin_dashboard_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_subscriptions: number
           active_users_today: number
@@ -2131,7 +2122,7 @@ export type Database = {
         }[]
       }
       get_admin_subscription_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_users: number
           conversion_rate: number
@@ -2229,7 +2220,7 @@ export type Database = {
         }[]
       }
       get_groups_for_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           currency: string
@@ -2272,10 +2263,7 @@ export type Database = {
           total_rewards_days: number
         }[]
       }
-      get_remaining_trial_days: {
-        Args: { p_user_id: string }
-        Returns: number
-      }
+      get_remaining_trial_days: { Args: { p_user_id: string }; Returns: number }
       get_user_dashboard: {
         Args: { p_user_id: string }
         Returns: {
@@ -2284,10 +2272,7 @@ export type Database = {
           unread_notifications: number
         }[]
       }
-      get_user_plan: {
-        Args: { p_user_id: string }
-        Returns: string
-      }
+      get_user_plan: { Args: { p_user_id: string }; Returns: string }
       get_user_referral_tier: {
         Args: { p_user_id: string }
         Returns: {
@@ -2301,7 +2286,7 @@ export type Database = {
         }[]
       }
       get_users_for_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           current_plan: string
@@ -2321,42 +2306,21 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_lifetime_purchases: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      increment_lifetime_purchases: { Args: never; Returns: boolean }
       increment_usage: {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined
       }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin_user: { Args: never; Returns: boolean }
       is_family_member_of: {
         Args: { p_family_owner_id: string; p_user_id: string }
         Returns: boolean
       }
-      is_family_owner: {
-        Args: { p_user_id: string }
-        Returns: boolean
-      }
-      is_group_admin: {
-        Args: { p_group_id: string }
-        Returns: boolean
-      }
-      is_group_member: {
-        Args: { p_group_id: string }
-        Returns: boolean
-      }
-      is_valid_phone: {
-        Args: { phone_input: string }
-        Returns: boolean
-      }
-      join_group_with_token: {
-        Args: { p_token: string }
-        Returns: string
-      }
+      is_family_owner: { Args: { p_user_id: string }; Returns: boolean }
+      is_group_admin: { Args: { p_group_id: string }; Returns: boolean }
+      is_group_member: { Args: { p_group_id: string }; Returns: boolean }
+      is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
+      join_group_with_token: { Args: { p_token: string }; Returns: string }
       log_security_event: {
         Args: { p_action: string; p_details?: Json; p_table_name?: string }
         Returns: undefined
@@ -2365,22 +2329,10 @@ export type Database = {
         Args: { p_phone: string; p_reason: string; p_user_id: string }
         Returns: undefined
       }
-      seed_demo_for_user: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      unarchive_group: {
-        Args: { p_group_id: string }
-        Returns: boolean
-      }
-      update_daily_referral_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      update_expired_referrals: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      seed_demo_for_user: { Args: never; Returns: string }
+      unarchive_group: { Args: { p_group_id: string }; Returns: boolean }
+      update_daily_referral_analytics: { Args: never; Returns: number }
+      update_expired_referrals: { Args: never; Returns: number }
       validate_family_invitation_token: {
         Args: { p_token: string }
         Returns: {

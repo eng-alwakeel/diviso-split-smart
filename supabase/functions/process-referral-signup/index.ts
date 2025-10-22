@@ -31,7 +31,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Parse request body
     const { userId, referralCode, userEmail, userName, userPhone }: ReferralSignupRequest = await req.json();
-    console.log(`Processing referral signup for user: ${userId} with code: ${referralCode}`);
+    
+    // Logging sanitized for security - no PII in production logs
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    if (isDev) {
+      console.log('Processing referral signup for user with code:', referralCode);
+    }
 
     if (!userId || !referralCode || !userPhone) {
       throw new Error("Missing required parameters: userId, referralCode, or userPhone");
