@@ -56,10 +56,8 @@ const queryClient = new QueryClient({
   },
 });
 
-const App: React.FC = () => {
-  // Monitor service worker for updates
-  useServiceWorkerUpdate();
-  
+// Inner component that uses router hooks
+const AppRoutes: React.FC = () => {
   // Initialize native features (status bar, back button, etc.)
   useNativeFeatures();
   
@@ -67,14 +65,12 @@ const App: React.FC = () => {
   useDeepLinks();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AdPreferencesProvider>
-        <BrowserRouter>
-          <EnhancedPerformanceMonitor />
-          <Toaster />
-          <Sonner />
-          <ImprovedErrorBoundary>
-            <Routes>
+    <>
+      <EnhancedPerformanceMonitor />
+      <Toaster />
+      <Sonner />
+      <ImprovedErrorBoundary>
+        <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
             <Route path="/" element={<Index />} />
@@ -100,8 +96,21 @@ const App: React.FC = () => {
             <Route path="/ad-test" element={<AdTestPage />} />
             <Route path="/pricing" element={<LazyPricing />} />
             <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ImprovedErrorBoundary>
+        </Routes>
+      </ImprovedErrorBoundary>
+    </>
+  );
+};
+
+const App: React.FC = () => {
+  // Monitor service worker for updates (doesn't need router)
+  useServiceWorkerUpdate();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AdPreferencesProvider>
+        <BrowserRouter>
+          <AppRoutes />
         </BrowserRouter>
       </AdPreferencesProvider>
     </QueryClientProvider>
