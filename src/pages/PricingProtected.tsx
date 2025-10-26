@@ -12,7 +12,7 @@ const PricingProtected = () => {
       <UnifiedAdLayout 
         placement="pricing_protected"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <main className="page-container space-y-6">
           <PricingSection />

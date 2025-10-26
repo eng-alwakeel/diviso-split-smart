@@ -104,7 +104,7 @@ export default function Notifications() {
       <UnifiedAdLayout 
         placement="notifications"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <main className="page-container space-y-6">
           <div className="flex items-center justify-between">

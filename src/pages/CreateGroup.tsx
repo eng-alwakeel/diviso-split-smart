@@ -467,7 +467,7 @@ const CreateGroup = () => {
       <UnifiedAdLayout 
         placement="create_group"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
         {/* Header */}

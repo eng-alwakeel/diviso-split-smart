@@ -320,7 +320,7 @@ const Settings = () => {
         placement="settings"
         showTopBanner={false}
         showSidebar={false}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           {/* Header */}

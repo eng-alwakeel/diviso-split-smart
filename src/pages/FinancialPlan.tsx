@@ -124,7 +124,7 @@ export default function FinancialPlan() {
       <UnifiedAdLayout 
         placement="financial_plan"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           {/* Quick Stats */}

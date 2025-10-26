@@ -87,7 +87,7 @@ export default function CreateUnifiedBudget() {
       <UnifiedAdLayout 
         placement="create_unified_budget"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           <UnifiedBudgetCreator 

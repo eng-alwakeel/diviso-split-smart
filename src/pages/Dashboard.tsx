@@ -126,7 +126,7 @@ const Dashboard = React.memo(() => {
       <UnifiedAdLayout 
         placement="dashboard"
         showTopBanner={false}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           {/* Quota Warning Banners */}

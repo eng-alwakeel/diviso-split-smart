@@ -306,7 +306,7 @@ const GroupDetails = () => {
       <UnifiedAdLayout 
         placement="group_details"
         showTopBanner={false}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
 
       <InviteManagementDialog 

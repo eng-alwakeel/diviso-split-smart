@@ -57,7 +57,7 @@ export default function MyGroups() {
       <UnifiedAdLayout 
         placement="my_groups"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           {/* عنوان الصفحة */}

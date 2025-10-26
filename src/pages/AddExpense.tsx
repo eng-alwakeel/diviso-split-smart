@@ -554,7 +554,7 @@ const AddExpense = () => {
       <UnifiedAdLayout 
         placement="add_expense"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
           {/* Header */}
