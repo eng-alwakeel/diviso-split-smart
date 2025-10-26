@@ -241,7 +241,7 @@ const ReferralCenter = () => {
       <UnifiedAdLayout 
         placement="referral_center"
         showTopBanner={true}
-        showBottomBanner={true}
+        showBottomBanner={false}
       >
         <div className="page-container space-y-6">
         {/* Header */}
