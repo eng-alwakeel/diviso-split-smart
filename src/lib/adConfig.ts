@@ -22,7 +22,12 @@ export const AD_DENSITY_RULES = {
   maxAdsPerPage: {
     mobile: 1,
     tablet: 1,
-    desktop: 2
+    desktop: 4 // 3 في sidebar + 1 banner
+  },
+  sidebarAds: {
+    desktop: 3, // عرض 3 إعلانات 300x250 في الشريط الجانبي
+    tablet: 0,
+    mobile: 0
   },
   minContentBetweenAds: 600, // px
   minViewportBeforeFirstAd: 0.3 // 30% of viewport

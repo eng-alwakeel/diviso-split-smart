@@ -8,12 +8,106 @@ import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { AD_SIZES } from '@/lib/adConfig';
 
+// مكون إعلان منتج مميز - 300x250
+const ProductAdCard = ({ 
+  product, 
+  onClick,
+  index 
+}: { 
+  product: any; 
+  onClick: () => void;
+  index: number;
+}) => {
+  const adSize = AD_SIZES.desktop.mediumRectangle;
+
+  return (
+    <Card 
+      className="overflow-hidden border-2 border-border/40 bg-gradient-to-br from-background/95 to-muted/20 backdrop-blur-sm shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 animate-fade-in"
+      style={{
+        width: `${adSize.width}px`,
+        minHeight: `${adSize.height}px`
+      }}
+    >
+      <div className="p-4 space-y-3">
+        {/* Ad Badge */}
+        <div className="flex items-center justify-between">
+          <Badge 
+            variant="outline" 
+            className="text-xs font-medium border-2 bg-muted/50 text-muted-foreground px-2 py-0.5"
+          >
+            إعلان
+          </Badge>
+          <Badge variant="default" className="text-xs gap-1">
+            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+            مميز
+          </Badge>
+        </div>
+
+        {/* Product Image - Smaller */}
+        <div 
+          className="w-full rounded-lg overflow-hidden bg-muted border border-border/30"
+          style={{ height: '120px' }}
+        >
+          <ImageWithFallback
+            src={product.image_url || '/placeholder.svg'}
+            alt={product.title}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            width={120}
+            height={120}
+            loading="lazy"
+          />
+        </div>
+
+        {/* Product Info - Compact */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-sm text-foreground line-clamp-1 leading-tight">
+            {product.title}
+          </h3>
+          
+          {/* Price & Rating */}
+          <div className="space-y-1">
+            <p className="text-lg font-bold text-primary">
+              {product.price_range || 'اعرف السعر'}
+            </p>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3 w-3 ${
+                    i < Math.floor(product.rating || 4)
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted'
+                  }`}
+                />
+              ))}
+              <span className="text-xs text-muted-foreground mr-1">
+                ({product.rating || 4.0})
+              </span>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <Button
+            onClick={onClick}
+            size="sm"
+            className="w-full gap-1.5 h-9 text-sm font-semibold"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            تسوق الآن
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
 export const PersistentAdSidebar: React.FC<{ className?: string }> = ({ 
   className = '' 
 }) => {
   const { subscription } = useSubscription();
   const { getTrendingProducts, getAmazonProducts } = useAffiliateProducts();
-  const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [productIndexes, setProductIndexes] = useState([0, 1, 2]); // 3 إعلانات
   const [sidebarProducts, setSidebarProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,10 +126,10 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
         if (!Array.isArray(products)) products = [];
         
         if (products.length === 0) {
-          products = await getTrendingProducts(3);
+          products = await getTrendingProducts(6);
           if (!Array.isArray(products)) products = [];
         }
-        setSidebarProducts(products.slice(0, 3)); // Limit to 3 products
+        setSidebarProducts(products.slice(0, 6)); // 6 منتجات للدوران
       } catch (error) {
         console.error('Error loading sidebar products:', error);
         setSidebarProducts([]);
@@ -47,22 +141,30 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
     loadProducts();
   }, [isFreePlan, getTrendingProducts, getAmazonProducts]);
 
+  // دوران متداخل - كل إعلان يدور كل 12 ثانية مع تأخير 4 ثواني
   useEffect(() => {
-    if (!isFreePlan || sidebarProducts.length === 0) return;
+    if (!isFreePlan || sidebarProducts.length < 6) return;
 
-    const interval = setInterval(() => {
-      setCurrentProductIndex((prev) => (prev + 1) % sidebarProducts.length);
-    }, 12000); // Rotate every 12 seconds
+    const intervals = [
+      setInterval(() => {
+        setProductIndexes(prev => [(prev[0] + 3) % sidebarProducts.length, prev[1], prev[2]]);
+      }, 12000),
+      
+      setInterval(() => {
+        setProductIndexes(prev => [prev[0], (prev[1] + 3) % sidebarProducts.length, prev[2]]);
+      }, 16000), // تأخير 4 ثواني
+      
+      setInterval(() => {
+        setProductIndexes(prev => [prev[0], prev[1], (prev[2] + 3) % sidebarProducts.length]);
+      }, 20000), // تأخير 8 ثواني
+    ];
 
-    return () => clearInterval(interval);
+    return () => intervals.forEach(clearInterval);
   }, [isFreePlan, sidebarProducts.length]);
 
   if (!isFreePlan || loading) return null;
 
   if (!Array.isArray(sidebarProducts) || sidebarProducts.length === 0) return null;
-
-  const currentProduct = sidebarProducts[currentProductIndex];
-  if (!currentProduct) return null;
 
   const handleProductClick = (product: any) => {
     if (product.affiliate_url) {
@@ -70,155 +172,82 @@ export const PersistentAdSidebar: React.FC<{ className?: string }> = ({
     }
   };
 
-  const halfPageSize = AD_SIZES.desktop.halfPage;
   const mediumRectSize = AD_SIZES.desktop.mediumRectangle;
 
+  // 3 إعلانات منتجات بمقاس 300x250
+  const ad1Product = sidebarProducts[productIndexes[0]];
+  const ad2Product = sidebarProducts[productIndexes[1]];
+  const ad3Product = sidebarProducts[productIndexes[2]];
+
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Featured Product Card - Half Page (300x600) */}
+    <div className={`space-y-4 ${className}`}>
+      {/* إعلان 1 - منتج مميز */}
+      {ad1Product && (
+        <ProductAdCard 
+          product={ad1Product}
+          onClick={() => handleProductClick(ad1Product)}
+          index={0}
+        />
+      )}
+
+      {/* إعلان 2 - منتج ثاني */}
+      {ad2Product && (
+        <ProductAdCard 
+          product={ad2Product}
+          onClick={() => handleProductClick(ad2Product)}
+          index={1}
+        />
+      )}
+
+      {/* إعلان 3 - Amazon Prime */}
       <Card 
-        className="overflow-hidden border-2 border-border/40 bg-gradient-to-br from-background/95 to-muted/20 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow"
-        style={{
-          width: `${halfPageSize.width}px`,
-          minHeight: `${halfPageSize.height}px`
-        }}
-      >
-        <div className="p-5 space-y-4">
-          {/* Ad Badge */}
-          <div className="flex items-center justify-between">
-            <Badge 
-              variant="outline" 
-              className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1"
-            >
-              إعلان
-            </Badge>
-            <Badge variant="default" className="text-xs gap-1 font-medium">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              منتج مميز
-            </Badge>
-          </div>
-
-          <div className="space-y-4">
-            {/* Product Image - Square aspect ratio */}
-            <div 
-              className="w-full rounded-lg overflow-hidden bg-muted border border-border/30"
-              style={{ height: '260px' }}
-            >
-              <ImageWithFallback
-                src={currentProduct.image_url || '/placeholder.svg'}
-                alt={currentProduct.title}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                width={260}
-                height={260}
-                loading="lazy"
-              />
-            </div>
-
-            {/* Product Info */}
-            <div className="space-y-3">
-              <h3 className="font-bold text-base text-foreground line-clamp-2 leading-tight">
-                {currentProduct.title}
-              </h3>
-              <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                {currentProduct.description || 'منتج مميز من أمازون - جودة عالية وسعر مناسب'}
-              </p>
-              
-              {/* Price & Rating */}
-              <div className="space-y-2 pt-2">
-                <p className="text-2xl font-bold text-primary">
-                  {currentProduct.price_range || 'اعرف السعر'}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(currentProduct.rating || 4)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-muted'
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-muted-foreground mr-1 font-medium">
-                    ({currentProduct.rating || 4.0})
-                  </span>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <Button
-                onClick={() => handleProductClick(currentProduct)}
-                className="w-full gap-2 h-10 font-semibold"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                تسوق الآن
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Product Indicators */}
-          <div className="flex justify-center gap-1.5 pt-2">
-            {sidebarProducts.map((_, index) => (
-              <div
-                key={index}
-                className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
-                  index === currentProductIndex ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {/* Amazon Prime Promotion - Medium Rectangle (300x250) */}
-      <Card 
-        className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm hover:shadow-md transition-shadow"
+        className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300 animate-fade-in"
         style={{
           width: `${mediumRectSize.width}px`,
           minHeight: `${mediumRectSize.height}px`
         }}
       >
-        <div className="p-5 space-y-4">
+        <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <Badge 
               variant="outline" 
-              className="text-sm font-medium border-2 bg-muted/50 text-muted-foreground px-3 py-1"
+              className="text-xs font-medium border-2 bg-muted/50 text-muted-foreground px-2 py-0.5"
             >
               إعلان
             </Badge>
-            <Crown className="h-5 w-5 text-primary" />
+            <Crown className="h-4 w-4 text-primary" />
           </div>
           
-          <div className="space-y-3">
-            <h3 className="font-bold text-xl text-foreground">
+          <div className="space-y-2">
+            <h3 className="font-bold text-lg text-foreground">
               Amazon Prime
             </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               شحن مجاني، عروض حصرية، ومزايا أكثر
             </p>
             
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
+              <li className="flex items-start gap-1.5">
+                <Star className="h-3 w-3 text-primary mt-0.5 flex-shrink-0 fill-primary" />
                 <span>شحن مجاني سريع</span>
               </li>
-              <li className="flex items-start gap-2">
-                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+              <li className="flex items-start gap-1.5">
+                <Star className="h-3 w-3 text-primary mt-0.5 flex-shrink-0 fill-primary" />
                 <span>عروض Prime Day حصرية</span>
               </li>
-              <li className="flex items-start gap-2">
-                <Star className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 fill-primary" />
+              <li className="flex items-start gap-1.5">
+                <Star className="h-3 w-3 text-primary mt-0.5 flex-shrink-0 fill-primary" />
                 <span>Prime Video & Music</span>
               </li>
             </ul>
 
             <Button
               onClick={() => window.open('https://www.amazon.sa/prime', '_blank')}
-              className="w-full gap-2 mt-3 h-10 font-semibold"
+              size="sm"
+              className="w-full gap-1.5 mt-2 h-9 text-sm font-semibold"
             >
               جرّب Prime مجاناً
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-3 w-3" />
             </Button>
           </div>
         </div>

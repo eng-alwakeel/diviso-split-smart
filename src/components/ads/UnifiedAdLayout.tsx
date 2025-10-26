@@ -74,11 +74,11 @@ export const UnifiedAdLayout = ({
           {children}
         </div>
 
-        {/* Sidebar Ad - Desktop only (1024px+) */}
+        {/* Sidebar Ad - Desktop only (1024px+) - 3 إعلانات 300x250 */}
         {finalShowSidebar && (
-          <aside className="hidden lg:block w-80 flex-shrink-0">
-            <LazyAdLoader minViewportScroll={0.2} minHeight={600}>
-              <div className="sticky top-24 space-y-6">
+          <aside className="hidden lg:block w-[320px] flex-shrink-0">
+            <LazyAdLoader minViewportScroll={0.2} minHeight={250}>
+              <div className="sticky top-20 space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin">
                 <PersistentAdSidebar className="animate-fade-in" />
               </div>
             </LazyAdLoader>
