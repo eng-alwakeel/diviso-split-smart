@@ -8,6 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useOptimizedAffiliateProducts } from "@/hooks/useOptimizedAffiliateProducts";
 import { useOptimizedAdTracking } from "@/hooks/useOptimizedAdTracking";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FixedStatsAdBannerProps {
   placement: string;
@@ -118,6 +119,10 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
   const { getTrendingProducts, loading } = useOptimizedAffiliateProducts();
   const { trackAdImpression, trackAdClick, shouldShowAds } = useOptimizedAdTracking();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  
+  // Calculate how many ads to display based on screen size
+  const displayCount = isMobile ? 1 : maxAds;
 
   const [products, setProducts] = useState<any[]>([]);
   const [productIndexes, setProductIndexes] = useState(() => 
@@ -161,7 +166,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     const trackImpressions = async () => {
       const newImpressionIds: string[] = [];
       
-      for (let i = 0; i < maxAds; i++) {
+      for (let i = 0; i < displayCount; i++) {
         const productIndex = productIndexes[i];
         if (productIndex < products.length) {
           const product = products[productIndex];
@@ -184,7 +189,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     };
 
     trackImpressions();
-  }, [productIndexes, products, placement, maxAds]);
+  }, [productIndexes, products, placement, displayCount]);
 
   // Staggered rotation for each ad (12 seconds interval, 4 seconds delay between slots)
   useEffect(() => {
@@ -193,7 +198,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     const intervals: NodeJS.Timeout[] = [];
 
     // Start rotation for each slot with staggered delay
-    Array.from({ length: maxAds }, (_, i) => i).forEach((slotIndex) => {
+    Array.from({ length: displayCount }, (_, i) => i).forEach((slotIndex) => {
       const delay = slotIndex * 4000; // 0s, 4s, 8s, etc.
 
       // Initial delayed start
@@ -209,7 +214,11 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
           setTimeout(() => {
             setProductIndexes((prev) => {
               const newIndexes = [...prev];
-              newIndexes[slotIndex] = (newIndexes[slotIndex] + maxAds) % products.length;
+              // On mobile (displayCount=1), rotate through ALL products
+              // On desktop, rotate through maxAds products
+              newIndexes[slotIndex] = isMobile 
+                ? (newIndexes[slotIndex] + 1) % products.length
+                : (newIndexes[slotIndex] + maxAds) % products.length;
               return newIndexes;
             });
             
@@ -230,7 +239,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     return () => {
       intervals.forEach(interval => clearInterval(interval));
     };
-  }, [products.length, maxAds]);
+  }, [products.length, maxAds, displayCount, isMobile]);
 
   // Handle product click
   const handleClick = useCallback(async (slotIndex: number) => {
@@ -269,12 +278,12 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
   // Loading state
   if (loading || products.length === 0) {
     return (
-      <div className={`grid gap-4 w-full ${
+      <div className={`grid gap-4 w-full justify-items-center ${
         maxAds === 2 
           ? "grid-cols-1 md:grid-cols-2" 
           : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
       } ${className}`}>
-        {Array.from({ length: maxAds }, (_, i) => i).map((i) => (
+        {Array.from({ length: displayCount }, (_, i) => i).map((i) => (
           <Card 
             key={i}
             className="border-2 border-primary/10"
@@ -299,7 +308,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
         ? "grid-cols-1 md:grid-cols-2" 
         : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
     } ${className}`}>
-      {Array.from({ length: maxAds }, (_, i) => i).map((slotIndex) => {
+      {Array.from({ length: displayCount }, (_, i) => i).map((slotIndex) => {
         const productIndex = productIndexes[slotIndex];
         const product = products[productIndex];
         
