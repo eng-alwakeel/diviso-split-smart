@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 interface FixedStatsAdBannerProps {
   placement: string;
   className?: string;
+  maxAds?: number;
 }
 
 interface ProductAdCardProps {
@@ -112,25 +113,31 @@ const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick, is
 
 ProductAdCard.displayName = 'ProductAdCard';
 
-export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStatsAdBannerProps) => {
+export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 }: FixedStatsAdBannerProps) => {
   const { subscription } = useSubscription();
   const { getTrendingProducts, loading } = useOptimizedAffiliateProducts();
   const { trackAdImpression, trackAdClick, shouldShowAds } = useOptimizedAdTracking();
   const { toast } = useToast();
 
   const [products, setProducts] = useState<any[]>([]);
-  const [productIndexes, setProductIndexes] = useState([0, 1, 2]);
-  const [isRotating, setIsRotating] = useState([false, false, false]);
-  const [impressionIds, setImpressionIds] = useState<string[]>(["", "", ""]);
+  const [productIndexes, setProductIndexes] = useState(() => 
+    Array.from({ length: maxAds }, (_, i) => i)
+  );
+  const [isRotating, setIsRotating] = useState(() => 
+    Array.from({ length: maxAds }, () => false)
+  );
+  const [impressionIds, setImpressionIds] = useState<string[]>(() => 
+    Array.from({ length: maxAds }, () => "")
+  );
 
-  // Load 6 trending products
+  // Load products (double the maxAds for rotation)
   useEffect(() => {
     let isMounted = true;
 
     const loadProducts = async () => {
       if (shouldShowAds()) {
         try {
-          const data = await getTrendingProducts(6);
+          const data = await getTrendingProducts(maxAds * 2);
           if (isMounted && data && data.length > 0) {
             setProducts(data);
           }
@@ -145,7 +152,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [maxAds]);
 
   // Track impressions for each ad slot
   useEffect(() => {
@@ -154,7 +161,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
     const trackImpressions = async () => {
       const newImpressionIds: string[] = [];
       
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < maxAds; i++) {
         const productIndex = productIndexes[i];
         if (productIndex < products.length) {
           const product = products[productIndex];
@@ -177,17 +184,17 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
     };
 
     trackImpressions();
-  }, [productIndexes, products, placement]);
+  }, [productIndexes, products, placement, maxAds]);
 
   // Staggered rotation for each ad (12 seconds interval, 4 seconds delay between slots)
   useEffect(() => {
-    if (products.length < 6) return;
+    if (products.length < maxAds * 2) return;
 
     const intervals: NodeJS.Timeout[] = [];
 
     // Start rotation for each slot with staggered delay
-    [0, 1, 2].forEach((slotIndex) => {
-      const delay = slotIndex * 4000; // 0s, 4s, 8s
+    Array.from({ length: maxAds }, (_, i) => i).forEach((slotIndex) => {
+      const delay = slotIndex * 4000; // 0s, 4s, 8s, etc.
 
       // Initial delayed start
       const initialTimeout = setTimeout(() => {
@@ -202,7 +209,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
           setTimeout(() => {
             setProductIndexes((prev) => {
               const newIndexes = [...prev];
-              newIndexes[slotIndex] = (newIndexes[slotIndex] + 3) % products.length;
+              newIndexes[slotIndex] = (newIndexes[slotIndex] + maxAds) % products.length;
               return newIndexes;
             });
             
@@ -223,7 +230,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
     return () => {
       intervals.forEach(interval => clearInterval(interval));
     };
-  }, [products.length]);
+  }, [products.length, maxAds]);
 
   // Handle product click
   const handleClick = useCallback(async (slotIndex: number) => {
@@ -262,8 +269,12 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
   // Loading state
   if (loading || products.length === 0) {
     return (
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full ${className}`}>
-        {[0, 1, 2].map((i) => (
+      <div className={`grid gap-4 w-full ${
+        maxAds === 2 
+          ? "grid-cols-1 md:grid-cols-2" 
+          : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+      } ${className}`}>
+        {Array.from({ length: maxAds }, (_, i) => i).map((i) => (
           <Card 
             key={i}
             className="border-2 border-primary/10"
@@ -283,8 +294,12 @@ export const FixedStatsAdBanner = memo(({ placement, className = "" }: FixedStat
   }
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full justify-items-center ${className}`}>
-      {[0, 1, 2].map((slotIndex) => {
+    <div className={`grid gap-4 w-full justify-items-center ${
+      maxAds === 2 
+        ? "grid-cols-1 md:grid-cols-2" 
+        : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+    } ${className}`}>
+      {Array.from({ length: maxAds }, (_, i) => i).map((slotIndex) => {
         const productIndex = productIndexes[slotIndex];
         const product = products[productIndex];
         

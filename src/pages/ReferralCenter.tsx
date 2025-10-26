@@ -372,7 +372,7 @@ const ReferralCenter = () => {
                 </div>
 
                 {/* Fixed Ad Banner Below Stats */}
-                <FixedStatsAdBanner placement="referral_stats" />
+                <FixedStatsAdBanner placement="referral_stats" maxAds={2} />
 
                 {/* بطاقة المستوى */}
                 {userTier && !tiersLoading && (
