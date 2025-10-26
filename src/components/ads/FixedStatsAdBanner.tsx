@@ -9,6 +9,7 @@ import { useOptimizedAffiliateProducts } from "@/hooks/useOptimizedAffiliateProd
 import { useOptimizedAdTracking } from "@/hooks/useOptimizedAdTracking";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 interface FixedStatsAdBannerProps {
   placement: string;
@@ -21,15 +22,12 @@ interface ProductAdCardProps {
   slotIndex: number;
   impressionId: string;
   onTrackClick: (slotIndex: number) => void;
-  isRotating: boolean;
 }
 
-const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick, isRotating }: ProductAdCardProps) => {
+const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick }: ProductAdCardProps) => {
   return (
     <Card 
-      className={`w-full border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ${
-        isRotating ? 'opacity-50' : 'opacity-100'
-      }`}
+      className="w-full border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
       style={{ width: '300px', height: '250px' }}
     >
       <CardContent className="p-4 flex flex-col h-full relative">
@@ -45,9 +43,12 @@ const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick, is
         <div className="w-full flex justify-center mb-3 mt-2">
           <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-muted border-2 flex-shrink-0">
             {product?.image_url ? (
-              <img
+              <ImageWithFallback
                 src={product.image_url}
-                alt={product.title}
+                alt={product.title || "منتج مميز"}
+                fallbackSrc="/placeholder.svg"
+                width={120}
+                height={120}
                 loading="lazy"
                 className="w-full h-full object-cover"
               />
@@ -319,7 +320,6 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
             slotIndex={slotIndex}
             impressionId={impressionIds[slotIndex]}
             onTrackClick={handleClick}
-            isRotating={isRotating[slotIndex]}
           />
         );
       })}
