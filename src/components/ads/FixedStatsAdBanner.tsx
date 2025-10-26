@@ -9,7 +9,7 @@ import { useOptimizedAffiliateProducts } from "@/hooks/useOptimizedAffiliateProd
 import { useOptimizedAdTracking } from "@/hooks/useOptimizedAdTracking";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
+
 
 interface FixedStatsAdBannerProps {
   placement: string;
@@ -43,14 +43,15 @@ const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick }: 
         <div className="w-full flex justify-center mb-3 mt-2">
           <div className="w-[120px] h-[120px] rounded-lg overflow-hidden bg-muted border-2 flex-shrink-0">
             {product?.image_url ? (
-              <ImageWithFallback
+              <img
                 src={product.image_url}
                 alt={product.title || "منتج مميز"}
-                fallbackSrc="/placeholder.svg"
-                width={120}
-                height={120}
                 loading="lazy"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                  e.currentTarget.onerror = null;
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
