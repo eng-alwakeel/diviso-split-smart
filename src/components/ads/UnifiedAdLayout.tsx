@@ -26,10 +26,15 @@ export const UnifiedAdLayout = ({
   const { subscription } = useSubscription();
   const isMobile = useIsMobile();
   
-  // Only show ads for free users (no subscription or not active)
-  const shouldShowAds = !subscription || 
-    subscription.status !== 'active' || 
-    !subscription.plan;
+  // Check if user is on free plan
+  const isFreePlan = !subscription || 
+    !subscription.plan || 
+    subscription.status !== 'active';
+
+  // Paid subscribers: no ads
+  if (!isFreePlan) {
+    return <>{children}</>;
+  }
 
   // Apply AdSense-compliant ad density rules based on device
   const getAdDisplayRules = () => {
@@ -44,14 +49,10 @@ export const UnifiedAdLayout = ({
 
   const adRules = getAdDisplayRules();
   
-  // Override passed props with density rules
-  const finalShowTopBanner = shouldShowAds && showTopBanner && adRules.showTopBanner;
-  const finalShowSidebar = shouldShowAds && showSidebar && adRules.showSidebar;
-  const finalShowBottomBanner = shouldShowAds && showBottomBanner && adRules.showBottomBanner;
-
-  if (!shouldShowAds) {
-    return <>{children}</>;
-  }
+  // Free users: apply density rules
+  const finalShowTopBanner = showTopBanner && adRules.showTopBanner;
+  const finalShowSidebar = showSidebar && adRules.showSidebar;
+  const finalShowBottomBanner = showBottomBanner && adRules.showBottomBanner;
 
   return (
     <div className={`unified-ad-layout ${className}`}>

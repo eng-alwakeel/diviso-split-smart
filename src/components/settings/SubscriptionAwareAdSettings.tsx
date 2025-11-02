@@ -84,7 +84,7 @@ export const SubscriptionAwareAdSettings = () => {
                     الإعلانات تدعم التطبيق المجاني
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    نعرض إعلانات ذات صلة لدعم استمرارية الخدمة المجانية. للتحكم الكامل في الإعلانات، انضم للباقة المدفوعة.
+                    ⚠️ الإعلانات إلزامية في الخطة المجانية. للاستمتاع بتجربة خالية من الإعلانات، انضم للباقة المدفوعة.
                   </p>
                   <Button 
                     onClick={handleUpgradeClick}
@@ -120,7 +120,7 @@ export const SubscriptionAwareAdSettings = () => {
               <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
                 <Crown className="h-4 w-4" />
                 <span className="text-sm font-medium">
-                  كمشترك، يمكنك التحكم الكامل في الإعلانات
+                  ✅ يمكنك تعطيل الإعلانات في اشتراكك المدفوع
                 </span>
               </div>
             </div>

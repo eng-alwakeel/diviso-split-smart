@@ -66,37 +66,23 @@ export const useOptimizedAdTracking = () => {
   }, []);
 
   const shouldShowAds = useCallback(() => {
-    if (!preferences) return true;
-    
-    // Free users MUST see ads
+    // Priority 1: Paid subscribers don't see ads (by default)
+    if (subscription && subscription.status === 'active' && subscription.plan) {
+      // For paid users: only show if they explicitly enabled ads
+      return preferences?.show_ads === true;
+    }
+
+    // Priority 2: Free users MUST see ads
     if (!subscription || !subscription.plan || subscription.status !== 'active') {
-      return sessionAdCount < (preferences?.max_ads_per_session || 5);
-    }
-    
-    // Paid subscribers can disable ads
-    if (!preferences.show_ads) return false;
-    if (sessionAdCount >= preferences.max_ads_per_session) return false;
-
-    // Smart timing based on user behavior
-    if (behavior?.preferredUsageTime) {
-      const currentHour = new Date().getHours();
-      const currentTimeSlot = 
-        currentHour >= 6 && currentHour < 12 ? 'morning' :
-        currentHour >= 12 && currentHour < 17 ? 'afternoon' :
-        currentHour >= 17 && currentHour < 22 ? 'evening' : 'night';
+      const maxAds = preferences?.max_ads_per_session || 5;
+      if (sessionAdCount >= maxAds) return false;
       
-      if (currentTimeSlot !== behavior.preferredUsageTime && sessionAdCount >= 2) {
-        return false;
-      }
+      return true;
     }
 
-    // Don't overwhelm high-engagement users
-    if (behavior?.engagementLevel === 'high' && sessionAdCount >= 3) {
-      return false;
-    }
-
-    return true;
-  }, [preferences, subscription, sessionAdCount, behavior]);
+    // Priority 3: Other states (expired, canceled)
+    return false;
+  }, [preferences, subscription, sessionAdCount]);
 
   const getTargetedCategories = useCallback(() => {
     if (!behavior) return [];

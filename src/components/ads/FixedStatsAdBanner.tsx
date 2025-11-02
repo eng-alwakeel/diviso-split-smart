@@ -123,6 +123,13 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
+  // Double check: no ads for paid subscribers
+  const isFreePlan = !subscription || 
+    !subscription.plan || 
+    subscription.status !== 'active';
+  
+  const canShowAds = isFreePlan && shouldShowAds();
+  
   // Calculate how many ads to display based on screen size
   const displayCount = isMobile ? 1 : maxAds;
 
@@ -142,7 +149,7 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     let isMounted = true;
 
     const loadProducts = async () => {
-      if (shouldShowAds()) {
+      if (canShowAds) {
         try {
           const data = await getTrendingProducts(maxAds * 2);
           if (isMounted && data && data.length > 0) {
@@ -159,11 +166,11 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     return () => {
       isMounted = false;
     };
-  }, [maxAds]);
+  }, [canShowAds, maxAds]);
 
   // Track impressions for each ad slot
   useEffect(() => {
-    if (products.length === 0 || !shouldShowAds()) return;
+    if (products.length === 0 || !canShowAds) return;
 
     const trackImpressions = async () => {
       const newImpressionIds: string[] = [];
@@ -267,13 +274,8 @@ export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 
     }
   }, [productIndexes, products, impressionIds, trackAdClick, toast]);
 
-  // Don't show for active subscribers (non-free plans)
-  if (subscription?.status === 'active' && subscription?.plan && subscription.plan !== 'free' as any) {
-    return null;
-  }
-
-  // Don't show if user preferences disable ads
-  if (!shouldShowAds()) {
+  // Early return for paid subscribers
+  if (!canShowAds || products.length === 0) {
     return null;
   }
 
