@@ -6,7 +6,7 @@ import { ShoppingCart, Crown, Star, ExternalLink } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
-import { AD_SIZES } from '@/lib/adConfig';
+import { AD_SIZES, ENABLE_AMAZON_ADS } from '@/lib/adConfig';
 
 // مكون إعلان منتج مميز - 300x250
 const ProductAdCard = ({ 
@@ -105,6 +105,11 @@ const ProductAdCard = ({
 export const PersistentAdSidebar: React.FC<{ className?: string }> = ({ 
   className = '' 
 }) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض شيء
+  if (!ENABLE_AMAZON_ADS) {
+    return null;
+  }
+
   const { subscription } = useSubscription();
   const { getTrendingProducts, getAmazonProducts } = useAffiliateProducts();
   const [productIndexes, setProductIndexes] = useState([0, 1, 2]); // 3 إعلانات

@@ -9,6 +9,7 @@ import { useOptimizedAffiliateProducts } from "@/hooks/useOptimizedAffiliateProd
 import { useOptimizedAdTracking } from "@/hooks/useOptimizedAdTracking";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ENABLE_AMAZON_ADS } from "@/lib/adConfig";
 
 
 interface FixedStatsAdBannerProps {
@@ -117,6 +118,11 @@ const ProductAdCard = memo(({ product, slotIndex, impressionId, onTrackClick }: 
 ProductAdCard.displayName = 'ProductAdCard';
 
 export const FixedStatsAdBanner = memo(({ placement, className = "", maxAds = 3 }: FixedStatsAdBannerProps) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض شيء
+  if (!ENABLE_AMAZON_ADS) {
+    return null;
+  }
+
   const { subscription } = useSubscription();
   const { getTrendingProducts, loading } = useOptimizedAffiliateProducts();
   const { trackAdImpression, trackAdClick, shouldShowAds } = useOptimizedAdTracking();

@@ -1,3 +1,10 @@
+// ========================================
+// 🚫 MASTER AD CONTROL SWITCH
+// ========================================
+// تعطيل جميع إعلانات Amazon مؤقتاً حتى النشر على App Store
+// سيتم تفعيلها لاحقاً أو استبدالها بـ Google AdSense
+export const ENABLE_AMAZON_ADS = false; // ✅ غيّره إلى true لتفعيل الإعلانات مرة أخرى
+
 // Google AdSense compliant ad sizes and configuration
 
 export const AD_SIZES = {
