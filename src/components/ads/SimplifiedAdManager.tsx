@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SimpleAdBanner } from './SimpleAdBanner';
 import { DebugAdPanel } from './DebugAdPanel';
 import { useSubscription } from '@/hooks/useSubscription';
+import { ENABLE_AMAZON_ADS } from '@/lib/adConfig';
 
 interface SimplifiedAdManagerProps {
   placement: string;
@@ -14,6 +15,11 @@ export const SimplifiedAdManager: React.FC<SimplifiedAdManagerProps> = ({
   className = '',
   showDebug = false
 }) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض شيء
+  if (!ENABLE_AMAZON_ADS) {
+    return null;
+  }
+
   const [showAd, setShowAd] = useState(false);
   const [adCount, setAdCount] = useState(0);
   const { subscription } = useSubscription();

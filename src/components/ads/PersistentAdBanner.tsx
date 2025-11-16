@@ -7,7 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AD_SIZES } from '@/lib/adConfig';
+import { AD_SIZES, ENABLE_AMAZON_ADS } from '@/lib/adConfig';
 
 interface PersistentAdBannerProps {
   placement: string;
@@ -18,6 +18,11 @@ export const PersistentAdBanner: React.FC<PersistentAdBannerProps> = ({
   placement,
   className = ''
 }) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض شيء
+  if (!ENABLE_AMAZON_ADS) {
+    return null;
+  }
+
   const { subscription } = useSubscription();
   const { getTrendingProducts } = useAffiliateProducts();
   const isMobile = useIsMobile();

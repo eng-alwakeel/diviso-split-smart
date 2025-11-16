@@ -7,6 +7,7 @@ import { useAdTracking } from '@/hooks/useAdTracking';
 import { useSmartAdLearning } from '@/hooks/useSmartAdLearning';
 import { useUserBehavior } from '@/hooks/useUserBehavior';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ENABLE_AMAZON_ADS } from '@/lib/adConfig';
 
 interface SmartAdManagerProps {
   context: {
@@ -31,6 +32,11 @@ export const SmartAdManager: React.FC<SmartAdManagerProps> = ({
   compact = false,
   layout = 'auto'
 }) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض شيء
+  if (!ENABLE_AMAZON_ADS) {
+    return null;
+  }
+
   const [adType, setAdType] = useState<'banner' | 'grid' | 'carousel' | 'recommendations' | 'none'>('none');
   const isMobile = useIsMobile();
   const { shouldShowAds, getTargetedCategories, trackAdImpression } = useAdTracking();

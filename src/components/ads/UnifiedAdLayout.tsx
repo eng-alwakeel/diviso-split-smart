@@ -4,7 +4,7 @@ import { PersistentAdSidebar } from './PersistentAdSidebar';
 import { LazyAdLoader } from './LazyAdLoader';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AD_DISPLAY_RULES, AD_DENSITY_RULES } from '@/lib/adConfig';
+import { AD_DISPLAY_RULES, AD_DENSITY_RULES, ENABLE_AMAZON_ADS } from '@/lib/adConfig';
 
 interface UnifiedAdLayoutProps {
   children: ReactNode;
@@ -23,6 +23,11 @@ export const UnifiedAdLayout = ({
   showBottomBanner = false,
   className = ""
 }: UnifiedAdLayoutProps) => {
+  // ✅ إذا كانت الإعلانات معطلة: لا تعرض أي إعلانات
+  if (!ENABLE_AMAZON_ADS) {
+    return <>{children}</>;
+  }
+
   const { subscription } = useSubscription();
   const isMobile = useIsMobile();
   
