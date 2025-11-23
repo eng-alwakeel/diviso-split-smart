@@ -209,28 +209,6 @@ export function ProfileTab({
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    هل أنت متأكد من أنك تريد تسجيل الخروج من حسابك؟
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                  <AlertDialogAction onClick={logout}>
-                    تسجيل الخروج
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
             <Button 
               onClick={() => {
                 // التحقق من تغيير رقم الهاتف
@@ -246,6 +224,30 @@ export function ProfileTab({
               <Save className="w-4 h-4" />
               حفظ التغييرات
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  تسجيل الخروج
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    هل أنت متأكد من أنك تريد تسجيل الخروج من حسابك؟
+                    <br />
+                    سيتم تسجيل خروجك من جميع الأجهزة وإنهاء جلستك الحالية.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogAction onClick={logout} className="bg-destructive hover:bg-destructive/90">
+                    تسجيل الخروج
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>

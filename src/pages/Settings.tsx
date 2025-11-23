@@ -231,12 +231,28 @@ const Settings = () => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "تم تسجيل الخروج",
-      description: "سيتم تحويلك للصفحة الرئيسية",
-    });
-    navigate('/');
+    try {
+      // تنظيف شامل للـ session
+      await supabase.auth.signOut();
+      
+      // مسح localStorage بشكل صريح
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.clear();
+      
+      toast({
+        title: "تم تسجيل الخروج بنجاح",
+        description: "سيتم تحويلك للصفحة الرئيسية",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "خطأ في تسجيل الخروج",
+        description: "حدث خطأ، يرجى المحاولة مرة أخرى",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleStartTrial = async (plan: 'personal' | 'family') => {
