@@ -1,20 +1,36 @@
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Trash2, Shield, ShieldCheck } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useAdminUserActions } from "@/hooks/useEnhancedAdminStats";
-import { AdminBadge } from "@/components/ui/admin-badge";
-import { useAdminBadge } from "@/hooks/useAdminBadge";
-import { toast } from "sonner";
 import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Shield, Trash2 } from "lucide-react";
+import { useAdminUserActions } from "@/hooks/useEnhancedAdminStats";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface User {
   id: string;
-  display_name?: string;
-  name?: string;
-  phone?: string;
+  display_name: string | null;
+  name: string | null;
+  phone: string | null;
   created_at: string;
   is_admin: boolean;
   current_plan: string;
@@ -39,21 +55,36 @@ interface AdminManagementTablesProps {
 }
 
 export const AdminManagementTables = ({ users, groups }: AdminManagementTablesProps) => {
-  const queryClient = useQueryClient();
+  const [usersPage, setUsersPage] = useState(1);
+  const [groupsPage, setGroupsPage] = useState(1);
+  const [usersPerPage, setUsersPerPage] = useState(10);
+  const [groupsPerPage, setGroupsPerPage] = useState(10);
+  
   const { toggleUserAdmin, deleteGroup } = useAdminUserActions();
-  const { badgeConfig: adminBadgeConfig } = useAdminBadge();
-  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const handleToggleAdmin = async (userId: string, currentAdmin: boolean) => {
+  const getPlanBadge = (plan: string) => {
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive", label: string }> = {
+      free: { variant: "secondary", label: "مجاني" },
+      personal: { variant: "default", label: "شخصي" },
+      family: { variant: "default", label: "عائلي" },
+      lifetime: { variant: "destructive", label: "مدى الحياة" }
+    };
+    const config = variants[plan] || { variant: "secondary", label: plan };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const handleToggleAdmin = async (userId: string, currentStatus: boolean) => {
     try {
-      setIsLoading(userId);
-      await toggleUserAdmin(userId, !currentAdmin);
-      toast.success(!currentAdmin ? "تم منح صلاحيات المدير" : "تم إلغاء صلاحيات المدير");
+      await toggleUserAdmin(userId, !currentStatus);
+      toast.success(
+        currentStatus ? "تم إلغاء صلاحيات المدير" : "تم منح صلاحيات المدير"
+      );
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-    } catch (error) {
-      toast.error("حدث خطأ في تحديث الصلاحيات");
-    } finally {
-      setIsLoading(null);
+    } catch (error: any) {
+      toast.error("خطأ في تحديث الصلاحيات", {
+        description: error.message,
+      });
     }
   };
 
@@ -61,90 +92,180 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
     if (!confirm(`هل أنت متأكد من حذف المجموعة "${groupName}"؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
       return;
     }
-
+    
     try {
-      setIsLoading(groupId);
       await deleteGroup(groupId);
       toast.success("تم حذف المجموعة بنجاح");
       queryClient.invalidateQueries({ queryKey: ["admin-groups"] });
-    } catch (error) {
-      toast.error("حدث خطأ في حذف المجموعة");
-    } finally {
-      setIsLoading(null);
+    } catch (error: any) {
+      toast.error("خطأ في حذف المجموعة", {
+        description: error.message,
+      });
     }
   };
 
-  const getPlanBadge = (plan: string) => {
-    const config = {
-      'free': { label: 'مجاني', className: 'bg-gray-100 text-gray-800' },
-      'personal': { label: 'شخصي', className: 'bg-blue-100 text-blue-800' },
-      'family': { label: 'عائلي', className: 'bg-purple-100 text-purple-800' },
-      'lifetime': { label: 'مدى الحياة', className: 'bg-yellow-100 text-yellow-800' }
-    };
-    const planConfig = config[plan as keyof typeof config] || { label: plan, className: 'bg-gray-100 text-gray-800' };
-    return <Badge className={planConfig.className}>{planConfig.label}</Badge>;
+  const totalUsersPages = Math.ceil(users.length / usersPerPage);
+  const totalGroupsPages = Math.ceil(groups.length / groupsPerPage);
+  
+  const paginatedUsers = users.slice(
+    (usersPage - 1) * usersPerPage,
+    usersPage * usersPerPage
+  );
+  
+  const paginatedGroups = groups.slice(
+    (groupsPage - 1) * groupsPerPage,
+    groupsPage * groupsPerPage
+  );
+
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    setPage: (page: number) => void
+  ) => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    
+    if (endPage - startPage < maxVisible - 1) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => currentPage > 1 && setPage(currentPage - 1)}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {startPage > 1 && (
+            <>
+              <PaginationItem>
+                <PaginationLink onClick={() => setPage(1)} className="cursor-pointer">
+                  1
+                </PaginationLink>
+              </PaginationItem>
+              {startPage > 2 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+            </>
+          )}
+          
+          {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(page => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => setPage(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+              <PaginationItem>
+                <PaginationLink onClick={() => setPage(totalPages)} className="cursor-pointer">
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            </>
+          )}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => currentPage < totalPages && setPage(currentPage + 1)}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
   };
 
   return (
-    <div className="space-y-8">
-      {/* User Management */}
+    <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             👥 إدارة المستخدمين
+            <Badge variant="secondary">{users.length}</Badge>
           </CardTitle>
+          <Select value={usersPerPage.toString()} onValueChange={(v) => {
+            setUsersPerPage(Number(v));
+            setUsersPage(1);
+          }}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / صفحة</SelectItem>
+              <SelectItem value="25">25 / صفحة</SelectItem>
+              <SelectItem value="50">50 / صفحة</SelectItem>
+              <SelectItem value="100">100 / صفحة</SelectItem>
+            </SelectContent>
+          </Select>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>الاسم</TableHead>
-                  <TableHead>رقم الهاتف</TableHead>
+                  <TableHead>المستخدم</TableHead>
+                  <TableHead>الهاتف</TableHead>
                   <TableHead>الباقة</TableHead>
                   <TableHead>المجموعات</TableHead>
                   <TableHead>المصروفات</TableHead>
-                  <TableHead>تاريخ التسجيل</TableHead>
-                  <TableHead>الصلاحيات</TableHead>
+                  <TableHead>التسجيل</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.slice(0, 10).map((user) => (
+                {paginatedUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
-                      {user.display_name || user.name || 'مستخدم مجهول'}
+                      <div className="flex items-center gap-2">
+                        {user.display_name || user.name || "مستخدم"}
+                        {user.is_admin && (
+                          <Badge variant="destructive" className="text-xs">
+                            مدير
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>{user.phone || '-'}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {user.phone || "-"}
+                    </TableCell>
                     <TableCell>{getPlanBadge(user.current_plan)}</TableCell>
                     <TableCell>{user.groups_count}</TableCell>
                     <TableCell>{user.expenses_count}</TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString('ar-SA')}
-                    </TableCell>
-                    <TableCell>
-                      {user.is_admin ? (
-                        <AdminBadge 
-                          config={adminBadgeConfig} 
-                          size="sm"
-                          showLabel={true}
-                        />
-                      ) : (
-                        <Badge variant="outline">
-                          <Shield className="w-3 h-3 mr-1" />
-                          مستخدم
-                        </Badge>
-                      )}
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(new Date(user.created_at), { 
+                        addSuffix: true, 
+                        locale: ar 
+                      })}
                     </TableCell>
                     <TableCell>
                       <Button
-                        onClick={() => handleToggleAdmin(user.id, user.is_admin)}
-                        disabled={isLoading === user.id}
-                        variant={user.is_admin ? "destructive" : "default"}
+                        variant={user.is_admin ? "destructive" : "outline"}
                         size="sm"
-                        className="text-xs"
+                        onClick={() => handleToggleAdmin(user.id, user.is_admin)}
+                        className="gap-2"
                       >
-                        {user.is_admin ? "إلغاء المدير" : "جعل مدير"}
+                        <Shield className="w-4 h-4" />
+                        {user.is_admin ? "إلغاء الإدارة" : "منح إدارة"}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -152,54 +273,76 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
               </TableBody>
             </Table>
           </div>
+          
+          {totalUsersPages > 1 && (
+            <div className="flex justify-center pt-4">
+              {renderPagination(usersPage, totalUsersPages, setUsersPage)}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Group Management */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             🏢 إدارة المجموعات
+            <Badge variant="secondary">{groups.length}</Badge>
           </CardTitle>
+          <Select value={groupsPerPage.toString()} onValueChange={(v) => {
+            setGroupsPerPage(Number(v));
+            setGroupsPage(1);
+          }}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / صفحة</SelectItem>
+              <SelectItem value="25">25 / صفحة</SelectItem>
+              <SelectItem value="50">50 / صفحة</SelectItem>
+              <SelectItem value="100">100 / صفحة</SelectItem>
+            </SelectContent>
+          </Select>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>اسم المجموعة</TableHead>
                   <TableHead>المالك</TableHead>
-                  <TableHead>العملة</TableHead>
                   <TableHead>الأعضاء</TableHead>
                   <TableHead>المصروفات</TableHead>
-                  <TableHead>إجمالي المبلغ</TableHead>
-                  <TableHead>تاريخ الإنشاء</TableHead>
+                  <TableHead>المبلغ الإجمالي</TableHead>
+                  <TableHead>الإنشاء</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {groups.slice(0, 10).map((group) => (
+                {paginatedGroups.map((group) => (
                   <TableRow key={group.id}>
                     <TableCell className="font-medium">{group.name}</TableCell>
-                    <TableCell>{group.owner_name}</TableCell>
-                    <TableCell>{group.currency}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {group.owner_name}
+                    </TableCell>
                     <TableCell>{group.members_count}</TableCell>
                     <TableCell>{group.expenses_count}</TableCell>
                     <TableCell className="text-green-600 font-medium">
-                      {group.total_amount.toFixed(2)} {group.currency}
+                      {Number(group.total_amount).toLocaleString()} {group.currency}
                     </TableCell>
-                    <TableCell>
-                      {new Date(group.created_at).toLocaleDateString('ar-SA')}
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDistanceToNow(new Date(group.created_at), { 
+                        addSuffix: true, 
+                        locale: ar 
+                      })}
                     </TableCell>
                     <TableCell>
                       <Button
-                        onClick={() => handleDeleteGroup(group.id, group.name)}
-                        disabled={isLoading === group.id}
                         variant="destructive"
                         size="sm"
-                        className="text-xs"
+                        onClick={() => handleDeleteGroup(group.id, group.name)}
+                        className="gap-2"
                       >
-                        <Trash2 className="w-3 h-3 mr-1" />
+                        <Trash2 className="w-4 h-4" />
                         حذف
                       </Button>
                     </TableCell>
@@ -208,6 +351,12 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
               </TableBody>
             </Table>
           </div>
+          
+          {totalGroupsPages > 1 && (
+            <div className="flex justify-center pt-4">
+              {renderPagination(groupsPage, totalGroupsPages, setGroupsPage)}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
