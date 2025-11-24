@@ -1,6 +1,6 @@
-import { formatDistanceToNow } from "date-fns";
-import { ar } from "date-fns/locale";
+import { useState, useMemo } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useAdminStats, useAdminUsers, useAdminGroups } from "@/hooks/useAdminStats";
 import { useEnhancedAdminStats } from "@/hooks/useEnhancedAdminStats";
 import { useBusinessMetrics, useRevenueInsights } from "@/hooks/useBusinessMetrics";
@@ -9,7 +9,6 @@ import { PlanPerformanceChart } from "@/components/admin/PlanPerformanceChart";
 import { BusinessHealthMetrics } from "@/components/admin/BusinessHealthMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
 import { SubscriptionStatsCards } from "@/components/admin/SubscriptionStatsCards";
@@ -34,9 +33,16 @@ export const AdminDashboard = () => {
 };
 
 const AdminDashboardContent = () => {
+  const [filters, setFilters] = useState({
+    search: '',
+    plan: 'all',
+    dateRange: { from: '', to: '' },
+    status: 'all'
+  });
+  const [isExporting, setIsExporting] = useState(false);
+
   const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminAuth();
   
-  // Safe hook calls with error handling
   const { 
     data: businessMetrics, 
     isLoading: businessLoading, 
@@ -55,18 +61,77 @@ const AdminDashboardContent = () => {
   const { data: groups, isLoading: groupsLoading, refetch: refetchGroups } = useAdminGroups();
   const { data: enhancedStats, isLoading: enhancedLoading, refetch: refetchEnhanced } = useEnhancedAdminStats();
   
-  const handleFilterChange = (filters: any) => {
-    // TODO: Implement filtering logic
-    console.log('Filters changed:', filters);
+  // Apply filters to data
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    return users.filter(user => {
+      const matchesSearch = !filters.search || 
+        user.display_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        user.phone?.includes(filters.search);
+      const matchesPlan = filters.plan === 'all' || user.current_plan === filters.plan;
+      return matchesSearch && matchesPlan;
+    });
+  }, [users, filters]);
+
+  const filteredGroups = useMemo(() => {
+    if (!groups) return [];
+    return groups.filter(group => {
+      const matchesSearch = !filters.search || 
+        group.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        group.owner_name?.toLowerCase().includes(filters.search.toLowerCase());
+      return matchesSearch;
+    });
+  }, [groups, filters]);
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
   };
   
-  const handleExport = (config: ExportConfig) => {
-    // TODO: Implement export functionality
-    toast({
-      title: "بدء التصدير",
-      description: `سيتم تصدير البيانات بصيغة ${config.format.toUpperCase()}`,
-    });
-    console.log('Export config:', config);
+  const handleExport = async (config: ExportConfig) => {
+    setIsExporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('export-admin-data', {
+        body: { 
+          config, 
+          filters,
+          users: filteredUsers,
+          groups: filteredGroups,
+          stats,
+          businessMetrics
+        }
+      });
+
+      if (error) throw error;
+
+      // Create download link
+      const blob = new Blob([data], { 
+        type: config.format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
+              config.format === 'csv' ? 'text/csv' : 'application/json'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `admin-export-${Date.now()}.${config.format === 'excel' ? 'xlsx' : config.format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "تم التصدير بنجاح",
+        description: `تم تصدير البيانات بصيغة ${config.format.toUpperCase()}`,
+      });
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: error.message || "حدث خطأ أثناء تصدير البيانات",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
   
   const handleRefresh = () => {
@@ -160,7 +225,7 @@ const AdminDashboardContent = () => {
         />
         
         <div className="flex justify-end mb-4">
-          <AdminExport onExport={handleExport} isLoading={false} />
+          <AdminExport onExport={handleExport} isLoading={isExporting} />
         </div>
 
         <Tabs defaultValue="revenue" className="space-y-6">
@@ -249,111 +314,11 @@ const AdminDashboardContent = () => {
           </TabsContent>
 
           <TabsContent value="management" className="space-y-6">
-            {users && groups && (
-              <AdminManagementTables users={users} groups={groups} />
+            {filteredUsers && filteredGroups && (
+              <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Legacy Tables - Basic User & Group Management */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Users Table - Simplified */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                👥 المستخدمين الجدد
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {usersLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>المستخدم</TableHead>
-                      <TableHead>الباقة</TableHead>
-                      <TableHead>التسجيل</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users?.slice(0, 5).map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {user.display_name || user.name || "مستخدم"}
-                            {user.is_admin && (
-                              <Badge variant="destructive" className="text-xs">
-                                مدير
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={user.current_plan === 'free' ? 'secondary' : 'default'}>
-                            {user.current_plan === 'free' ? 'مجاني' : 
-                             user.current_plan === 'personal' ? 'شخصي' :
-                             user.current_plan === 'family' ? 'عائلي' : 
-                             user.current_plan}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatDistanceToNow(new Date(user.created_at), { 
-                            addSuffix: true, 
-                            locale: ar 
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Groups Table - Simplified */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🏢 المجموعات النشطة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {groupsLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>اسم المجموعة</TableHead>
-                      <TableHead>الأعضاء</TableHead>
-                      <TableHead>المبلغ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {groups?.slice(0, 5).map((group) => (
-                      <TableRow key={group.id}>
-                        <TableCell className="font-medium">{group.name}</TableCell>
-                        <TableCell>{group.members_count}</TableCell>
-                        <TableCell className="text-green-600 font-medium">
-                          {Number(group.total_amount).toLocaleString()} {group.currency}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
