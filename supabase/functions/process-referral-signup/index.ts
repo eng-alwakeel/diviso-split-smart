@@ -113,6 +113,18 @@ const handler = async (req: Request): Promise<Response> => {
       // Create new referral record
       console.log("Creating new referral record");
       
+      // Get inviter's current tier to apply bonus multiplier
+      const { data: tierData } = await supabaseClient.rpc('get_user_referral_tier', {
+        p_user_id: inviterId
+      });
+      
+      const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+      const baseRewardDays = 7;
+      const bonusMultiplier = currentTier?.bonus_multiplier || 1;
+      const finalRewardDays = Math.floor(baseRewardDays * bonusMultiplier);
+
+      console.log(`Applying tier bonus: ${currentTier?.tier_name || 'المبتدئ'} with multiplier ${bonusMultiplier}x = ${finalRewardDays} days`);
+
       const { data: newReferral, error: insertError } = await supabaseClient
         .from("referrals")
         .insert({
@@ -122,8 +134,11 @@ const handler = async (req: Request): Promise<Response> => {
           referral_code: referralCode,
           status: "joined",
           joined_at: new Date().toISOString(),
-          reward_days: 7,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+          reward_days: finalRewardDays,
+          original_reward_days: baseRewardDays,
+          tier_at_time: currentTier?.tier_name || "المبتدئ",
+          bonus_applied: bonusMultiplier > 1,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         })
         .select()
         .single();
@@ -136,15 +151,24 @@ const handler = async (req: Request): Promise<Response> => {
       referralId = newReferral.id;
     }
 
+    // Get the final reward days from the referral record (with bonus applied)
+    const { data: referralRecord } = await supabaseClient
+      .from("referrals")
+      .select("reward_days")
+      .eq("id", referralId)
+      .single();
+
+    const rewardDays = referralRecord?.reward_days || 7;
+
     // Create referral reward for the inviter
-    console.log("Creating referral reward for inviter");
+    console.log(`Creating referral reward for inviter: ${rewardDays} days`);
     
     const { error: rewardError } = await supabaseClient
       .from("referral_rewards")
       .insert({
         user_id: inviterId,
         referral_id: referralId,
-        days_earned: 7,
+        days_earned: rewardDays,
         applied_to_subscription: false
       });
 

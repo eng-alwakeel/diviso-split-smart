@@ -178,6 +178,24 @@ export function useReferrals() {
       });
 
       const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+      
+      // جلب معلومات المستوى الكاملة للحصول على المضاعف
+      let bonusMultiplier = 1;
+      if (currentTier?.tier_name) {
+        const { data: tierDetails } = await supabase
+          .from('referral_tiers')
+          .select('bonus_multiplier')
+          .eq('tier_name', currentTier.tier_name)
+          .single();
+        
+        bonusMultiplier = tierDetails?.bonus_multiplier || 1;
+      }
+      
+      // حساب المكافأة مع تطبيق المضاعف
+      const baseRewardDays = 7;
+      const finalRewardDays = Math.floor(baseRewardDays * bonusMultiplier);
+
+      console.log(`Creating referral with tier bonus: ${currentTier?.tier_name || 'المبتدئ'} (${bonusMultiplier}x) = ${finalRewardDays} days`);
 
       // إنشاء سجل إحالة في قاعدة البيانات
       const { data: referralData, error: referralError } = await supabase
@@ -188,10 +206,11 @@ export function useReferrals() {
           invitee_name: name?.trim() || null,
           referral_code: referralCode,
           status: "pending",
-          reward_days: 7, // سيتم تطبيق المضاعف لاحقاً عند النجاح
+          reward_days: finalRewardDays,
           referral_source: "manual",
           tier_at_time: currentTier?.tier_name || "المبتدئ",
-          original_reward_days: 7,
+          original_reward_days: baseRewardDays,
+          bonus_applied: bonusMultiplier > 1,
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
         })
         .select()
