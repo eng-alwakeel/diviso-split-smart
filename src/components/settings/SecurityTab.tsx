@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Key, Eye, EyeOff, Save, Trash2 } from "lucide-react";
 import { useSecureValidation } from "@/hooks/useSecureValidation";
 import { useSecurityAudit } from "@/hooks/useSecurityAudit";
+import { TestMessageBirdButton } from "./TestMessageBirdButton";
 
 interface SecurityTabProps {
   passwordData: {
@@ -140,6 +141,9 @@ export function SecurityTab({
           </div>
         </CardContent>
       </Card>
+
+      {/* Test MessageBird */}
+      <TestMessageBirdButton />
 
       {/* Account Actions */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">

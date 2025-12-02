@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.amazon-affiliate-sync]
 verify_jwt = false
+
+[functions.test-messagebird]
+verify_jwt = false

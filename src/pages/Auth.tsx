@@ -141,6 +141,7 @@ const Auth = () => {
     }
 
     setLoading(true);
+    console.log('🔵 بدء عملية التسجيل...', { authType, phone, email });
     
     const signUpData = authType === "email" 
       ? { 
@@ -167,22 +168,47 @@ const Auth = () => {
           }
         };
     
+    console.log('🔵 بيانات التسجيل:', { 
+      type: authType, 
+      hasPhone: !!phone, 
+      hasEmail: !!email,
+      hasPassword: !!password 
+    });
+    
     const { data, error } = await supabase.auth.signUp(signUpData);
+    
+    console.log('🔵 استجابة التسجيل:', { data, error });
     
     if (error) {
       setLoading(false);
-      toast({ title: "خطأ في التسجيل", description: error.message, variant: "destructive" });
+      console.error('❌ خطأ في التسجيل:', error);
+      
+      let errorMessage = error.message;
+      
+      if (error.message.includes('SMS provider')) {
+        errorMessage = "خدمة الرسائل غير مفعلة. يرجى التحقق من إعدادات MessageBird";
+      } else if (error.message.includes('User already registered')) {
+        errorMessage = "هذا الحساب موجود بالفعل. يرجى تسجيل الدخول";
+      }
+      
+      toast({ 
+        title: "خطأ في التسجيل", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
       return;
     }
     
     setLoading(false);
     
     if (authType === "email") {
+      console.log('✅ تم التسجيل بالإيميل');
       toast({ 
         title: "تحقق من بريدك الإلكتروني", 
         description: "تم إرسال رابط التحقق إلى بريدك الإلكتروني"
       });
     } else {
+      console.log('✅ تم التسجيل بالهاتف - الانتقال لصفحة التحقق');
       setMode("verify");
       toast({ 
         title: "تم إرسال رمز التحقق", 
@@ -274,9 +300,38 @@ const Auth = () => {
                 <Button className="w-full" onClick={handleVerifyOtp} disabled={loading}>
                   {loading ? "جاري التحقق..." : "تحقق"}
                 </Button>
-                <Button variant="outline" className="w-full" onClick={() => setMode("signup")}>
-                  رجوع
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1" 
+                    onClick={async () => {
+                      setLoading(true);
+                      const { error } = await supabase.auth.signInWithOtp({
+                        phone,
+                        options: { shouldCreateUser: false }
+                      });
+                      setLoading(false);
+                      if (error) {
+                        toast({ 
+                          title: "خطأ", 
+                          description: error.message, 
+                          variant: "destructive" 
+                        });
+                      } else {
+                        toast({ 
+                          title: "تم إعادة الإرسال", 
+                          description: "تم إرسال رمز جديد إلى هاتفك" 
+                        });
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    إعادة الإرسال
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setMode("signup")}>
+                    رجوع
+                  </Button>
+                </div>
               </>
             ) : (
               <>

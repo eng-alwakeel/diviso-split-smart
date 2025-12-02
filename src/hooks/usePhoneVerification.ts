@@ -41,14 +41,20 @@ export function usePhoneVerification() {
     try {
       if (!validatePhoneNumber(phoneNumber)) {
         setError("رقم الجوال غير صحيح");
+        toast({
+          title: "خطأ",
+          description: "رقم الجوال غير صحيح",
+          variant: "destructive",
+        });
         return false;
       }
 
       const formattedPhone = formatPhoneNumber(phoneNumber);
+      console.log('🔵 محاولة إرسال OTP إلى:', formattedPhone);
 
       if (DEV_MODE) {
         // وضع التطوير - محاكاة إرسال OTP
-        console.log(`وضع التطوير: OTP المرسل إلى ${formattedPhone}: ${DEV_OTP}`);
+        console.log(`✅ وضع التطوير: OTP المرسل إلى ${formattedPhone}: ${DEV_OTP}`);
         
         toast({
           title: "تم إرسال رمز التحقق (وضع التطوير)",
@@ -59,28 +65,55 @@ export function usePhoneVerification() {
       }
 
       // استخدام Supabase Auth لإرسال OTP (للإنتاج)
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log('🔵 استدعاء Supabase signInWithOtp...');
+      const { data, error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
         options: {
           shouldCreateUser: false // لا ننشئ مستخدم جديد، فقط التحقق
         }
       });
 
+      console.log('🔵 استجابة Supabase:', { data, error });
+
       if (error) {
-        console.error('خطأ في إرسال OTP:', error);
-        setError("فشل في إرسال رمز التحقق. تأكد من صحة رقم الجوال");
+        console.error('❌ خطأ في إرسال OTP:', error);
+        
+        // رسائل خطأ مفصلة
+        let errorMessage = "فشل في إرسال رمز التحقق";
+        
+        if (error.message.includes('SMS provider')) {
+          errorMessage = "خدمة الرسائل غير مفعلة. يرجى التحقق من إعدادات MessageBird في Supabase";
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = "تم إرسال عدد كبير من الرسائل. يرجى الانتظار قليلاً";
+        } else if (error.message.includes('invalid phone')) {
+          errorMessage = "رقم الجوال غير صحيح. تأكد من الصيغة: +966501234567";
+        }
+        
+        setError(errorMessage);
+        toast({
+          title: "خطأ في إرسال الرمز",
+          description: errorMessage,
+          variant: "destructive",
+        });
         return false;
       }
 
+      console.log('✅ تم إرسال OTP بنجاح');
       toast({
         title: "تم إرسال رمز التحقق",
         description: `تم إرسال رمز التحقق إلى ${formattedPhone}`,
       });
 
       return true;
-    } catch (error) {
-      console.error('خطأ في إرسال OTP:', error);
-      setError("حدث خطأ أثناء إرسال رمز التحقق");
+    } catch (error: any) {
+      console.error('❌ خطأ غير متوقع في إرسال OTP:', error);
+      const errorMessage = error?.message || "حدث خطأ أثناء إرسال رمز التحقق";
+      setError(errorMessage);
+      toast({
+        title: "خطأ",
+        description: errorMessage,
+        variant: "destructive",
+      });
       return false;
     } finally {
       setLoading(false);
