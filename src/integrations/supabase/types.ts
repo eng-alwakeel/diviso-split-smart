@@ -394,6 +394,39 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description_ar: string | null
+          id: string
+          metadata: Json | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description_ar?: string | null
+          id?: string
+          metadata?: Json | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description_ar?: string | null
+          id?: string
+          metadata?: Json | null
+          source?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       currencies: {
         Row: {
           code: string
@@ -1629,6 +1662,39 @@ export type Database = {
           },
         ]
       }
+      reward_types: {
+        Row: {
+          created_at: string
+          description_ar: string | null
+          icon: string | null
+          id: string
+          name: string
+          name_ar: string
+          type: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description_ar?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          name_ar: string
+          type: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          description_ar?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          name_ar?: string
+          type?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           action: string
@@ -1783,6 +1849,45 @@ export type Database = {
           limit_value?: number
           plan?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      temporary_unlocks: {
+        Row: {
+          created_at: string
+          expires_at: string
+          feature_type: string
+          granted_at: string
+          id: string
+          is_used: boolean | null
+          restrictions: Json | null
+          source: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          feature_type: string
+          granted_at?: string
+          id?: string
+          is_used?: boolean | null
+          restrictions?: Json | null
+          source: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          feature_type?: string
+          granted_at?: string
+          id?: string
+          is_used?: boolean | null
+          restrictions?: Json | null
+          source?: string
+          used_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1956,32 +2061,41 @@ export type Database = {
       }
       user_streaks: {
         Row: {
+          coins: number | null
           created_at: string
           current_streak: number
           last_check_in: string | null
           longest_streak: number
           points: number
           total_check_ins: number
+          total_coins_earned: number | null
+          total_coins_spent: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          coins?: number | null
           created_at?: string
           current_streak?: number
           last_check_in?: string | null
           longest_streak?: number
           points?: number
           total_check_ins?: number
+          total_coins_earned?: number | null
+          total_coins_spent?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          coins?: number | null
           created_at?: string
           current_streak?: number
           last_check_in?: string | null
           longest_streak?: number
           points?: number
           total_check_ins?: number
+          total_coins_earned?: number | null
+          total_coins_spent?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -2091,6 +2205,15 @@ export type Database = {
           needs_phone_confirmation: boolean
           success: boolean
         }[]
+      }
+      add_coins: {
+        Args: {
+          p_amount: number
+          p_description_ar?: string
+          p_source: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       admin_delete_group: { Args: { p_group_id: string }; Returns: boolean }
       admin_toggle_user_admin: {
@@ -2359,6 +2482,16 @@ export type Database = {
           phone: string
         }[]
       }
+      grant_temporary_unlock: {
+        Args: {
+          p_duration_days: number
+          p_feature_type: string
+          p_restrictions?: Json
+          p_source: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2394,6 +2527,15 @@ export type Database = {
         Returns: Json
       }
       seed_demo_for_user: { Args: never; Returns: string }
+      spend_coins: {
+        Args: {
+          p_amount: number
+          p_description_ar?: string
+          p_source: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       unarchive_group: { Args: { p_group_id: string }; Returns: boolean }
       update_daily_referral_analytics: { Args: never; Returns: number }
       update_expired_referrals: { Args: never; Returns: number }

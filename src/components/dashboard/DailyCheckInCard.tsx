@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDailyCheckin } from '@/hooks/useDailyCheckin';
-import { Gift, Check, HelpCircle, Trophy, Flame, Star, Loader2 } from 'lucide-react';
+import { Gift, Check, HelpCircle, Trophy, Flame, Star, Loader2, Coins, Camera, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DayCircle = memo(({ 
@@ -14,7 +14,13 @@ const DayCircle = memo(({
   day: number; 
   completed: boolean; 
   isToday: boolean;
-  reward: { type: string; value: string; points: number };
+  reward: { 
+    type: 'coins' | 'badge' | 'soft_unlock' | 'boost'; 
+    value: string; 
+    coins: number;
+    feature?: string;
+    icon?: string;
+  };
 }) => {
   const getIcon = () => {
     if (completed) {
@@ -23,11 +29,17 @@ const DayCircle = memo(({
     if (day === 7) {
       return <Trophy className="h-4 w-4 text-amber-500" />;
     }
-    if (reward.type === 'mystery') {
-      return <HelpCircle className="h-4 w-4 text-muted-foreground" />;
+    if (reward.type === 'soft_unlock') {
+      return <Sparkles className="h-4 w-4 text-purple-500" />;
+    }
+    if (reward.type === 'boost') {
+      return <Camera className="h-4 w-4 text-blue-500" />;
     }
     if (reward.type === 'badge') {
-      return <Star className="h-4 w-4 text-muted-foreground" />;
+      return <Star className="h-4 w-4 text-amber-500" />;
+    }
+    if (reward.type === 'coins') {
+      return <Coins className="h-4 w-4 text-muted-foreground" />;
     }
     return <Gift className="h-4 w-4 text-muted-foreground" />;
   };
@@ -140,11 +152,11 @@ const DailyCheckInCard = memo(() => {
         </Button>
 
         {/* Stats Footer */}
-        {streak.points > 0 && (
+        {(streak.coins > 0 || streak.points > 0) && (
           <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/50">
             <div className="text-center">
-              <p className="text-lg font-bold text-primary">{streak.points}</p>
-              <p className="text-xs text-muted-foreground">نقطة</p>
+              <p className="text-lg font-bold text-primary">{streak.coins || streak.points}</p>
+              <p className="text-xs text-muted-foreground">عملة</p>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">

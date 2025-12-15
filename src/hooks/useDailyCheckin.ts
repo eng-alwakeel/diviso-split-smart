@@ -7,6 +7,7 @@ interface StreakData {
   longestStreak: number;
   totalCheckIns: number;
   points: number;
+  coins: number;
   lastCheckIn: string | null;
 }
 
@@ -14,7 +15,13 @@ interface WeekProgress {
   day: number;
   completed: boolean;
   isToday: boolean;
-  reward: { type: string; value: string; points: number };
+  reward: { 
+    type: 'coins' | 'badge' | 'soft_unlock' | 'boost'; 
+    value: string; 
+    coins: number;
+    feature?: string;
+    icon?: string;
+  };
 }
 
 interface DailyCheckinData {
@@ -24,14 +31,15 @@ interface DailyCheckinData {
   loading: boolean;
 }
 
+// نظام المكافآت الأسبوعي الجديد (متوافق مع خطة الاشتراك)
 const WEEKLY_REWARDS = [
-  { type: 'badge', value: 'البداية 🌟', points: 5 },
-  { type: 'points', value: '+5 نقاط', points: 5 },
-  { type: 'badge', value: 'متحمس 🔥', points: 10 },
-  { type: 'points', value: '+10 نقاط', points: 10 },
-  { type: 'mystery', value: 'مفاجأة ✨', points: 15 },
-  { type: 'points', value: '+15 نقاط', points: 15 },
-  { type: 'badge', value: 'محارب الأسبوع 🏆', points: 25 },
+  { type: 'coins' as const, value: 'عملات البداية', coins: 5, icon: 'Star' },
+  { type: 'coins' as const, value: '+10 عملات', coins: 10, icon: 'Coins' },
+  { type: 'badge' as const, value: 'شارة متحمس 🔥', coins: 15, icon: 'Flame' },
+  { type: 'coins' as const, value: '+20 عملات', coins: 20, icon: 'Coins' },
+  { type: 'soft_unlock' as const, value: 'تحليل AI مجاني', coins: 15, feature: 'ai_insight', icon: 'Sparkles' },
+  { type: 'boost' as const, value: 'رفع حد OCR', coins: 25, feature: 'ocr_boost', icon: 'Camera' },
+  { type: 'soft_unlock' as const, value: 'تحليلات متقدمة 🏆', coins: 30, feature: 'advanced_analytics', icon: 'Trophy' },
 ];
 
 export const useDailyCheckin = () => {
@@ -41,6 +49,7 @@ export const useDailyCheckin = () => {
       longestStreak: 0,
       totalCheckIns: 0,
       points: 0,
+      coins: 0,
       lastCheckIn: null,
     },
     weekProgress: [],
@@ -105,12 +114,14 @@ export const useDailyCheckin = () => {
         longestStreak: streakData.longest_streak,
         totalCheckIns: streakData.total_check_ins,
         points: streakData.points,
+        coins: streakData.coins ?? 0,
         lastCheckIn: streakData.last_check_in,
       } : {
         currentStreak: 0,
         longestStreak: 0,
         totalCheckIns: 0,
         points: 0,
+        coins: 0,
         lastCheckIn: null,
       };
 
@@ -145,7 +156,7 @@ export const useDailyCheckin = () => {
       const { data: result, error } = await supabase.rpc('process_daily_checkin', {
         p_user_id: user.id,
         p_reward_type: reward.type,
-        p_reward_value: { value: reward.value, points: reward.points },
+        p_reward_value: { value: reward.value, coins: reward.coins, feature: reward.feature },
       });
 
       if (error) throw error;
@@ -155,7 +166,7 @@ export const useDailyCheckin = () => {
 
       if (typedResult?.success) {
         toast.success(`🎉 حصلت على ${reward.value}!`, {
-          description: `+${typedResult.points_earned} نقاط | سلسلة ${typedResult.new_streak} أيام`,
+          description: `+${reward.coins} عملات | سلسلة ${typedResult.new_streak} أيام`,
         });
         
         await fetchStreakData();
