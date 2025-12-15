@@ -17,6 +17,7 @@ export interface PlatformConfig {
   color: string;
   gradient: string;
   shareUrl: (params: ShareParams) => string;
+  mobileUrl?: (params: ShareParams) => string;
   supportsDirectShare: boolean;
   requiresSpecialHandling: boolean;
 }
@@ -39,7 +40,12 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
     requiresSpecialHandling: false,
     shareUrl: ({ referralLink, message }: ShareParams) => {
       const text = encodeURIComponent(`${message}\n\n${referralLink}`);
-      return `https://wa.me/?text=${text}`;
+      // Use api.whatsapp.com for better mobile compatibility
+      return `https://api.whatsapp.com/send?text=${text}`;
+    },
+    mobileUrl: ({ referralLink, message }: ShareParams) => {
+      const text = encodeURIComponent(`${message}\n\n${referralLink}`);
+      return `whatsapp://send?text=${text}`;
     }
   },
   telegram: {
@@ -54,6 +60,11 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       const text = encodeURIComponent(message);
       const url = encodeURIComponent(referralLink);
       return `https://t.me/share/url?url=${url}&text=${text}`;
+    },
+    mobileUrl: ({ referralLink, message }: ShareParams) => {
+      const text = encodeURIComponent(message);
+      const url = encodeURIComponent(referralLink);
+      return `tg://msg_url?url=${url}&text=${text}`;
     }
   },
   twitter: {
@@ -68,6 +79,10 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
       const text = encodeURIComponent(message);
       const url = encodeURIComponent(referralLink);
       return `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    },
+    mobileUrl: ({ referralLink, message }: ShareParams) => {
+      const text = encodeURIComponent(`${message} ${referralLink}`);
+      return `twitter://post?message=${text}`;
     }
   },
   facebook: {
@@ -80,6 +95,9 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
     requiresSpecialHandling: false,
     shareUrl: ({ referralLink }: ShareParams) => {
       return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+    },
+    mobileUrl: ({ referralLink }: ShareParams) => {
+      return `fb://share/?link=${encodeURIComponent(referralLink)}`;
     }
   },
   snapchat: {
@@ -92,6 +110,9 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
     requiresSpecialHandling: true,
     shareUrl: ({ referralLink }: ShareParams) => {
       return `https://www.snapchat.com/scan?attachmentUrl=${encodeURIComponent(referralLink)}`;
+    },
+    mobileUrl: ({ referralLink }: ShareParams) => {
+      return `snapchat://creativekit/share?attachmentUrl=${encodeURIComponent(referralLink)}`;
     }
   },
   instagram: {
@@ -102,10 +123,8 @@ export const PLATFORM_CONFIGS: Record<SocialPlatform, PlatformConfig> = {
     gradient: 'from-[#833AB4] via-[#FD1D1D] to-[#F77737]',
     supportsDirectShare: false,
     requiresSpecialHandling: true,
-    shareUrl: () => {
-      // Instagram doesn't support direct sharing via URL
-      return '';
-    }
+    shareUrl: () => '',
+    mobileUrl: () => 'instagram://story-camera'
   }
 };
 

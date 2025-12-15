@@ -70,14 +70,53 @@ export const SocialShareButtons = ({
       return;
     }
 
-    // Generate share URL (fallback for web or if native sharing failed)
-    const shareUrl = config.shareUrl({
+    const shareParams = {
       referralLink: trackedLink,
       message: shareMessage,
       referralCode
-    });
+    };
 
-    // Open share URL
+    // Try mobile URL scheme first on mobile devices
+    if (isMobileDevice() && config.mobileUrl) {
+      const mobileUrl = config.mobileUrl(shareParams);
+      
+      if (mobileUrl) {
+        // Try to open the app using URL scheme
+        const appOpened = await tryOpenApp(mobileUrl, config.shareUrl(shareParams));
+        
+        if (appOpened) {
+          toast({
+            title: 'تم فتح التطبيق',
+            description: `جاري المشاركة على ${config.name}`
+          });
+          return;
+        }
+      }
+    }
+
+    // Fallback: Try Web Share API on mobile
+    if (isMobileDevice() && navigator.share) {
+      try {
+        await navigator.share({
+          title: 'انضم إلى Diviso',
+          text: shareMessage,
+          url: trackedLink
+        });
+        toast({
+          title: 'تم المشاركة',
+          description: 'تم مشاركة رابط الإحالة بنجاح'
+        });
+        return;
+      } catch (error) {
+        // User cancelled or share failed, continue to web fallback
+        if ((error as Error).name !== 'AbortError') {
+          console.log('Web Share API failed, using fallback');
+        }
+      }
+    }
+
+    // Final fallback: Open web share URL
+    const shareUrl = config.shareUrl(shareParams);
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
       toast({
@@ -85,6 +124,49 @@ export const SocialShareButtons = ({
         description: `يمكنك الآن مشاركة إحالتك على ${config.name}`
       });
     }
+  };
+
+  const tryOpenApp = (appUrl: string, fallbackUrl: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      let appOpened = false;
+
+      // Create a hidden iframe to try opening the app
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      // Set up visibility change listener
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Try to open the app
+      window.location.href = appUrl;
+
+      // Check after a short delay if the app opened
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        document.body.removeChild(iframe);
+
+        const elapsed = Date.now() - startTime;
+        
+        // If page is still visible and not much time passed, app didn't open
+        if (!appOpened && !document.hidden && elapsed < 2000) {
+          // App didn't open, use fallback
+          if (fallbackUrl) {
+            window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+          }
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      }, 1500);
+    });
   };
 
   const handleInstagramShare = async (text: string, link: string) => {
