@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Gift, Check, X, Loader2 } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 
@@ -26,6 +26,47 @@ const Auth = () => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  
+  // Referral code states
+  const [referralCode, setReferralCode] = useState("");
+  const [referralValid, setReferralValid] = useState<boolean | null>(null);
+  const [checkingReferral, setCheckingReferral] = useState(false);
+
+  // Validate referral code
+  const validateReferralCode = useCallback(async (code: string) => {
+    if (!code || code.length < 6) {
+      setReferralValid(null);
+      return;
+    }
+    
+    setCheckingReferral(true);
+    try {
+      const { data } = await supabase
+        .from("user_referral_codes")
+        .select("user_id")
+        .eq("referral_code", code.toUpperCase())
+        .maybeSingle();
+      
+      setReferralValid(!!data);
+    } catch {
+      setReferralValid(false);
+    } finally {
+      setCheckingReferral(false);
+    }
+  }, []);
+
+  // Debounced referral code validation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (referralCode) {
+        validateReferralCode(referralCode);
+      } else {
+        setReferralValid(null);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [referralCode, validateReferralCode]);
 
   useEffect(() => {
     const location = window.location;
@@ -200,20 +241,49 @@ const Auth = () => {
       return;
     }
     
+    // If referral code is valid, process it
+    if (referralValid && referralCode && data?.user) {
+      try {
+        console.log('🎁 Processing referral code:', referralCode);
+        const { error: referralError } = await supabase.functions.invoke('process-referral-signup', {
+          body: {
+            userId: data.user.id,
+            referralCode: referralCode.toUpperCase(),
+            userPhone: authType === "phone" ? phone : "",
+            userName: name
+          }
+        });
+        
+        if (referralError) {
+          console.error('❌ Referral processing error:', referralError);
+        } else {
+          console.log('✅ Referral processed successfully');
+        }
+      } catch (err) {
+        console.error('❌ Error processing referral:', err);
+      }
+    }
+    
     setLoading(false);
     
     if (authType === "email") {
       console.log('✅ تم التسجيل بالإيميل');
+      const successMessage = referralValid 
+        ? "تم إرسال رابط التحقق إلى بريدك الإلكتروني. ستحصل على 7 أيام مجانية بعد التفعيل!"
+        : "تم إرسال رابط التحقق إلى بريدك الإلكتروني";
       toast({ 
         title: "تحقق من بريدك الإلكتروني", 
-        description: "تم إرسال رابط التحقق إلى بريدك الإلكتروني"
+        description: successMessage
       });
     } else {
       console.log('✅ تم التسجيل بالهاتف - الانتقال لصفحة التحقق');
       setMode("verify");
+      const successMessage = referralValid
+        ? "أدخل الرمز المرسل إلى رقم هاتفك. ستحصل على 7 أيام مجانية بعد التفعيل!"
+        : "أدخل الرمز المرسل إلى رقم هاتفك";
       toast({ 
         title: "تم إرسال رمز التحقق", 
-        description: "أدخل الرمز المرسل إلى رقم هاتفك" 
+        description: successMessage
       });
     }
   };
@@ -408,11 +478,54 @@ const Auth = () => {
                 </Tabs>
                 
                 {mode === "signup" && (
-                  <PrivacyPolicyCheckbox
-                    checked={privacyAccepted}
-                    onCheckedChange={setPrivacyAccepted}
-                    className="my-4"
-                  />
+                  <>
+                    {/* Referral Code Input */}
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="referralCode" className="flex items-center gap-2">
+                        <Gift className="h-4 w-4 text-primary" />
+                        كود الإحالة (اختياري)
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="referralCode"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                          placeholder="أدخل كود الإحالة للحصول على 7 أيام مجانية"
+                          className="text-center uppercase tracking-widest pr-10"
+                          maxLength={8}
+                          dir="ltr"
+                        />
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                          {checkingReferral && (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          )}
+                          {!checkingReferral && referralValid === true && (
+                            <Check className="h-4 w-4 text-green-500" />
+                          )}
+                          {!checkingReferral && referralValid === false && (
+                            <X className="h-4 w-4 text-destructive" />
+                          )}
+                        </div>
+                      </div>
+                      {referralValid === true && (
+                        <p className="text-xs text-green-500 flex items-center gap-1">
+                          <Gift className="h-3 w-3" />
+                          ستحصل على 7 أيام مجانية عند التسجيل!
+                        </p>
+                      )}
+                      {referralValid === false && referralCode && (
+                        <p className="text-xs text-destructive">
+                          كود الإحالة غير صالح
+                        </p>
+                      )}
+                    </div>
+                    
+                    <PrivacyPolicyCheckbox
+                      checked={privacyAccepted}
+                      onCheckedChange={setPrivacyAccepted}
+                      className="my-4"
+                    />
+                  </>
                 )}
                 
                 <Button className="w-full" onClick={mode === "login" ? handleLogin : handleSignup} disabled={loading}>
