@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Mail, Phone } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
+import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 
 const Auth = () => {
   const { toast } = useToast();
@@ -387,14 +388,10 @@ const Auth = () => {
                     )}
                     <div className="space-y-2">
                       <Label htmlFor="phone">رقم الهاتف</Label>
-                      <Input 
-                        id="phone" 
-                        type="tel" 
-                        value={phone} 
-                        onChange={(e) => setPhone(e.target.value)} 
-                        placeholder="+966501234567" 
-                        dir="ltr" 
-                        className="text-left" 
+                      <PhoneInputWithCountry
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="501234567"
                       />
                     </div>
                     <div className="space-y-2">
