@@ -433,6 +433,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_checkins: {
+        Row: {
+          check_in_date: string
+          created_at: string
+          id: string
+          reward_type: string
+          reward_value: Json | null
+          user_id: string
+        }
+        Insert: {
+          check_in_date?: string
+          created_at?: string
+          id?: string
+          reward_type: string
+          reward_value?: Json | null
+          user_id: string
+        }
+        Update: {
+          check_in_date?: string
+          created_at?: string
+          id?: string
+          reward_type?: string
+          reward_value?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       exchange_rates: {
         Row: {
           created_at: string
@@ -1927,6 +1954,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          last_check_in: string | null
+          longest_streak: number
+          points: number
+          total_check_ins: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          last_check_in?: string | null
+          longest_streak?: number
+          points?: number
+          total_check_ins?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          last_check_in?: string | null
+          longest_streak?: number
+          points?: number
+          total_check_ins?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           canceled_at: string | null
@@ -2328,6 +2388,10 @@ export type Database = {
       log_suspicious_referral: {
         Args: { p_phone: string; p_reason: string; p_user_id: string }
         Returns: undefined
+      }
+      process_daily_checkin: {
+        Args: { p_reward_type: string; p_reward_value: Json; p_user_id: string }
+        Returns: Json
       }
       seed_demo_for_user: { Args: never; Returns: string }
       unarchive_group: { Args: { p_group_id: string }; Returns: boolean }

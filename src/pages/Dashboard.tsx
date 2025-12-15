@@ -20,6 +20,7 @@ import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 const Dashboard = React.memo(() => {
   const navigate = useNavigate();
   const {
@@ -145,6 +146,9 @@ const Dashboard = React.memo(() => {
               المساعدة
             </Button>
           </div>
+
+          {/* Daily Check-in Card */}
+          <DailyCheckInCard />
 
           {/* Stats Grid */}
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
