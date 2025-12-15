@@ -1,0 +1,168 @@
+import React, { memo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useDailyCheckin } from '@/hooks/useDailyCheckin';
+import { Gift, Check, HelpCircle, Trophy, Flame, Star, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const DayCircle = memo(({ 
+  day, 
+  completed, 
+  isToday, 
+  reward 
+}: { 
+  day: number; 
+  completed: boolean; 
+  isToday: boolean;
+  reward: { type: string; value: string; points: number };
+}) => {
+  const getIcon = () => {
+    if (completed) {
+      return <Check className="h-4 w-4 text-primary-foreground" />;
+    }
+    if (day === 7) {
+      return <Trophy className="h-4 w-4 text-amber-500" />;
+    }
+    if (reward.type === 'mystery') {
+      return <HelpCircle className="h-4 w-4 text-muted-foreground" />;
+    }
+    if (reward.type === 'badge') {
+      return <Star className="h-4 w-4 text-muted-foreground" />;
+    }
+    return <Gift className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+          completed && "bg-primary shadow-lg shadow-primary/30",
+          isToday && !completed && "bg-accent border-2 border-primary animate-pulse",
+          !completed && !isToday && "bg-muted border border-border"
+        )}
+      >
+        {isToday && !completed ? (
+          <Gift className="h-4 w-4 text-primary" />
+        ) : (
+          getIcon()
+        )}
+      </div>
+      <span className={cn(
+        "text-xs font-medium",
+        completed ? "text-primary" : "text-muted-foreground"
+      )}>
+        {day}
+      </span>
+    </div>
+  );
+});
+
+DayCircle.displayName = 'DayCircle';
+
+const DailyCheckInCard = memo(() => {
+  const { streak, weekProgress, checkedInToday, loading, claiming, claimReward } = useDailyCheckin();
+
+  if (loading) {
+    return (
+      <Card className="bg-gradient-to-br from-card to-accent/20 border-primary/20">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center h-24">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-br from-card to-accent/20 border-primary/20 overflow-hidden">
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-full bg-primary/10">
+              <Trophy className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground">المكافأة اليومية</h3>
+              <p className="text-xs text-muted-foreground">سجل دخولك يومياً واجمع المكافآت</p>
+            </div>
+          </div>
+          {streak.currentStreak > 0 && (
+            <div className="flex items-center gap-1 bg-destructive/10 px-3 py-1 rounded-full">
+              <Flame className="h-4 w-4 text-destructive" />
+              <span className="text-sm font-bold text-destructive">{streak.currentStreak}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Week Progress */}
+        <div className="flex items-center justify-between mb-4 px-2">
+          {weekProgress.map((day) => (
+            <DayCircle
+              key={day.day}
+              day={day.day}
+              completed={day.completed}
+              isToday={day.isToday}
+              reward={day.reward}
+            />
+          ))}
+        </div>
+
+        {/* Action Button */}
+        <Button
+          onClick={claimReward}
+          disabled={checkedInToday || claiming}
+          className={cn(
+            "w-full transition-all",
+            checkedInToday 
+              ? "bg-muted text-muted-foreground" 
+              : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
+          )}
+        >
+          {claiming ? (
+            <>
+              <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+              جاري التسجيل...
+            </>
+          ) : checkedInToday ? (
+            <>
+              <Check className="h-4 w-4 ml-2" />
+              تم تسجيل دخولك اليوم ✓
+            </>
+          ) : (
+            <>
+              <Gift className="h-4 w-4 ml-2" />
+              احصل على مكافأتك اليومية
+            </>
+          )}
+        </Button>
+
+        {/* Stats Footer */}
+        {streak.points > 0 && (
+          <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/50">
+            <div className="text-center">
+              <p className="text-lg font-bold text-primary">{streak.points}</p>
+              <p className="text-xs text-muted-foreground">نقطة</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <p className="text-lg font-bold text-foreground">{streak.totalCheckIns}</p>
+              <p className="text-xs text-muted-foreground">تسجيل</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div className="text-center">
+              <p className="text-lg font-bold text-amber-500">{streak.longestStreak}</p>
+              <p className="text-xs text-muted-foreground">أطول سلسلة</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+});
+
+DailyCheckInCard.displayName = 'DailyCheckInCard';
+
+export default DailyCheckInCard;
