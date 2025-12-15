@@ -129,7 +129,7 @@ const DailyCheckInCard = memo(() => {
           className={cn(
             "w-full transition-all",
             checkedInToday 
-              ? "bg-muted text-muted-foreground" 
+              ? "bg-primary/20 text-primary border border-primary/30" 
               : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
           )}
         >
