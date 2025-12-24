@@ -9,8 +9,9 @@ const corsHeaders = {
 interface ReferralSignupRequest {
   userId: string;
   referralCode: string;
-  userPhone: string;
-  userName: string;
+  userPhone?: string;
+  userName?: string;
+  userEmail?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -38,9 +39,12 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Processing referral signup for user with code:', referralCode);
     }
 
-    if (!userId || !referralCode || !userPhone) {
-      throw new Error("Missing required parameters: userId, referralCode, or userPhone");
+    if (!userId || !referralCode) {
+      throw new Error("Missing required parameters: userId or referralCode");
     }
+    
+    // Generate a placeholder phone if not provided (for email signups)
+    const effectivePhone = userPhone || `email_${userId.substring(0, 8)}`;
 
     // Find the referral code owner
     const { data: referralCodeData, error: codeError } = await supabaseClient
@@ -62,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("referrals")
       .select("*")
       .eq("inviter_id", inviterId)
-      .eq("invitee_phone", userPhone)
+      .eq("invitee_phone", effectivePhone)
       .eq("status", "pending")
       .maybeSingle();
 
@@ -129,8 +133,8 @@ const handler = async (req: Request): Promise<Response> => {
         .from("referrals")
         .insert({
           inviter_id: inviterId,
-          invitee_phone: userPhone,
-          invitee_name: userName,
+          invitee_phone: effectivePhone,
+          invitee_name: userName || "مستخدم جديد",
           referral_code: referralCode,
           status: "joined",
           joined_at: new Date().toISOString(),

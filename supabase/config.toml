@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.test-messagebird]
 verify_jwt = false
+
+[functions.process-referral-signup]
+verify_jwt = false
+
+[functions.send-referral-invite]
+verify_jwt = true
