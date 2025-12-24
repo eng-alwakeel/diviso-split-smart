@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,15 +13,65 @@ import {
   User,
   Calendar,
   Gift,
-  Smartphone
+  Smartphone,
+  MoreVertical,
+  RefreshCw,
+  Pencil,
+  Trash2
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EditReferralDialog } from "./EditReferralDialog";
 
 interface EnhancedReferralHistoryProps {
   referrals: ReferralData[];
   loading: boolean;
+  onResend?: (referralId: string) => Promise<{ success: boolean }>;
+  onUpdate?: (referralId: string, data: { invitee_name?: string }) => Promise<{ success: boolean }>;
+  onDelete?: (referralId: string) => Promise<{ success: boolean }>;
 }
 
-export function EnhancedReferralHistory({ referrals, loading }: EnhancedReferralHistoryProps) {
+export function EnhancedReferralHistory({ 
+  referrals, 
+  loading, 
+  onResend, 
+  onUpdate, 
+  onDelete 
+}: EnhancedReferralHistoryProps) {
+  const [editingReferral, setEditingReferral] = useState<ReferralData | null>(null);
+  const [deletingReferralId, setDeletingReferralId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleResend = async (referral: ReferralData) => {
+    if (!onResend) return;
+    setActionLoading(referral.id);
+    await onResend(referral.id);
+    setActionLoading(null);
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete || !deletingReferralId) return;
+    setActionLoading(deletingReferralId);
+    await onDelete(deletingReferralId);
+    setActionLoading(null);
+    setDeletingReferralId(null);
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'joined':
@@ -174,11 +225,57 @@ export function EnhancedReferralHistory({ referrals, loading }: EnhancedReferral
               </div>
             </div>
 
-            {/* شارة الحالة */}
-            <div className="flex-shrink-0">
+            {/* شارة الحالة وأزرار الإجراءات */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Badge variant={getStatusVariant(referral.status)}>
                 {getStatusLabel(referral.status)}
               </Badge>
+
+              {/* قائمة الإجراءات للإحالات المعلقة */}
+              {referral.status === 'pending' && (onResend || onUpdate || onDelete) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      disabled={actionLoading === referral.id}
+                    >
+                      {actionLoading === referral.id ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MoreVertical className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {onResend && (
+                      <DropdownMenuItem onClick={() => handleResend(referral)}>
+                        <RefreshCw className="h-4 w-4 ml-2" />
+                        إعادة الإرسال
+                      </DropdownMenuItem>
+                    )}
+                    {onUpdate && (
+                      <DropdownMenuItem onClick={() => setEditingReferral(referral)}>
+                        <Pencil className="h-4 w-4 ml-2" />
+                        تعديل
+                      </DropdownMenuItem>
+                    )}
+                    {onDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setDeletingReferralId(referral.id)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 ml-2" />
+                          حذف
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         ))}
@@ -216,6 +313,37 @@ export function EnhancedReferralHistory({ referrals, loading }: EnhancedReferral
           </div>
         </div>
       </div>
+
+      {/* نافذة التعديل */}
+      {onUpdate && (
+        <EditReferralDialog
+          referral={editingReferral}
+          open={!!editingReferral}
+          onOpenChange={(open) => !open && setEditingReferral(null)}
+          onSave={onUpdate}
+        />
+      )}
+
+      {/* نافذة تأكيد الحذف */}
+      <AlertDialog open={!!deletingReferralId} onOpenChange={(open) => !open && setDeletingReferralId(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              سيتم حذف هذه الإحالة نهائياً ولن تتمكن من استعادتها.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
