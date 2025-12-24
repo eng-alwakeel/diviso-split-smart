@@ -28,14 +28,30 @@ const Auth = () => {
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // OTP resend countdown states
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [canResend, setCanResend] = useState(true);
   
   // Referral code states
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [checkingReferral, setCheckingReferral] = useState(false);
+
+  // Countdown timer for resend OTP
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (resendCountdown === 0 && (mode === "verify" || mode === "reset-password")) {
+      setCanResend(true);
+    }
+  }, [resendCountdown, mode]);
 
   // Validate referral code
   const validateReferralCode = useCallback(async (code: string) => {
@@ -281,8 +297,10 @@ const Auth = () => {
         description: successMessage
       });
     } else {
-      console.log('✅ تم التسجيل بالهاتف - الانتقال لصفحة التحقق');
+    console.log('✅ تم التسجيل بالهاتف - الانتقال لصفحة التحقق');
       setMode("verify");
+      setResendCountdown(60);
+      setCanResend(false);
       const successMessage = referralValid
         ? "أدخل الرمز المرسل إلى رقم هاتفك. ستحصل على 7 أيام مجانية بعد التفعيل!"
         : "أدخل الرمز المرسل إلى رقم هاتفك";
@@ -661,15 +679,20 @@ const Auth = () => {
                           variant: "destructive" 
                         });
                       } else {
+                        setResendCountdown(60);
+                        setCanResend(false);
                         toast({ 
                           title: "تم إعادة الإرسال", 
                           description: "تم إرسال رمز جديد إلى هاتفك" 
                         });
                       }
                     }}
-                    disabled={loading}
+                    disabled={loading || !canResend}
                   >
-                    إعادة الإرسال
+                    {resendCountdown > 0 
+                      ? `إعادة الإرسال (${resendCountdown})` 
+                      : "إعادة الإرسال"
+                    }
                   </Button>
                   <Button variant="outline" className="flex-1" onClick={() => setMode("signup")}>
                     رجوع
