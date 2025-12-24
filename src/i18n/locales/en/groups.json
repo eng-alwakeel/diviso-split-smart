@@ -6,12 +6,104 @@
   "no_groups": "No groups yet",
   "no_groups_desc": "Create a new group to start tracking shared expenses",
   "group_name": "Group Name",
+  "group_name_placeholder": "e.g., Summer Trip 2024",
   "group_type": "Group Type",
+  "description": "Description",
+  "description_optional": "Description (optional)",
+  "description_placeholder": "Short description about the group...",
   "currency": "Currency",
+  "currency_main": "Main Currency",
+  "currency_warning": "⚠️ Currency cannot be changed after creating the group",
+  "select_currency": "Select currency...",
   "members": "Members",
   "member": "Member",
   "owner": "Owner",
   "admin": "Admin",
+  "online_now": "online now",
+  "back_to_dashboard": "Back to Dashboard",
+  "loading": "Loading...",
+  "error": "Error",
+
+  "create_page": {
+    "title": "Create New Group",
+    "subtitle": "Create a group to track shared expenses",
+    "step1": "Group Information",
+    "step2": "Smart Suggestions",
+    "step3": "Invite Members",
+    "step4": "Initial Balances",
+    "continue_invite": "Continue to Invite Members",
+    "continue_balances": "Continue to Initial Balances",
+    "back": "Back",
+    "creating": "Creating...",
+    "create_group": "Create Group"
+  },
+
+  "details": {
+    "title": "Group Details",
+    "approved_expenses": "Approved Expenses",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "my_balance": "My Confirmed Balance",
+    "budget": "Budget",
+    "budget_soon": "Soon",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "alerts": "alert",
+    "report": "Report",
+    "add_expense": "Add Expense",
+    "settings": "Settings"
+  },
+
+  "tabs": {
+    "expenses": "Expenses",
+    "members": "Members",
+    "settlements": "Settlements",
+    "budget": "Budget",
+    "chat": "Chat"
+  },
+
+  "expenses_tab": {
+    "title": "Expenses",
+    "add_new": "Add New Expense",
+    "loading": "Loading...",
+    "no_expenses": "No expenses yet.",
+    "expense": "Expense",
+    "paid_by": "Paid by"
+  },
+
+  "members_tab": {
+    "title": "Members",
+    "invite_new": "Invite New Member",
+    "no_members": "No members yet."
+  },
+
+  "settlements_tab": {
+    "title": "Settlements",
+    "add_settlement": "Add Settlement",
+    "settle_now": "Settle Now",
+    "all_settlements": "All Settlements",
+    "no_settlements": "No settlements yet.",
+    "paid": "paid",
+    "to": "to",
+    "delete_failed": "Failed to delete settlement",
+    "deleted": "Settlement deleted"
+  },
+
+  "budget_tab": {
+    "categories": "Budget Categories",
+    "category": "category",
+    "no_budgets": "No budgets yet",
+    "start_budget": "Start by creating a budget to track group expenses",
+    "loading": "Loading budgets...",
+    "alerts_title": "Budget Alerts"
+  },
+
+  "chat_tab": {
+    "title": "Group Chat",
+    "write_message": "Write your message...",
+    "more_options": "More Options"
+  },
+
   "invite": {
     "title": "Invite Members",
     "by_link": "Invite by Link",
@@ -22,8 +114,27 @@
     "send_invite": "Send Invite",
     "pending": "Pending",
     "accepted": "Accepted",
-    "expired": "Expired"
+    "expired": "Expired",
+    "phone_title": "Invite by Phone Number",
+    "phone_placeholder": "966xxxxxxxxx",
+    "whatsapp": "WhatsApp",
+    "sms": "SMS",
+    "add_another": "Add Another Number",
+    "link_title": "Invite Link",
+    "link_description": "Share this link with anyone you want to invite",
+    "invite_created": "Invite link created",
+    "share_with_members": "You can now share the link with members",
+    "link_error": "Error creating link",
+    "sms_sent": "Invite sent",
+    "sms_sent_to": "SMS invite sent to",
+    "sms_error": "Error sending SMS",
+    "whatsapp_opened": "WhatsApp opened!",
+    "whatsapp_redirect": "You've been redirected to send invite via WhatsApp",
+    "must_create_link": "You must create invite link first",
+    "must_create_group": "You must create the group first",
+    "error": "Error"
   },
+
   "balance": {
     "title": "Balances",
     "you_owe": "You Owe",
@@ -31,12 +142,7 @@
     "settled": "Settled",
     "settle_up": "Settle Up"
   },
-  "expenses": {
-    "title": "Expenses",
-    "add": "Add Expense",
-    "no_expenses": "No expenses yet",
-    "total": "Total"
-  },
+
   "settings": {
     "title": "Group Settings",
     "edit": "Edit Group",
@@ -44,13 +150,18 @@
     "delete": "Delete Group",
     "leave": "Leave Group"
   },
+
   "types": {
     "trip": "Trip",
-    "home": "Home",
-    "event": "Event",
+    "home": "Shared Housing",
+    "work": "Work",
+    "party": "Party",
     "project": "Project",
+    "general": "General",
+    "event": "Event",
     "other": "Other"
   },
+
   "initial_balances": {
     "title": "Initial Balances",
     "add_initial": "Add initial balances for members",
@@ -70,5 +181,31 @@
     "unbalanced_message": "Balances are not balanced. Total must equal zero.",
     "positive_note": "Positive numbers: people owed money (creditors)",
     "negative_note": "Negative numbers: people who owe money (debtors)"
+  },
+
+  "ai_suggestions": {
+    "title": "AI Suggestions",
+    "description": "Based on your group type, here are some suggested categories to help manage expenses",
+    "success": "Budget created successfully from AI suggestions",
+    "error": "Failed to process AI suggestions",
+    "budget_error": "Error creating budget",
+    "group_created_budget_failed": "Group created but budget creation failed"
+  },
+
+  "messages": {
+    "login_required": "Login required",
+    "group_created": "Group created!",
+    "group_created_success": "Group created successfully",
+    "creation_failed": "Group creation failed",
+    "invalid_id": "Invalid group ID",
+    "redirecting": "Redirecting to dashboard.",
+    "copied": "Copied!",
+    "link_copied_clipboard": "Link copied to clipboard"
+  },
+
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
   }
 }
