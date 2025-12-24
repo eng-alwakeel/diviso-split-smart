@@ -1169,6 +1169,7 @@ export type Database = {
           invite_type: string | null
           invited_role: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
+          referral_id: string | null
           status: Database["public"]["Enums"]["invite_status"]
           updated_at: string
         }
@@ -1185,6 +1186,7 @@ export type Database = {
           invite_type?: string | null
           invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email: string
+          referral_id?: string | null
           status?: Database["public"]["Enums"]["invite_status"]
           updated_at?: string
         }
@@ -1201,6 +1203,7 @@ export type Database = {
           invite_type?: string | null
           invited_role?: Database["public"]["Enums"]["member_role"]
           phone_or_email?: string
+          referral_id?: string | null
           status?: Database["public"]["Enums"]["invite_status"]
           updated_at?: string
         }
@@ -1217,6 +1220,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invites_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
             referencedColumns: ["id"]
           },
         ]
@@ -1608,6 +1618,8 @@ export type Database = {
           bonus_applied: boolean | null
           created_at: string
           expires_at: string
+          group_id: string | null
+          group_name: string | null
           id: string
           invitee_name: string | null
           invitee_phone: string
@@ -1624,6 +1636,8 @@ export type Database = {
           bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
+          group_id?: string | null
+          group_name?: string | null
           id?: string
           invitee_name?: string | null
           invitee_phone: string
@@ -1640,6 +1654,8 @@ export type Database = {
           bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
+          group_id?: string | null
+          group_name?: string | null
           id?: string
           invitee_name?: string | null
           invitee_phone?: string
@@ -1653,6 +1669,13 @@ export type Database = {
           tier_at_time?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "referrals_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "referrals_inviter_id_fkey"
             columns: ["inviter_id"]

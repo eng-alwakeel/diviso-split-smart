@@ -61,10 +61,10 @@ const handler = async (req: Request): Promise<Response> => {
     const inviterId = referralCodeData.user_id;
     console.log(`Found inviter: ${inviterId}`);
 
-    // Check if there's an existing pending referral and validate expiration
+    // Check for existing pending referral (personal or group invite)
     const { data: existingReferral, error: referralError } = await supabaseClient
       .from("referrals")
-      .select("*")
+      .select("*, group_id, group_name")
       .eq("inviter_id", inviterId)
       .eq("invitee_phone", effectivePhone)
       .eq("status", "pending")
@@ -74,7 +74,21 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error checking existing referral:", referralError);
     }
 
+    // Also check group invites table for pending invitations
+    const { data: pendingGroupInvite, error: inviteError } = await supabaseClient
+      .from("invites")
+      .select("*, referral_id, group_id")
+      .eq("phone_or_email", effectivePhone)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (inviteError) {
+      console.error("Error checking group invites:", inviteError);
+    }
+
     let referralId: string;
+    let isGroupReferral = false;
+    let groupId: string | null = null;
 
     if (existingReferral) {
       // Check if the referral has expired
@@ -84,7 +98,6 @@ const handler = async (req: Request): Promise<Response> => {
       if (now > expiresAt) {
         console.log('Referral has expired, updating status');
         
-        // Update expired referral status
         await supabaseClient
           .from('referrals')
           .update({ status: 'expired' })
@@ -95,6 +108,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Update existing referral
       console.log("Updating existing referral:", existingReferral.id);
+      isGroupReferral = !!existingReferral.group_id;
+      groupId = existingReferral.group_id;
       
       const { data: updatedReferral, error: updateError } = await supabaseClient
         .from("referrals")
@@ -113,6 +128,53 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       referralId = updatedReferral.id;
+
+      // If this was linked to a group invite, update that too
+      if (pendingGroupInvite && pendingGroupInvite.referral_id === existingReferral.id) {
+        await supabaseClient
+          .from("invites")
+          .update({
+            status: "accepted",
+            accepted_by: userId,
+            accepted_at: new Date().toISOString()
+          })
+          .eq("id", pendingGroupInvite.id);
+        
+        console.log(`Updated linked group invite: ${pendingGroupInvite.id}`);
+      }
+    } else if (pendingGroupInvite && pendingGroupInvite.referral_id) {
+      // There's a group invite with a linked referral - update it
+      console.log("Found group invite with linked referral:", pendingGroupInvite.referral_id);
+      
+      const { data: linkedReferral, error: linkedError } = await supabaseClient
+        .from("referrals")
+        .update({
+          status: "joined",
+          joined_at: new Date().toISOString(),
+          invitee_name: userName
+        })
+        .eq("id", pendingGroupInvite.referral_id)
+        .select()
+        .single();
+
+      if (linkedError) {
+        console.error("Error updating linked referral:", linkedError);
+      } else {
+        referralId = linkedReferral.id;
+        isGroupReferral = true;
+        groupId = pendingGroupInvite.group_id;
+      }
+
+      // Update group invite status
+      await supabaseClient
+        .from("invites")
+        .update({
+          status: "accepted",
+          accepted_by: userId,
+          accepted_at: new Date().toISOString()
+        })
+        .eq("id", pendingGroupInvite.id);
+
     } else {
       // Create new referral record
       console.log("Creating new referral record");
@@ -142,7 +204,8 @@ const handler = async (req: Request): Promise<Response> => {
           original_reward_days: baseRewardDays,
           tier_at_time: currentTier?.tier_name || "المبتدئ",
           bonus_applied: bonusMultiplier > 1,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+          referral_source: "direct",
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         })
         .select()
         .single();
@@ -158,7 +221,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get the final reward days from the referral record (with bonus applied)
     const { data: referralRecord } = await supabaseClient
       .from("referrals")
-      .select("reward_days")
+      .select("reward_days, group_id, group_name")
       .eq("id", referralId)
       .single();
 
@@ -178,14 +241,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (rewardError) {
       console.error("Error creating referral reward:", rewardError);
-      // Don't throw here as the main signup should still succeed
     }
 
     // Create a free trial subscription for the new user (7 days)
     console.log("Creating trial subscription for new user");
     
     const trialStartDate = new Date();
-    const trialEndDate = new Date(trialStartDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+    const trialEndDate = new Date(trialStartDate.getTime() + (7 * 24 * 60 * 60 * 1000));
 
     const { error: subscriptionError } = await supabaseClient
       .from("user_subscriptions")
@@ -199,36 +261,41 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (subscriptionError) {
       console.error("Error creating trial subscription:", subscriptionError);
-      // Don't throw here as the referral processing is more important
     }
 
     // Get tier info for notification payload
-    const { data: tierData } = await supabaseClient.rpc('get_user_referral_tier', {
+    const { data: notifTierData } = await supabaseClient.rpc('get_user_referral_tier', {
       p_user_id: inviterId
     });
-    const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+    const notifTier = notifTierData && notifTierData.length > 0 ? notifTierData[0] : null;
 
-    // Send notification to the inviter
+    // Send notification to the inviter with source info
+    const notificationPayload: any = {
+      invitee_name: userName || "صديق جديد",
+      reward_days: rewardDays,
+      referral_code: referralCode,
+      tier_applied: notifTier?.tier_name || "المبتدئ",
+      bonus_multiplier: notifTier?.bonus_multiplier || 1,
+      source: isGroupReferral ? "group_invite" : "personal"
+    };
+
+    if (referralRecord?.group_name) {
+      notificationPayload.group_name = referralRecord.group_name;
+    }
+
     const { error: notificationError } = await supabaseClient
       .from("notifications")
       .insert({
         user_id: inviterId,
         type: "referral_joined",
-        payload: {
-          invitee_name: userName || "صديق جديد",
-          reward_days: rewardDays,
-          referral_code: referralCode,
-          tier_applied: currentTier?.tier_name || "المبتدئ",
-          bonus_multiplier: currentTier?.bonus_multiplier || 1
-        }
+        payload: notificationPayload
       });
 
     if (notificationError) {
       console.error("Error creating notification:", notificationError);
     }
 
-    console.log(`📨 Notification sent to inviter: referral_joined`);
-
+    console.log(`📨 Notification sent to inviter: referral_joined (source: ${isGroupReferral ? 'group' : 'personal'})`);
     console.log("✅ Referral signup processed successfully");
 
     return new Response(
@@ -236,7 +303,9 @@ const handler = async (req: Request): Promise<Response> => {
         success: true, 
         message: "تم معالجة الإحالة بنجاح",
         referralId,
-        trialDays: 7
+        trialDays: 7,
+        isGroupReferral,
+        groupId
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
