@@ -69,7 +69,9 @@ export function PhoneInputWithCountry({
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow digits
-    const cleaned = e.target.value.replace(/\D/g, "");
+    let cleaned = e.target.value.replace(/\D/g, "");
+    // Remove leading zeros to prevent duplicate accounts
+    cleaned = cleaned.replace(/^0+/, "");
     setLocalNumber(cleaned);
     onChange(selectedCountry.dialCode + cleaned);
   };
