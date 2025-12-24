@@ -1,0 +1,15 @@
+{
+  "title": "Notifications",
+  "mark_all_read": "Mark all as read",
+  "no_notifications": "No notifications",
+  "view_all": "View all notifications",
+  "types": {
+    "expense_created": "{{name}} added an expense of {{amount}} {{currency}}",
+    "expense_approved": "Your expense of {{amount}} {{currency}} was approved",
+    "expense_rejected": "Your expense of {{amount}} {{currency}} was rejected",
+    "new_message": "{{name}}: {{content}}",
+    "group_invite": "Invitation to join group \"{{group}}\"",
+    "referral_joined": "🎉 {{name}} joined via your referral! +{{days}} days",
+    "new_notification": "New notification"
+  }
+}

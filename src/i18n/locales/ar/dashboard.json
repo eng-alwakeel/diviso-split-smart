@@ -13,14 +13,24 @@
     "weekly_expenses": "مصاريف الأسبوع",
     "my_paid": "دفعت",
     "my_owed": "لي",
-    "currency": "ر.س"
+    "currency": "ر.س",
+    "net_balance": "الرصيد الصافي",
+    "for_you": "لك",
+    "against_you": "عليك",
+    "this_month": "هذا الشهر",
+    "active": "نشطة",
+    "total": "إجمالي",
+    "total_paid": "المدفوع لي"
   },
   "quick_actions": {
     "title": "إجراءات سريعة",
     "add_expense": "إضافة مصروف",
     "create_group": "إنشاء مجموعة",
     "my_groups": "مجموعاتي",
-    "my_expenses": "مصاريفي"
+    "my_expenses": "مصاريفي",
+    "financial_plan": "الخطة المالية",
+    "referral_center": "مركز الإحالة",
+    "settings": "الإعدادات"
   },
   "subscription": {
     "title": "حالة الاشتراك",

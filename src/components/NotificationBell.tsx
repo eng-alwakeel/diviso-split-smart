@@ -11,12 +11,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('notifications');
 
   const handleNotificationClick = (notification: any) => {
     if (!notification.read_at) {
@@ -40,27 +42,46 @@ export const NotificationBell = () => {
     
     switch (type) {
       case 'expense_created':
-        return `${payload.creator_name} أضاف مصروف بقيمة ${payload.amount} ${payload.currency}`;
+        return t('types.expense_created', { 
+          name: payload.creator_name, 
+          amount: payload.amount, 
+          currency: payload.currency 
+        });
       case 'expense_approved':
-        return `تم اعتماد مصروفك بقيمة ${payload.amount} ${payload.currency}`;
+        return t('types.expense_approved', { 
+          amount: payload.amount, 
+          currency: payload.currency 
+        });
       case 'expense_rejected':
-        return `تم رفض مصروفك بقيمة ${payload.amount} ${payload.currency}`;
+        return t('types.expense_rejected', { 
+          amount: payload.amount, 
+          currency: payload.currency 
+        });
       case 'new_message':
-        return `${payload.sender_name}: ${payload.content.substring(0, 50)}${payload.content.length > 50 ? '...' : ''}`;
+        const content = payload.content.substring(0, 50) + (payload.content.length > 50 ? '...' : '');
+        return t('types.new_message', { 
+          name: payload.sender_name, 
+          content 
+        });
       case 'group_invite':
-        return `دعوة انضمام لمجموعة "${payload.group_name}"`;
+        return t('types.group_invite', { group: payload.group_name });
       case 'referral_joined':
       case 'referral_completed':
-        return `🎉 ${payload.invitee_name} انضم عبر إحالتك! +${payload.reward_days} أيام`;
+        return t('types.referral_joined', { 
+          name: payload.invitee_name, 
+          days: payload.reward_days 
+        });
       default:
-        return 'إشعار جديد';
+        return t('types.new_notification');
     }
   };
+
+  const dateLocale = i18n.language === 'ar' ? ar : enUS;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative" aria-label="الإشعارات">
+        <Button variant="ghost" size="sm" className="relative" aria-label={t('title')}>
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
             <Badge
@@ -73,7 +94,7 @@ export const NotificationBell = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
-          <span>الإشعارات</span>
+          <span>{t('title')}</span>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -81,7 +102,7 @@ export const NotificationBell = () => {
               onClick={markAllAsRead}
               className="text-xs h-auto p-1"
             >
-              تعليم الكل كمقروء
+              {t('mark_all_read')}
             </Button>
           )}
         </DropdownMenuLabel>
@@ -90,7 +111,7 @@ export const NotificationBell = () => {
         {notifications.length === 0 ? (
           <DropdownMenuItem disabled>
             <div className="text-center py-4 text-muted-foreground">
-              لا توجد إشعارات
+              {t('no_notifications')}
             </div>
           </DropdownMenuItem>
         ) : (
@@ -113,13 +134,13 @@ export const NotificationBell = () => {
                     </p>
                   </div>
                   {!notification.read_at && (
-                    <div className="w-2 h-2 bg-primary rounded-full mt-1 mr-2 flex-shrink-0" />
+                    <div className="w-2 h-2 bg-primary rounded-full mt-1 ltr:ml-2 rtl:mr-2 flex-shrink-0" />
                   )}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(notification.created_at), {
                     addSuffix: true,
-                    locale: ar,
+                    locale: dateLocale,
                   })}
                 </span>
               </DropdownMenuItem>
@@ -132,7 +153,7 @@ export const NotificationBell = () => {
                   className="text-center text-primary cursor-pointer"
                   onClick={() => navigate('/notifications')}
                 >
-                  عرض جميع الإشعارات
+                  {t('view_all')}
                 </DropdownMenuItem>
               </>
             )}

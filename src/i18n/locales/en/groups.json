@@ -50,5 +50,25 @@
     "event": "Event",
     "project": "Project",
     "other": "Other"
+  },
+  "initial_balances": {
+    "title": "Initial Balances",
+    "add_initial": "Add initial balances for members",
+    "has_previous": "Are there any previously paid or owed amounts?",
+    "enter_balances": "Enter Balances",
+    "member_number": "Member {{number}}",
+    "name": "Name",
+    "member_name": "Member name",
+    "phone_optional": "Phone (optional)",
+    "amount_paid": "Amount Paid Previously",
+    "amount_owed": "Amount Owed",
+    "net_balance": "Net Balance",
+    "add_member": "Add Another Member",
+    "balance_summary": "Balance Summary",
+    "total_balance": "Total Balance:",
+    "balanced_message": "Balances are balanced! You can proceed to create the group.",
+    "unbalanced_message": "Balances are not balanced. Total must equal zero.",
+    "positive_note": "Positive numbers: people owed money (creditors)",
+    "negative_note": "Negative numbers: people who owe money (debtors)"
   }
 }

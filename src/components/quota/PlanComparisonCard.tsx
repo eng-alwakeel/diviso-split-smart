@@ -3,104 +3,106 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Crown, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface PlanComparisonCardProps {
   onUpgrade: () => void;
 }
 
-const planFeatures = [
-  {
-    feature: "عدد المجموعات",
-    free: "3 مجموعات",
-    personal: "غير محدود",
-    family: "غير محدود"
-  },
-  {
-    feature: "عدد الأعضاء",
-    free: "5 أشخاص/مجموعة",
-    personal: "غير محدود",
-    family: "غير محدود"
-  },
-  {
-    feature: "المصاريف الشهرية",
-    free: "100 مصروف",
-    personal: "غير محدود",
-    family: "غير محدود"
-  },
-  {
-    feature: "الدعوات الشهرية",
-    free: "10 دعوات",
-    personal: "غير محدود",
-    family: "غير محدود"
-  },
-  {
-    feature: "مسح الإيصالات",
-    free: "5 مرات/شهر",
-    personal: "غير محدود",
-    family: "غير محدود"
-  },
-  {
-    feature: "التحليل الذكي",
-    free: false,
-    personal: true,
-    family: true
-  },
-  {
-    feature: "دردشة المجموعة",
-    free: false,
-    personal: true,
-    family: true
-  },
-  {
-    feature: "موافقة المصاريف",
-    free: false,
-    personal: false,
-    family: true
-  },
-  {
-    feature: "إدارة العائلة",
-    free: false,
-    personal: false,
-    family: true
-  }
-];
-
 export const PlanComparisonCard = ({ onUpgrade }: PlanComparisonCardProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('quota');
+
+  const planFeatures = [
+    {
+      featureKey: "features.groups",
+      free: t('limits.groups'),
+      personal: t('unlimited'),
+      family: t('unlimited')
+    },
+    {
+      featureKey: "features.members",
+      free: t('limits.members'),
+      personal: t('unlimited'),
+      family: t('unlimited')
+    },
+    {
+      featureKey: "features.monthly_expenses",
+      free: t('limits.expenses'),
+      personal: t('unlimited'),
+      family: t('unlimited')
+    },
+    {
+      featureKey: "features.monthly_invites",
+      free: t('limits.invites'),
+      personal: t('unlimited'),
+      family: t('unlimited')
+    },
+    {
+      featureKey: "features.receipt_scan",
+      free: t('limits.ocr'),
+      personal: t('unlimited'),
+      family: t('unlimited')
+    },
+    {
+      featureKey: "features.smart_analysis",
+      free: false,
+      personal: true,
+      family: true
+    },
+    {
+      featureKey: "features.group_chat",
+      free: false,
+      personal: true,
+      family: true
+    },
+    {
+      featureKey: "features.expense_approval",
+      free: false,
+      personal: false,
+      family: true
+    },
+    {
+      featureKey: "features.family_management",
+      free: false,
+      personal: false,
+      family: true
+    }
+  ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-center">مقارنة الباقات</CardTitle>
+        <CardTitle className="text-center">{t('compare_plans')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="text-right p-2 font-medium">الميزة</th>
+                <th className="text-right p-2 font-medium">{t('feature')}</th>
                 <th className="text-center p-2">
                   <div className="flex flex-col items-center gap-1">
-                    <Badge variant="outline">مجاني</Badge>
-                    <span className="text-xs text-muted-foreground">حالي</span>
+                    <Badge variant="outline">{t('free')}</Badge>
+                    <span className="text-xs text-muted-foreground">{t('current')}</span>
                   </div>
                 </th>
                 <th className="text-center p-2">
                   <div className="flex flex-col items-center gap-1">
                     <Badge className="bg-primary">
-                      <Crown className="w-3 h-3 ml-1" />
-                      شخصي
+                      <Crown className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                      {t('personal')}
                     </Badge>
-                    <span className="text-xs font-medium">19 ريال/شهر</span>
+                    <span className="text-xs font-medium">{t('plans.personal.price')}/{t('plans.personal.per_month')}</span>
                   </div>
                 </th>
                 <th className="text-center p-2">
                   <div className="flex flex-col items-center gap-1">
                     <Badge className="bg-primary">
-                      <Users className="w-3 h-3 ml-1" />
-                      عائلي
+                      <Users className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
+                      {t('family')}
                     </Badge>
-                    <span className="text-xs font-medium">75 ريال/شهر</span>
+                    <span className="text-xs font-medium">{t('plans.family.price')}/{t('plans.family.per_month')}</span>
                   </div>
                 </th>
               </tr>
@@ -108,7 +110,7 @@ export const PlanComparisonCard = ({ onUpgrade }: PlanComparisonCardProps) => {
             <tbody>
               {planFeatures.map((feature, index) => (
                 <tr key={index} className="border-b">
-                  <td className="p-2 font-medium">{feature.feature}</td>
+                  <td className="p-2 font-medium">{t(feature.featureKey)}</td>
                   <td className="text-center p-2">
                   {typeof feature.free === 'boolean' ? (
                     feature.free ? (
@@ -154,13 +156,13 @@ export const PlanComparisonCard = ({ onUpgrade }: PlanComparisonCardProps) => {
             onClick={() => navigate('/pricing-protected?highlight=personal')}
             className="flex-1"
           >
-            جرب الشخصي مجاناً
+            {t('try_personal')}
           </Button>
           <Button 
             onClick={() => navigate('/pricing-protected?highlight=family')}
             className="flex-1"
           >
-            جرب العائلي مجاناً
+            {t('try_family')}
           </Button>
         </div>
       </CardContent>

@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, Users, Receipt, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface SimpleStatsGridProps {
   monthlyTotalExpenses: number;
@@ -18,40 +19,42 @@ export const SimpleStatsGrid = ({
   myOwed
 }: SimpleStatsGridProps) => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation('dashboard');
   const netBalance = myPaid - myOwed;
+  const currencySymbol = t('stats.currency');
 
   const stats = [
     {
-      title: "الرصيد الصافي",
-      value: `${netBalance.toLocaleString()} ر.س`,
-      subtitle: netBalance >= 0 ? "لك" : "عليك",
+      title: t('stats.net_balance'),
+      value: `${netBalance.toLocaleString()} ${currencySymbol}`,
+      subtitle: netBalance >= 0 ? t('stats.for_you') : t('stats.against_you'),
       icon: TrendingUp,
       color: netBalance >= 0 ? "text-status-positive" : "text-status-negative",
       bgColor: netBalance >= 0 ? "bg-status-positive-bg" : "bg-status-negative-bg",
       onClick: () => navigate('/my-expenses'),
     },
     {
-      title: "مصاريف الشهر",
-      value: `${monthlyTotalExpenses.toLocaleString()} ر.س`,
-      subtitle: "هذا الشهر",
+      title: t('stats.monthly_expenses'),
+      value: `${monthlyTotalExpenses.toLocaleString()} ${currencySymbol}`,
+      subtitle: t('stats.this_month'),
       icon: DollarSign,
       color: "text-primary",
       bgColor: "bg-primary/10",
       onClick: () => navigate('/my-expenses'),
     },
     {
-      title: "المجموعات",
+      title: t('stats.groups'),
       value: groupsCount.toString(),
-      subtitle: "نشطة",
+      subtitle: t('stats.active'),
       icon: Users,
       color: "text-accent",
       bgColor: "bg-accent/10",
       onClick: () => navigate('/my-groups'),
     },
     {
-      title: "المدفوع لي",
-      value: `${myPaid.toLocaleString()} ر.س`,
-      subtitle: "إجمالي",
+      title: t('stats.total_paid'),
+      value: `${myPaid.toLocaleString()} ${currencySymbol}`,
+      subtitle: t('stats.total'),
       icon: Receipt,
       color: "text-warning",
       bgColor: "bg-warning/10",
