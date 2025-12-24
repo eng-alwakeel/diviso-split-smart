@@ -11,6 +11,8 @@ import { Shield, Settings, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 interface AppHeaderProps {
@@ -22,6 +24,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
   const { isAdmin, badgeConfig } = useAdminBadge();
   const { toast } = useToast();
+  const { t } = useTranslation('common');
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar_url?: string; email?: string } | null>(null);
 
   useEffect(() => {
@@ -47,24 +50,21 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
 
   const handleLogout = async () => {
     try {
-      // تنظيف شامل للـ session
       await supabase.auth.signOut();
-      
-      // مسح localStorage بشكل صريح
       localStorage.removeItem('supabase.auth.token');
       localStorage.clear();
       
       toast({
-        title: "تم تسجيل الخروج بنجاح",
-        description: "سيتم تحويلك للصفحة الرئيسية",
+        title: t('header.logout_success'),
+        description: t('header.logout_redirect'),
       });
       
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
-        title: "خطأ في تسجيل الخروج",
-        description: "حدث خطأ، يرجى المحاولة مرة أخرى",
+        title: t('header.logout_error'),
+        description: t('header.logout_error_description'),
         variant: "destructive"
       });
     }
@@ -84,7 +84,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
             className="justify-self-center flex items-center gap-3 cursor-pointer"
             onClick={() => navigate('/dashboard')}
           >
-            <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 w-auto" width={128} height={32} />
           </div>
 
           {/* Right: User Menu */}
@@ -101,10 +101,10 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                 <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
                   <Avatar className="h-8 w-8">
                     {userProfile?.avatar_url ? (
-                      <AvatarImage src={userProfile.avatar_url} alt="صورة الملف الشخصي" />
+                      <AvatarImage src={userProfile.avatar_url} alt={t('profile')} />
                     ) : (
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                        {userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || 'م'}
+                        {userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || t('user.default_initial')}
                       </AvatarFallback>
                     )}
                   </Avatar>
@@ -114,7 +114,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {userProfile?.name || 'مستخدم'}
+                      {userProfile?.name || t('user.default_name')}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {userProfile?.email}
@@ -126,16 +126,16 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                   onClick={() => navigate('/settings')}
                   className="cursor-pointer"
                 >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>الإعدادات</span>
+                  <Settings className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                  <span>{t('settings')}</span>
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem 
                     onClick={() => navigate('/admin-dashboard')}
                     className="cursor-pointer text-primary"
                   >
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>لوحة التحكم الإدارية</span>
+                    <Shield className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <span>{t('header.admin_dashboard')}</span>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -145,24 +145,24 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                       className="cursor-pointer text-destructive focus:text-destructive"
                       onSelect={(e) => e.preventDefault()}
                     >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>تسجيل الخروج</span>
+                      <LogOut className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                      <span>{t('logout')}</span>
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>تسجيل الخروج</AlertDialogTitle>
+                      <AlertDialogTitle>{t('header.logout_confirm_title')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        هل أنت متأكد من رغبتك في تسجيل الخروج من حسابك؟
+                        {t('header.logout_confirm_description')}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={handleLogout}
                         className="bg-destructive hover:bg-destructive/90"
                       >
-                        تسجيل الخروج
+                        {t('logout')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

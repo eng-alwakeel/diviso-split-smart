@@ -1,0 +1,86 @@
+{
+  "title": "الإعدادات",
+  "description": "إدارة حسابك وتخصيص التطبيق",
+  "back_to_dashboard": "العودة للوحة التحكم",
+  "tabs": {
+    "profile": "الملف الشخصي",
+    "subscription": "الاشتراك",
+    "family": "العائلة",
+    "language": "اللغة",
+    "notifications": "الإشعارات",
+    "privacy": "الأمان",
+    "admin": "الإدارة"
+  },
+  "language_currency": {
+    "title": "اللغة والعملة",
+    "language_label": "اللغة",
+    "currency_label": "العملة المفضلة",
+    "currency_description": "اختر العملة التي تريد استخدامها في التطبيق",
+    "currency_placeholder": "اختر العملة المفضلة...",
+    "currency_selected": "العملة المحددة",
+    "currency_note": "ستظهر جميع المبالغ محولة إلى العملة المفضلة",
+    "refresh_rates": "تحديث أسعار الصرف",
+    "save_settings": "حفظ الإعدادات"
+  },
+  "notifications": {
+    "title": "إعدادات الإشعارات",
+    "email": {
+      "title": "إشعارات البريد الإلكتروني",
+      "description": "استقبال الإشعارات عبر البريد"
+    },
+    "push": {
+      "title": "الإشعارات الفورية",
+      "description": "إشعارات على الهاتف"
+    },
+    "expense_reminders": {
+      "title": "تذكير المصاريف",
+      "description": "تذكيرات لإدخال المصاريف"
+    },
+    "weekly_reports": {
+      "title": "التقارير الأسبوعية",
+      "description": "ملخص أسبوعي للمصاريف"
+    },
+    "save_settings": "حفظ الإعدادات"
+  },
+  "family": {
+    "upgrade_title": "ترقية للخطة العائلية",
+    "upgrade_description": "احصل على الخطة العائلية لإدارة أعضاء عائلتك ومشاركة الميزات معهم",
+    "start_trial": "بدء التجربة المجانية للخطة العائلية",
+    "view_plans": "عرض جميع الباقات والأسعار",
+    "starting_trial": "جاري البدء..."
+  },
+  "admin": {
+    "title": "لوحة التحكم الإدارية",
+    "description": "الوصول إلى أدوات الإدارة والإحصائيات المتقدمة للنظام",
+    "enter_dashboard": "دخول لوحة التحكم الإدارية"
+  },
+  "plans": {
+    "free": "مجاني",
+    "personal": "شخصي",
+    "family": "عائلي"
+  },
+  "status": {
+    "trialing": "تجربة مجانية",
+    "active": "نشط",
+    "expired": "منتهي",
+    "canceled": "ملغي",
+    "unknown": "غير محدد"
+  },
+  "errors": {
+    "trial_exists": "تجربة موجودة مسبقاً",
+    "trial_exists_description": "لديك تجربة مجانية نشطة بالفعل",
+    "trial_expired": "انتهت فترة التجربة",
+    "trial_expired_description": "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
+    "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية",
+    "switch_plan_error": "حدث خطأ أثناء تبديل الباقة",
+    "cancel_error": "حدث خطأ أثناء إلغاء الاشتراك"
+  },
+  "success": {
+    "trial_started": "تم بدء التجربة المجانية!",
+    "trial_started_description": "تم تفعيل باقة {{plan}} لمدة 7 أيام",
+    "plan_switched": "تم تبديل الباقة!",
+    "plan_switched_description": "تم التبديل إلى باقة {{plan}} بنجاح",
+    "subscription_canceled": "تم الإلغاء!",
+    "subscription_canceled_description": "تم إلغاء اشتراكك بنجاح"
+  }
+}

@@ -1,14 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { Home, Receipt, Users, Share2, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const BottomNav = () => {
   const location = useLocation();
+  const { t } = useTranslation('common');
+  
   const items = [
-    { to: "/dashboard", label: "الرئيسية", icon: Home },
-    { to: "/my-expenses", label: "مصاريفي", icon: Receipt },
-    { to: "/my-groups", label: "مجموعاتي", icon: Users },
-    { to: "/referral", label: "الإحالة", icon: Share2 },
-    { to: "/settings", label: "الإعدادات", icon: Settings },
+    { to: "/dashboard", label: t('nav.home'), icon: Home },
+    { to: "/my-expenses", label: t('nav.expenses'), icon: Receipt },
+    { to: "/my-groups", label: t('nav.groups'), icon: Users },
+    { to: "/referral", label: t('nav.referral'), icon: Share2 },
+    { to: "/settings", label: t('nav.settings'), icon: Settings },
   ];
 
   const isActive = (path: string) => location.pathname === path;

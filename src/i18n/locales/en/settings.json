@@ -1,0 +1,86 @@
+{
+  "title": "Settings",
+  "description": "Manage your account and customize the app",
+  "back_to_dashboard": "Back to Dashboard",
+  "tabs": {
+    "profile": "Profile",
+    "subscription": "Subscription",
+    "family": "Family",
+    "language": "Language",
+    "notifications": "Notifications",
+    "privacy": "Security",
+    "admin": "Admin"
+  },
+  "language_currency": {
+    "title": "Language & Currency",
+    "language_label": "Language",
+    "currency_label": "Preferred Currency",
+    "currency_description": "Choose the currency you want to use in the app",
+    "currency_placeholder": "Select preferred currency...",
+    "currency_selected": "Selected currency",
+    "currency_note": "All amounts will be converted to your preferred currency",
+    "refresh_rates": "Refresh exchange rates",
+    "save_settings": "Save Settings"
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "email": {
+      "title": "Email Notifications",
+      "description": "Receive notifications via email"
+    },
+    "push": {
+      "title": "Push Notifications",
+      "description": "Notifications on your phone"
+    },
+    "expense_reminders": {
+      "title": "Expense Reminders",
+      "description": "Reminders to enter expenses"
+    },
+    "weekly_reports": {
+      "title": "Weekly Reports",
+      "description": "Weekly expense summary"
+    },
+    "save_settings": "Save Settings"
+  },
+  "family": {
+    "upgrade_title": "Upgrade to Family Plan",
+    "upgrade_description": "Get the Family Plan to manage your family members and share features with them",
+    "start_trial": "Start Free Trial for Family Plan",
+    "view_plans": "View All Plans & Pricing",
+    "starting_trial": "Starting..."
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "description": "Access administration tools and advanced system statistics",
+    "enter_dashboard": "Enter Admin Dashboard"
+  },
+  "plans": {
+    "free": "Free",
+    "personal": "Personal",
+    "family": "Family"
+  },
+  "status": {
+    "trialing": "Free Trial",
+    "active": "Active",
+    "expired": "Expired",
+    "canceled": "Canceled",
+    "unknown": "Unknown"
+  },
+  "errors": {
+    "trial_exists": "Trial Already Exists",
+    "trial_exists_description": "You already have an active free trial",
+    "trial_expired": "Trial Period Expired",
+    "trial_expired_description": "You have used up your available free trial period (7 days)",
+    "start_trial_error": "An error occurred while starting the free trial",
+    "switch_plan_error": "An error occurred while switching plans",
+    "cancel_error": "An error occurred while canceling subscription"
+  },
+  "success": {
+    "trial_started": "Free Trial Started!",
+    "trial_started_description": "{{plan}} plan activated for 7 days",
+    "plan_switched": "Plan Switched!",
+    "plan_switched_description": "Successfully switched to {{plan}} plan",
+    "subscription_canceled": "Canceled!",
+    "subscription_canceled_description": "Your subscription has been canceled successfully"
+  }
+}
