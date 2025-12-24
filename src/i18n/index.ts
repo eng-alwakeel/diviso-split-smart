@@ -9,6 +9,7 @@ import arDashboard from './locales/ar/dashboard.json';
 import arExpenses from './locales/ar/expenses.json';
 import arGroups from './locales/ar/groups.json';
 import arErrors from './locales/ar/errors.json';
+import arFaq from './locales/ar/faq.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
@@ -18,6 +19,7 @@ import enDashboard from './locales/en/dashboard.json';
 import enExpenses from './locales/en/expenses.json';
 import enGroups from './locales/en/groups.json';
 import enErrors from './locales/en/errors.json';
+import enFaq from './locales/en/faq.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -43,7 +45,8 @@ i18n
         dashboard: arDashboard,
         expenses: arExpenses,
         groups: arGroups,
-        errors: arErrors
+        errors: arErrors,
+        faq: arFaq
       },
       en: {
         common: enCommon,
@@ -52,13 +55,14 @@ i18n
         dashboard: enDashboard,
         expenses: enExpenses,
         groups: enGroups,
-        errors: enErrors
+        errors: enErrors,
+        faq: enFaq
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq'],
     interpolation: {
       escapeValue: false
     },
