@@ -26,6 +26,8 @@ export const NotificationBell = () => {
     // Navigate based on notification type
     if (notification.type === 'group_invite') {
       navigate('/notifications');
+    } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
+      navigate('/referral-center');
     } else if (notification.type.includes('expense') && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'new_message' && notification.payload.group_id) {
@@ -47,6 +49,9 @@ export const NotificationBell = () => {
         return `${payload.sender_name}: ${payload.content.substring(0, 50)}${payload.content.length > 50 ? '...' : ''}`;
       case 'group_invite':
         return `دعوة انضمام لمجموعة "${payload.group_name}"`;
+      case 'referral_joined':
+      case 'referral_completed':
+        return `🎉 ${payload.invitee_name} انضم عبر إحالتك! +${payload.reward_days} أيام`;
       default:
         return 'إشعار جديد';
     }

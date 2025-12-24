@@ -246,6 +246,10 @@ const getNotificationTitle = (type: string): string => {
       return 'رسالة جديدة';
     case 'group_invite':
       return 'دعوة انضمام لمجموعة';
+    case 'referral_joined':
+      return 'إحالة ناجحة 🎉';
+    case 'referral_completed':
+      return 'إحالة ناجحة 🎉';
     default:
       return 'إشعار جديد';
   }
@@ -265,6 +269,9 @@ const getNotificationDescription = (notification: Notification): string => {
       return `${payload.sender_name}: ${payload.content} في ${payload.group_name}`;
     case 'group_invite':
       return `${payload.inviter_name} دعاك للانضمام إلى مجموعة "${payload.group_name}"`;
+    case 'referral_joined':
+    case 'referral_completed':
+      return `${payload.invitee_name} انضم عبر إحالتك! حصلت على ${payload.reward_days} أيام مجانية`;
     default:
       return 'إشعار جديد';
   }

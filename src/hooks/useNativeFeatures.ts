@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { 
   isNativePlatform, 
@@ -6,12 +6,14 @@ import {
   addAppStateListener,
   addBackButtonListener 
 } from '@/lib/native';
+import { initPushNotifications, isPushEnabled } from '@/lib/pushNotifications';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const useNativeFeatures = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const [pushEnabled, setPushEnabled] = useState(false);
 
   // Set status bar style based on theme
   useEffect(() => {
@@ -20,6 +22,21 @@ export const useNativeFeatures = () => {
     const style = theme === 'dark' ? 'dark' : 'light';
     setStatusBarStyle(style);
   }, [theme]);
+
+  // Initialize push notifications
+  useEffect(() => {
+    if (!isNativePlatform()) return;
+
+    const initPush = async () => {
+      const enabled = await initPushNotifications();
+      setPushEnabled(enabled);
+    };
+
+    initPush();
+
+    // Check push status
+    isPushEnabled().then(setPushEnabled);
+  }, []);
 
   // Handle app state changes
   useEffect(() => {
@@ -64,5 +81,6 @@ export const useNativeFeatures = () => {
 
   return {
     isNative: isNativePlatform(),
+    pushEnabled,
   };
 };
