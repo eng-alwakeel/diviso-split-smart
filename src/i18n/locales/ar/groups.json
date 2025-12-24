@@ -6,12 +6,104 @@
   "no_groups": "لا توجد مجموعات بعد",
   "no_groups_desc": "أنشئ مجموعة جديدة للبدء في تتبع المصاريف المشتركة",
   "group_name": "اسم المجموعة",
+  "group_name_placeholder": "مثال: رحلة الصيف 2024",
   "group_type": "نوع المجموعة",
+  "description": "الوصف",
+  "description_optional": "الوصف (اختياري)",
+  "description_placeholder": "وصف قصير عن المجموعة...",
   "currency": "العملة",
+  "currency_main": "العملة الرئيسية",
+  "currency_warning": "⚠️ لا يمكن تغيير العملة بعد إنشاء المجموعة",
+  "select_currency": "اختر العملة...",
   "members": "الأعضاء",
   "member": "عضو",
   "owner": "المالك",
   "admin": "مدير",
+  "online_now": "متصل الآن",
+  "back_to_dashboard": "العودة للوحة التحكم",
+  "loading": "جاري التحميل...",
+  "error": "خطأ",
+
+  "create_page": {
+    "title": "إنشاء مجموعة جديدة",
+    "subtitle": "أنشئ مجموعة لتتبع المصاريف المشتركة",
+    "step1": "معلومات المجموعة",
+    "step2": "اقتراحات ذكية",
+    "step3": "دعوة الأعضاء",
+    "step4": "الأرصدة الأولية",
+    "continue_invite": "المتابعة لدعوة الأعضاء",
+    "continue_balances": "المتابعة للأرصدة الأولية",
+    "back": "العودة",
+    "creating": "جاري الإنشاء...",
+    "create_group": "إنشاء المجموعة"
+  },
+
+  "details": {
+    "title": "تفاصيل المجموعة",
+    "approved_expenses": "المصاريف المعتمدة",
+    "pending": "معلق",
+    "rejected": "مرفوض",
+    "my_balance": "رصيدي المعتمد",
+    "budget": "الميزانية",
+    "budget_soon": "قريباً",
+    "spent": "مصروف",
+    "remaining": "متبقي",
+    "alerts": "تنبيه",
+    "report": "تقرير",
+    "add_expense": "إضافة مصروف",
+    "settings": "إعدادات"
+  },
+
+  "tabs": {
+    "expenses": "المصاريف",
+    "members": "الأعضاء",
+    "settlements": "التسويات",
+    "budget": "الميزانية",
+    "chat": "الدردشة"
+  },
+
+  "expenses_tab": {
+    "title": "المصاريف",
+    "add_new": "إضافة مصروف جديد",
+    "loading": "جاري التحميل...",
+    "no_expenses": "لا توجد مصاريف بعد.",
+    "expense": "مصروف",
+    "paid_by": "دفع بواسطة"
+  },
+
+  "members_tab": {
+    "title": "الأعضاء",
+    "invite_new": "دعوة عضو جديد",
+    "no_members": "لا يوجد أعضاء حتى الآن."
+  },
+
+  "settlements_tab": {
+    "title": "التسويات",
+    "add_settlement": "إضافة تسوية",
+    "settle_now": "تسوية الآن",
+    "all_settlements": "جميع التسويات",
+    "no_settlements": "لا توجد تسويات بعد.",
+    "paid": "دفع",
+    "to": "إلى",
+    "delete_failed": "تعذر حذف التسوية",
+    "deleted": "تم حذف التسوية"
+  },
+
+  "budget_tab": {
+    "categories": "فئات الميزانية",
+    "category": "فئة",
+    "no_budgets": "لا توجد ميزانيات بعد",
+    "start_budget": "ابدأ بإنشاء ميزانية لتتبع مصاريف المجموعة",
+    "loading": "جاري تحميل الميزانيات...",
+    "alerts_title": "تنبيهات الميزانية"
+  },
+
+  "chat_tab": {
+    "title": "دردشة المجموعة",
+    "write_message": "اكتب رسالتك...",
+    "more_options": "المزيد من الخيارات"
+  },
+
   "invite": {
     "title": "دعوة أعضاء",
     "by_link": "دعوة برابط",
@@ -22,8 +114,27 @@
     "send_invite": "إرسال الدعوة",
     "pending": "دعوة معلقة",
     "accepted": "تم القبول",
-    "expired": "منتهية الصلاحية"
+    "expired": "منتهية الصلاحية",
+    "phone_title": "دعوة عبر رقم الجوال",
+    "phone_placeholder": "966xxxxxxxxx",
+    "whatsapp": "واتساب",
+    "sms": "SMS",
+    "add_another": "إضافة رقم آخر",
+    "link_title": "رابط الدعوة",
+    "link_description": "شارك هذا الرابط مع أي شخص تريد دعوته للمجموعة",
+    "invite_created": "تم إنشاء رابط الدعوة",
+    "share_with_members": "يمكنك الآن مشاركة الرابط مع الأعضاء",
+    "link_error": "خطأ في إنشاء الرابط",
+    "sms_sent": "تم إرسال الدعوة",
+    "sms_sent_to": "تم إرسال دعوة SMS إلى",
+    "sms_error": "خطأ في إرسال SMS",
+    "whatsapp_opened": "تم فتح واتساب!",
+    "whatsapp_redirect": "تم توجيهك لإرسال الدعوة عبر واتساب",
+    "must_create_link": "يجب إنشاء رابط الدعوة أولاً",
+    "must_create_group": "يجب إنشاء المجموعة أولاً",
+    "error": "خطأ"
   },
+
   "balance": {
     "title": "الأرصدة",
     "you_owe": "عليك",
@@ -31,12 +142,7 @@
     "settled": "متساوي",
     "settle_up": "تسوية"
   },
-  "expenses": {
-    "title": "المصاريف",
-    "add": "إضافة مصروف",
-    "no_expenses": "لا توجد مصاريف بعد",
-    "total": "الإجمالي"
-  },
+
   "settings": {
     "title": "إعدادات المجموعة",
     "edit": "تعديل المجموعة",
@@ -44,13 +150,18 @@
     "delete": "حذف المجموعة",
     "leave": "مغادرة المجموعة"
   },
+
   "types": {
     "trip": "رحلة",
-    "home": "منزل",
-    "event": "مناسبة",
+    "home": "سكن مشترك",
+    "work": "عمل",
+    "party": "حفلة",
     "project": "مشروع",
+    "general": "عام",
+    "event": "مناسبة",
     "other": "أخرى"
   },
+
   "initial_balances": {
     "title": "الأرصدة الأولية",
     "add_initial": "إضافة أرصدة أولية للأعضاء",
@@ -70,5 +181,31 @@
     "unbalanced_message": "الأرصدة غير متوازنة. يجب أن يكون مجموع الأرصدة = صفر.",
     "positive_note": "الأرقام الموجبة: أشخاص لهم مبالغ (دائنون)",
     "negative_note": "الأرقام السالبة: أشخاص عليهم مبالغ (مدينون)"
+  },
+
+  "ai_suggestions": {
+    "title": "اقتراحات الذكاء الاصطناعي",
+    "description": "بناءً على نوع مجموعتك، إليك بعض الفئات المقترحة لمساعدتك في إدارة المصاريف",
+    "success": "تم إنشاء الميزانية بنجاح من اقتراحات الذكاء الاصطناعي",
+    "error": "فشل في معالجة اقتراحات الذكاء الاصطناعي",
+    "budget_error": "خطأ في إنشاء الميزانية",
+    "group_created_budget_failed": "تم إنشاء المجموعة لكن فشل في إنشاء الميزانية المقترحة"
+  },
+
+  "messages": {
+    "login_required": "يلزم تسجيل الدخول",
+    "group_created": "تم إنشاء المجموعة!",
+    "group_created_success": "تم إنشاء المجموعة بنجاح",
+    "creation_failed": "فشل إنشاء المجموعة",
+    "invalid_id": "معرّف المجموعة غير صالح",
+    "redirecting": "تمت إعادتك للوحة التحكم.",
+    "copied": "تم النسخ!",
+    "link_copied_clipboard": "تم نسخ الرابط إلى الحافظة"
+  },
+
+  "roles": {
+    "owner": "مالك",
+    "admin": "مدير",
+    "member": "عضو"
   }
 }

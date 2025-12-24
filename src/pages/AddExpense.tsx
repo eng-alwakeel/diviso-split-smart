@@ -3,22 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowRight, 
   Receipt, 
   Camera, 
   Upload, 
-  Users, 
   Calculator,
   Equal,
   Percent,
-  DollarSign,
   Brain,
   Check,
   Info
@@ -28,6 +23,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 import { SmartCategorySelector } from "@/components/expenses/SmartCategorySelector";
 import { useCurrencies } from "@/hooks/useCurrencies";
@@ -53,7 +49,7 @@ const AddExpense = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  // Removed useCategories as we now use SmartCategorySelector
+  const { t } = useTranslation(['expenses', 'common', 'groups']);
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   const { mutateAsync: checkBudgetWarnings } = useBudgetWarnings();
@@ -116,8 +112,8 @@ const AddExpense = () => {
         if (membershipError) {
           console.error('Error loading groups:', membershipError);
           toast({
-            title: "خطأ في تحميل المجموعات",
-            description: "حدث خطأ أثناء تحميل مجموعاتك",
+            title: t('errors.loading_groups'),
+            description: t('errors.loading_data'),
             variant: "destructive",
           });
           return;
@@ -146,8 +142,8 @@ const AddExpense = () => {
       } catch (error) {
         console.error('Error loading user data:', error);
         toast({
-          title: "خطأ في تحميل البيانات",
-          description: "حدث خطأ أثناء تحميل بياناتك",
+          title: t('errors.loading_data'),
+          description: t('errors.unexpected'),
           variant: "destructive",
         });
       } finally {
@@ -196,8 +192,8 @@ const AddExpense = () => {
         }
         
         toast({
-          title: "تم تحليل الإيصال بالذكاء الاصطناعي!",
-          description: "تم استخراج المعلومات وتحليلها بنجاح",
+          title: t('receipt_scanner.success'),
+          description: t('receipt_scanner.extracted'),
         });
         
       } catch (enhancedError) {
@@ -218,8 +214,8 @@ const AddExpense = () => {
           if (ocrData.receipt_date) setSpentAt(ocrData.receipt_date);
           
           toast({
-            title: "تم تحليل الإيصال!",
-            description: "تم استخراج المعلومات الأساسية",
+            title: t('receipt_scanner.basic_success'),
+            description: t('receipt_scanner.basic_extracted'),
           });
         }
       }
@@ -227,8 +223,8 @@ const AddExpense = () => {
     } catch (error) {
       console.error('OCR error:', error);
       toast({
-        title: "تعذر تحليل الإيصال",
-        description: "يمكنك إدخال البيانات يدويًا",
+        title: t('receipt_scanner.failed'),
+        description: t('receipt_scanner.manual_entry'),
         variant: "destructive",
       });
     } finally {
@@ -240,8 +236,8 @@ const AddExpense = () => {
   const handleGetCategorySuggestions = async () => {
     if (!description.trim()) {
       toast({
-        title: "الوصف مطلوب",
-        description: "يرجى إدخال وصف للمصروف أولاً",
+        title: t('ai_suggestions.description_required'),
+        description: t('ai_suggestions.enter_description'),
         variant: "destructive",
       });
       return;
@@ -263,8 +259,8 @@ const AddExpense = () => {
     setSelectedCategory(categoryId);
     setShowSuggestions(false);
     toast({
-      title: "تم قبول الاقتراح",
-      description: "تم تطبيق الفئة المقترحة",
+      title: t('ai_suggestions.accepted'),
+      description: t('ai_suggestions.applied'),
     });
   };
 
@@ -360,8 +356,8 @@ const AddExpense = () => {
   const handleSaveExpense = async () => {
     if (!selectedGroup || !description.trim() || !amount || memberSplits.length === 0) {
       toast({
-        title: "بيانات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة واختيار الأعضاء",
+        title: t('errors.missing_data'),
+        description: t('errors.fill_required'),
         variant: "destructive",
       });
       return;
@@ -369,8 +365,8 @@ const AddExpense = () => {
 
     if (!isValidSplit()) {
       toast({
-        title: "خطأ في التقسيم",
-        description: "يرجى التأكد من صحة تقسيم المبالغ",
+        title: t('errors.split_error'),
+        description: t('errors.verify_split'),
         variant: "destructive",
       });
       return;
@@ -391,7 +387,7 @@ const AddExpense = () => {
 
       if (validation.success === false) {
         toast({
-          title: "خطأ في البيانات",
+          title: t('errors.data_error'),
           description: validation.error,
           variant: "destructive",
         });
@@ -422,7 +418,7 @@ const AddExpense = () => {
       if (expenseError) {
         console.error('Error creating expense:', expenseError);
         toast({
-          title: "خطأ في إنشاء المصروف",
+          title: t('errors.creating_error'),
           description: expenseError.message,
           variant: "destructive",
         });
@@ -443,7 +439,7 @@ const AddExpense = () => {
         
         if (splitValidation.success === false) {
           toast({
-            title: "خطأ في تقسيم المصروف",
+            title: t('errors.split_validation'),
             description: splitValidation.error,
             variant: "destructive",
           });
@@ -465,7 +461,7 @@ const AddExpense = () => {
       if (splitsError) {
         console.error('Error creating splits:', splitsError);
         toast({
-          title: "خطأ في حفظ التقسيم",
+          title: t('errors.saving_splits'),
           description: splitsError.message,
           variant: "destructive",
         });
@@ -497,10 +493,10 @@ const AddExpense = () => {
       const needsApproval = approvers.length > 0 && !approvers.some(a => a.user_id === user?.id);
       
       toast({
-        title: "تم إضافة المصروف بنجاح!",
+        title: t('messages.success'),
         description: needsApproval 
-          ? "تم حفظ المصروف وهو في انتظار الموافقة من المسؤولين" 
-          : "تم حفظ المصروف وإرسال الإشعارات للأعضاء",
+          ? t('approval.saved_pending')
+          : t('approval.saved_notified'),
       });
 
       // Reset form
@@ -523,8 +519,8 @@ const AddExpense = () => {
     } catch (error) {
       console.error('Error saving expense:', error);
       toast({
-        title: "خطأ في حفظ المصروف",
-        description: "حدث خطأ غير متوقع",
+        title: t('errors.saving_splits'),
+        description: t('errors.unexpected'),
         variant: "destructive",
       });
     } finally {
@@ -572,10 +568,10 @@ const AddExpense = () => {
             className="mb-4"
           >
             <ArrowRight className="w-4 h-4 ml-2" />
-            {searchParams.get('groupId') ? 'العودة للمجموعة' : 'العودة للوحة التحكم'}
+            {searchParams.get('groupId') ? t('messages.back_to_group') : t('messages.back_to_dashboard')}
           </Button>
-          <h1 className="text-3xl font-bold mb-2">إضافة مصروف جديد</h1>
-          <p className="text-muted-foreground">أضف مصروف وقسّمه مع أعضاء المجموعة</p>
+          <h1 className="text-3xl font-bold mb-2">{t('add_new')}</h1>
+          <p className="text-muted-foreground">{t('messages.add_description')}</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -586,7 +582,7 @@ const AddExpense = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Camera className="w-5 h-5 text-primary" />
-                  مسح الإيصال (اختياري)
+                  {t('receipt_scanner.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -598,11 +594,11 @@ const AddExpense = () => {
                           <Brain className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-foreground mb-2">تم استخراج المعلومات بنجاح!</h3>
+                          <h3 className="font-medium text-foreground mb-2">{t('receipt_scanner.extracted')}</h3>
                           <div className="space-y-2 text-sm">
-                            <p><strong>التاجر:</strong> {ocrResults[0].merchant}</p>
-                            <p><strong>المبلغ:</strong> {ocrResults[0].total} {selectedGroup?.currency || 'ريال'}</p>
-                            <p><strong>التاريخ:</strong> {ocrResults[0].receipt_date}</p>
+                            <p><strong>{t('receipt_scanner.merchant')}:</strong> {ocrResults[0].merchant}</p>
+                            <p><strong>{t('fields.amount')}:</strong> {ocrResults[0].total} {selectedGroup?.currency || 'ريال'}</p>
+                            <p><strong>{t('receipt_scanner.date')}:</strong> {ocrResults[0].receipt_date}</p>
                           </div>
                         </div>
                       </div>
@@ -612,7 +608,7 @@ const AddExpense = () => {
                         <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
                           <img
                             src={previewUrl}
-                            alt="صورة الإيصال"
+                            alt={t('fields.receipt')}
                             className="w-full h-auto object-contain"
                             loading="lazy"
                           />
@@ -620,7 +616,7 @@ const AddExpense = () => {
                       </div>
                     )}
                     <Button onClick={() => setOcrResults([])} variant="outline">
-                      إزالة الإيصال
+                      {t('actions.remove_receipt')}
                     </Button>
                   </div>
                 ) : (
@@ -628,9 +624,9 @@ const AddExpense = () => {
                     <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <Camera className="w-8 h-8 text-primary" />
                     </div>
-                    <h3 className="font-medium mb-2">التقط صورة للإيصال</h3>
+                    <h3 className="font-medium mb-2">{t('receipt_scanner.capture')}</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      سيقوم الذكاء الاصطناعي بتحليل الإيصال واستخراج المعلومات
+                      {t('receipt_scanner.ai_analysis')}
                     </p>
                     <Button 
                       variant="outline" 
@@ -638,7 +634,7 @@ const AddExpense = () => {
                       disabled={ocrProcessing}
                     >
                       <Upload className="w-4 h-4 ml-2" />
-                      {ocrProcessing ? "جاري التحليل..." : "رفع صورة"}
+                      {ocrProcessing ? t('receipt_scanner.analyzing') : t('receipt_scanner.upload')}
                     </Button>
                     <input 
                       ref={fileInputRef} 
@@ -652,7 +648,7 @@ const AddExpense = () => {
                         <div className="relative mx-auto max-w-sm overflow-hidden rounded-xl border border-border bg-background">
                           <img
                             src={previewUrl}
-                            alt="صورة الإيصال"
+                            alt={t('fields.receipt')}
                             className="w-full h-auto object-contain"
                             loading="lazy"
                           />
@@ -669,13 +665,13 @@ const AddExpense = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Receipt className="w-5 h-5 text-accent" />
-                  تفاصيل المصروف
+                  {t('details.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="group" className="text-foreground">المجموعة</Label>
+                    <Label htmlFor="group" className="text-foreground">{t('fields.group')}</Label>
                     <Select 
                       value={selectedGroup?.id || ""} 
                       onValueChange={(value) => {
@@ -685,7 +681,7 @@ const AddExpense = () => {
                       }}
                     >
                       <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue placeholder="اختر المجموعة" />
+                        <SelectValue placeholder={t('common:select')} />
                       </SelectTrigger>
                       <SelectContent className="bg-background border-border">
                         {userGroups.map(group => (
@@ -699,7 +695,7 @@ const AddExpense = () => {
 
                   <div className="space-y-2">
                     <Label htmlFor="amount" className="text-foreground">
-                      المبلغ ({selectedGroup?.currency || 'ريال'})
+                      {t('fields.amount')} ({selectedGroup?.currency || 'ريال'})
                     </Label>
                     <Input
                       id="amount"
@@ -714,10 +710,10 @@ const AddExpense = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-foreground">وصف المصروف</Label>
+                  <Label htmlFor="description" className="text-foreground">{t('fields.description')}</Label>
                   <Input
                     id="description"
-                    placeholder="مثال: عشاء في المطعم"
+                    placeholder={t('fields.description_placeholder')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -727,7 +723,7 @@ const AddExpense = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="category" className="text-foreground flex items-center justify-between">
-                      <span>الفئة</span>
+                      <span>{t('fields.category')}</span>
                       <Button
                         type="button"
                         variant="outline"
@@ -737,7 +733,7 @@ const AddExpense = () => {
                         className="text-xs"
                       >
                         <Brain className="w-3 h-3 ml-1" />
-                        {aiLoading ? "جاري التحليل..." : "اقتراح ذكي"}
+                        {aiLoading ? t('ai_suggestions.analyzing') : t('ai_suggestions.smart_suggest')}
                       </Button>
                     </Label>
                     
@@ -746,7 +742,7 @@ const AddExpense = () => {
                       <div className="space-y-2 p-3 border border-primary/20 rounded-lg bg-primary/5">
                         <h4 className="text-sm font-medium flex items-center gap-2">
                           <Brain className="w-4 h-4 text-primary" />
-                          اقتراحات الذكاء الاصطناعي
+                          {t('ai_suggestions.title')}
                         </h4>
                         <div className="space-y-2">
                           {categorySuggestions.map((suggestion, index) => (
@@ -754,7 +750,7 @@ const AddExpense = () => {
                               <div className="flex-1">
                                 <span className="font-medium">{suggestion.category_name}</span>
                                 <div className="text-xs text-muted-foreground mt-1">
-                                  ثقة: {(suggestion.confidence * 100).toFixed(0)}%
+                                  {t('ai_suggestions.confidence')}: {(suggestion.confidence * 100).toFixed(0)}%
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   {suggestion.reason}
@@ -767,7 +763,7 @@ const AddExpense = () => {
                                 className="text-xs"
                               >
                                 <Check className="w-3 h-3 ml-1" />
-                                اختيار
+                                {t('ai_suggestions.select')}
                               </Button>
                             </div>
                           ))}
@@ -778,7 +774,7 @@ const AddExpense = () => {
                           onClick={() => setShowSuggestions(false)}
                           className="w-full text-xs"
                         >
-                          إخفاء الاقتراحات
+                          {t('ai_suggestions.hide')}
                         </Button>
                       </div>
                     )}
@@ -792,7 +788,7 @@ const AddExpense = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="date" className="text-foreground">التاريخ</Label>
+                    <Label htmlFor="date" className="text-foreground">{t('fields.date')}</Label>
                     <Input
                       id="date"
                       type="date"
@@ -819,7 +815,7 @@ const AddExpense = () => {
             {selectedGroup && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">تقسيم المصروف</h3>
+                  <h3 className="text-lg font-semibold">{t('split_section.title')}</h3>
                   {getApprovers().length > 0 && (
                     <Button
                       variant="outline"
@@ -828,7 +824,7 @@ const AddExpense = () => {
                       className="text-xs"
                     >
                       <Info className="w-3 h-3 ml-1" />
-                      معلومات الموافقة
+                      {t('approval.info')}
                     </Button>
                   )}
                 </div>
@@ -836,7 +832,7 @@ const AddExpense = () => {
                 {showApprovalInfo && getApprovers().length > 0 && (
                   <Card className="p-3 bg-primary/5 border-primary/20">
                     <p className="text-sm text-muted-foreground mb-2">
-                      سيحتاج هذا المصروف للموافقة من أحد المسؤولين:
+                      {t('approval.needs_approval')}:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {getApprovers().map((approver) => (
@@ -855,7 +851,7 @@ const AddExpense = () => {
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="splitType">نوع التقسيم</Label>
+                  <Label htmlFor="splitType">{t('split_section.type')}</Label>
                   <Select value={splitType} onValueChange={(value: 'equal' | 'percentage' | 'custom') => setSplitType(value)}>
                     <SelectTrigger>
                       <SelectValue />
@@ -864,19 +860,19 @@ const AddExpense = () => {
                       <SelectItem value="equal">
                         <div className="flex items-center gap-2">
                           <Equal className="w-4 h-4" />
-                          تقسيم متساوي
+                          {t('split_section.equal_split')}
                         </div>
                       </SelectItem>
                       <SelectItem value="percentage">
                         <div className="flex items-center gap-2">
                           <Percent className="w-4 h-4" />
-                          تقسيم بالنسبة المئوية
+                          {t('split_section.percentage_split')}
                         </div>
                       </SelectItem>
                       <SelectItem value="custom">
                         <div className="flex items-center gap-2">
                           <Calculator className="w-4 h-4" />
-                          تقسيم مخصص
+                          {t('split_section.custom_split')}
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -904,7 +900,7 @@ const AddExpense = () => {
                         }}
                       >
                         <Equal className="w-3 h-3 ml-1" />
-                        توزيع متساوي
+                        {t('split_section.distribute_equally')}
                       </Button>
                       <Button
                         type="button"
@@ -916,14 +912,14 @@ const AddExpense = () => {
                           );
                         }}
                       >
-                        إعادة تعيين
+                        {t('split_section.reset')}
                       </Button>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>الأعضاء المشاركون</Label>
+                  <Label>{t('split_section.participating_members')}</Label>
                   {membersLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (
@@ -954,8 +950,8 @@ const AddExpense = () => {
                               <span className="font-medium">{getMemberDisplayName(member)}</span>
                               {member.role !== 'member' && (
                                 <span className="text-xs text-muted-foreground">
-                                  {member.role === 'owner' ? 'مالك' : member.role === 'admin' ? 'مدير' : ''}
-                                  {member.can_approve_expenses && ' • يمكنه الموافقة'}
+                                  {member.role === 'owner' ? t('groups:roles.owner') : member.role === 'admin' ? t('groups:roles.admin') : ''}
+                                  {member.can_approve_expenses && ` • ${t('messages.can_approve')}`}
                                 </span>
                               )}
                             </div>
@@ -1031,7 +1027,7 @@ const AddExpense = () => {
                         </div>
                       ))}
                       {members.length === 0 && (
-                        <p className="text-muted-foreground text-center py-4">لا توجد أعضاء في هذه المجموعة</p>
+                        <p className="text-muted-foreground text-center py-4">{t('split_section.no_members')}</p>
                       )}
                     </div>
                   )}
@@ -1043,7 +1039,7 @@ const AddExpense = () => {
                     {splitType === 'percentage' && (
                       <div className={`p-3 rounded-lg border transition-colors ${Math.abs(getTotalPercentage() - 100) < 0.01 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'}`}>
                         <div className="flex justify-between items-center text-sm">
-                          <span>مجموع النسب:</span>
+                          <span>{t('split_section.total_percentages')}:</span>
                           <div className="flex items-center gap-2">
                             <span className={Math.abs(getTotalPercentage() - 100) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                               {getTotalPercentage().toFixed(1)}%
@@ -1056,7 +1052,7 @@ const AddExpense = () => {
                         </div>
                         {Math.abs(getTotalPercentage() - 100) >= 0.01 && (
                           <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                            يجب أن يكون مجموع النسب 100%
+                            {t('split_section.must_equal_100')}
                           </p>
                         )}
                       </div>
@@ -1065,7 +1061,7 @@ const AddExpense = () => {
                     {splitType === 'custom' && (
                       <div className={`p-3 rounded-lg border transition-colors ${Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'}`}>
                         <div className="flex justify-between items-center text-sm">
-                          <span>مجموع المبالغ:</span>
+                          <span>{t('split_section.total_amounts')}:</span>
                           <div className="flex items-center gap-2">
                             <span className={Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                               {getTotalCustomAmount().toFixed(2)} {selectedGroup?.currency || 'ريال'}
@@ -1078,7 +1074,7 @@ const AddExpense = () => {
                         </div>
                         {Math.abs(getTotalCustomAmount() - parseFloat(amount || "0")) >= 0.01 && (
                           <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                            يجب أن يساوي مجموع المبالغ المبلغ الإجمالي ({parseFloat(amount || "0").toFixed(2)} {selectedGroup?.currency || 'ريال'})
+                            {t('split_section.must_equal_total')} ({parseFloat(amount || "0").toFixed(2)} {selectedGroup?.currency || 'ريال'})
                           </p>
                         )}
                       </div>
@@ -1087,10 +1083,10 @@ const AddExpense = () => {
                     {splitType === 'equal' && memberSplits.length > 0 && amount && (
                       <div className="p-3 rounded-lg border bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
                         <div className="flex justify-between items-center text-sm">
-                          <span>التقسيم المتساوي:</span>
+                          <span>{t('split_section.equal_split')}:</span>
                           <div className="flex items-center gap-2">
                             <span className="text-blue-600 dark:text-blue-400">
-                              {(parseFloat(amount) / memberSplits.length).toFixed(2)} {selectedGroup?.currency || 'ريال'} لكل عضو
+                              {(parseFloat(amount) / memberSplits.length).toFixed(2)} {selectedGroup?.currency || 'ريال'} {t('split_section.per_member')}
                             </span>
                             <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           </div>
@@ -1107,35 +1103,35 @@ const AddExpense = () => {
           <div className="space-y-6">
             <Card className="bg-card border border-border shadow-card rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-foreground">ملخص المصروف</CardTitle>
+                <CardTitle className="text-foreground">{t('summary.total')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">المبلغ الإجمالي:</span>
+                    <span className="text-muted-foreground">{t('summary.total_amount')}:</span>
                     <span className="font-medium">{amount || "0.00"} {selectedGroup?.currency || 'ريال'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">عدد المشاركين:</span>
+                    <span className="text-muted-foreground">{t('summary.participants')}:</span>
                     <span className="font-medium">{memberSplits.length}</span>
                   </div>
                   {splitType === 'equal' && memberSplits.length > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">نصيب كل عضو:</span>
+                      <span className="text-muted-foreground">{t('summary.share_per_member')}:</span>
                       <span className="font-medium">
-                        {(parseFloat(amount || "0") / memberSplits.length).toFixed(2)} {selectedGroup?.currency || 'ريال'}
+                        {amount ? (parseFloat(amount) / memberSplits.length).toFixed(2) : "0.00"} {selectedGroup?.currency || 'ريال'}
                       </span>
                     </div>
                   )}
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleSaveExpense}
+                  disabled={isSubmitting || !selectedGroup || !description.trim() || !amount || memberSplits.length === 0 || !isValidSplit()}
                   className="w-full"
-                  variant="default"
-                  disabled={!selectedGroup || !description.trim() || !amount || memberSplits.length === 0 || !isValidSplit() || isSubmitting}
+                  variant="hero"
                 >
-                  {isSubmitting ? "جاري الحفظ..." : "حفظ المصروف"}
+                  {isSubmitting ? t('common:saving') : t('actions.save')}
                 </Button>
               </CardContent>
             </Card>
@@ -1144,9 +1140,8 @@ const AddExpense = () => {
         </div>
       </UnifiedAdLayout>
       
-      <BottomNav />
       <div className="h-32 lg:hidden" />
-
+      <BottomNav />
     </div>
   );
 };

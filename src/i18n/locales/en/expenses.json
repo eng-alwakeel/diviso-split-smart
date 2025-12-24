@@ -16,12 +16,14 @@
     "payer": "Payer",
     "split": "Split",
     "note": "Note",
-    "receipt": "Receipt"
+    "receipt": "Receipt",
+    "group": "Group"
   },
   "split_types": {
     "equal": "Equal",
     "exact": "Exact amounts",
-    "percentage": "Percentages"
+    "percentage": "Percentages",
+    "custom": "Custom"
   },
   "status": {
     "pending": "Pending",
@@ -32,7 +34,10 @@
     "approve": "Approve",
     "reject": "Reject",
     "upload_receipt": "Upload Receipt",
-    "scan_receipt": "Scan Receipt"
+    "scan_receipt": "Scan Receipt",
+    "save": "Save Expense",
+    "cancel": "Cancel",
+    "remove_receipt": "Remove Receipt"
   },
   "filters": {
     "all": "All",
@@ -44,7 +49,10 @@
   "summary": {
     "total": "Total",
     "average": "Average",
-    "count": "Expense Count"
+    "count": "Expense Count",
+    "total_amount": "Total Amount",
+    "participants": "Participants",
+    "share_per_member": "Share per member"
   },
   "categories": {
     "food": "Food",
@@ -56,5 +64,82 @@
     "health": "Health",
     "education": "Education",
     "other": "Other"
+  },
+  "receipt_scanner": {
+    "title": "Scan Receipt (Optional)",
+    "capture": "Capture receipt image",
+    "ai_analysis": "AI will analyze the receipt and extract information",
+    "upload": "Upload Image",
+    "analyzing": "Analyzing...",
+    "success": "Receipt analyzed with AI!",
+    "extracted": "Information extracted successfully",
+    "basic_success": "Receipt analyzed!",
+    "basic_extracted": "Basic information extracted",
+    "failed": "Failed to analyze receipt",
+    "manual_entry": "You can enter data manually",
+    "merchant": "Merchant",
+    "date": "Date"
+  },
+  "ai_suggestions": {
+    "title": "AI Suggestions",
+    "description_required": "Description required",
+    "enter_description": "Please enter expense description first",
+    "smart_suggest": "Smart Suggest",
+    "analyzing": "Analyzing...",
+    "confidence": "Confidence",
+    "select": "Select",
+    "hide": "Hide suggestions",
+    "accepted": "Suggestion accepted",
+    "applied": "Suggested category applied"
+  },
+  "split_section": {
+    "title": "Split Expense",
+    "type": "Split Type",
+    "equal_split": "Equal Split",
+    "percentage_split": "Percentage Split",
+    "custom_split": "Custom Split",
+    "distribute_equally": "Distribute Equally",
+    "reset": "Reset",
+    "participating_members": "Participating Members",
+    "no_members": "No members in this group",
+    "total_percentages": "Total Percentages",
+    "total_amounts": "Total Amounts",
+    "must_equal_100": "Must equal 100%",
+    "must_equal_total": "Must equal total amount",
+    "per_member": "per member"
+  },
+  "approval": {
+    "info": "Approval Info",
+    "needs_approval": "This expense needs approval from administrators",
+    "saved_pending": "Expense saved and pending approval from administrators",
+    "saved_notified": "Expense saved and members notified"
+  },
+  "errors": {
+    "loading_groups": "Error loading groups",
+    "loading_data": "Error loading data",
+    "missing_data": "Missing data",
+    "fill_required": "Please fill all required fields and select members",
+    "split_error": "Split error",
+    "verify_split": "Please verify split amounts are correct",
+    "data_error": "Data error",
+    "creating_error": "Error creating expense",
+    "saving_splits": "Error saving splits",
+    "unexpected": "Unexpected error occurred",
+    "split_validation": "Error in expense split"
+  },
+  "messages": {
+    "success": "Expense added successfully!",
+    "back_to_group": "Back to Group",
+    "back_to_dashboard": "Back to Dashboard",
+    "add_description": "Add an expense and split it with group members",
+    "can_approve": "can approve"
+  },
+  "details": {
+    "title": "Expense Details",
+    "paid_by": "Paid by",
+    "rejection_reason": "Rejection Reason",
+    "no_reason": "No reason specified",
+    "rejected_at": "Rejected at",
+    "edit_resubmit": "Edit and Resubmit"
   }
 }

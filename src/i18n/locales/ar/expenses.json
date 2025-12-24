@@ -16,23 +16,28 @@
     "payer": "الدافع",
     "split": "التقسيم",
     "note": "ملاحظة",
-    "receipt": "الفاتورة"
+    "receipt": "الفاتورة",
+    "group": "المجموعة"
   },
   "split_types": {
     "equal": "بالتساوي",
     "exact": "مبالغ محددة",
-    "percentage": "بالنسب المئوية"
+    "percentage": "بالنسب المئوية",
+    "custom": "مخصص"
   },
   "status": {
     "pending": "قيد الانتظار",
-    "approved": "موافق عليه",
+    "approved": "معتمد",
     "rejected": "مرفوض"
   },
   "actions": {
     "approve": "موافقة",
     "reject": "رفض",
     "upload_receipt": "رفع فاتورة",
-    "scan_receipt": "مسح فاتورة"
+    "scan_receipt": "مسح فاتورة",
+    "save": "حفظ المصروف",
+    "cancel": "إلغاء",
+    "remove_receipt": "إزالة الإيصال"
   },
   "filters": {
     "all": "الكل",
@@ -44,7 +49,10 @@
   "summary": {
     "total": "الإجمالي",
     "average": "المتوسط",
-    "count": "عدد المصاريف"
+    "count": "عدد المصاريف",
+    "total_amount": "المبلغ الإجمالي",
+    "participants": "عدد المشاركين",
+    "share_per_member": "نصيب كل عضو"
   },
   "categories": {
     "food": "طعام",
@@ -56,5 +64,82 @@
     "health": "صحة",
     "education": "تعليم",
     "other": "أخرى"
+  },
+  "receipt_scanner": {
+    "title": "مسح الإيصال (اختياري)",
+    "capture": "التقط صورة للإيصال",
+    "ai_analysis": "سيقوم الذكاء الاصطناعي بتحليل الإيصال واستخراج المعلومات",
+    "upload": "رفع صورة",
+    "analyzing": "جاري التحليل...",
+    "success": "تم تحليل الإيصال بالذكاء الاصطناعي!",
+    "extracted": "تم استخراج المعلومات وتحليلها بنجاح",
+    "basic_success": "تم تحليل الإيصال!",
+    "basic_extracted": "تم استخراج المعلومات الأساسية",
+    "failed": "تعذر تحليل الإيصال",
+    "manual_entry": "يمكنك إدخال البيانات يدوياً",
+    "merchant": "التاجر",
+    "date": "التاريخ"
+  },
+  "ai_suggestions": {
+    "title": "اقتراحات الذكاء الاصطناعي",
+    "description_required": "الوصف مطلوب",
+    "enter_description": "يرجى إدخال وصف للمصروف أولاً",
+    "smart_suggest": "اقتراح ذكي",
+    "analyzing": "جاري التحليل...",
+    "confidence": "ثقة",
+    "select": "اختيار",
+    "hide": "إخفاء الاقتراحات",
+    "accepted": "تم قبول الاقتراح",
+    "applied": "تم تطبيق الفئة المقترحة"
+  },
+  "split_section": {
+    "title": "تقسيم المصروف",
+    "type": "نوع التقسيم",
+    "equal_split": "تقسيم متساوي",
+    "percentage_split": "تقسيم بالنسبة المئوية",
+    "custom_split": "تقسيم مخصص",
+    "distribute_equally": "توزيع متساوي",
+    "reset": "إعادة تعيين",
+    "participating_members": "الأعضاء المشاركون",
+    "no_members": "لا توجد أعضاء في هذه المجموعة",
+    "total_percentages": "مجموع النسب",
+    "total_amounts": "مجموع المبالغ",
+    "must_equal_100": "يجب أن يكون مجموع النسب 100%",
+    "must_equal_total": "يجب أن يساوي مجموع المبالغ المبلغ الإجمالي",
+    "per_member": "لكل عضو"
+  },
+  "approval": {
+    "info": "معلومات الموافقة",
+    "needs_approval": "سيحتاج هذا المصروف للموافقة من أحد المسؤولين",
+    "saved_pending": "تم حفظ المصروف وهو في انتظار الموافقة من المسؤولين",
+    "saved_notified": "تم حفظ المصروف وإرسال الإشعارات للأعضاء"
+  },
+  "errors": {
+    "loading_groups": "خطأ في تحميل المجموعات",
+    "loading_data": "خطأ في تحميل البيانات",
+    "missing_data": "بيانات ناقصة",
+    "fill_required": "يرجى ملء جميع الحقول المطلوبة واختيار الأعضاء",
+    "split_error": "خطأ في التقسيم",
+    "verify_split": "يرجى التأكد من صحة تقسيم المبالغ",
+    "data_error": "خطأ في البيانات",
+    "creating_error": "خطأ في إنشاء المصروف",
+    "saving_splits": "خطأ في حفظ التقسيم",
+    "unexpected": "حدث خطأ غير متوقع",
+    "split_validation": "خطأ في تقسيم المصروف"
+  },
+  "messages": {
+    "success": "تم إضافة المصروف بنجاح!",
+    "back_to_group": "العودة للمجموعة",
+    "back_to_dashboard": "العودة للوحة التحكم",
+    "add_description": "أضف مصروف وقسّمه مع أعضاء المجموعة",
+    "can_approve": "يمكنه الموافقة"
+  },
+  "details": {
+    "title": "تفاصيل المصروف",
+    "paid_by": "دفع بواسطة",
+    "rejection_reason": "سبب الرفض",
+    "no_reason": "لم يتم تحديد سبب",
+    "rejected_at": "تم الرفض في",
+    "edit_resubmit": "تعديل وإعادة تقديم"
   }
 }
