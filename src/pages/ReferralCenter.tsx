@@ -64,6 +64,9 @@ const ReferralCenter = () => {
     referralCode, 
     loading: referralsLoading, 
     sendReferralInvite: sendInvite,
+    resendReferralInvite,
+    updateReferral,
+    deleteReferral,
     getReferralLink,
     getSuccessRate
   } = useReferrals();
@@ -618,7 +621,13 @@ const ReferralCenter = () => {
 
           {/* تبويب سجل الإحالات */}
           <TabsContent value="history">
-            <EnhancedReferralHistory referrals={referrals} loading={referralsLoading} />
+            <EnhancedReferralHistory 
+              referrals={referrals} 
+              loading={referralsLoading}
+              onResend={resendReferralInvite}
+              onUpdate={updateReferral}
+              onDelete={deleteReferral}
+            />
           </TabsContent>
 
           {/* تبويب التحليلات */}

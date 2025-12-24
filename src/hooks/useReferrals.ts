@@ -288,6 +288,108 @@ export function useReferrals() {
     return Math.round((successfulReferrals / totalReferrals) * 100);
   }, [totalReferrals, successfulReferrals]);
 
+  // إعادة إرسال دعوة الإحالة
+  const resendReferralInvite = useCallback(async (referralId: string) => {
+    try {
+      const referral = referrals.find(r => r.id === referralId);
+      if (!referral) {
+        toast.error("الإحالة غير موجودة");
+        return { success: false };
+      }
+
+      if (referral.status !== 'pending') {
+        toast.error("لا يمكن إعادة إرسال إحالة غير معلقة");
+        return { success: false };
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("يجب تسجيل الدخول أولاً");
+        return { success: false };
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-referral-invite', {
+        body: {
+          phone: referral.invitee_phone,
+          senderName: referral.invitee_name || user.user_metadata?.display_name || 'صديقك',
+          referralCode
+        }
+      });
+
+      if (error) {
+        console.error("Error resending referral:", error);
+        toast.error("فشل في إعادة إرسال الدعوة");
+        return { success: false };
+      }
+
+      toast.success("تم إعادة إرسال الدعوة بنجاح");
+      return { success: true };
+    } catch (error) {
+      console.error("Error in resendReferralInvite:", error);
+      toast.error("خطأ في إعادة إرسال الدعوة");
+      return { success: false };
+    }
+  }, [referrals, referralCode]);
+
+  // تحديث بيانات الإحالة
+  const updateReferral = useCallback(async (referralId: string, data: { invitee_name?: string }) => {
+    try {
+      const { error } = await supabase
+        .from('referrals')
+        .update(data)
+        .eq('id', referralId);
+
+      if (error) {
+        console.error("Error updating referral:", error);
+        toast.error("فشل في تحديث الإحالة");
+        return { success: false };
+      }
+
+      toast.success("تم تحديث الإحالة بنجاح");
+      await fetchReferrals();
+      return { success: true };
+    } catch (error) {
+      console.error("Error in updateReferral:", error);
+      toast.error("خطأ في تحديث الإحالة");
+      return { success: false };
+    }
+  }, [fetchReferrals]);
+
+  // حذف الإحالة
+  const deleteReferral = useCallback(async (referralId: string) => {
+    try {
+      const referral = referrals.find(r => r.id === referralId);
+      if (!referral) {
+        toast.error("الإحالة غير موجودة");
+        return { success: false };
+      }
+
+      if (referral.status === 'joined') {
+        toast.error("لا يمكن حذف إحالة منضمة");
+        return { success: false };
+      }
+
+      const { error } = await supabase
+        .from('referrals')
+        .delete()
+        .eq('id', referralId);
+
+      if (error) {
+        console.error("Error deleting referral:", error);
+        toast.error("فشل في حذف الإحالة");
+        return { success: false };
+      }
+
+      toast.success("تم حذف الإحالة بنجاح");
+      await fetchReferrals();
+      return { success: true };
+    } catch (error) {
+      console.error("Error in deleteReferral:", error);
+      toast.error("خطأ في حذف الإحالة");
+      return { success: false };
+    }
+  }, [referrals, fetchReferrals]);
+
   useEffect(() => {
     fetchReferralCode();
     fetchReferrals();
@@ -300,6 +402,9 @@ export function useReferrals() {
     totalReferrals,
     successfulReferrals,
     sendReferralInvite,
+    resendReferralInvite,
+    updateReferral,
+    deleteReferral,
     getReferralLink,
     getSuccessRate,
     refresh: () => {

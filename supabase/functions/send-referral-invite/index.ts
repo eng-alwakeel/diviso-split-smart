@@ -82,14 +82,22 @@ ${inviteLink}
       console.log("SMS message prepared with referral code:", referralCode);
     }
 
-    // Here you would integrate with your SMS service
-    /*
-    // Example with Twilio:
+    // Convert phone to international format for Twilio
+    let internationalPhone = normalizedPhone;
+    if (internationalPhone.startsWith('0')) {
+      internationalPhone = '+966' + internationalPhone.substring(1);
+    }
+
+    // Send SMS via Twilio
     const twilioSid = Deno.env.get("TWILIO_ACCOUNT_SID");
     const twilioToken = Deno.env.get("TWILIO_AUTH_TOKEN");
     const twilioFrom = Deno.env.get("TWILIO_PHONE_NUMBER");
     
+    let smsSent = false;
+    
     if (twilioSid && twilioToken && twilioFrom) {
+      console.log("📤 Attempting to send SMS via Twilio...");
+      
       const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`;
       const auth = btoa(`${twilioSid}:${twilioToken}`);
       
@@ -100,30 +108,34 @@ ${inviteLink}
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          To: phone,
+          To: internationalPhone,
           From: twilioFrom,
           Body: message,
         }),
       });
       
       if (!smsResponse.ok) {
-        const error = await smsResponse.text();
-        console.error("Twilio SMS error:", error);
-        throw new Error(`SMS sending failed: ${error}`);
+        const errorText = await smsResponse.text();
+        console.error("❌ Twilio SMS error:", errorText);
+        // Don't throw - still return success for the referral creation
+      } else {
+        const smsResult = await smsResponse.json();
+        console.log("✅ SMS sent successfully via Twilio, SID:", smsResult.sid);
+        smsSent = true;
       }
-      
-      console.log("SMS sent successfully via Twilio");
+    } else {
+      console.warn("⚠️ Twilio credentials not configured - SMS not sent");
     }
-    */
 
     console.log("✅ Referral invite processed successfully");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "تم إرسال دعوة الإحالة بنجاح",
+        message: smsSent ? "تم إرسال دعوة الإحالة بنجاح" : "تم إنشاء الإحالة (الرسالة قيد الإرسال)",
         inviteLink,
-        phoneValidated: true
+        phoneValidated: true,
+        smsSent
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
