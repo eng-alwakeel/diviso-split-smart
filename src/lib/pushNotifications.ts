@@ -71,8 +71,8 @@ const savePushToken = async (token: string): Promise<void> => {
 
     const platform = getPlatform();
 
-    // Upsert the token (update if exists, insert if not)
-    const { error } = await supabase
+    // Upsert the token using raw query since types may not be updated yet
+    const { error } = await (supabase as any)
       .from('user_push_tokens')
       .upsert(
         {
@@ -141,7 +141,7 @@ export const removePushToken = async (): Promise<void> => {
 
     const platform = getPlatform();
 
-    await supabase
+    await (supabase as any)
       .from('user_push_tokens')
       .delete()
       .eq('user_id', user.id)
