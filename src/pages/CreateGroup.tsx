@@ -28,10 +28,12 @@ import { AIGroupCategorySuggestions } from '@/components/group/AIGroupCategorySu
 import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
 import { Bot } from 'lucide-react';
 import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
+import { useTranslation } from 'react-i18next';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation(['groups', 'common']);
   const { currencies } = useCurrencies();
   const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
   const [loading, setLoading] = useState(false);
@@ -54,15 +56,7 @@ const CreateGroup = () => {
   ];
 
   const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      "trip": "رحلة",
-      "home": "سكن مشترك", 
-      "work": "عمل",
-      "party": "حفلة",
-      "project": "مشروع",
-      "general": "عام"
-    };
-    return labels[category] || category;
+    return t(`groups:types.${category}`, category);
   };
 
   const handleAddPhone = () => {
@@ -82,8 +76,8 @@ const CreateGroup = () => {
   const generateInviteLink = async () => {
     if (!createdGroupId) {
       toast({
-        title: "خطأ",
-        description: "يجب إنشاء المجموعة أولاً",
+        title: t('groups:invite.error'),
+        description: t('groups:invite.must_create_group'),
         variant: "destructive",
       });
       return;
@@ -103,14 +97,14 @@ const CreateGroup = () => {
       setInviteLink(link);
       
       toast({
-        title: "تم إنشاء رابط الدعوة",
-        description: "يمكنك الآن مشاركة الرابط مع الأعضاء",
+        title: t('groups:invite.invite_created'),
+        description: t('groups:invite.share_with_members'),
       });
     } catch (error: any) {
       console.error('Error generating invite link:', error);
       toast({
-        title: "خطأ في إنشاء الرابط",
-        description: error.message || "حاول مرة أخرى",
+        title: t('groups:invite.link_error'),
+        description: error.message || t('groups:invite.try_again'),
         variant: "destructive",
       });
     }
@@ -119,16 +113,16 @@ const CreateGroup = () => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "تم النسخ!",
-      description: "تم نسخ الرابط إلى الحافظة",
+      title: t('groups:messages.copied'),
+      description: t('groups:messages.link_copied_clipboard'),
     });
   };
 
   const sendSMSInvite = async (phone: string) => {
     if (!inviteLink) {
       toast({
-        title: "خطأ",
-        description: "يجب إنشاء رابط الدعوة أولاً",
+        title: t('groups:invite.error'),
+        description: t('groups:invite.must_create_link'),
         variant: "destructive",
       });
       return;
@@ -140,20 +134,20 @@ const CreateGroup = () => {
           phone: phone.startsWith('+') ? phone : `+${phone}`,
           groupName: groupData.name,
           inviteLink,
-          senderName: "المستخدم" // يمكن جلب الاسم من الملف الشخصي
+          senderName: t('common:user')
         }
       });
 
       if (error) throw error;
       
       toast({
-        title: "تم إرسال الدعوة",
-        description: `تم إرسال دعوة SMS إلى ${phone}`,
+        title: t('groups:invite.sms_sent'),
+        description: `${t('groups:invite.sms_sent_to')} ${phone}`,
       });
     } catch (error: any) {
       toast({
-        title: "خطأ في إرسال SMS",
-        description: error.message || "حاول مرة أخرى",
+        title: t('groups:invite.sms_error'),
+        description: error.message || t('groups:invite.try_again'),
         variant: "destructive",
       });
     }
@@ -162,20 +156,20 @@ const CreateGroup = () => {
   const sendWhatsAppInvite = (phoneNumber: string) => {
     if (!inviteLink) {
       toast({
-        title: "خطأ",
-        description: "يجب إنشاء رابط الدعوة أولاً",
+        title: t('groups:invite.error'),
+        description: t('groups:invite.must_create_link'),
         variant: "destructive",
       });
       return;
     }
 
-    const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupData.name}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${inviteLink}`;
+    const message = t('groups:invite.whatsapp_message', { groupName: groupData.name, inviteLink });
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     
     toast({
-      title: "تم فتح واتس اب!",
-      description: "تم توجيهك لإرسال الدعوة عبر واتس اب",
+      title: t('groups:invite.whatsapp_opened'),
+      description: t('groups:invite.whatsapp_redirect'),
     });
   };
 
@@ -191,8 +185,8 @@ const CreateGroup = () => {
             .insert({
               group_id: groupId,
               amount: member.amountPaid,
-              description: `رصيد أولي - دفع مسبق بواسطة ${member.name}`,
-              payer_id: userId, // We'll use the group owner as payer temporarily
+              description: `${t('groups:initial_balances.initial_balance_paid')} ${member.name}`,
+              payer_id: userId,
               created_by: userId,
               status: 'approved',
               currency: groupData.currency
@@ -209,7 +203,7 @@ const CreateGroup = () => {
               .filter(m => m.amountOwed > 0)
               .map(m => ({
                 expense_id: expenseData.id,
-                member_id: userId, // We'll use the group owner for now
+                member_id: userId,
                 share_amount: m.amountOwed
               }));
 
@@ -234,11 +228,11 @@ const CreateGroup = () => {
               .from('settlements')
               .insert({
                 group_id: groupId,
-                from_user_id: userId, // Group will owe this member
-                to_user_id: userId, // Temporary until member joins
+                from_user_id: userId,
+                to_user_id: userId,
                 amount: netBalance,
                 created_by: userId,
-                note: `رصيد أولي - مستحق لـ ${member.name}`
+                note: `${t('groups:initial_balances.initial_balance_owed_to')} ${member.name}`
               });
 
             if (settlementError) throw settlementError;
@@ -248,11 +242,11 @@ const CreateGroup = () => {
               .from('settlements')
               .insert({
                 group_id: groupId,
-                from_user_id: userId, // Temporary until member joins
-                to_user_id: userId, // Group is owed by this member
+                from_user_id: userId,
+                to_user_id: userId,
                 amount: Math.abs(netBalance),
                 created_by: userId,
-                note: `رصيد أولي - مستحق من ${member.name}`
+                note: `${t('groups:initial_balances.initial_balance_owed_from')} ${member.name}`
               });
 
             if (settlementError) throw settlementError;
@@ -268,17 +262,15 @@ const CreateGroup = () => {
   const handleAISuggestionsAccept = async (budgetId: string) => {
     try {
       setLoading(true);
-      // Budget is already created by the AI component
       toast({
-        title: 'نجح!',
-        description: 'تم إنشاء الميزانية بنجاح من اقتراحات الذكاء الاصطناعي',
+        title: t('groups:ai_suggestions.success'),
       });
       nextStep();
     } catch (error) {
       console.error('Error processing AI suggestions:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في معالجة اقتراحات الذكاء الاصطناعي',
+        title: t('groups:invite.error'),
+        description: t('groups:ai_suggestions.error'),
         variant: 'destructive',
       });
     } finally {
@@ -295,19 +287,17 @@ const CreateGroup = () => {
     if (aiSuggestedCategories.length === 0) return;
 
     try {
-      // Calculate total budget amount from AI suggestions
       const totalAmount = aiSuggestedCategories.reduce((sum, cat) => sum + cat.amount, 0);
       
-      // Create the main budget
       const { data: budgetData, error: budgetError } = await supabase
         .from('budgets')
         .insert({
-          name: `ميزانية ${groupData.name}`,
+          name: `${t('groups:details.budget')} ${groupData.name}`,
           total_amount: totalAmount,
           amount_limit: totalAmount,
           start_date: new Date().toISOString().split('T')[0],
           period: 'monthly',
-          budget_type: groupData.category === 'رحلة' ? 'trip' : 'event',
+          budget_type: groupData.category === 'trip' ? 'trip' : 'event',
           group_id: groupId,
           created_by: userId
         })
@@ -316,7 +306,6 @@ const CreateGroup = () => {
 
       if (budgetError) throw budgetError;
 
-      // Create budget categories from AI suggestions
       const budgetCategories = aiSuggestedCategories.map(category => ({
         budget_id: budgetData.id,
         name: category.name_ar,
@@ -330,14 +319,18 @@ const CreateGroup = () => {
       if (categoriesError) throw categoriesError;
 
       toast({ 
-        title: 'تم إنشاء الميزانية!', 
-        description: `تم إنشاء ميزانية بقيمة ${totalAmount.toLocaleString()} ${groupData.currency} مع ${aiSuggestedCategories.length} فئات`
+        title: t('groups:messages.budget_created'), 
+        description: t('groups:messages.budget_created_with_categories', {
+          amount: totalAmount.toLocaleString(),
+          currency: groupData.currency,
+          count: aiSuggestedCategories.length
+        })
       });
     } catch (error) {
       console.error('Error creating budget from AI suggestions:', error);
       toast({ 
-        title: 'خطأ في إنشاء الميزانية', 
-        description: 'تم إنشاء المجموعة لكن فشل في إنشاء الميزانية المقترحة',
+        title: t('groups:ai_suggestions.budget_error'), 
+        description: t('groups:ai_suggestions.group_created_budget_failed'),
         variant: 'destructive' 
       });
     }
@@ -347,7 +340,7 @@ const CreateGroup = () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
-      toast({ title: "يلزم تسجيل الدخول", variant: "destructive" });
+      toast({ title: t('groups:messages.login_required'), variant: "destructive" });
       return;
     }
     
@@ -371,20 +364,21 @@ const CreateGroup = () => {
         .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
 
-      // Create budget from AI suggestions if available
       if (aiSuggestedCategories.length > 0) {
         await createBudgetFromAISuggestions(groupId, user.id);
       }
 
-      // Create initial balances if provided
       if (initialBalances.length > 0) {
         await createInitialBalances(groupId, user.id);
       }
 
-      toast({ title: 'تم إنشاء المجموعة!', description: `تم إنشاء مجموعة "${groupData.name}" بنجاح` });
+      toast({ 
+        title: t('groups:messages.group_created'), 
+        description: t('groups:messages.group_created_success', { name: groupData.name })
+      });
       navigate(`/group/${groupId}`);
     } catch (e: any) {
-      toast({ title: 'فشل إنشاء المجموعة', description: e.message, variant: 'destructive' });
+      toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -392,14 +386,13 @@ const CreateGroup = () => {
 
   const nextStep = async () => {
     if (currentStep === 1 && groupData.category !== 'general') {
-      // Create the group first, then show AI suggestions
       await createGroupOnly();
       setShowAISuggestions(true);
       setCurrentStep(2);
     } else if (currentStep === 1) {
       await createGroupOnly();
       await generateInviteLink();
-      setCurrentStep(3); // Skip AI suggestions for general groups
+      setCurrentStep(3);
     } else if (currentStep === 2 && showAISuggestions) {
       await generateInviteLink();
       setCurrentStep(3);
@@ -412,7 +405,7 @@ const CreateGroup = () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
-      toast({ title: "يلزم تسجيل الدخول", variant: "destructive" });
+      toast({ title: t('groups:messages.login_required'), variant: "destructive" });
       return;
     }
     
@@ -437,21 +430,19 @@ const CreateGroup = () => {
       if (memberErr) throw memberErr;
       
     } catch (e: any) {
-      toast({ title: 'فشل إنشاء المجموعة', description: e.message, variant: 'destructive' });
+      toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
       throw e;
     }
   };
 
   const isStep3Valid = () => {
-    if (initialBalances.length === 0) return true; // No initial balances is valid
+    if (initialBalances.length === 0) return true;
     
-    // Check if all members have names and at least one amount
     const validMembers = initialBalances.every(member => 
       member.name.trim() !== '' && 
       (member.amountPaid !== 0 || member.amountOwed !== 0)
     );
     
-    // Check if balances are balanced (sum = 0)
     const totalBalance = initialBalances.reduce((sum, member) => 
       sum + (member.amountPaid - member.amountOwed), 0
     );
@@ -478,10 +469,10 @@ const CreateGroup = () => {
             className="mb-4"
           >
             <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
+            {t('groups:back_to_dashboard')}
           </Button>
-          <h1 className="text-3xl font-bold mb-2">إنشاء مجموعة جديدة</h1>
-          <p className="text-muted-foreground">أنشئ مجموعة لتتبع المصاريف المشتركة</p>
+          <h1 className="text-3xl font-bold mb-2">{t('groups:create_page.title')}</h1>
+          <p className="text-muted-foreground">{t('groups:create_page.subtitle')}</p>
         </div>
 
         {/* Progress Indicator */}
@@ -490,28 +481,28 @@ const CreateGroup = () => {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-muted'}`}>
               1
             </div>
-            <span className="font-medium text-xs md:text-sm">معلومات المجموعة</span>
+            <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step1')}</span>
           </div>
           <div className={`flex-1 h-1 mx-2 ${currentStep > 1 ? 'bg-primary' : 'bg-muted'}`}></div>
           <div className={`flex items-center gap-2 ${currentStep >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary text-white' : 'bg-muted'}`}>
               2
             </div>
-            <span className="font-medium text-xs md:text-sm">اقتراحات ذكية</span>
+            <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step2')}</span>
           </div>
           <div className={`flex-1 h-1 mx-2 ${currentStep > 2 ? 'bg-primary' : 'bg-muted'}`}></div>
           <div className={`flex items-center gap-2 ${currentStep >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary text-white' : 'bg-muted'}`}>
               3
             </div>
-            <span className="font-medium text-xs md:text-sm">دعوة الأعضاء</span>
+            <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step3')}</span>
           </div>
           <div className={`flex-1 h-1 mx-2 ${currentStep > 3 ? 'bg-primary' : 'bg-muted'}`}></div>
           <div className={`flex items-center gap-2 ${currentStep >= 4 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-primary text-white' : 'bg-muted'}`}>
               4
             </div>
-            <span className="font-medium text-xs md:text-sm">الأرصدة الأولية</span>
+            <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step4')}</span>
           </div>
         </div>
 
@@ -521,15 +512,15 @@ const CreateGroup = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <Users className="w-5 h-5 text-accent" />
-                معلومات المجموعة
+                {t('groups:create_page.group_info')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="groupName" className="text-foreground">اسم المجموعة</Label>
+                <Label htmlFor="groupName" className="text-foreground">{t('groups:group_name')}</Label>
                 <Input
                   id="groupName"
-                  placeholder="مثال: رحلة الصيف 2024"
+                  placeholder={t('groups:group_name_placeholder')}
                   value={groupData.name}
                   onChange={(e) => setGroupData({...groupData, name: e.target.value})}
                   className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -537,10 +528,10 @@ const CreateGroup = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-foreground">الوصف (اختياري)</Label>
+                <Label htmlFor="description" className="text-foreground">{t('groups:description_optional')}</Label>
                 <Textarea
                   id="description"
-                  placeholder="وصف قصير عن المجموعة..."
+                  placeholder={t('groups:description_placeholder')}
                   value={groupData.description}
                   onChange={(e) => setGroupData({...groupData, description: e.target.value})}
                   className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -548,7 +539,7 @@ const CreateGroup = () => {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-foreground">نوع المجموعة</Label>
+                <Label className="text-foreground">{t('groups:group_type')}</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {categories.map((category) => (
                     <Badge
@@ -564,16 +555,16 @@ const CreateGroup = () => {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-foreground">العملة الرئيسية</Label>
+                <Label className="text-foreground">{t('groups:currency_main')}</Label>
                 <CurrencySelector
                   currencies={currencies}
                   value={groupData.currency}
                   onValueChange={(value) => setGroupData({...groupData, currency: value})}
-                  placeholder="اختر العملة..."
+                  placeholder={t('groups:select_currency')}
                   className="w-full bg-background/50 border-border text-foreground"
                 />
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ لا يمكن تغيير العملة بعد إنشاء المجموعة
+                  {t('groups:currency_warning')}
                 </p>
               </div>
 
@@ -583,7 +574,7 @@ const CreateGroup = () => {
                 className="w-full"
                 variant="hero"
               >
-                المتابعة لدعوة الأعضاء
+                {t('groups:continue_to_invite')}
               </Button>
             </CardContent>
           </Card>
@@ -595,10 +586,10 @@ const CreateGroup = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bot className="h-5 w-5" />
-                  اقتراحات الذكاء الاصطناعي
+                  {t('groups:ai_suggestions.title')}
                 </CardTitle>
                 <p className="text-muted-foreground">
-                  بناءً على نوع مجموعتك "{getCategoryLabel(groupData.category)}"، إليك بعض الفئات المقترحة لمساعدتك في إدارة المصاريف
+                  {t('groups:ai_suggestions.based_on_type')} "{getCategoryLabel(groupData.category)}"، {t('groups:ai_suggestions.suggested_categories')}
                 </p>
               </CardHeader>
               <CardContent>
@@ -624,14 +615,14 @@ const CreateGroup = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Phone className="w-5 h-5 text-accent" />
-                  دعوة عبر رقم الجوال
+                  {t('groups:invite.by_phone')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {phoneNumbers.map((phone, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
-                      placeholder="966xxxxxxxxx"
+                      placeholder={t('groups:invite.phone_placeholder')}
                       value={phone}
                       onChange={(e) => handlePhoneChange(index, e.target.value)}
                       className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
@@ -643,7 +634,7 @@ const CreateGroup = () => {
                       onClick={() => sendWhatsAppInvite(phone)}
                       className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                     >
-                      واتساب
+                      {t('groups:invite.whatsapp')}
                     </Button>
                     <Button
                       variant="outline"
@@ -651,7 +642,7 @@ const CreateGroup = () => {
                       onClick={() => sendSMSInvite(phone)}
                       className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
                     >
-                      SMS
+                      {t('groups:invite.sms')}
                     </Button>
                     {phoneNumbers.length > 1 && (
                       <Button
@@ -672,7 +663,7 @@ const CreateGroup = () => {
                   className="w-full border-border text-foreground hover:bg-accent/20"
                 >
                   <Plus className="w-4 h-4 ml-2" />
-                  إضافة رقم آخر
+                  {t('groups:invite.add_another')}
                 </Button>
               </CardContent>
             </Card>
@@ -682,12 +673,12 @@ const CreateGroup = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <LinkIcon className="w-5 h-5 text-accent" />
-                  رابط الدعوة
+                  {t('groups:invite.link_title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  شارك هذا الرابط مع أي شخص تريد دعوته للمجموعة
+                  {t('groups:invite.link_description')}
                 </p>
                 
                 <div className="flex gap-2">
@@ -709,7 +700,7 @@ const CreateGroup = () => {
                     onClick={() => {
                       if (navigator.share) {
                         navigator.share({
-                          title: `انضم لمجموعة ${groupData.name}`,
+                          title: `${t('groups:join_group')} ${groupData.name}`,
                           url: inviteLink
                         });
                       }
@@ -735,14 +726,14 @@ const CreateGroup = () => {
                 }}
                 className="flex-1"
               >
-                العودة
+                {t('groups:back')}
               </Button>
               <Button
                 onClick={nextStep}
                 className="flex-1"
                 variant="hero"
               >
-                المتابعة للأرصدة الأولية
+                {t('groups:continue_to_balances')}
               </Button>
             </div>
           </div>
@@ -764,7 +755,7 @@ const CreateGroup = () => {
                 onClick={() => setCurrentStep(3)}
                 className="flex-1"
               >
-                العودة
+                {t('groups:back')}
               </Button>
               <Button
                 onClick={handleCreateGroup}
@@ -772,7 +763,7 @@ const CreateGroup = () => {
                 className="flex-1"
                 variant="hero"
               >
-              {loading ? 'جاري الإنشاء...' : 'إنشاء المجموعة'}
+              {loading ? t('groups:creating') : t('groups:create_group')}
             </Button>
           </div>
         </div>
