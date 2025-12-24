@@ -17,7 +17,9 @@ import {
   MoreVertical,
   RefreshCw,
   Pencil,
-  Trash2
+  Trash2,
+  Users,
+  UserPlus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -56,6 +58,7 @@ export function EnhancedReferralHistory({
   const [editingReferral, setEditingReferral] = useState<ReferralData | null>(null);
   const [deletingReferralId, setDeletingReferralId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [filterSource, setFilterSource] = useState<"all" | "personal" | "group">("all");
 
   const handleResend = async (referral: ReferralData) => {
     if (!onResend) return;
@@ -116,13 +119,38 @@ export function EnhancedReferralHistory({
     }
   };
 
+  const getSourceIcon = (referral: ReferralData) => {
+    if (referral.referral_source === 'group_invite' || referral.group_id) {
+      return <Users className="h-4 w-4 text-blue-500" />;
+    }
+    return <UserPlus className="h-4 w-4 text-primary" />;
+  };
+
+  const getSourceLabel = (referral: ReferralData) => {
+    if (referral.referral_source === 'group_invite' || referral.group_id) {
+      return referral.group_name || 'دعوة مجموعة';
+    }
+    return 'إحالة شخصية';
+  };
+
   const formatPhoneDisplay = (phone: string) => {
-    // تنسيق رقم الهاتف للعرض
     if (phone.startsWith('+966')) {
       return phone.replace('+966', '0');
     }
     return phone;
   };
+
+  // Filter referrals based on source
+  const filteredReferrals = referrals.filter(referral => {
+    if (filterSource === "all") return true;
+    if (filterSource === "group") return referral.referral_source === 'group_invite' || referral.group_id;
+    if (filterSource === "personal") return !referral.group_id && referral.referral_source !== 'group_invite';
+    return true;
+  });
+
+  // Calculate stats
+  const personalCount = referrals.filter(r => !r.group_id && r.referral_source !== 'group_invite').length;
+  const groupCount = referrals.filter(r => r.group_id || r.referral_source === 'group_invite').length;
 
   if (loading) {
     return (
@@ -160,24 +188,53 @@ export function EnhancedReferralHistory({
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">سجل الإحالات</h3>
+        <h3 className="text-lg font-semibold">سجل الإحالات الموحد</h3>
         <Badge variant="outline">{referrals.length} إحالة</Badge>
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <Button 
+          variant={filterSource === "all" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setFilterSource("all")}
+        >
+          الكل ({referrals.length})
+        </Button>
+        <Button 
+          variant={filterSource === "personal" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setFilterSource("personal")}
+          className="gap-1"
+        >
+          <UserPlus className="h-3 w-3" />
+          شخصية ({personalCount})
+        </Button>
+        <Button 
+          variant={filterSource === "group" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setFilterSource("group")}
+          className="gap-1"
+        >
+          <Users className="h-3 w-3" />
+          مجموعات ({groupCount})
+        </Button>
+      </div>
+
       <div className="space-y-4">
-        {referrals.map((referral) => (
+        {filteredReferrals.map((referral) => (
           <div 
             key={referral.id} 
             className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors"
           >
-            {/* أيقونة الحالة */}
+            {/* أيقونة المصدر */}
             <div className="flex-shrink-0">
-              {getStatusIcon(referral.status)}
+              {getSourceIcon(referral)}
             </div>
 
             {/* معلومات الإحالة */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">
@@ -191,9 +248,14 @@ export function EnhancedReferralHistory({
                     {formatPhoneDisplay(referral.invitee_phone)}
                   </span>
                 </div>
+
+                {/* Source badge */}
+                <Badge variant="outline" className="text-xs">
+                  {getSourceLabel(referral)}
+                </Badge>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   <span>
@@ -227,6 +289,7 @@ export function EnhancedReferralHistory({
 
             {/* شارة الحالة وأزرار الإجراءات */}
             <div className="flex items-center gap-2 flex-shrink-0">
+              {getStatusIcon(referral.status)}
               <Badge variant={getStatusVariant(referral.status)}>
                 {getStatusLabel(referral.status)}
               </Badge>
@@ -283,7 +346,7 @@ export function EnhancedReferralHistory({
 
       {/* إحصائيات سريعة */}
       <div className="mt-6 pt-4 border-t">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="text-center">
             <div className="text-lg font-bold text-green-600">
               {referrals.filter(r => r.status === 'joined').length}
@@ -304,12 +367,19 @@ export function EnhancedReferralHistory({
             </div>
             <div className="text-xs text-muted-foreground">منتهية</div>
           </div>
+
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-600">
+              {groupCount}
+            </div>
+            <div className="text-xs text-muted-foreground">من مجموعات</div>
+          </div>
           
           <div className="text-center">
             <div className="text-lg font-bold text-primary">
-              {referrals.reduce((sum, r) => sum + (r.reward_days || 0), 0)}
+              {referrals.filter(r => r.status === 'joined').reduce((sum, r) => sum + (r.reward_days || 0), 0)}
             </div>
-            <div className="text-xs text-muted-foreground">إجمالي الأيام</div>
+            <div className="text-xs text-muted-foreground">أيام مكتسبة</div>
           </div>
         </div>
       </div>

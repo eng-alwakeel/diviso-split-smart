@@ -10,6 +10,9 @@ export interface ReferralData {
   joined_at: string | null;
   created_at: string;
   reward_days: number | null;
+  referral_source?: string | null;
+  group_id?: string | null;
+  group_name?: string | null;
 }
 
 export interface UserReferralCode {
@@ -65,7 +68,7 @@ export function useReferrals() {
         console.warn("Warning getting referral stats:", statsError);
       }
 
-      // جلب بيانات الإحالات
+      // جلب بيانات الإحالات الموحدة (الشخصية + دعوات المجموعات)
       const { data, error } = await supabase
         .from("referrals")
         .select("*")
@@ -74,7 +77,21 @@ export function useReferrals() {
 
       if (error) throw error;
 
-      setReferrals(data || []);
+      // تحويل البيانات لتشمل معلومات المصدر
+      const unifiedReferrals: ReferralData[] = (data || []).map(ref => ({
+        id: ref.id,
+        invitee_name: ref.invitee_name,
+        invitee_phone: ref.invitee_phone,
+        status: ref.status as ReferralData['status'],
+        joined_at: ref.joined_at,
+        created_at: ref.created_at,
+        reward_days: ref.reward_days,
+        referral_source: ref.referral_source,
+        group_id: ref.group_id,
+        group_name: ref.group_name
+      }));
+
+      setReferrals(unifiedReferrals);
       
       if (stats && stats.length > 0) {
         const stat = stats[0];
@@ -82,15 +99,14 @@ export function useReferrals() {
         setSuccessfulReferrals(stat.successful_referrals);
       } else {
         // fallback للحساب اليدوي
-        const totalCount = data?.length || 0;
-        const successfulCount = data?.filter(ref => ref.status === 'joined').length || 0;
+        const totalCount = unifiedReferrals.length;
+        const successfulCount = unifiedReferrals.filter(ref => ref.status === 'joined').length;
         setTotalReferrals(totalCount);
         setSuccessfulReferrals(successfulCount);
       }
     } catch (error) {
       console.error("Error fetching referrals:", error);
       toast.error("خطأ في جلب بيانات الإحالات");
-      // تعيين قيم افتراضية في حالة الخطأ
       setReferrals([]);
       setTotalReferrals(0);
       setSuccessfulReferrals(0);
@@ -211,7 +227,7 @@ export function useReferrals() {
           tier_at_time: currentTier?.tier_name || "المبتدئ",
           original_reward_days: baseRewardDays,
           bonus_applied: bonusMultiplier > 1,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         })
         .select()
         .single();
@@ -264,7 +280,6 @@ export function useReferrals() {
           });
       } catch (sourceError) {
         console.error("Error logging referral source:", sourceError);
-        // لا نوقف العملية بسبب خطأ في التتبع
       }
 
       // تحديث قائمة الإحالات
@@ -287,6 +302,27 @@ export function useReferrals() {
     if (totalReferrals === 0) return 0;
     return Math.round((successfulReferrals / totalReferrals) * 100);
   }, [totalReferrals, successfulReferrals]);
+
+  // Get statistics by source
+  const getStatsBySource = useCallback(() => {
+    const personal = referrals.filter(r => r.referral_source === 'manual' || !r.referral_source);
+    const group = referrals.filter(r => r.referral_source === 'group_invite');
+    
+    return {
+      personal: {
+        total: personal.length,
+        joined: personal.filter(r => r.status === 'joined').length,
+        pending: personal.filter(r => r.status === 'pending').length,
+        rewardDays: personal.reduce((sum, r) => sum + (r.status === 'joined' ? (r.reward_days || 0) : 0), 0)
+      },
+      group: {
+        total: group.length,
+        joined: group.filter(r => r.status === 'joined').length,
+        pending: group.filter(r => r.status === 'pending').length,
+        rewardDays: group.reduce((sum, r) => sum + (r.status === 'joined' ? (r.reward_days || 0) : 0), 0)
+      }
+    };
+  }, [referrals]);
 
   // إعادة إرسال دعوة الإحالة
   const resendReferralInvite = useCallback(async (referralId: string) => {
@@ -407,6 +443,7 @@ export function useReferrals() {
     deleteReferral,
     getReferralLink,
     getSuccessRate,
+    getStatsBySource,
     refresh: () => {
       fetchReferralCode();
       fetchReferrals();

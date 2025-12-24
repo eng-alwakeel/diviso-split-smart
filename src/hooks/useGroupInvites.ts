@@ -10,6 +10,7 @@ export interface GroupInvite {
   status: "pending" | "sent" | "accepted" | "revoked" | "expired";
   created_at: string;
   created_by: string;
+  referral_id?: string | null;
 }
 
 export function useGroupInvites(groupId?: string) {
@@ -69,7 +70,98 @@ export function useGroupInvites(groupId?: string) {
         return { error: "already_invited" };
       }
 
-      // Create invite
+      // Determine if it's phone or email
+      const isPhone = /^[\+]?[\d\s\-\(\)]+$/.test(phoneOrEmail);
+      
+      // Format phone for referral system
+      let formattedPhone = phoneOrEmail;
+      if (isPhone) {
+        formattedPhone = phoneOrEmail.replace(/\s+/g, '').replace(/-/g, '');
+        if (formattedPhone.startsWith('0')) {
+          formattedPhone = '+966' + formattedPhone.substring(1);
+        } else if (formattedPhone.startsWith('966')) {
+          formattedPhone = '+' + formattedPhone;
+        } else if (!formattedPhone.startsWith('+966') && !formattedPhone.startsWith('+')) {
+          formattedPhone = '+966' + formattedPhone;
+        }
+      }
+
+      // Get user's referral code for creating referral record
+      const { data: referralCodeData } = await supabase
+        .from("user_referral_codes")
+        .select("referral_code")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      // Get user's current tier for bonus calculation
+      const { data: tierData } = await supabase.rpc('get_user_referral_tier', {
+        p_user_id: user.id
+      });
+
+      const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+      
+      // Get bonus multiplier from tier
+      let bonusMultiplier = 1;
+      if (currentTier?.tier_name) {
+        const { data: tierDetails } = await supabase
+          .from('referral_tiers')
+          .select('bonus_multiplier')
+          .eq('tier_name', currentTier.tier_name)
+          .single();
+        
+        bonusMultiplier = tierDetails?.bonus_multiplier || 1;
+      }
+      
+      const baseRewardDays = 7;
+      const finalRewardDays = Math.floor(baseRewardDays * bonusMultiplier);
+
+      // Create referral record for group invite (to track and reward)
+      let referralId: string | null = null;
+      
+      if (isPhone && referralCodeData?.referral_code) {
+        // Check if referral already exists
+        const { data: existingReferral } = await supabase
+          .from("referrals")
+          .select("id")
+          .eq("inviter_id", user.id)
+          .eq("invitee_phone", formattedPhone)
+          .in("status", ["pending", "joined"])
+          .maybeSingle();
+
+        if (!existingReferral) {
+          // Create new referral linked to group invite
+          const { data: newReferral, error: referralError } = await supabase
+            .from("referrals")
+            .insert({
+              inviter_id: user.id,
+              invitee_phone: formattedPhone,
+              invitee_name: null,
+              referral_code: referralCodeData.referral_code,
+              status: "pending",
+              reward_days: finalRewardDays,
+              original_reward_days: baseRewardDays,
+              referral_source: "group_invite",
+              tier_at_time: currentTier?.tier_name || "المبتدئ",
+              bonus_applied: bonusMultiplier > 1,
+              group_id: groupId,
+              group_name: groupName || "المجموعة",
+              expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            })
+            .select("id")
+            .single();
+
+          if (!referralError && newReferral) {
+            referralId = newReferral.id;
+            console.log(`Created referral record for group invite: ${referralId}`);
+          } else {
+            console.error("Error creating referral for group invite:", referralError);
+          }
+        } else {
+          referralId = existingReferral.id;
+        }
+      }
+
+      // Create invite with referral link
       const { data: inviteData, error: inviteError } = await supabase
         .from("invites")
         .insert({
@@ -77,20 +169,18 @@ export function useGroupInvites(groupId?: string) {
           phone_or_email: phoneOrEmail,
           invited_role: role,
           created_by: user.id,
-          status: "pending"
+          status: "pending",
+          referral_id: referralId
         })
         .select()
         .single();
 
       if (inviteError) throw inviteError;
 
-      // Determine if it's phone or email
-      const isPhone = /^[\+]?[\d\s\-\(\)]+$/.test(phoneOrEmail);
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(phoneOrEmail);
       
       // Send based on method and type
       if (method === "smart" && isPhone) {
-        // Use smart invite for phones
         const { error: smartError } = await supabase.functions.invoke('smart-invite', {
           body: {
             groupId,
@@ -104,7 +194,6 @@ export function useGroupInvites(groupId?: string) {
           console.error("Smart invite error:", smartError);
         }
       } else if (method === "sms" && isPhone) {
-        // Send SMS invite
         const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
           body: {
             phone: phoneOrEmail,
@@ -118,7 +207,6 @@ export function useGroupInvites(groupId?: string) {
           console.error("SMS error:", smsError);
         }
       } else if (method === "email" && isEmail) {
-        // Send email invite
         const { error: emailError } = await supabase.functions.invoke('send-email-invite', {
           body: {
             email: phoneOrEmail,
@@ -139,10 +227,14 @@ export function useGroupInvites(groupId?: string) {
         .update({ status: "sent" })
         .eq("id", inviteData.id);
 
-      toast.success("تم إرسال الدعوة بنجاح!");
-      await fetchInvites(); // Refresh invites
+      const rewardMessage = referralId 
+        ? ` (ستحصل على ${finalRewardDays} أيام مجانية عند انضمامه!)`
+        : "";
       
-      return { success: true, data: inviteData };
+      toast.success(`تم إرسال الدعوة بنجاح!${rewardMessage}`);
+      await fetchInvites();
+      
+      return { success: true, data: inviteData, referralId };
     } catch (error) {
       console.error("Error sending invite:", error);
       toast.error("خطأ في إرسال الدعوة");
