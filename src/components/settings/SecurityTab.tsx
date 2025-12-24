@@ -8,6 +8,7 @@ import { Key, Eye, EyeOff, Save, Trash2 } from "lucide-react";
 import { useSecureValidation } from "@/hooks/useSecureValidation";
 import { useSecurityAudit } from "@/hooks/useSecurityAudit";
 import { TestMessageBirdButton } from "./TestMessageBirdButton";
+import { useTranslation } from "react-i18next";
 
 interface SecurityTabProps {
   passwordData: {
@@ -28,6 +29,7 @@ export function SecurityTab({
   passwordLoading,
   deleteAccount
 }: SecurityTabProps) {
+  const { t } = useTranslation(['settings']);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -58,26 +60,26 @@ export function SecurityTab({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5 text-accent" />
-            تغيير كلمة المرور
+            {t('settings:security.title')}
           </CardTitle>
-          <CardDescription>قم بتحديث كلمة المرور الخاصة بك</CardDescription>
+          <CardDescription>{t('settings:security.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword" className="text-foreground">كلمة المرور الحالية</Label>
+            <Label htmlFor="currentPassword" className="text-foreground">{t('settings:security.current_password')}</Label>
             <div className="relative">
               <Input
                 id="currentPassword"
                 type={showPasswords.current ? "text" : "password"}
                 value={passwordData.currentPassword}
                 onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pr-10"
+                className="bg-background/50 border-border text-foreground pe-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                 onClick={() => setShowPasswords(prev => ({...prev, current: !prev.current}))}
               >
                 {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -86,20 +88,20 @@ export function SecurityTab({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newPassword" className="text-foreground">كلمة المرور الجديدة</Label>
+            <Label htmlFor="newPassword" className="text-foreground">{t('settings:security.new_password')}</Label>
             <div className="relative">
               <Input
                 id="newPassword"
                 type={showPasswords.new ? "text" : "password"}
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pr-10"
+                className="bg-background/50 border-border text-foreground pe-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                 onClick={() => setShowPasswords(prev => ({...prev, new: !prev.new}))}
               >
                 {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -108,20 +110,20 @@ export function SecurityTab({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-foreground">تأكيد كلمة المرور الجديدة</Label>
+            <Label htmlFor="confirmPassword" className="text-foreground">{t('settings:security.confirm_password')}</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showPasswords.confirm ? "text" : "password"}
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pr-10"
+                className="bg-background/50 border-border text-foreground pe-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
                 onClick={() => setShowPasswords(prev => ({...prev, confirm: !prev.confirm}))}
               >
                 {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -136,7 +138,7 @@ export function SecurityTab({
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              حفظ كلمة المرور
+              {t('settings:security.save_password')}
             </Button>
           </div>
         </CardContent>
@@ -148,28 +150,28 @@ export function SecurityTab({
       {/* Account Actions */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-foreground">إدارة الحساب</CardTitle>
-          <CardDescription>خيارات حسابك والأمان</CardDescription>
+          <CardTitle className="text-foreground">{t('settings:security.account_management')}</CardTitle>
+          <CardDescription>{t('settings:security.account_options')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="gap-2 w-full">
                 <Trash2 className="w-4 h-4" />
-                حذف الحساب
+                {t('settings:security.delete_account')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>حذف الحساب نهائياً</AlertDialogTitle>
+                <AlertDialogTitle>{t('settings:security.delete_confirm_title')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  تحذير: هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك ومجموعاتك نهائياً.
+                  {t('settings:security.delete_confirm_desc')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogCancel>{t('settings:security.cancel')}</AlertDialogCancel>
                 <AlertDialogAction onClick={deleteAccount} className="bg-destructive text-destructive-foreground">
-                  حذف نهائي
+                  {t('settings:security.delete_permanent')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

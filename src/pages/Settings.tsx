@@ -85,7 +85,7 @@ const Settings = () => {
     avatar: "",
     avatarUrl: "",
     joinDate: "",
-    plan: "مجاني"
+    plan: t('settings:plans.free')
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -109,7 +109,7 @@ const Settings = () => {
             name: profileData.name || profileData.display_name || "",
             email: user.email || "",
             phone: profileData.phone || "",
-            avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('user.default_initial'),
+            avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('common:user.default_initial'),
             avatarUrl: profileData.avatar_url || "",
             joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US'),
             plan: getPlanDisplayName(subscription?.plan || 'free')
@@ -119,23 +119,23 @@ const Settings = () => {
     };
     
     loadProfile();
-  }, [subscription]);
+  }, [subscription, i18n.language]);
 
   const validateProfile = () => {
     const errors: Record<string, string> = {};
     
     if (!profile.name.trim()) {
-      errors.name = "الاسم مطلوب";
+      errors.name = t('settings:validation.name_required');
     }
     
     if (!profile.email.trim()) {
-      errors.email = "البريد الإلكتروني مطلوب";
+      errors.email = t('settings:validation.email_required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
-      errors.email = "البريد الإلكتروني غير صحيح";
+      errors.email = t('settings:validation.email_invalid');
     }
     
     if (profile.phone && !/^[+]?[0-9\s-()]{10,}$/.test(profile.phone)) {
-      errors.phone = "رقم الجوال غير صحيح";
+      errors.phone = t('settings:validation.phone_invalid');
     }
     
     setValidationErrors(errors);
@@ -165,14 +165,14 @@ const Settings = () => {
         if (error) throw error;
         
         toast({
-          title: t('toast.save_success'),
-          description: t('toast.settings_saved_description'),
+          title: t('common:toast.save_success'),
+          description: t('common:toast.settings_saved_description'),
         });
       }
     } catch (error) {
       toast({
-        title: t('error'),
-        description: t('toast.settings_error'),
+        title: t('common:error'),
+        description: t('common:toast.settings_error'),
         variant: "destructive"
       });
     }
@@ -181,8 +181,8 @@ const Settings = () => {
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: t('error'),
-        description: isRTL ? "كلمة المرور الجديدة غير متطابقة" : "New password does not match",
+        title: t('common:error'),
+        description: t('settings:validation.password_mismatch'),
         variant: "destructive"
       });
       return;
@@ -219,8 +219,8 @@ const Settings = () => {
       if (error) throw error;
 
       toast({
-        title: "تم حذف الحساب",
-        description: "تم حذف حسابك نهائياً",
+        title: t('settings:toast.account_deleted'),
+        description: t('settings:toast.account_deleted_desc'),
         variant: "destructive"
       });
       
@@ -229,9 +229,9 @@ const Settings = () => {
       navigate('/');
     } catch (error) {
       console.error('Error deleting account:', error);
-      const errorMessage = error.message || 'حدث خطأ أثناء حذف الحساب';
+      const errorMessage = error.message || t('settings:toast.cancel_error');
       toast({
-        title: "خطأ في حذف الحساب",
+        title: t('settings:toast.delete_error'),
         description: errorMessage,
         variant: "destructive"
       });
@@ -240,24 +240,21 @@ const Settings = () => {
 
   const logout = async () => {
     try {
-      // تنظيف شامل للـ session
       await supabase.auth.signOut();
-      
-      // مسح localStorage بشكل صريح
       localStorage.removeItem('supabase.auth.token');
       localStorage.clear();
       
       toast({
-        title: "تم تسجيل الخروج بنجاح",
-        description: "سيتم تحويلك للصفحة الرئيسية",
+        title: t('settings:toast.logout_success'),
+        description: t('settings:toast.logout_redirect'),
       });
       
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast({
-        title: "خطأ في تسجيل الخروج",
-        description: "حدث خطأ، يرجى المحاولة مرة أخرى",
+        title: t('settings:toast.logout_error'),
+        description: t('settings:toast.logout_error_desc'),
         variant: "destructive"
       });
     }
@@ -268,27 +265,27 @@ const Settings = () => {
     if (result.error) {
       if (result.error === 'trial_exists') {
         toast({
-          title: "تجربة موجودة مسبقاً",
-          description: "لديك تجربة مجانية نشطة بالفعل",
+          title: t('settings:errors.trial_exists'),
+          description: t('settings:errors.trial_exists_description'),
           variant: "destructive"
         });
       } else if (result.error === 'trial_expired') {
         toast({
-          title: "انتهت فترة التجربة",
-          description: "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
+          title: t('settings:errors.trial_expired'),
+          description: t('settings:errors.trial_expired_description'),
           variant: "destructive"
         });
       } else {
         toast({
-          title: "خطأ",
-          description: "حدث خطأ أثناء بدء التجربة المجانية",
+          title: t('common:error'),
+          description: t('settings:errors.start_trial_error'),
           variant: "destructive"
         });
       }
     } else {
       toast({
-        title: "تم بدء التجربة المجانية!",
-        description: `تم تفعيل باقة ${getPlanDisplayName(plan)} لمدة 7 أيام`,
+        title: t('settings:success.trial_started'),
+        description: t('settings:success.trial_started_description', { plan: getPlanDisplayName(plan) }),
       });
       await refresh();
     }
@@ -299,21 +296,21 @@ const Settings = () => {
     if (result.error) {
       if (result.error === 'trial_expired') {
         toast({
-          title: "انتهت فترة التجربة",
-          description: "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
+          title: t('settings:errors.trial_expired'),
+          description: t('settings:errors.trial_expired_description'),
           variant: "destructive"
         });
       } else {
         toast({
-          title: "خطأ",
-          description: "حدث خطأ أثناء تبديل الباقة",
+          title: t('common:error'),
+          description: t('settings:errors.switch_plan_error'),
           variant: "destructive"
         });
       }
     } else {
       toast({
-        title: "تم تبديل الباقة!",
-        description: `تم التبديل إلى باقة ${getPlanDisplayName(plan)} بنجاح`,
+        title: t('settings:success.plan_switched'),
+        description: t('settings:success.plan_switched_description', { plan: getPlanDisplayName(plan) }),
       });
       await refresh();
     }
@@ -323,14 +320,14 @@ const Settings = () => {
     const result = await cancelSubscription();
     if (result.error) {
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إلغاء الاشتراك",
+        title: t('common:error'),
+        description: t('settings:errors.cancel_error'),
         variant: "destructive"
       });
     } else {
       toast({
-        title: "تم الإلغاء!",
-        description: "تم إلغاء اشتراكك بنجاح",
+        title: t('settings:success.subscription_canceled'),
+        description: t('settings:success.subscription_canceled_description'),
       });
       await refresh();
     }
@@ -354,11 +351,11 @@ const Settings = () => {
               onClick={() => navigate('/dashboard')}
               className="mb-4"
             >
-              <ArrowRight className="w-4 h-4 ml-2" />
-              العودة للوحة التحكم
+              <BackArrow className="w-4 h-4 me-2" />
+              {t('settings:back_to_dashboard')}
             </Button>
-            <h1 className="text-3xl font-bold mb-2">الإعدادات</h1>
-            <p className="text-muted-foreground">إدارة حسابك وتخصيص التطبيق</p>
+            <h1 className="text-3xl font-bold mb-2">{t('settings:title')}</h1>
+            <p className="text-muted-foreground">{t('settings:description')}</p>
           </div>
 
           {/* Dev Tools - Only in Development */}
@@ -371,32 +368,32 @@ const Settings = () => {
           <TabsList className="w-full">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              <span className="hidden sm:inline">الملف الشخصي</span>
+              <span className="hidden sm:inline">{t('settings:tabs.profile')}</span>
             </TabsTrigger>
             <TabsTrigger value="subscription" className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">الاشتراك</span>
+              <span className="hidden sm:inline">{t('settings:tabs.subscription')}</span>
             </TabsTrigger>
             <TabsTrigger value="family" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">العائلة</span>
+              <span className="hidden sm:inline">{t('settings:tabs.family')}</span>
             </TabsTrigger>
             <TabsTrigger value="language" className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
-              <span className="hidden sm:inline">اللغة</span>
+              <span className="hidden sm:inline">{t('settings:tabs.language')}</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline">الإشعارات</span>
+              <span className="hidden sm:inline">{t('settings:tabs.notifications')}</span>
             </TabsTrigger>
             <TabsTrigger value="privacy" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
-              <span className="hidden sm:inline">الأمان</span>
+              <span className="hidden sm:inline">{t('settings:tabs.privacy')}</span>
             </TabsTrigger>
             {adminData?.isAdmin && (
               <TabsTrigger value="admin" className="flex items-center gap-2 text-primary">
                 <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">الإدارة</span>
+                <span className="hidden sm:inline">{t('settings:tabs.admin')}</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -455,10 +452,10 @@ const Settings = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-foreground">
                         <Users className="w-5 h-5 text-accent" />
-                        ترقية للخطة العائلية
+                        {t('settings:family.upgrade_title')}
                       </CardTitle>
                       <CardDescription>
-                        احصل على الخطة العائلية لإدارة أعضاء عائلتك ومشاركة الميزات معهم
+                        {t('settings:family.upgrade_description')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -469,15 +466,15 @@ const Settings = () => {
                             className="w-full"
                             disabled={loading}
                           >
-                            {loading ? "جاري البدء..." : "بدء التجربة المجانية للخطة العائلية"}
+                            {loading ? t('settings:family.starting_trial') : t('settings:family.start_trial')}
                           </Button>
                         )}
                         <Button 
-                          onClick={() => navigate('/pricing-protected')}
                           variant="outline"
-                          className="w-full border-border text-foreground hover:bg-accent/20"
+                          onClick={() => navigate('/pricing')}
+                          className="w-full"
                         >
-                          عرض جميع الباقات والأسعار
+                          {t('settings:family.view_plans')}
                         </Button>
                       </div>
                     </CardContent>
@@ -487,100 +484,55 @@ const Settings = () => {
             </div>
           </TabsContent>
 
-          {/* Language & Currency Tab */}
+          {/* Language Tab */}
           <TabsContent value="language" className="space-y-6">
             <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Globe className="w-5 h-5 text-accent" />
-                  اللغة والعملة
+                  {t('settings:language_currency.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-foreground">اللغة</Label>
-                    <Select 
-                      value={settings.language} 
-                      onValueChange={(value) => saveSettings({language: value})}
-                    >
-                      <SelectTrigger className="bg-background/50 border-border text-foreground">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ar">العربية</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-base font-medium text-foreground">العملة المفضلة</Label>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        اختر العملة التي تريد استخدامها في التطبيق
-                      </p>
-                      <div className="flex gap-2">
-                        <CurrencySelector
-                          currencies={currencies}
-                          value={settings.currency}
-                          onValueChange={(currency) => saveSettings({ currency })}
-                          placeholder="اختر العملة المفضلة..."
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={updateExchangeRates}
-                          disabled={currencyLoading}
-                          className="px-3"
-                          title="تحديث أسعار الصرف"
-                        >
-                          {currencyLoading ? (
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <RefreshCw className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      
-                      {settings.currency && (
-                        <div className="mt-3 p-3 bg-muted/30 border border-border/50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            {currencies.find(c => c.code === settings.currency)?.flag_emoji && (
-                              <span className="text-lg">
-                                {currencies.find(c => c.code === settings.currency)?.flag_emoji}
-                              </span>
-                            )}
-                            <span className="font-bold text-lg">
-                              {currencies.find(c => c.code === settings.currency)?.symbol}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              العملة المحددة: {currencies.find(c => c.code === settings.currency)?.name}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <p className="text-sm text-muted-foreground mt-2">
-                        ستظهر جميع المبالغ محولة إلى العملة المفضلة
-                      </p>
-                    </div>
-                  </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">{t('settings:language_currency.language_label')}</Label>
+                  <Select 
+                    value={i18n.language} 
+                    onValueChange={(value) => changeLanguage(value)}
+                  >
+                    <SelectTrigger className="bg-background/50 border-border text-foreground">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ar">العربية</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <Button 
-                  onClick={() => saveSettings({})} 
-                  variant="default"
-                  disabled={settingsLoading}
-                >
-                  {settingsLoading ? (
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
-                  ) : (
-                    <Save className="w-4 h-4 ml-2" />
-                  )}
-                  حفظ الإعدادات
-                </Button>
+                <div className="space-y-2">
+                  <Label className="text-foreground">{t('settings:language_currency.currency_label')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('settings:language_currency.currency_description')}</p>
+                  <CurrencySelector
+                    value={settings?.currency || 'SAR'}
+                    onChange={(value) => saveSettings({ currency: value })}
+                    currencies={currencies}
+                    placeholder={t('settings:language_currency.currency_placeholder')}
+                    disabled={currencyLoading}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">{t('settings:language_currency.currency_note')}</p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={updateExchangeRates}
+                    disabled={currencyLoading}
+                  >
+                    <RefreshCw className={`w-4 h-4 me-2 ${currencyLoading ? 'animate-spin' : ''}`} />
+                    {t('settings:language_currency.refresh_rates')}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -591,72 +543,56 @@ const Settings = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <Bell className="w-5 h-5 text-accent" />
-                  إعدادات الإشعارات
+                  {t('settings:notifications.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">إشعارات البريد الإلكتروني</p>
-                      <p className="text-sm text-muted-foreground">استقبال الإشعارات عبر البريد</p>
-                    </div>
-                    <Switch
-                      checked={settings.emailNotifications}
-                      onCheckedChange={(checked) => saveSettings({emailNotifications: checked})}
-                    />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-foreground">{t('settings:notifications.email.title')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('settings:notifications.email.description')}</p>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">الإشعارات الفورية</p>
-                      <p className="text-sm text-muted-foreground">إشعارات على الهاتف</p>
-                    </div>
-                    <Switch
-                      checked={settings.pushNotifications}
-                      onCheckedChange={(checked) => saveSettings({pushNotifications: checked})}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">تذكير المصاريف</p>
-                      <p className="text-sm text-muted-foreground">تذكيرات لإدخال المصاريف</p>
-                    </div>
-                    <Switch
-                      checked={settings.expenseReminders}
-                      onCheckedChange={(checked) => saveSettings({expenseReminders: checked})}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">التقارير الأسبوعية</p>
-                      <p className="text-sm text-muted-foreground">ملخص أسبوعي للمصاريف</p>
-                    </div>
-                    <Switch
-                      checked={settings.weeklyReports}
-                      onCheckedChange={(checked) => saveSettings({weeklyReports: checked})}
-                    />
-                  </div>
+                  <Switch
+                    checked={settings?.email_notifications ?? true}
+                    onCheckedChange={(checked) => saveSettings({ email_notifications: checked })}
+                  />
                 </div>
 
-                <Button 
-                  onClick={() => saveSettings({})} 
-                  variant="default"
-                  disabled={settingsLoading}
-                >
-                  {settingsLoading ? (
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ml-2" />
-                  ) : (
-                    <Save className="w-4 h-4 ml-2" />
-                  )}
-                  حفظ الإعدادات
-                </Button>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-foreground">{t('settings:notifications.push.title')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('settings:notifications.push.description')}</p>
+                  </div>
+                  <Switch
+                    checked={settings?.push_notifications ?? true}
+                    onCheckedChange={(checked) => saveSettings({ push_notifications: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-foreground">{t('settings:notifications.expense_reminders.title')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('settings:notifications.expense_reminders.description')}</p>
+                  </div>
+                  <Switch
+                    checked={settings?.expense_reminders ?? true}
+                    onCheckedChange={(checked) => saveSettings({ expense_reminders: checked })}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-foreground">{t('settings:notifications.weekly_reports.title')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('settings:notifications.weekly_reports.description')}</p>
+                  </div>
+                  <Switch
+                    checked={settings?.weekly_reports ?? true}
+                    onCheckedChange={(checked) => saveSettings({ weekly_reports: checked })}
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
 
           {/* Privacy/Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
@@ -672,34 +608,30 @@ const Settings = () => {
           {/* Admin Tab */}
           {adminData?.isAdmin && (
             <TabsContent value="admin" className="space-y-6">
-              <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 border border-primary/20 shadow-card rounded-2xl backdrop-blur-sm">
+              <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <Shield className="w-5 h-5 text-primary" />
-                    لوحة التحكم الإدارية
+                    {t('settings:admin.title')}
                   </CardTitle>
-                  <CardDescription>
-                    الوصول إلى أدوات الإدارة والإحصائيات المتقدمة للنظام
-                  </CardDescription>
+                  <CardDescription>{t('settings:admin.description')}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <Button 
-                    onClick={() => navigate('/admin-dashboard')}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                    size="lg"
-                  >
-                    <Shield className="w-5 h-5 ml-2" />
-                    دخول لوحة التحكم الإدارية
+                <CardContent>
+                  <Button onClick={() => navigate('/admin')}>
+                    {t('settings:admin.enter_dashboard')}
                   </Button>
                 </CardContent>
               </Card>
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Bottom spacing for mobile */}
+        <div className="h-24 lg:hidden" />
         </div>
       </UnifiedAdLayout>
       
-      <div className="h-32 lg:hidden" />
+      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   );
