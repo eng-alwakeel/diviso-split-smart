@@ -1,0 +1,60 @@
+{
+  "title": "المصاريف",
+  "my_expenses": "مصاريفي",
+  "add": "إضافة مصروف",
+  "add_new": "إضافة مصروف جديد",
+  "edit": "تعديل المصروف",
+  "delete": "حذف المصروف",
+  "no_expenses": "لا توجد مصاريف بعد",
+  "no_expenses_desc": "أضف مصروفاً جديداً للبدء في تتبع نفقاتك",
+  "fields": {
+    "amount": "المبلغ",
+    "description": "الوصف",
+    "description_placeholder": "وصف المصروف",
+    "category": "الفئة",
+    "date": "التاريخ",
+    "payer": "الدافع",
+    "split": "التقسيم",
+    "note": "ملاحظة",
+    "receipt": "الفاتورة"
+  },
+  "split_types": {
+    "equal": "بالتساوي",
+    "exact": "مبالغ محددة",
+    "percentage": "بالنسب المئوية"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "approved": "موافق عليه",
+    "rejected": "مرفوض"
+  },
+  "actions": {
+    "approve": "موافقة",
+    "reject": "رفض",
+    "upload_receipt": "رفع فاتورة",
+    "scan_receipt": "مسح فاتورة"
+  },
+  "filters": {
+    "all": "الكل",
+    "this_week": "هذا الأسبوع",
+    "this_month": "هذا الشهر",
+    "by_category": "حسب الفئة",
+    "by_date": "حسب التاريخ"
+  },
+  "summary": {
+    "total": "الإجمالي",
+    "average": "المتوسط",
+    "count": "عدد المصاريف"
+  },
+  "categories": {
+    "food": "طعام",
+    "transport": "مواصلات",
+    "accommodation": "إقامة",
+    "entertainment": "ترفيه",
+    "shopping": "تسوق",
+    "utilities": "فواتير",
+    "health": "صحة",
+    "education": "تعليم",
+    "other": "أخرى"
+  }
+}

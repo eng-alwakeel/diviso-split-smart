@@ -1,0 +1,54 @@
+{
+  "title": "Groups",
+  "my_groups": "My Groups",
+  "create": "Create Group",
+  "create_new": "Create New Group",
+  "no_groups": "No groups yet",
+  "no_groups_desc": "Create a new group to start tracking shared expenses",
+  "group_name": "Group Name",
+  "group_type": "Group Type",
+  "currency": "Currency",
+  "members": "Members",
+  "member": "Member",
+  "owner": "Owner",
+  "admin": "Admin",
+  "invite": {
+    "title": "Invite Members",
+    "by_link": "Invite by Link",
+    "by_phone": "Invite by Phone",
+    "by_email": "Invite by Email",
+    "copy_link": "Copy Link",
+    "link_copied": "Link Copied",
+    "send_invite": "Send Invite",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "expired": "Expired"
+  },
+  "balance": {
+    "title": "Balances",
+    "you_owe": "You Owe",
+    "owed_to_you": "Owed to You",
+    "settled": "Settled",
+    "settle_up": "Settle Up"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "add": "Add Expense",
+    "no_expenses": "No expenses yet",
+    "total": "Total"
+  },
+  "settings": {
+    "title": "Group Settings",
+    "edit": "Edit Group",
+    "archive": "Archive Group",
+    "delete": "Delete Group",
+    "leave": "Leave Group"
+  },
+  "types": {
+    "trip": "Trip",
+    "home": "Home",
+    "event": "Event",
+    "project": "Project",
+    "other": "Other"
+  }
+}

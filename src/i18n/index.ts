@@ -4,10 +4,20 @@ import { initReactI18next } from 'react-i18next';
 // Import Arabic translations
 import arCommon from './locales/ar/common.json';
 import arSettings from './locales/ar/settings.json';
+import arAuth from './locales/ar/auth.json';
+import arDashboard from './locales/ar/dashboard.json';
+import arExpenses from './locales/ar/expenses.json';
+import arGroups from './locales/ar/groups.json';
+import arErrors from './locales/ar/errors.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
 import enSettings from './locales/en/settings.json';
+import enAuth from './locales/en/auth.json';
+import enDashboard from './locales/en/dashboard.json';
+import enExpenses from './locales/en/expenses.json';
+import enGroups from './locales/en/groups.json';
+import enErrors from './locales/en/errors.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -28,17 +38,27 @@ i18n
     resources: {
       ar: {
         common: arCommon,
-        settings: arSettings
+        settings: arSettings,
+        auth: arAuth,
+        dashboard: arDashboard,
+        expenses: arExpenses,
+        groups: arGroups,
+        errors: arErrors
       },
       en: {
         common: enCommon,
-        settings: enSettings
+        settings: enSettings,
+        auth: enAuth,
+        dashboard: enDashboard,
+        expenses: enExpenses,
+        groups: enGroups,
+        errors: enErrors
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors'],
     interpolation: {
       escapeValue: false
     },
