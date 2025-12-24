@@ -202,22 +202,32 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw here as the referral processing is more important
     }
 
-    // Send notification to the inviter (optional)
+    // Get tier info for notification payload
+    const { data: tierData } = await supabaseClient.rpc('get_user_referral_tier', {
+      p_user_id: inviterId
+    });
+    const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
+
+    // Send notification to the inviter
     const { error: notificationError } = await supabaseClient
       .from("notifications")
       .insert({
         user_id: inviterId,
-        type: "referral_completed",
+        type: "referral_joined",
         payload: {
-          invitee_name: userName,
-          reward_days: 7,
-          referral_code: referralCode
+          invitee_name: userName || "صديق جديد",
+          reward_days: rewardDays,
+          referral_code: referralCode,
+          tier_applied: currentTier?.tier_name || "المبتدئ",
+          bonus_multiplier: currentTier?.bonus_multiplier || 1
         }
       });
 
     if (notificationError) {
       console.error("Error creating notification:", notificationError);
     }
+
+    console.log(`📨 Notification sent to inviter: referral_joined`);
 
     console.log("✅ Referral signup processed successfully");
 

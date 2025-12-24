@@ -39,6 +39,8 @@ export default function Notifications() {
     // Navigate based on notification type - don't navigate for group invites as they have their own UI
     if (notification.type === 'group_invite') {
       return;
+    } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
+      navigate('/referral-center');
     } else if (notification.type.includes('expense') && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'new_message' && notification.payload.group_id) {
@@ -58,6 +60,9 @@ export default function Notifications() {
         return '💬';
       case 'group_invite':
         return '👥';
+      case 'referral_joined':
+      case 'referral_completed':
+        return '🎉';
       default:
         return '🔔';
     }
@@ -77,6 +82,9 @@ export default function Notifications() {
         return `${payload.sender_name}: ${payload.content}`;
       case 'group_invite':
         return `دعوة انضمام لمجموعة "${payload.group_name}"`;
+      case 'referral_joined':
+      case 'referral_completed':
+        return `${payload.invitee_name} انضم عبر إحالتك! حصلت على ${payload.reward_days} أيام مجانية`;
       default:
         return 'إشعار جديد';
     }
