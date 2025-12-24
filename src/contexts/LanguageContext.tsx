@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface LanguageContextType {
   currentLanguage: string;
   changeLanguage: (lang: string) => Promise<void>;
   isRTL: boolean;
+  isChanging: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -23,8 +25,9 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'ar');
+  const [isChanging, setIsChanging] = useState(false);
 
   // Load language from user settings on mount
   useEffect(() => {
@@ -64,30 +67,78 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   }, [i18n]);
 
   const changeLanguage = async (lang: string) => {
+    const previousLanguage = currentLanguage;
+    setIsChanging(true);
+    
     try {
+      // Change i18n language first
       await i18n.changeLanguage(lang);
       setCurrentLanguage(lang);
+
+      // Save to localStorage
+      localStorage.setItem('i18nextLng', lang);
 
       // Update user settings in database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase
+        // Check if settings exist
+        const { data: existingSettings } = await supabase
           .from('user_settings')
-          .upsert({
-            user_id: user.id,
-            language: lang,
-            updated_at: new Date().toISOString()
-          });
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingSettings) {
+          // Update existing settings
+          const { error } = await supabase
+            .from('user_settings')
+            .update({ 
+              language: lang, 
+              updated_at: new Date().toISOString() 
+            })
+            .eq('user_id', user.id);
+          
+          if (error) throw error;
+        } else {
+          // Insert new settings with all required fields
+          const { error } = await supabase
+            .from('user_settings')
+            .insert({
+              user_id: user.id,
+              language: lang,
+              currency: 'SAR',
+              email_notifications: true,
+              push_notifications: true,
+              expense_reminders: true,
+              weekly_reports: false,
+              dark_mode: false,
+              two_factor_auth: false
+            });
+          
+          if (error) throw error;
+        }
       }
+
+      // Show success toast
+      toast.success(lang === 'ar' ? 'تم تغيير اللغة بنجاح' : 'Language changed successfully');
+      
     } catch (error) {
       console.error('Error changing language:', error);
+      // Revert to previous language on error
+      await i18n.changeLanguage(previousLanguage);
+      setCurrentLanguage(previousLanguage);
+      localStorage.setItem('i18nextLng', previousLanguage);
+      
+      toast.error(previousLanguage === 'ar' ? 'فشل تغيير اللغة' : 'Failed to change language');
+    } finally {
+      setIsChanging(false);
     }
   };
 
   const isRTL = currentLanguage === 'ar';
 
   return (
-    <LanguageContext.Provider value={{ currentLanguage, changeLanguage, isRTL }}>
+    <LanguageContext.Provider value={{ currentLanguage, changeLanguage, isRTL, isChanging }}>
       {children}
     </LanguageContext.Provider>
   );
