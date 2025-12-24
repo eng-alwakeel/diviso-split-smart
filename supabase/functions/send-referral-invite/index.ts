@@ -56,7 +56,8 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Create the referral invite message in Arabic
-    const inviteLink = `https://diviso.app/referral-signup/${referralCode}`;
+    const siteUrl = Deno.env.get("SITE_URL") || "https://diviso.app";
+    const inviteLink = `${siteUrl}/join/${referralCode}`;
     const message = `
 🎉 مرحباً! 
 
