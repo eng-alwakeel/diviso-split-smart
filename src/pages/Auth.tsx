@@ -297,7 +297,21 @@ const [showPassword, setShowPassword] = useState(false);
         description: successMessage
       });
     } else {
-    console.log('✅ تم التسجيل بالهاتف - الانتقال لصفحة التحقق');
+      console.log('✅ تم التسجيل بالهاتف - إرسال OTP يدوياً...');
+      
+      // إرسال OTP يدوياً بعد إنشاء الحساب لأن signUp مع password لا يرسل SMS
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone,
+        options: { shouldCreateUser: false }
+      });
+      
+      if (otpError) {
+        console.error('❌ خطأ في إرسال OTP:', otpError);
+        // نستمر لصفحة التحقق حتى لو فشل - المستخدم يمكنه الضغط على "إعادة الإرسال"
+      } else {
+        console.log('✅ تم إرسال OTP بنجاح');
+      }
+      
       setMode("verify");
       setResendCountdown(60);
       setCanResend(false);
