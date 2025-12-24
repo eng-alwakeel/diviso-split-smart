@@ -16,7 +16,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import { useTranslation } from "react-i18next";
+
 export default function MyGroups() {
+  const { t } = useTranslation(['common', 'groups']);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
   const {
@@ -34,24 +37,29 @@ export default function MyGroups() {
   const totalGroups = groups.length;
   const adminGroups = groups.filter(g => g.member_role === 'admin' || g.member_role === 'owner').length;
   const totalMembers = groups.reduce((sum, g) => sum + (g.member_count || 0), 0);
+  
   if (error) {
-    return <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-background">
         <AppHeader />
         <div className="page-container">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold">مجموعاتي</h1>
-            <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
+            <h1 className="text-2xl font-bold">{t('groups:my_groups')}</h1>
+            <p className="text-muted-foreground text-sm">{t('groups:my_groups_desc')}</p>
           </div>
           <Alert variant="destructive">
             <AlertDescription>
-              حدث خطأ في تحميل المجموعات. يرجى المحاولة مرة أخرى.
+              {t('groups:load_error')}
             </AlertDescription>
           </Alert>
         </div>
         <BottomNav />
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-background">
+  
+  return (
+    <div className="min-h-screen bg-background">
       <AppHeader />
       
       <UnifiedAdLayout 
@@ -62,8 +70,8 @@ export default function MyGroups() {
         <div className="page-container space-y-6">
           {/* عنوان الصفحة */}
           <div className="text-center">
-            <h1 className="text-2xl font-bold">مجموعاتي</h1>
-            <p className="text-muted-foreground text-sm">إدارة وعرض جميع مجموعاتك</p>
+            <h1 className="text-2xl font-bold">{t('groups:my_groups')}</h1>
+            <p className="text-muted-foreground text-sm">{t('groups:my_groups_desc')}</p>
           </div>
         
         {/* إحصائيات بسيطة */}
@@ -72,15 +80,15 @@ export default function MyGroups() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-primary">{totalGroups}</div>
-                <div className="text-sm text-muted-foreground">المجموعات</div>
+                <div className="text-sm text-muted-foreground">{t('groups:stats.groups')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">{adminGroups}</div>
-                <div className="text-sm text-muted-foreground">أديرها</div>
+                <div className="text-sm text-muted-foreground">{t('groups:stats.managed')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">{totalMembers}</div>
-                <div className="text-sm text-muted-foreground">الأعضاء</div>
+                <div className="text-sm text-muted-foreground">{t('groups:stats.members')}</div>
               </div>
             </div>
           </CardContent>
@@ -92,25 +100,31 @@ export default function MyGroups() {
         {/* شريط البحث وزر الإنشاء */}
         <div className={`${isMobile ? 'space-y-4' : 'flex gap-4 items-center'}`}>
           <div className={`relative ${isMobile ? '' : 'flex-1 max-w-md'}`}>
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input type="text" placeholder="البحث في المجموعات..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+            <Search className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="text" 
+              placeholder={t('groups:search_placeholder')} 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="ps-10" 
+            />
           </div>
           <Button onClick={() => navigate("/create-group")} className={`${isMobile ? 'w-full' : 'shrink-0'}`} size="lg">
-            <Plus className="h-4 w-4 ml-2" />
-            إنشاء مجموعة جديدة
+            <Plus className="h-4 w-4 me-2" />
+            {t('groups:create_new')}
           </Button>
         </div>
 
         {/* قائمة المجموعات */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="active">النشطة</TabsTrigger>
-            <TabsTrigger value="archived">المؤرشفة</TabsTrigger>
+            <TabsTrigger value="active">{t('groups:tabs.active')}</TabsTrigger>
+            <TabsTrigger value="archived">{t('groups:tabs.archived')}</TabsTrigger>
           </TabsList>
           
           <TabsContent value={activeTab} className="space-y-4 mt-4">
             <h2 className="text-lg font-semibold">
-              {activeTab === 'active' ? 'المجموعات النشطة' : 'المجموعات المؤرشفة'} ({filteredGroups.length})
+              {activeTab === 'active' ? t('groups:section_title.active') : t('groups:section_title.archived')} ({filteredGroups.length})
             </h2>
           
           {isLoading ?
@@ -133,15 +147,15 @@ export default function MyGroups() {
             </div> : filteredGroups.length === 0 ? searchQuery ? <Card>
                 <CardContent className="text-center py-8">
                   <Search className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">لا توجد مجموعات تطابق البحث</p>
+                  <p className="text-muted-foreground">{t('groups:no_search_results')}</p>
                 </CardContent>
               </Card> : <Card>
                 <CardContent className="text-center py-8">
                   <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground mb-4">لا توجد مجموعات بعد</p>
+                  <p className="text-muted-foreground mb-4">{t('groups:no_groups')}</p>
                   <Button onClick={() => navigate("/create-group")}>
-                    <Plus className="h-4 w-4 ml-2" />
-                    إنشاء أول مجموعة
+                    <Plus className="h-4 w-4 me-2" />
+                    {t('groups:create_first')}
                   </Button>
                 </CardContent>
               </Card> : <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
@@ -154,8 +168,10 @@ export default function MyGroups() {
 
       <div className="h-32 lg:hidden" />
       <BottomNav />
-    </div>;
+    </div>
+  );
 }
+
 interface GroupCardProps {
   group: {
     id: string;
@@ -170,6 +186,7 @@ interface GroupCardProps {
   isArchived?: boolean;
   isMobile?: boolean;
 }
+
 function GroupCard({
   group,
   onNavigate,
@@ -177,8 +194,11 @@ function GroupCard({
   isArchived,
   isMobile
 }: GroupCardProps) {
+  const { t } = useTranslation(['groups']);
   const isAdmin = group.member_role === 'admin' || group.member_role === 'owner';
-  return <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]">
+  
+  return (
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]">
       <CardHeader className={`${isMobile ? 'pb-3' : 'pb-4'}`}>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -187,14 +207,14 @@ function GroupCard({
             </CardTitle>
             <CardDescription className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               <Users className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-              {group.member_count || 0} عضو
+              {group.member_count || 0} {t('groups:stats.member')}
               <span className="text-muted-foreground">•</span>
               {group.currency}
             </CardDescription>
           </div>
           <div className="flex gap-1">
             {isAdmin && <Badge variant="secondary" className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
-                مدير
+                {t('groups:card.admin')}
               </Badge>}
           </div>
         </div>
@@ -203,32 +223,33 @@ function GroupCard({
       <CardContent className="pt-0">
         <div className={`${isMobile ? 'flex gap-2' : 'grid grid-cols-2 gap-3'}`}>
           <Button size={isMobile ? "sm" : "default"} variant="outline" onClick={() => onNavigate(`/group/${group.id}`)} className="flex-1">
-            <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ml-1`} />
-            عرض
+            <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} me-1`} />
+            {t('groups:card.view')}
           </Button>
           <Button size={isMobile ? "sm" : "default"} variant="outline" onClick={() => onNavigate(`/add-expense?group=${group.id}`)} className="flex-1">
-            <CreditCard className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ml-1`} />
-            مصروف
+            <CreditCard className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} me-1`} />
+            {t('groups:card.expense')}
           </Button>
           {isAdmin && <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size={isMobile ? "sm" : "default"} variant="ghost" className={`hover:bg-muted/50 ${isMobile ? '' : 'col-span-2'}`}>
                   <MoreVertical className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                  {!isMobile && <span className="mr-2">خيارات</span>}
+                  {!isMobile && <span className="ms-2">{t('groups:card.options')}</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
                 <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)} className="cursor-pointer">
-                  <Settings className="h-4 w-4 mr-2" />
-                  الإعدادات
+                  <Settings className="h-4 w-4 me-2" />
+                  {t('groups:card.settings')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onArchive(group.id)} className="cursor-pointer">
-                  <Archive className="h-4 w-4 mr-2" />
-                  {isArchived ? 'استعادة' : 'أرشف'}
+                  <Archive className="h-4 w-4 me-2" />
+                  {isArchived ? t('groups:card.restore') : t('groups:card.archive')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>}
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }

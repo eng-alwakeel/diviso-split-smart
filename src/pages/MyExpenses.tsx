@@ -18,9 +18,11 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppHeader } from "@/components/AppHeader";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import { useTranslation } from "react-i18next";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['common', 'expenses']);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [selectedExpense, setSelectedExpense] = useState<MyExpense | null>(null);
   const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
@@ -86,13 +88,26 @@ const MyExpenses = () => {
     setSelectedExpense(expense);
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return t('expenses:status.approved');
+      case 'pending':
+        return t('expenses:status.pending');
+      case 'rejected':
+        return t('expenses:status.rejected');
+      default:
+        return status;
+    }
+  };
+
   // Show loading while getting user ID, but don't redirect immediately
   if (!currentUserId) {
     return (
       <div className="page-container space-y-6">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+          <p className="text-muted-foreground">{t('expenses:loading_data')}</p>
         </div>
       </div>
     );
@@ -111,9 +126,9 @@ const MyExpenses = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">مصاريفي</h1>
+              <h1 className="text-2xl font-bold">{t('expenses:my_expenses')}</h1>
               <p className="text-muted-foreground">
-                عرض وإدارة جميع مصاريفك الشخصية
+                {t('expenses:my_expenses_desc')}
               </p>
             </div>
             
@@ -124,13 +139,13 @@ const MyExpenses = () => {
                 onClick={refreshExpenses}
                 disabled={loading}
               >
-                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-                تحديث
+                <RefreshCw className={`h-4 w-4 me-1 ${loading ? 'animate-spin' : ''}`} />
+                {t('expenses:refresh')}
               </Button>
               
               <Button onClick={() => navigate('/add-expense')}>
-                <Plus className="h-4 w-4 mr-1" />
-                إضافة مصروف
+                <Plus className="h-4 w-4 me-1" />
+                {t('expenses:add')}
               </Button>
             </div>
           </div>
@@ -146,11 +161,11 @@ const MyExpenses = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="list" className="flex items-center gap-2">
             <List className="h-4 w-4" />
-            قائمة المصاريف
+            {t('expenses:list')}
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            التحليلات
+            {t('expenses:analytics')}
           </TabsTrigger>
         </TabsList>
 
@@ -195,13 +210,13 @@ const MyExpenses = () => {
               <Card>
                 <CardContent className="text-center py-12">
                   <List className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">لا توجد مصاريف</h3>
+                  <h3 className="text-lg font-medium mb-2">{t('expenses:no_expenses')}</h3>
                   <p className="text-muted-foreground mb-4">
-                    لم يتم العثور على أي مصاريف بالفلاتر المحددة
+                    {t('expenses:no_expenses_filtered')}
                   </p>
                   <Button onClick={() => navigate('/add-expense')}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    إضافة أول مصروف
+                    <Plus className="h-4 w-4 me-1" />
+                    {t('expenses:add_first')}
                   </Button>
                 </CardContent>
               </Card>
@@ -231,11 +246,11 @@ const MyExpenses = () => {
                     >
                       {loading ? (
                         <>
-                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                          جاري التحميل...
+                          <RefreshCw className="h-4 w-4 me-1 animate-spin" />
+                          {t('expenses:loading')}
                         </>
                       ) : (
-                        'تحميل المزيد'
+                        t('expenses:load_more')
                       )}
                     </Button>
                   </div>
@@ -252,9 +267,9 @@ const MyExpenses = () => {
             <Card>
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">لا توجد بيانات للتحليل</h3>
+                <h3 className="text-lg font-medium mb-2">{t('expenses:no_analytics_data')}</h3>
                 <p className="text-muted-foreground">
-                  أضف بعض المصاريف لعرض التحليلات والرسوم البيانية
+                  {t('expenses:no_analytics_desc')}
                 </p>
               </CardContent>
             </Card>
@@ -267,30 +282,30 @@ const MyExpenses = () => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">تفاصيل المصروف</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('expenses:details.title')}</h3>
               <div className="space-y-3">
                 <div>
-                  <span className="text-sm text-muted-foreground">الوصف:</span>
+                  <span className="text-sm text-muted-foreground">{t('expenses:details.description')}:</span>
                   <p className="font-medium">{selectedExpense.description || selectedExpense.note_ar}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">المبلغ:</span>
+                  <span className="text-sm text-muted-foreground">{t('expenses:details.amount')}:</span>
                   <p className="font-medium">{selectedExpense.amount.toLocaleString()} {selectedExpense.currency}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">المجموعة:</span>
+                  <span className="text-sm text-muted-foreground">{t('expenses:details.group')}:</span>
                   <p className="font-medium">{selectedExpense.group_name}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground">الحالة:</span>
-                  <p className="font-medium">{selectedExpense.status === 'approved' ? 'مُوافق عليه' : selectedExpense.status === 'pending' ? 'في الانتظار' : 'مرفوض'}</p>
+                  <span className="text-sm text-muted-foreground">{t('expenses:details.status')}:</span>
+                  <p className="font-medium">{getStatusText(selectedExpense.status)}</p>
                 </div>
               </div>
               <Button 
                 onClick={() => setSelectedExpense(null)} 
                 className="w-full mt-4"
               >
-                إغلاق
+                {t('expenses:details.close')}
               </Button>
             </CardContent>
           </Card>
