@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -28,37 +28,17 @@ import { SecurityTab } from "@/components/settings/SecurityTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
-const getPlanDisplayName = (plan: string) => {
-  switch (plan) {
-    case 'personal':
-      return 'شخصي';
-    case 'family':
-      return 'عائلي';
-    default:
-      return 'مجاني';
-  }
-};
 
-const getStatusDisplayName = (status: string) => {
-  switch (status) {
-    case 'trialing':
-      return 'تجربة مجانية';
-    case 'active':
-      return 'نشط';
-    case 'expired':
-      return 'منتهي';
-    case 'canceled':
-      return 'ملغي';
-    default:
-      return 'غير محدد';
-  }
-};
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t, i18n } = useTranslation(['common', 'settings']);
+  const { changeLanguage, isRTL } = useLanguage();
   const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
@@ -68,6 +48,34 @@ const Settings = () => {
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
   
   const [activeTab, setActiveTab] = useState("profile");
+  const BackArrow = isRTL ? ArrowRight : ArrowLeft;
+
+  // Helper functions for plan and status display names
+  const getPlanDisplayName = (plan: string) => {
+    switch (plan) {
+      case 'personal':
+        return t('settings:plans.personal');
+      case 'family':
+        return t('settings:plans.family');
+      default:
+        return t('settings:plans.free');
+    }
+  };
+
+  const getStatusDisplayName = (status: string) => {
+    switch (status) {
+      case 'trialing':
+        return t('settings:status.trialing');
+      case 'active':
+        return t('settings:status.active');
+      case 'expired':
+        return t('settings:status.expired');
+      case 'canceled':
+        return t('settings:status.canceled');
+      default:
+        return t('settings:status.unknown');
+    }
+  };
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [profile, setProfile] = useState({
@@ -101,9 +109,9 @@ const Settings = () => {
             name: profileData.name || profileData.display_name || "",
             email: user.email || "",
             phone: profileData.phone || "",
-            avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || "م",
+            avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('user.default_initial'),
             avatarUrl: profileData.avatar_url || "",
-            joinDate: new Date(user.created_at).toLocaleDateString('ar-SA'),
+            joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US'),
             plan: getPlanDisplayName(subscription?.plan || 'free')
           });
         }
@@ -157,14 +165,14 @@ const Settings = () => {
         if (error) throw error;
         
         toast({
-          title: "تم حفظ البيانات!",
-          description: "تم تحديث معلومات الملف الشخصي بنجاح",
+          title: t('toast.save_success'),
+          description: t('toast.settings_saved_description'),
         });
       }
     } catch (error) {
       toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء حفظ البيانات",
+        title: t('error'),
+        description: t('toast.settings_error'),
         variant: "destructive"
       });
     }
@@ -173,8 +181,8 @@ const Settings = () => {
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "خطأ",
-        description: "كلمة المرور الجديدة غير متطابقة",
+        title: t('error'),
+        description: isRTL ? "كلمة المرور الجديدة غير متطابقة" : "New password does not match",
         variant: "destructive"
       });
       return;

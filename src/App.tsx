@@ -8,6 +8,7 @@ import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
@@ -108,11 +109,13 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AdPreferencesProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AdPreferencesProvider>
+      <LanguageProvider>
+        <AdPreferencesProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AdPreferencesProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 };
