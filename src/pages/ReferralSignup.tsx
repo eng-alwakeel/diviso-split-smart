@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Gift, UserPlus, Users, ArrowRight } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
+import { SEO } from "@/components/SEO";
 
 export default function ReferralSignup() {
   const { referralCode } = useParams<{ referralCode: string }>();
@@ -248,6 +249,12 @@ export default function ReferralSignup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
+      <SEO 
+        title="انضم عبر الإحالة"
+        description="انضم إلى Diviso عبر رابط الإحالة واحصل على 7 أيام مجانية من الباقة المميزة. سجّل الآن وابدأ في تقسيم المصاريف بذكاء."
+        canonical={`https://diviso.app/referral-signup/${referralCode}`}
+        noIndex={true}
+      />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center mb-4">

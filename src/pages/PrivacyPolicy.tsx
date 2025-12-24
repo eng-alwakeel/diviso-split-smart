@@ -3,12 +3,18 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Users, Lock, Eye, Edit, Trash, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
+import { SEO } from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="سياسة الخصوصية"
+        description="اقرأ سياسة الخصوصية لتطبيق Diviso. نحن ملتزمون بحماية خصوصيتك والالتزام بنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية."
+        canonical="https://diviso.app/privacy-policy"
+      />
       <AppHeader />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">

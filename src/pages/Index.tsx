@@ -5,10 +5,16 @@ import { PricingSection } from "@/components/PricingSection";
 import { Footer } from "@/components/Footer";
 import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
 import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="قسّم بذكاء، سافر براحة"
+        description="تطبيق Diviso لإدارة المصاريف المشتركة بذكاء الاصطناعي. قسّم المصاريف بين الأصدقاء والعائلة بطريقة عادلة وذكية."
+        canonical="https://diviso.app/"
+      />
       <Header />
       <HeroSection />
       <FeaturesSection />
