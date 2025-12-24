@@ -1,0 +1,235 @@
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { SEO } from '@/components/SEO';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { 
+  Search, 
+  HelpCircle, 
+  Users, 
+  Receipt, 
+  Shield,
+  ArrowRight,
+  ArrowLeft,
+  Mail
+} from 'lucide-react';
+
+const FAQ = () => {
+  const { t, i18n } = useTranslation('faq');
+  const isRTL = i18n.language === 'ar';
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  const categories = [
+    { id: 'general', icon: HelpCircle, color: 'bg-primary/20 text-primary' },
+    { id: 'groups', icon: Users, color: 'bg-blue-500/20 text-blue-400' },
+    { id: 'expenses', icon: Receipt, color: 'bg-green-500/20 text-green-400' },
+    { id: 'account', icon: Shield, color: 'bg-orange-500/20 text-orange-400' },
+  ];
+
+  const questionsByCategory: Record<string, string[]> = {
+    general: ['what_is_diviso', 'is_free', 'plan_difference', 'currencies', 'offline_access'],
+    groups: ['create_group', 'invite_friends', 'multiple_groups'],
+    expenses: ['add_expense', 'expense_split', 'edit_expense', 'receipt_scan'],
+    account: ['change_password', 'delete_account', 'data_security'],
+  };
+
+  const allQuestions = Object.entries(questionsByCategory).flatMap(([category, questions]) =>
+    questions.map(q => ({ category, id: q }))
+  );
+
+  const filteredQuestions = searchQuery
+    ? allQuestions.filter(({ id }) => {
+        const question = t(`questions.${id}.question`).toLowerCase();
+        const answer = t(`questions.${id}.answer`).toLowerCase();
+        return question.includes(searchQuery.toLowerCase()) || answer.includes(searchQuery.toLowerCase());
+      })
+    : activeCategory
+    ? allQuestions.filter(q => q.category === activeCategory)
+    : allQuestions;
+
+  // Add FAQ Schema for SEO
+  useEffect(() => {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": allQuestions.map(({ id }) => ({
+        "@type": "Question",
+        "name": t(`questions.${id}.question`),
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": t(`questions.${id}.answer`)
+        }
+      }))
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'faq-schema';
+    script.textContent = JSON.stringify(faqSchema);
+    
+    const existingScript = document.getElementById('faq-schema');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    document.head.appendChild(script);
+
+    return () => {
+      const scriptToRemove = document.getElementById('faq-schema');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+    };
+  }, [t, i18n.language]);
+
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+
+  return (
+    <>
+      <SEO 
+        title={t('pageTitle')}
+        description={t('pageDescription')}
+        keywords="الأسئلة الشائعة, FAQ, دعم فني, مساعدة, Diviso help, support"
+        lang={i18n.language as 'ar' | 'en'}
+      />
+      
+      <div className="min-h-screen bg-background">
+        <Header />
+        
+        <main className="page-container">
+          {/* Hero Section */}
+          <section className="text-center py-12 md:py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 mb-6">
+              <HelpCircle className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {t('pageTitle')}
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {t('pageDescription')}
+            </p>
+          </section>
+
+          {/* Search */}
+          <section className="max-w-xl mx-auto mb-8">
+            <div className="relative">
+              <Search className="absolute start-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder={t('searchPlaceholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-12 h-12 text-lg rounded-xl"
+              />
+            </div>
+          </section>
+
+          {/* Category Filters */}
+          <section className="flex flex-wrap justify-center gap-3 mb-10">
+            <Badge
+              variant={activeCategory === null ? "default" : "outline"}
+              className="cursor-pointer px-4 py-2 text-sm"
+              onClick={() => setActiveCategory(null)}
+            >
+              {isRTL ? 'الكل' : 'All'}
+            </Badge>
+            {categories.map(({ id, icon: Icon, color }) => (
+              <Badge
+                key={id}
+                variant={activeCategory === id ? "default" : "outline"}
+                className={`cursor-pointer px-4 py-2 text-sm gap-2 ${activeCategory === id ? '' : color}`}
+                onClick={() => setActiveCategory(id)}
+              >
+                <Icon className="w-4 h-4" />
+                {t(`categories.${id}`)}
+              </Badge>
+            ))}
+          </section>
+
+          {/* FAQ Accordion */}
+          <section className="max-w-3xl mx-auto mb-16">
+            <Accordion type="single" collapsible className="space-y-4">
+              {filteredQuestions.map(({ category, id }) => {
+                const categoryData = categories.find(c => c.id === category);
+                const Icon = categoryData?.icon || HelpCircle;
+                
+                return (
+                  <AccordionItem 
+                    key={id} 
+                    value={id}
+                    className="unified-card px-6 border-none"
+                  >
+                    <AccordionTrigger className="hover:no-underline py-5">
+                      <div className="flex items-center gap-3 text-start">
+                        <div className={`p-2 rounded-lg ${categoryData?.color}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium text-foreground">
+                          {t(`questions.${id}.question`)}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground pb-5 ps-12">
+                      {t(`questions.${id}.answer`)}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+
+            {filteredQuestions.length === 0 && (
+              <div className="text-center py-12">
+                <HelpCircle className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {isRTL ? 'لم يتم العثور على نتائج' : 'No results found'}
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* Contact CTA */}
+          <section className="text-center py-12 mb-8">
+            <div className="unified-card max-w-xl mx-auto p-8">
+              <h2 className="text-xl font-semibold text-foreground mb-3">
+                {t('stillHaveQuestions')}
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                {isRTL 
+                  ? 'فريق الدعم جاهز لمساعدتك على مدار الساعة'
+                  : 'Our support team is ready to help you 24/7'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild>
+                  <a href="mailto:support@diviso.app" className="gap-2">
+                    <Mail className="w-4 h-4" />
+                    {t('contactUs')}
+                  </a>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/" className="gap-2">
+                    {t('backToHome')}
+                    <ArrowIcon className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    </>
+  );
+};
+
+export default FAQ;

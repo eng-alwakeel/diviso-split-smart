@@ -1,0 +1,76 @@
+{
+  "pageTitle": "Frequently Asked Questions",
+  "pageDescription": "Answers to the most common questions about Diviso app",
+  "searchPlaceholder": "Search questions...",
+  "categories": {
+    "general": "General",
+    "groups": "Groups",
+    "expenses": "Expenses",
+    "account": "Account & Security"
+  },
+  "questions": {
+    "what_is_diviso": {
+      "question": "What is Diviso?",
+      "answer": "Diviso is a shared expense management app that helps you split costs with friends and family easily. You can track who owes whom and settle accounts with a single tap."
+    },
+    "is_free": {
+      "question": "Is the app free?",
+      "answer": "Yes! You can use Diviso for free with basic features. We also offer paid plans for advanced features like unlimited groups and advanced reports."
+    },
+    "plan_difference": {
+      "question": "What's the difference between plans?",
+      "answer": "The free plan includes 1 group and 5 members. The Pro plan offers unlimited groups, advanced reports, and AI receipt scanning. The Family plan allows managing family member accounts."
+    },
+    "create_group": {
+      "question": "How do I create a new group?",
+      "answer": "From the dashboard, tap 'Create New Group', enter the group name and select currency, then you can invite members via link, phone number, or email."
+    },
+    "invite_friends": {
+      "question": "How do I invite friends to a group?",
+      "answer": "You can invite friends in multiple ways: share an invite link, send an invitation via phone number, or send an email invitation. Each method allows the invitee to join easily."
+    },
+    "multiple_groups": {
+      "question": "Can I manage multiple groups?",
+      "answer": "Yes! With the Pro plan, you can create and manage unlimited groups. The free plan allows managing one group."
+    },
+    "add_expense": {
+      "question": "How do I add a new expense?",
+      "answer": "From within the group, tap 'Add Expense', enter the amount and description, select a category, then choose how to split among members. You can also attach a receipt photo."
+    },
+    "expense_split": {
+      "question": "How are expenses split?",
+      "answer": "You can split an expense equally among all members, set custom percentages for each member, or choose specific amounts for each person as needed."
+    },
+    "edit_expense": {
+      "question": "Can I edit an expense after adding it?",
+      "answer": "Yes, you can edit any expense you've added. Modified expenses may need approval from affected members depending on group settings."
+    },
+    "change_password": {
+      "question": "How do I change my password?",
+      "answer": "Go to Settings > Security, then tap 'Change Password'. You'll need to enter your current password and then the new one twice to confirm."
+    },
+    "delete_account": {
+      "question": "How do I delete my account?",
+      "answer": "From Settings > Account, you can request to delete your account. All your data will be permanently deleted within 30 days. This action cannot be undone."
+    },
+    "data_security": {
+      "question": "Is my data secure?",
+      "answer": "Yes, we use bank-grade encryption to protect your data. All connections are SSL encrypted, and we follow best security practices. We never share your data with third parties."
+    },
+    "currencies": {
+      "question": "Does the app support different currencies?",
+      "answer": "Yes! Diviso supports all major currencies including SAR, USD, EUR, AED, and more. Exchange rates are updated automatically."
+    },
+    "offline_access": {
+      "question": "Can I use the app offline?",
+      "answer": "You can view previously saved expenses offline, but adding new expenses or updates require an internet connection to sync data."
+    },
+    "receipt_scan": {
+      "question": "How does receipt scanning work?",
+      "answer": "Take a photo of the receipt using your camera, and AI will automatically extract the amount, date, and merchant. You can review the data before saving the expense."
+    }
+  },
+  "stillHaveQuestions": "Still have questions?",
+  "contactUs": "Contact Us",
+  "backToHome": "Back to Home"
+}

@@ -63,9 +63,15 @@ export const Header = () => {
           {/* Right: Navigation / Menu */}
           <div className="justify-self-end flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-6">
+              <Link to="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                كيف يعمل
+              </Link>
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 المزايا
               </a>
+              <Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                الأسئلة الشائعة
+              </Link>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
                 الباقات
               </a>

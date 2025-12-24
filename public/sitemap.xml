@@ -45,4 +45,24 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- صفحة الأسئلة الشائعة -->
+  <url>
+    <loc>https://diviso.app/faq</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/faq?lang=en" />
+    <lastmod>2025-12-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- صفحة كيف يعمل التطبيق -->
+  <url>
+    <loc>https://diviso.app/how-it-works</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/how-it-works" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/how-it-works?lang=en" />
+    <lastmod>2025-12-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 </urlset>

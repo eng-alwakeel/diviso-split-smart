@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 import { 
   Mail, 
   Phone, 
@@ -13,7 +12,7 @@ export const Footer = () => {
     <footer className="bg-gradient-to-b from-muted/50 to-muted">
       <div className="container mx-auto px-4 py-16">
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
@@ -27,6 +26,25 @@ export const Footer = () => {
             <p className="text-muted-foreground">
               إدارة المصاريف المشتركة بذكاء وسهولة. قسّم النفقات واتبع الميزانية مع أصدقائك وعائلتك.
             </p>
+          </div>
+
+          {/* Useful Links */}
+          <div>
+            <h4 className="font-semibold mb-4">روابط مفيدة</h4>
+            <div className="space-y-3 text-muted-foreground">
+              <Link to="/how-it-works" className="block hover:text-foreground transition-colors text-sm">
+                كيف يعمل التطبيق
+              </Link>
+              <Link to="/faq" className="block hover:text-foreground transition-colors text-sm">
+                الأسئلة الشائعة
+              </Link>
+              <Link to="/pricing" className="block hover:text-foreground transition-colors text-sm">
+                الباقات والأسعار
+              </Link>
+              <Link to="/privacy-policy" className="block hover:text-foreground transition-colors text-sm">
+                سياسة الخصوصية
+              </Link>
+            </div>
           </div>
 
           {/* Contact */}
