@@ -13,14 +13,24 @@
     "weekly_expenses": "Weekly Expenses",
     "my_paid": "I Paid",
     "my_owed": "Owed to Me",
-    "currency": "SAR"
+    "currency": "SAR",
+    "net_balance": "Net Balance",
+    "for_you": "For You",
+    "against_you": "You Owe",
+    "this_month": "This Month",
+    "active": "Active",
+    "total": "Total",
+    "total_paid": "Total Paid"
   },
   "quick_actions": {
     "title": "Quick Actions",
     "add_expense": "Add Expense",
     "create_group": "Create Group",
     "my_groups": "My Groups",
-    "my_expenses": "My Expenses"
+    "my_expenses": "My Expenses",
+    "financial_plan": "Financial Plan",
+    "referral_center": "Referral Center",
+    "settings": "Settings"
   },
   "subscription": {
     "title": "Subscription Status",

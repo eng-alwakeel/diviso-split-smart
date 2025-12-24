@@ -13,6 +13,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "react-i18next";
 
 export interface MemberBalance {
   id: string;
@@ -33,6 +34,7 @@ export const InitialBalancesStep = ({
   onBalancesChange, 
   initialBalances 
 }: InitialBalancesStepProps) => {
+  const { t } = useTranslation('groups');
   const [enableInitialBalances, setEnableInitialBalances] = useState(false);
   const [balances, setBalances] = useState<MemberBalance[]>(
     initialBalances.length > 0 ? initialBalances : [
@@ -76,14 +78,7 @@ export const InitialBalancesStep = ({
   };
 
   const isBalanced = () => {
-    return Math.abs(getTotalBalance()) < 0.01; // Allow for small floating point errors
-  };
-
-  const hasValidMembers = () => {
-    return balances.every(member => 
-      member.name.trim() !== '' && 
-      (member.amountPaid !== 0 || member.amountOwed !== 0)
-    );
+    return Math.abs(getTotalBalance()) < 0.01;
   };
 
   const handleToggle = (checked: boolean) => {
@@ -110,17 +105,17 @@ export const InitialBalancesStep = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Calculator className="w-5 h-5 text-accent" />
-            الأرصدة الأولية
+            {t('initial_balances.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label className="text-foreground font-medium">
-                إضافة أرصدة أولية للأعضاء
+                {t('initial_balances.add_initial')}
               </Label>
               <p className="text-sm text-muted-foreground">
-                هل يوجد مبالغ مدفوعة مسبقاً أو مستحقة على الأعضاء؟
+                {t('initial_balances.has_previous')}
               </p>
             </div>
             <Switch
@@ -138,14 +133,16 @@ export const InitialBalancesStep = ({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <DollarSign className="w-5 h-5 text-accent" />
-                إدخال الأرصدة
+                {t('initial_balances.enter_balances')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {balances.map((member, index) => (
                 <div key={member.id} className="p-4 bg-background/30 rounded-lg space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-foreground">العضو {index + 1}</h4>
+                    <h4 className="font-medium text-foreground">
+                      {t('initial_balances.member_number', { number: index + 1 })}
+                    </h4>
                     {balances.length > 1 && (
                       <Button
                         variant="ghost"
@@ -160,9 +157,9 @@ export const InitialBalancesStep = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-foreground">الاسم</Label>
+                      <Label className="text-foreground">{t('initial_balances.name')}</Label>
                       <Input
-                        placeholder="اسم العضو"
+                        placeholder={t('initial_balances.member_name')}
                         value={member.name}
                         onChange={(e) => updateMember(member.id, 'name', e.target.value)}
                         className="bg-background/50 border-border text-foreground"
@@ -170,7 +167,7 @@ export const InitialBalancesStep = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-foreground">رقم الجوال (اختياري)</Label>
+                      <Label className="text-foreground">{t('initial_balances.phone_optional')}</Label>
                       <Input
                         placeholder="966xxxxxxxxx"
                         value={member.phone}
@@ -183,7 +180,7 @@ export const InitialBalancesStep = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-foreground">المبلغ المدفوع مسبقاً</Label>
+                      <Label className="text-foreground">{t('initial_balances.amount_paid')}</Label>
                       <div className="relative">
                         <Input
                           type="number"
@@ -200,7 +197,7 @@ export const InitialBalancesStep = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-foreground">المبلغ المستحق عليه</Label>
+                      <Label className="text-foreground">{t('initial_balances.amount_owed')}</Label>
                       <div className="relative">
                         <Input
                           type="number"
@@ -217,7 +214,7 @@ export const InitialBalancesStep = ({
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-foreground">الرصيد الصافي</Label>
+                      <Label className="text-foreground">{t('initial_balances.net_balance')}</Label>
                       <div className={`p-2 rounded bg-background/50 border border-border text-center font-medium ${
                         calculateNetBalance(member) > 0 ? 'text-green-500' : 
                         calculateNetBalance(member) < 0 ? 'text-red-500' : 'text-foreground'
@@ -234,8 +231,8 @@ export const InitialBalancesStep = ({
                 onClick={addMember}
                 className="w-full border-border text-foreground hover:bg-accent/20"
               >
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة عضو آخر
+                <Plus className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+                {t('initial_balances.add_member')}
               </Button>
             </CardContent>
           </Card>
@@ -243,12 +240,12 @@ export const InitialBalancesStep = ({
           {/* Balance Summary */}
           <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-foreground">ملخص الأرصدة</CardTitle>
+              <CardTitle className="text-foreground">{t('initial_balances.balance_summary')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-foreground">إجمالي الرصيد:</span>
+                  <span className="text-foreground">{t('initial_balances.total_balance')}</span>
                   <span className={`font-bold ${
                     Math.abs(getTotalBalance()) < 0.01 ? 'text-green-500' : 'text-red-500'
                   }`}>
@@ -260,21 +257,21 @@ export const InitialBalancesStep = ({
                   <Alert className="border-green-500/20 bg-green-500/10">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                     <AlertDescription className="text-green-700 dark:text-green-300">
-                      الأرصدة متوازنة! يمكنك المتابعة لإنشاء المجموعة.
+                      {t('initial_balances.balanced_message')}
                     </AlertDescription>
                   </Alert>
                 ) : (
                   <Alert className="border-orange-500/20 bg-orange-500/10">
                     <AlertCircle className="h-4 w-4 text-orange-500" />
                     <AlertDescription className="text-orange-700 dark:text-orange-300">
-                      الأرصدة غير متوازنة. يجب أن يكون مجموع الأرصدة = صفر.
+                      {t('initial_balances.unbalanced_message')}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <div className="text-sm text-muted-foreground">
-                  <p>• الأرقام الموجبة: أشخاص لهم مبالغ (دائنون)</p>
-                  <p>• الأرقام السالبة: أشخاص عليهم مبالغ (مدينون)</p>
+                  <p>• {t('initial_balances.positive_note')}</p>
+                  <p>• {t('initial_balances.negative_note')}</p>
                 </div>
               </div>
             </CardContent>

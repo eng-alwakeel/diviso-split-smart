@@ -1,0 +1,15 @@
+{
+  "title": "الإشعارات",
+  "mark_all_read": "تعليم الكل كمقروء",
+  "no_notifications": "لا توجد إشعارات",
+  "view_all": "عرض جميع الإشعارات",
+  "types": {
+    "expense_created": "{{name}} أضاف مصروف بقيمة {{amount}} {{currency}}",
+    "expense_approved": "تم اعتماد مصروفك بقيمة {{amount}} {{currency}}",
+    "expense_rejected": "تم رفض مصروفك بقيمة {{amount}} {{currency}}",
+    "new_message": "{{name}}: {{content}}",
+    "group_invite": "دعوة انضمام لمجموعة \"{{group}}\"",
+    "referral_joined": "🎉 {{name}} انضم عبر إحالتك! +{{days}} أيام",
+    "new_notification": "إشعار جديد"
+  }
+}

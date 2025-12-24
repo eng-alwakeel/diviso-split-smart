@@ -1,0 +1,77 @@
+{
+  "reached_limit": {
+    "groups": {
+      "title": "Reached Groups Limit",
+      "description": "You have reached the maximum number of groups in the free plan"
+    },
+    "members": {
+      "title": "Reached Members Limit",
+      "description": "You have reached the maximum number of members in the group"
+    },
+    "expenses": {
+      "title": "Reached Expenses Limit",
+      "description": "You have reached the maximum number of monthly expenses"
+    },
+    "invites": {
+      "title": "Reached Invites Limit",
+      "description": "You have reached the maximum number of monthly invites"
+    },
+    "ocr": {
+      "title": "Reached Receipt Scan Limit",
+      "description": "You have reached the maximum number of AI receipt scans"
+    }
+  },
+  "plans": {
+    "personal": {
+      "name": "Personal Plan",
+      "groups": "Unlimited groups",
+      "members": "Unlimited members",
+      "expenses": "Unlimited expenses",
+      "invites": "Unlimited invites",
+      "ocr": "Unlimited scans + smart analysis",
+      "price": "19 SAR",
+      "per_month": "per month"
+    },
+    "family": {
+      "name": "Family Plan",
+      "groups": "Unlimited groups + family management",
+      "members": "Unlimited members + family management",
+      "expenses": "Unlimited expenses + approvals",
+      "invites": "Unlimited invites + permission management",
+      "ocr": "Unlimited scans + advanced reports",
+      "price": "75 SAR",
+      "per_month": "per month"
+    }
+  },
+  "current_usage": "Current Usage",
+  "free_trial": "7-day free trial",
+  "start_trial": "Start Free Trial",
+  "later": "Later",
+  "compare_plans": "Compare Plans",
+  "feature": "Feature",
+  "free": "Free",
+  "current": "Current",
+  "personal": "Personal",
+  "family": "Family",
+  "unlimited": "Unlimited",
+  "try_personal": "Try Personal Free",
+  "try_family": "Try Family Free",
+  "features": {
+    "groups": "Number of groups",
+    "members": "Number of members",
+    "monthly_expenses": "Monthly expenses",
+    "monthly_invites": "Monthly invites",
+    "receipt_scan": "Receipt scanning",
+    "smart_analysis": "Smart analysis",
+    "group_chat": "Group chat",
+    "expense_approval": "Expense approval",
+    "family_management": "Family management"
+  },
+  "limits": {
+    "groups": "3 groups",
+    "members": "5 per group",
+    "expenses": "100 expenses",
+    "invites": "10 invites",
+    "ocr": "5 per month"
+  }
+}
