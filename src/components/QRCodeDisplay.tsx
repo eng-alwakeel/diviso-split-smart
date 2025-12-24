@@ -29,6 +29,11 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     setError('');
 
     try {
+      // Brand color: hsl(73 66% 71%) = #C8F169
+      // Darker version for QR readability: hsl(73 66% 35%) ≈ #6B8A1F
+      const qrMainColor = "#6B8A1F"; // Darker brand color for readability
+      const qrCornerColor = "#5A7519"; // Even darker for corners
+      
       // Create QR code instance
       const qrCode = new QRCodeStyling({
         width: size,
@@ -36,15 +41,15 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
         data: value,
         image: "/favicon.png",
         dotsOptions: {
-          color: "#16A34A",
+          color: qrMainColor,
           type: "rounded"
         },
         cornersSquareOptions: {
-          color: "#15803D",
+          color: qrCornerColor,
           type: "extra-rounded"
         },
         cornersDotOptions: {
-          color: "#16A34A",
+          color: qrMainColor,
           type: "dot"
         },
         backgroundOptions: {
@@ -53,7 +58,8 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
         imageOptions: {
           crossOrigin: "anonymous",
           margin: 6,
-          imageSize: 0.3
+          imageSize: 0.3,
+          hideBackgroundDots: true
         },
         qrOptions: {
           errorCorrectionLevel: 'H'
@@ -265,21 +271,26 @@ function QRCodeLarge({ value, size }: { value: string; size: number }) {
   useEffect(() => {
     if (!value?.trim() || !qrRef.current) return;
 
+    // Brand color: hsl(73 66% 71%) = #C8F169
+    // Darker version for QR readability: hsl(73 66% 35%) ≈ #6B8A1F
+    const qrMainColor = "#6B8A1F";
+    const qrCornerColor = "#5A7519";
+    
     const qrCode = new QRCodeStyling({
       width: size,
       height: size,
       data: value,
       image: "/favicon.png",
       dotsOptions: {
-        color: "#16A34A",
+        color: qrMainColor,
         type: "rounded"
       },
       cornersSquareOptions: {
-        color: "#15803D",
+        color: qrCornerColor,
         type: "extra-rounded"
       },
       cornersDotOptions: {
-        color: "#16A34A",
+        color: qrMainColor,
         type: "dot"
       },
       backgroundOptions: {
@@ -288,7 +299,8 @@ function QRCodeLarge({ value, size }: { value: string; size: number }) {
       imageOptions: {
         crossOrigin: "anonymous",
         margin: 8,
-        imageSize: 0.3
+        imageSize: 0.3,
+        hideBackgroundDots: true
       },
       qrOptions: {
         errorCorrectionLevel: 'H'
