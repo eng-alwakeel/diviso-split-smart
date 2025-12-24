@@ -205,3 +205,52 @@ export const getAppInfo = async () => {
     return null;
   }
 };
+
+// ===== Native Messaging Functions =====
+
+/**
+ * فتح تطبيق الرسائل مع رسالة جاهزة
+ */
+export const openSMSApp = (phone: string, message: string) => {
+  const cleanedPhone = phone.replace(/\D/g, '');
+  const encodedMessage = encodeURIComponent(message);
+  
+  // iOS uses & and Android uses ?
+  const isIOSDevice = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const smsUrl = isIOSDevice 
+    ? `sms:${cleanedPhone}&body=${encodedMessage}`
+    : `sms:${cleanedPhone}?body=${encodedMessage}`;
+  
+  window.location.href = smsUrl;
+};
+
+/**
+ * فتح واتساب مباشرة لرقم معين مع رسالة
+ */
+export const openWhatsAppDirect = (phone: string, message: string) => {
+  // إزالة كل شيء ما عدا الأرقام
+  let cleanedPhone = phone.replace(/\D/g, '');
+  
+  // إضافة رمز السعودية إذا لم يكن موجوداً
+  if (!cleanedPhone.startsWith('966') && cleanedPhone.length === 9) {
+    cleanedPhone = '966' + cleanedPhone;
+  }
+  if (cleanedPhone.startsWith('0')) {
+    cleanedPhone = '966' + cleanedPhone.substring(1);
+  }
+  
+  const encodedMessage = encodeURIComponent(message);
+  const url = `https://wa.me/${cleanedPhone}?text=${encodedMessage}`;
+  
+  window.open(url, '_blank');
+};
+
+/**
+ * فتح تليجرام للمشاركة (لا يدعم رقم محدد مباشرة)
+ */
+export const openTelegramShare = (message: string) => {
+  const encodedMessage = encodeURIComponent(message);
+  const url = `https://t.me/share/url?url=${encodedMessage}`;
+  
+  window.open(url, '_blank');
+};
