@@ -17,7 +17,7 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
-  const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password">("login");
   const [authType, setAuthType] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -26,6 +26,8 @@ const Auth = () => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   
   // Referral code states
   const [referralCode, setReferralCode] = useState("");
@@ -304,6 +306,132 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPasswordEmail = async () => {
+    if (!email) {
+      toast({ title: "خطأ", description: "يرجى إدخال البريد الإلكتروني", variant: "destructive" });
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?mode=reset`,
+    });
+    
+    setLoading(false);
+    if (error) {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    } else {
+      toast({ 
+        title: "تم الإرسال", 
+        description: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني" 
+      });
+    }
+  };
+
+  const handleForgotPasswordPhone = async () => {
+    if (!phone) {
+      toast({ title: "خطأ", description: "يرجى إدخال رقم الهاتف", variant: "destructive" });
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+      options: { shouldCreateUser: false }
+    });
+    
+    setLoading(false);
+    if (error) {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    } else {
+      setMode("reset-password");
+      toast({ 
+        title: "تم الإرسال", 
+        description: "تم إرسال رمز التحقق إلى هاتفك" 
+      });
+    }
+  };
+
+  const handleResetPasswordWithOtp = async () => {
+    if (!otp) {
+      toast({ title: "خطأ", description: "يرجى إدخال رمز التحقق", variant: "destructive" });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({ title: "خطأ", description: "كلمات المرور غير متطابقة", variant: "destructive" });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      return;
+    }
+    
+    setLoading(true);
+    
+    // First verify OTP
+    const { error: otpError } = await supabase.auth.verifyOtp({
+      phone,
+      token: otp,
+      type: 'sms'
+    });
+    
+    if (otpError) {
+      setLoading(false);
+      toast({ title: "خطأ", description: otpError.message, variant: "destructive" });
+      return;
+    }
+    
+    // Then update password
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    
+    setLoading(false);
+    if (updateError) {
+      toast({ title: "خطأ", description: updateError.message, variant: "destructive" });
+    } else {
+      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
+      setMode("login");
+      setNewPassword("");
+      setConfirmPassword("");
+      setOtp("");
+    }
+  };
+
+  // Handle password reset from email link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "reset") {
+      setMode("reset-password");
+    }
+  }, []);
+
+  const handleUpdatePasswordFromEmail = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({ title: "خطأ", description: "كلمات المرور غير متطابقة", variant: "destructive" });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    
+    setLoading(false);
+    if (error) {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
+      setMode("login");
+      setNewPassword("");
+      setConfirmPassword("");
+      navigate("/auth", { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -323,12 +451,15 @@ const Auth = () => {
               </p>
             </div>
             <CardTitle className="text-center">
-              {mode === "login" ? "تسجيل الدخول" : mode === "signup" ? "إنشاء حساب" : 
+              {mode === "login" ? "تسجيل الدخول" : 
+               mode === "signup" ? "إنشاء حساب" : 
+               mode === "forgot-password" ? "نسيت كلمة المرور" :
+               mode === "reset-password" ? "إعادة تعيين كلمة المرور" :
                authType === "phone" ? "تحقق من رقم الهاتف" : "تحقق من البريد الإلكتروني"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mode !== "verify" && (
+            {mode !== "verify" && mode !== "forgot-password" && mode !== "reset-password" && (
               <div className="space-y-3 mb-6">
                 <Button
                   variant="outline"
@@ -355,6 +486,120 @@ const Auth = () => {
                 </div>
               </div>
             )}
+            
+            {/* Forgot Password Mode */}
+            {mode === "forgot-password" && (
+              <div className="space-y-4">
+                <Tabs value={authType} onValueChange={(value) => setAuthType(value as "email" | "phone")} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      البريد الإلكتروني
+                    </TabsTrigger>
+                    <TabsTrigger value="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      رقم الهاتف
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="email" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                      <Input 
+                        id="reset-email" 
+                        type="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        placeholder="example@domain.com"
+                        dir="ltr"
+                        className="text-left"
+                      />
+                    </div>
+                    <Button className="w-full" onClick={handleForgotPasswordEmail} disabled={loading}>
+                      {loading ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
+                    </Button>
+                  </TabsContent>
+                  
+                  <TabsContent value="phone" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-phone">رقم الهاتف</Label>
+                      <PhoneInputWithCountry
+                        value={phone}
+                        onChange={setPhone}
+                        placeholder="501234567"
+                      />
+                    </div>
+                    <Button className="w-full" onClick={handleForgotPasswordPhone} disabled={loading}>
+                      {loading ? "جاري الإرسال..." : "إرسال رمز التحقق"}
+                    </Button>
+                  </TabsContent>
+                </Tabs>
+                
+                <Button variant="outline" className="w-full" onClick={() => setMode("login")}>
+                  العودة لتسجيل الدخول
+                </Button>
+              </div>
+            )}
+            
+            {/* Reset Password Mode (after OTP for phone or email link) */}
+            {mode === "reset-password" && (
+              <div className="space-y-4">
+                {/* Show OTP input only for phone reset */}
+                {authType === "phone" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-otp">رمز التحقق</Label>
+                    <Input 
+                      id="reset-otp" 
+                      value={otp} 
+                      onChange={(e) => setOtp(e.target.value)} 
+                      placeholder="أدخل الرمز المرسل إلى هاتفك"
+                      className="text-center text-lg tracking-widest"
+                      maxLength={6}
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
+                  <Input 
+                    id="new-password" 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    placeholder="••••••••" 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
+                  <Input 
+                    id="confirm-password" 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    placeholder="••••••••" 
+                  />
+                </div>
+                
+                <Button 
+                  className="w-full" 
+                  onClick={authType === "phone" ? handleResetPasswordWithOtp : handleUpdatePasswordFromEmail} 
+                  disabled={loading}
+                >
+                  {loading ? "جاري التحديث..." : "تحديث كلمة المرور"}
+                </Button>
+                
+                <Button variant="outline" className="w-full" onClick={() => {
+                  setMode("login");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setOtp("");
+                }}>
+                  العودة لتسجيل الدخول
+                </Button>
+              </div>
+            )}
+            
             {mode === "verify" ? (
               <>
                 <div className="space-y-2">
@@ -447,6 +692,16 @@ const Auth = () => {
                         placeholder="••••••••" 
                       />
                     </div>
+                    {mode === "login" && (
+                      <Button 
+                        variant="link" 
+                        type="button"
+                        className="text-sm text-primary p-0 h-auto"
+                        onClick={() => setMode("forgot-password")}
+                      >
+                        نسيت كلمة المرور؟
+                      </Button>
+                    )}
                   </TabsContent>
                   
                   <TabsContent value="phone" className="space-y-4 mt-4">
@@ -474,6 +729,16 @@ const Auth = () => {
                         placeholder="••••••••" 
                       />
                     </div>
+                    {mode === "login" && (
+                      <Button 
+                        variant="link" 
+                        type="button"
+                        className="text-sm text-primary p-0 h-auto"
+                        onClick={() => setMode("forgot-password")}
+                      >
+                        نسيت كلمة المرور؟
+                      </Button>
+                    )}
                   </TabsContent>
                 </Tabs>
                 
