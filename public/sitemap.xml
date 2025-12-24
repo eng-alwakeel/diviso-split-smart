@@ -5,7 +5,10 @@
   <!-- الصفحة الرئيسية -->
   <url>
     <loc>https://diviso.app/</loc>
-    <lastmod>2024-12-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://diviso.app/" />
+    <lastmod>2025-12-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -13,7 +16,7 @@
   <!-- صفحة الأسعار -->
   <url>
     <loc>https://diviso.app/pricing</loc>
-    <lastmod>2024-12-24</lastmod>
+    <lastmod>2025-12-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -21,7 +24,7 @@
   <!-- صفحة سياسة الخصوصية -->
   <url>
     <loc>https://diviso.app/privacy-policy</loc>
-    <lastmod>2024-12-24</lastmod>
+    <lastmod>2025-12-24</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -29,7 +32,7 @@
   <!-- صفحة تسجيل الدخول -->
   <url>
     <loc>https://diviso.app/auth</loc>
-    <lastmod>2024-12-24</lastmod>
+    <lastmod>2025-12-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -37,7 +40,7 @@
   <!-- صفحة التسجيل عبر الإحالة -->
   <url>
     <loc>https://diviso.app/referral-signup</loc>
-    <lastmod>2024-12-24</lastmod>
+    <lastmod>2025-12-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
