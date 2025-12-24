@@ -5,8 +5,6 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useLifetimeOffer } from "@/hooks/useLifetimeOffer";
-import { useEffect } from "react";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useNavigate } from "react-router-dom";
@@ -67,38 +65,15 @@ const plans = [
     ],
     buttonText: "اشترك الآن",
     popular: false
-  },
-  {
-    name: "مدى الحياة",
-    icon: Star,
-    priceMonthly: "350",
-    priceYearly: "350",
-    description: "🔥 عرض خاص محدود - أول 100 شخص فقط",
-    features: [
-      "عدد غير محدود من المجموعات",
-      "عدد غير محدود من الأعضاء",
-      "تقسيم متقدم (نسب ومبالغ)",
-      "مسح الإيصالات بالذكاء الاصطناعي",
-      "تحليلات وتوصيات ذكية",
-      "دردشة المجموعة",
-      "تصدير التقارير",
-      "دعم أولوية مدى الحياة"
-    ],
-    buttonText: "اشترك مدى الحياة",
-    popular: false,
-    isLifetime: true
   }
 ];
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
-  const { startTrial, canStartTrial, subscription } = useSubscription();
+  const { startTrial, canStartTrial } = useSubscription();
   const { toast } = useToast();
-  const { available: lifetimeAvailable, remaining: lifetimeRemaining, loading: lifetimeLoading } = useLifetimeOffer();
   const { getPlanBadgeConfig } = usePlanBadge();
   const navigate = useNavigate();
-
-  // تمت إزالة معالجة joinToken من هنا - يتم التعامل معها في InviteRoute الآن
 
   return (
     <section id="pricing" className="py-20 bg-background">
@@ -134,8 +109,8 @@ export const PricingSection = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          {plans.filter(plan => !plan.isLifetime || lifetimeAvailable).map((plan, index) => {
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {plans.map((plan, index) => {
             const Icon = plan.icon;
             return (
               <Card 
@@ -164,8 +139,7 @@ export const PricingSection = () => {
                     <PlanBadge 
                       config={getPlanBadgeConfig(
                         plan.name === "مجاني" ? "free" : 
-                        plan.name === "شخصي" ? "personal" : 
-                        plan.name === "العائلية" ? "family" : "lifetime"
+                        plan.name === "شخصي" ? "personal" : "family"
                       )} 
                       size="lg"
                       showLabel={true}
@@ -175,23 +149,13 @@ export const PricingSection = () => {
                   <h3 className="text-2xl font-bold">{plan.name}</h3>
                   <p className="text-muted-foreground text-sm">{plan.description}</p>
                   
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold">{plan.isLifetime ? plan.priceMonthly : (isYearly ? plan.priceYearly : plan.priceMonthly)}</span>
-                      <span className="text-muted-foreground mr-2">
-                        {plan.isLifetime ? "ريال مرة واحدة" : (isYearly ? "ريال/سنوياً" : "ريال/شهرياً")}
-                      </span>
-                      {isYearly && !plan.isLifetime && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
-                      {plan.isLifetime && (
-                        <div className="space-y-1">
-                          <div className="text-xs text-orange-500 font-medium">🔥 عرض محدود الوقت</div>
-                          {!lifetimeLoading && (
-                            <div className="text-xs text-destructive font-medium">
-                              متبقي {lifetimeRemaining} من 100 فقط!
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  <div className="mt-4">
+                    <span className="text-4xl font-bold">{isYearly ? plan.priceYearly : plan.priceMonthly}</span>
+                    <span className="text-muted-foreground mr-2">
+                      {isYearly ? "ريال/سنوياً" : "ريال/شهرياً"}
+                    </span>
+                    {isYearly && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
+                  </div>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
@@ -217,36 +181,6 @@ export const PricingSection = () => {
                       >
                         ابدأ مجاناً
                       </Button>
-                    ) : plan.isLifetime ? (
-                      <Button
-                        variant={plan.popular ? "hero" : "outline"}
-                        className="w-full"
-                        size="lg"
-                        onClick={async () => {
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (!session?.user) {
-                            const params = new URLSearchParams({ startTrial: "lifetime", redirectTo: "/dashboard" });
-                            navigate(`/auth?${params.toString()}`);
-                            return;
-                          }
-                          
-                          // Check if lifetime offer is still available
-                          if (!lifetimeAvailable || lifetimeRemaining <= 0) {
-                            toast({ 
-                              title: "العرض منتهي", 
-                              description: "نأسف، لقد انتهى العرض المحدود لـ 100 شخص فقط", 
-                              variant: "destructive" 
-                            });
-                            return;
-                          }
-                          // Handle lifetime plan - redirect to payment
-                          toast({ title: "إعادة توجيه", description: "جاري إعداد صفحة الدفع..." });
-                          // This will be implemented later with payment integration
-                        }}
-                        aria-label={`${plan.buttonText} لخطة ${plan.name}`}
-                      >
-                        {plan.buttonText}
-                      </Button>
                     ) : (
                       <Button
                         variant={plan.popular ? "hero" : "outline"}
@@ -263,18 +197,15 @@ export const PricingSection = () => {
                             return;
                           }
                           
-                          // إذا انتهت التجربة، أظهر رسالة واضحة
                           if (!canStartTrial) {
                             toast({ 
                               title: "انتهت فترة التجربة المجانية", 
                               description: "يرجى الاشتراك في الباقة للاستمرار في استخدام المزايا المتقدمة", 
                               variant: "default" 
                             });
-                            // TODO: إضافة رابط صفحة الدفع لاحقاً
                             return;
                           }
                           
-                          // بدء التجربة المجانية
                           const res = await startTrial(planKey as any);
                           if ((res as any).error) {
                             const msg = (res as any).error === "trial_expired" 
@@ -307,7 +238,6 @@ export const PricingSection = () => {
           })}
         </div>
 
-        {/* Money back guarantee */}
         <div className="text-center mt-12">
           <p className="text-muted-foreground">
             ضمان استرداد المال خلال 30 يوماً • بدون رسوم إعداد • إلغاء في أي وقت
