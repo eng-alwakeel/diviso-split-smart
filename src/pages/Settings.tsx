@@ -515,10 +515,9 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">{t('settings:language_currency.currency_description')}</p>
                   <CurrencySelector
                     value={settings?.currency || 'SAR'}
-                    onChange={(value) => saveSettings({ currency: value })}
+                    onValueChange={(value) => saveSettings({ currency: value })}
                     currencies={currencies}
                     placeholder={t('settings:language_currency.currency_placeholder')}
-                    disabled={currencyLoading}
                   />
                   <p className="text-xs text-muted-foreground mt-1">{t('settings:language_currency.currency_note')}</p>
                 </div>
@@ -553,8 +552,8 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">{t('settings:notifications.email.description')}</p>
                   </div>
                   <Switch
-                    checked={settings?.email_notifications ?? true}
-                    onCheckedChange={(checked) => saveSettings({ email_notifications: checked })}
+                    checked={settings?.emailNotifications ?? true}
+                    onCheckedChange={(checked) => saveSettings({ emailNotifications: checked })}
                   />
                 </div>
 
@@ -564,8 +563,8 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">{t('settings:notifications.push.description')}</p>
                   </div>
                   <Switch
-                    checked={settings?.push_notifications ?? true}
-                    onCheckedChange={(checked) => saveSettings({ push_notifications: checked })}
+                    checked={settings?.pushNotifications ?? true}
+                    onCheckedChange={(checked) => saveSettings({ pushNotifications: checked })}
                   />
                 </div>
 
@@ -575,8 +574,8 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">{t('settings:notifications.expense_reminders.description')}</p>
                   </div>
                   <Switch
-                    checked={settings?.expense_reminders ?? true}
-                    onCheckedChange={(checked) => saveSettings({ expense_reminders: checked })}
+                    checked={settings?.expenseReminders ?? true}
+                    onCheckedChange={(checked) => saveSettings({ expenseReminders: checked })}
                   />
                 </div>
 
@@ -586,8 +585,8 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">{t('settings:notifications.weekly_reports.description')}</p>
                   </div>
                   <Switch
-                    checked={settings?.weekly_reports ?? true}
-                    onCheckedChange={(checked) => saveSettings({ weekly_reports: checked })}
+                    checked={settings?.weeklyReports ?? true}
+                    onCheckedChange={(checked) => saveSettings({ weeklyReports: checked })}
                   />
                 </div>
               </CardContent>
