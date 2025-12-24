@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Mail, Phone, Gift, Check, X, Loader2, Eye, EyeOff } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
+import { SEO } from "@/components/SEO";
 
 const Auth = () => {
   const { toast } = useToast();
@@ -469,6 +470,11 @@ const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="تسجيل الدخول"
+        description="سجّل دخولك إلى Diviso لإدارة مصاريفك المشتركة مع الأصدقاء والعائلة. أنشئ حساباً جديداً أو سجّل دخولك الآن."
+        canonical="https://diviso.app/auth"
+      />
       <AppHeader />
       <div className="auth-container">
         <Card className="bg-card border border-border rounded-2xl">
