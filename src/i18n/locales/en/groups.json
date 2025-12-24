@@ -23,6 +23,12 @@
   "back_to_dashboard": "Back to Dashboard",
   "loading": "Loading...",
   "error": "Error",
+  "back": "Back",
+  "creating": "Creating...",
+  "create_group": "Create Group",
+  "continue_to_invite": "Continue to Invite Members",
+  "continue_to_balances": "Continue to Initial Balances",
+  "join_group": "Join group",
 
   "create_page": {
     "title": "Create New Group",
@@ -35,7 +41,8 @@
     "continue_balances": "Continue to Initial Balances",
     "back": "Back",
     "creating": "Creating...",
-    "create_group": "Create Group"
+    "create_group": "Create Group",
+    "group_info": "Group Information"
   },
 
   "details": {
@@ -51,7 +58,10 @@
     "alerts": "alert",
     "report": "Report",
     "add_expense": "Add Expense",
-    "settings": "Settings"
+    "settings": "Settings",
+    "back_to_dashboard": "Back to Dashboard",
+    "invalid_id": "Invalid group ID",
+    "redirected_to_dashboard": "You have been redirected to dashboard."
   },
 
   "tabs": {
@@ -68,7 +78,14 @@
     "loading": "Loading...",
     "no_expenses": "No expenses yet.",
     "expense": "Expense",
-    "paid_by": "Paid by"
+    "paid_by": "Paid by",
+    "rejection_reason": "Rejection reason",
+    "no_reason": "No reason specified",
+    "rejected_at": "Rejected at",
+    "edit_and_resubmit": "Edit and resubmit",
+    "edit": "Edit",
+    "approve": "Approve",
+    "reject": "Reject"
   },
 
   "members_tab": {
@@ -95,13 +112,15 @@
     "no_budgets": "No budgets yet",
     "start_budget": "Start by creating a budget to track group expenses",
     "loading": "Loading budgets...",
-    "alerts_title": "Budget Alerts"
+    "alerts_title": "Budget Alerts",
+    "unknown_category": "Unknown Category"
   },
 
   "chat_tab": {
     "title": "Group Chat",
     "write_message": "Write your message...",
-    "more_options": "More Options"
+    "more_options": "More Options",
+    "type_message_hint": "Type your message in the chat box below"
   },
 
   "invite": {
@@ -132,7 +151,8 @@
     "whatsapp_redirect": "You've been redirected to send invite via WhatsApp",
     "must_create_link": "You must create invite link first",
     "must_create_group": "You must create the group first",
-    "error": "Error"
+    "error": "Error",
+    "try_again": "Please try again"
   },
 
   "balance": {
@@ -180,7 +200,10 @@
     "balanced_message": "Balances are balanced! You can proceed to create the group.",
     "unbalanced_message": "Balances are not balanced. Total must equal zero.",
     "positive_note": "Positive numbers: people owed money (creditors)",
-    "negative_note": "Negative numbers: people who owe money (debtors)"
+    "negative_note": "Negative numbers: people who owe money (debtors)",
+    "initial_balance_paid": "Initial balance - pre-paid by",
+    "initial_balance_owed_to": "Initial balance - owed to",
+    "initial_balance_owed_from": "Initial balance - owed from"
   },
 
   "ai_suggestions": {
@@ -189,7 +212,9 @@
     "success": "Budget created successfully from AI suggestions",
     "error": "Failed to process AI suggestions",
     "budget_error": "Error creating budget",
-    "group_created_budget_failed": "Group created but budget creation failed"
+    "group_created_budget_failed": "Group created but budget creation failed",
+    "based_on_type": "Based on your group type",
+    "suggested_categories": "here are some suggested categories to help manage expenses"
   },
 
   "messages": {
@@ -200,12 +225,26 @@
     "invalid_id": "Invalid group ID",
     "redirecting": "Redirecting to dashboard.",
     "copied": "Copied!",
-    "link_copied_clipboard": "Link copied to clipboard"
+    "link_copied_clipboard": "Link copied to clipboard",
+    "expense_approved": "Expense approved!",
+    "expense_approved_desc": "Status updated to approved.",
+    "expense_approve_failed": "Failed to approve expense",
+    "unexpected_error": "An unexpected error occurred",
+    "settlement_delete_failed": "Failed to delete settlement",
+    "settlement_deleted": "Settlement deleted",
+    "budget_created": "Budget created!",
+    "budget_created_with_categories": "Budget created with {{amount}} {{currency}} and {{count}} categories"
   },
 
   "roles": {
     "owner": "Owner",
     "admin": "Admin",
     "member": "Member"
+  },
+
+  "status": {
+    "approved": "Approved",
+    "pending": "Pending",
+    "rejected": "Rejected"
   }
 }
