@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Mail, Phone, Gift, Check, X, Loader2 } from "lucide-react";
+import { Mail, Phone, Gift, Check, X, Loader2, Eye, EyeOff } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 
@@ -28,6 +28,9 @@ const Auth = () => {
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Referral code states
   const [referralCode, setReferralCode] = useState("");
@@ -561,24 +564,48 @@ const Auth = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
-                  <Input 
-                    id="new-password" 
-                    type="password" 
-                    value={newPassword} 
-                    onChange={(e) => setNewPassword(e.target.value)} 
-                    placeholder="••••••••" 
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="new-password" 
+                      type={showNewPassword ? "text" : "password"} 
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)} 
+                      placeholder="••••••••"
+                      className="pl-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
-                  <Input 
-                    id="confirm-password" 
-                    type="password" 
-                    value={confirmPassword} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    placeholder="••••••••" 
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="confirm-password" 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      value={confirmPassword} 
+                      onChange={(e) => setConfirmPassword(e.target.value)} 
+                      placeholder="••••••••"
+                      className="pl-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
                 
                 <Button 
@@ -684,13 +711,25 @@ const Auth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">كلمة المرور</Label>
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="••••••••" 
-                      />
+                      <div className="relative">
+                        <Input 
+                          id="password" 
+                          type={showPassword ? "text" : "password"} 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          placeholder="••••••••"
+                          className="pl-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                     {mode === "login" && (
                       <Button 
@@ -721,13 +760,25 @@ const Auth = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="password">كلمة المرور</Label>
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="••••••••" 
-                      />
+                      <div className="relative">
+                        <Input 
+                          id="password" 
+                          type={showPassword ? "text" : "password"} 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          placeholder="••••••••"
+                          className="pl-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
                     {mode === "login" && (
                       <Button 
