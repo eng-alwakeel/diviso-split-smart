@@ -21,7 +21,10 @@ import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
+import { useTranslation } from "react-i18next";
+
 const Dashboard = React.memo(() => {
+  const { t } = useTranslation(['dashboard', 'common']);
   const navigate = useNavigate();
   const {
     data: adminData
@@ -111,11 +114,11 @@ const Dashboard = React.memo(() => {
         <div className="page-container">
           <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
             <AlertTriangle className="w-12 h-12 text-destructive" />
-            <h2 className="text-xl font-semibold text-foreground">حدث خطأ</h2>
-            <p className="text-muted-foreground text-center">{error?.message || 'حدث خطأ غير متوقع'}</p>
+            <h2 className="text-xl font-semibold text-foreground">{t('dashboard:error.title')}</h2>
+            <p className="text-muted-foreground text-center">{error?.message || t('dashboard:error.unexpected')}</p>
             <Button onClick={handleRetry} className="bg-primary hover:bg-primary/90">
               <RefreshCw className="w-4 h-4 ml-2" />
-              إعادة المحاولة
+              {t('dashboard:error.retry')}
             </Button>
           </div>
         </div>
@@ -138,12 +141,12 @@ const Dashboard = React.memo(() => {
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
-              <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
+              <h1 className="text-2xl font-bold text-foreground mb-1">{t('dashboard:welcome')}</h1>
+              <p className="text-muted-foreground text-sm">{t('dashboard:subtitle')}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={handleShowGuide} className="text-muted-foreground hover:text-foreground">
               <HelpCircle className="w-4 h-4 ml-2" />
-              المساعدة
+              {t('dashboard:help')}
             </Button>
           </div>
 

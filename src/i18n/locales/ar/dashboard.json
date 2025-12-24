@@ -1,0 +1,48 @@
+{
+  "welcome": "مرحباً بك!",
+  "subtitle": "إدارة ذكية للمصاريف المشتركة",
+  "help": "المساعدة",
+  "error": {
+    "title": "حدث خطأ",
+    "unexpected": "حدث خطأ غير متوقع",
+    "retry": "إعادة المحاولة"
+  },
+  "stats": {
+    "monthly_expenses": "المصاريف الشهرية",
+    "groups": "المجموعات",
+    "weekly_expenses": "مصاريف الأسبوع",
+    "my_paid": "دفعت",
+    "my_owed": "لي",
+    "currency": "ر.س"
+  },
+  "quick_actions": {
+    "title": "إجراءات سريعة",
+    "add_expense": "إضافة مصروف",
+    "create_group": "إنشاء مجموعة",
+    "my_groups": "مجموعاتي",
+    "my_expenses": "مصاريفي"
+  },
+  "subscription": {
+    "title": "حالة الاشتراك",
+    "free_plan": "الباقة المجانية",
+    "personal_plan": "الباقة الشخصية",
+    "family_plan": "الباقة العائلية",
+    "trial_active": "تجربة نشطة",
+    "days_left": "{{days}} يوم متبقي",
+    "expired": "منتهي",
+    "upgrade": "ترقية الباقة"
+  },
+  "usage": {
+    "title": "حدود الاستخدام",
+    "groups": "المجموعات",
+    "expenses": "المصاريف الأسبوعية",
+    "of": "من"
+  },
+  "checkin": {
+    "title": "تسجيل الحضور اليومي",
+    "description": "سجّل حضورك يومياً للحصول على مكافآت",
+    "button": "سجّل الآن",
+    "done": "تم التسجيل اليوم",
+    "streak": "سلسلة {{days}} يوم"
+  }
+}

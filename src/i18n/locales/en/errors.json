@@ -1,0 +1,44 @@
+{
+  "general": {
+    "title": "An error occurred",
+    "unexpected": "An unexpected error occurred",
+    "try_again": "Please try again",
+    "network": "Network connection error",
+    "server": "Server error",
+    "unauthorized": "You are not authorized for this action",
+    "not_found": "Requested data not found",
+    "timeout": "Connection timed out"
+  },
+  "auth": {
+    "invalid_credentials": "Invalid credentials",
+    "email_taken": "Email already in use",
+    "phone_taken": "Phone number already in use",
+    "weak_password": "Password is too weak",
+    "invalid_email": "Invalid email address",
+    "invalid_phone": "Invalid phone number",
+    "session_expired": "Session expired"
+  },
+  "validation": {
+    "required": "This field is required",
+    "min_length": "Must be at least {{min}} characters",
+    "max_length": "Must not exceed {{max}} characters",
+    "invalid_format": "Invalid format",
+    "passwords_mismatch": "Passwords do not match"
+  },
+  "subscription": {
+    "trial_exists": "You already have an active trial",
+    "trial_expired": "You have used your free trial period",
+    "upgrade_required": "Upgrade required to access this feature",
+    "limit_reached": "You have reached the maximum limit"
+  },
+  "groups": {
+    "not_member": "You are not a member of this group",
+    "already_member": "You are already a member of this group",
+    "invite_expired": "Invitation has expired",
+    "invite_invalid": "Invalid invitation"
+  },
+  "expenses": {
+    "invalid_amount": "Invalid amount",
+    "future_date": "Cannot add expense with future date"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "title": "Expenses",
+  "my_expenses": "My Expenses",
+  "add": "Add Expense",
+  "add_new": "Add New Expense",
+  "edit": "Edit Expense",
+  "delete": "Delete Expense",
+  "no_expenses": "No expenses yet",
+  "no_expenses_desc": "Add a new expense to start tracking your spending",
+  "fields": {
+    "amount": "Amount",
+    "description": "Description",
+    "description_placeholder": "Expense description",
+    "category": "Category",
+    "date": "Date",
+    "payer": "Payer",
+    "split": "Split",
+    "note": "Note",
+    "receipt": "Receipt"
+  },
+  "split_types": {
+    "equal": "Equal",
+    "exact": "Exact amounts",
+    "percentage": "Percentages"
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "actions": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "upload_receipt": "Upload Receipt",
+    "scan_receipt": "Scan Receipt"
+  },
+  "filters": {
+    "all": "All",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "by_category": "By Category",
+    "by_date": "By Date"
+  },
+  "summary": {
+    "total": "Total",
+    "average": "Average",
+    "count": "Expense Count"
+  },
+  "categories": {
+    "food": "Food",
+    "transport": "Transport",
+    "accommodation": "Accommodation",
+    "entertainment": "Entertainment",
+    "shopping": "Shopping",
+    "utilities": "Utilities",
+    "health": "Health",
+    "education": "Education",
+    "other": "Other"
+  }
+}

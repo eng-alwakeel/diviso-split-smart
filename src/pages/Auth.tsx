@@ -13,11 +13,13 @@ import { Mail, Phone, Gift, Check, X, Loader2, Eye, EyeOff } from "lucide-react"
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { SEO } from "@/components/SEO";
+import { useTranslation } from "react-i18next";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
+  const { t } = useTranslation(['auth', 'common']);
   const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password">("login");
   const [authType, setAuthType] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
@@ -29,7 +31,7 @@ const Auth = () => {
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -101,14 +103,12 @@ const [showPassword, setShowPassword] = useState(false);
     // Listen first, then get existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        // إذا كان هناك joinToken، نعيد التوجيه للرابط المناسب
         if (joinToken) {
           localStorage.removeItem('joinToken');
           window.location.href = `/i/${joinToken}`;
           return;
         }
         
-        // إذا كان هناك phoneInviteToken، نعيد التوجيه للرابط المناسب
         if (phoneInviteToken) {
           localStorage.removeItem('phoneInviteToken');
           window.location.href = `/invite-phone/${phoneInviteToken}`;
@@ -128,14 +128,12 @@ const [showPassword, setShowPassword] = useState(false);
     
     supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) {
-        // إذا كان هناك joinToken، نعيد التوجيه للرابط المناسب
         if (joinToken) {
           localStorage.removeItem('joinToken');
           window.location.href = `/i/${joinToken}`;
           return;
         }
         
-        // إذا كان هناك phoneInviteToken، نعيد التوجيه للرابط المناسب
         if (phoneInviteToken) {
           localStorage.removeItem('phoneInviteToken');
           window.location.href = `/invite-phone/${phoneInviteToken}`;
@@ -170,7 +168,7 @@ const [showPassword, setShowPassword] = useState(false);
       if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "خطأ في تسجيل الدخول",
+        title: t('auth:toast.login_error'),
         description: error.message,
         variant: "destructive",
       });
@@ -188,24 +186,24 @@ const [showPassword, setShowPassword] = useState(false);
     setLoading(false);
     
     if (error) {
-      toast({ title: "خطأ في تسجيل الدخول", description: error.message, variant: "destructive" });
+      toast({ title: t('auth:toast.login_error'), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "تم تسجيل الدخول" });
+      toast({ title: t('auth:toast.login_success') });
     }
   };
 
   const handleSignup = async () => {
     if (!privacyAccepted) {
       toast({ 
-        title: "يجب الموافقة على سياسة الخصوصية", 
-        description: "يرجى الموافقة على سياسة الخصوصية وشروط الاستخدام للمتابعة",
+        title: t('auth:messages.privacy_required'), 
+        description: t('auth:messages.privacy_required_desc'),
         variant: "destructive" 
       });
       return;
     }
 
     setLoading(true);
-    console.log('🔵 بدء عملية التسجيل...', { authType, phone, email });
+    console.log('🔵 Starting signup...', { authType, phone, email });
     
     const signUpData = authType === "email" 
       ? { 
@@ -232,31 +230,22 @@ const [showPassword, setShowPassword] = useState(false);
           }
         };
     
-    console.log('🔵 بيانات التسجيل:', { 
-      type: authType, 
-      hasPhone: !!phone, 
-      hasEmail: !!email,
-      hasPassword: !!password 
-    });
-    
     const { data, error } = await supabase.auth.signUp(signUpData);
-    
-    console.log('🔵 استجابة التسجيل:', { data, error });
     
     if (error) {
       setLoading(false);
-      console.error('❌ خطأ في التسجيل:', error);
+      console.error('❌ Signup error:', error);
       
       let errorMessage = error.message;
       
       if (error.message.includes('SMS provider')) {
-        errorMessage = "خدمة الرسائل غير مفعلة. يرجى التحقق من إعدادات MessageBird";
+        errorMessage = t('auth:toast.sms_error');
       } else if (error.message.includes('User already registered')) {
-        errorMessage = "هذا الحساب موجود بالفعل. يرجى تسجيل الدخول";
+        errorMessage = t('auth:toast.user_exists');
       }
       
       toast({ 
-        title: "خطأ في التسجيل", 
+        title: t('auth:toast.signup_error'), 
         description: errorMessage, 
         variant: "destructive" 
       });
@@ -289,38 +278,36 @@ const [showPassword, setShowPassword] = useState(false);
     setLoading(false);
     
     if (authType === "email") {
-      console.log('✅ تم التسجيل بالإيميل');
+      console.log('✅ Email signup complete');
       const successMessage = referralValid 
-        ? "تم إرسال رابط التحقق إلى بريدك الإلكتروني. ستحصل على 7 أيام مجانية بعد التفعيل!"
-        : "تم إرسال رابط التحقق إلى بريدك الإلكتروني";
+        ? t('auth:toast.verify_email_referral')
+        : t('auth:toast.verify_email_desc');
       toast({ 
-        title: "تحقق من بريدك الإلكتروني", 
+        title: t('auth:toast.verify_email'), 
         description: successMessage
       });
     } else {
-      console.log('✅ تم التسجيل بالهاتف - إرسال OTP يدوياً...');
+      console.log('✅ Phone signup complete - sending OTP...');
       
-      // إرسال OTP يدوياً بعد إنشاء الحساب لأن signUp مع password لا يرسل SMS
       const { error: otpError } = await supabase.auth.signInWithOtp({
         phone,
         options: { shouldCreateUser: false }
       });
       
       if (otpError) {
-        console.error('❌ خطأ في إرسال OTP:', otpError);
-        // نستمر لصفحة التحقق حتى لو فشل - المستخدم يمكنه الضغط على "إعادة الإرسال"
+        console.error('❌ OTP send error:', otpError);
       } else {
-        console.log('✅ تم إرسال OTP بنجاح');
+        console.log('✅ OTP sent successfully');
       }
       
       setMode("verify");
       setResendCountdown(60);
       setCanResend(false);
       const successMessage = referralValid
-        ? "أدخل الرمز المرسل إلى رقم هاتفك. ستحصل على 7 أيام مجانية بعد التفعيل!"
-        : "أدخل الرمز المرسل إلى رقم هاتفك";
+        ? t('auth:toast.otp_sent_referral')
+        : t('auth:toast.otp_sent_desc');
       toast({ 
-        title: "تم إرسال رمز التحقق", 
+        title: t('auth:toast.otp_sent'), 
         description: successMessage
       });
     }
@@ -336,15 +323,15 @@ const [showPassword, setShowPassword] = useState(false);
     
     setLoading(false);
     if (error) {
-      toast({ title: "خطأ في التحقق", description: error.message, variant: "destructive" });
+      toast({ title: t('auth:toast.verify_error'), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "تم التحقق بنجاح", description: "مرحباً بك!" });
+      toast({ title: t('auth:toast.verify_success'), description: t('auth:toast.verify_success_desc') });
     }
   };
 
   const handleForgotPasswordEmail = async () => {
     if (!email) {
-      toast({ title: "خطأ", description: "يرجى إدخال البريد الإلكتروني", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:fields.email'), variant: "destructive" });
       return;
     }
     
@@ -355,18 +342,18 @@ const [showPassword, setShowPassword] = useState(false);
     
     setLoading(false);
     if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+      toast({ title: t('common:error'), description: error.message, variant: "destructive" });
     } else {
       toast({ 
-        title: "تم الإرسال", 
-        description: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني" 
+        title: t('auth:toast.reset_sent'), 
+        description: t('auth:toast.reset_sent_email') 
       });
     }
   };
 
   const handleForgotPasswordPhone = async () => {
     if (!phone) {
-      toast({ title: "خطأ", description: "يرجى إدخال رقم الهاتف", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:fields.phone'), variant: "destructive" });
       return;
     }
     
@@ -378,35 +365,34 @@ const [showPassword, setShowPassword] = useState(false);
     
     setLoading(false);
     if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+      toast({ title: t('common:error'), description: error.message, variant: "destructive" });
     } else {
       setMode("reset-password");
       toast({ 
-        title: "تم الإرسال", 
-        description: "تم إرسال رمز التحقق إلى هاتفك" 
+        title: t('auth:toast.reset_sent'), 
+        description: t('auth:toast.reset_sent_phone') 
       });
     }
   };
 
   const handleResetPasswordWithOtp = async () => {
     if (!otp) {
-      toast({ title: "خطأ", description: "يرجى إدخال رمز التحقق", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:fields.otp'), variant: "destructive" });
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      toast({ title: "خطأ", description: "كلمات المرور غير متطابقة", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:toast.passwords_mismatch'), variant: "destructive" });
       return;
     }
     
     if (newPassword.length < 6) {
-      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:toast.password_too_short'), variant: "destructive" });
       return;
     }
     
     setLoading(true);
     
-    // First verify OTP
     const { error: otpError } = await supabase.auth.verifyOtp({
       phone,
       token: otp,
@@ -415,18 +401,17 @@ const [showPassword, setShowPassword] = useState(false);
     
     if (otpError) {
       setLoading(false);
-      toast({ title: "خطأ", description: otpError.message, variant: "destructive" });
+      toast({ title: t('common:error'), description: otpError.message, variant: "destructive" });
       return;
     }
     
-    // Then update password
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     
     setLoading(false);
     if (updateError) {
-      toast({ title: "خطأ", description: updateError.message, variant: "destructive" });
+      toast({ title: t('common:error'), description: updateError.message, variant: "destructive" });
     } else {
-      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
+      toast({ title: t('auth:toast.password_updated'), description: t('auth:toast.password_updated_desc') });
       setMode("login");
       setNewPassword("");
       setConfirmPassword("");
@@ -444,12 +429,12 @@ const [showPassword, setShowPassword] = useState(false);
 
   const handleUpdatePasswordFromEmail = async () => {
     if (newPassword !== confirmPassword) {
-      toast({ title: "خطأ", description: "كلمات المرور غير متطابقة", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:toast.passwords_mismatch'), variant: "destructive" });
       return;
     }
     
     if (newPassword.length < 6) {
-      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      toast({ title: t('common:error'), description: t('auth:toast.password_too_short'), variant: "destructive" });
       return;
     }
     
@@ -458,9 +443,9 @@ const [showPassword, setShowPassword] = useState(false);
     
     setLoading(false);
     if (error) {
-      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+      toast({ title: t('common:error'), description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "تم التحديث", description: "تم تغيير كلمة المرور بنجاح" });
+      toast({ title: t('auth:toast.password_updated'), description: t('auth:toast.password_updated_desc') });
       setMode("login");
       setNewPassword("");
       setConfirmPassword("");
@@ -468,11 +453,22 @@ const [showPassword, setShowPassword] = useState(false);
     }
   };
 
+  const getTitle = () => {
+    switch (mode) {
+      case "login": return t('auth:title.login');
+      case "signup": return t('auth:title.signup');
+      case "forgot-password": return t('auth:title.forgot_password');
+      case "reset-password": return t('auth:title.reset_password');
+      case "verify": return authType === "phone" ? t('auth:title.verify_phone') : t('auth:title.verify_email');
+      default: return t('auth:title.login');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="تسجيل الدخول"
-        description="سجّل دخولك إلى Diviso لإدارة مصاريفك المشتركة مع الأصدقاء والعائلة. أنشئ حساباً جديداً أو سجّل دخولك الآن."
+        title={t('auth:title.login')}
+        description={t('auth:slogan')}
         canonical="https://diviso.app/auth"
       />
       <AppHeader />
@@ -482,21 +478,17 @@ const [showPassword, setShowPassword] = useState(false);
             <div className="flex flex-col items-center gap-3 mb-2">
               <img 
                 src="/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png" 
-                alt="شعار Diviso" 
+                alt="Diviso Logo" 
                 className="h-10 w-auto" 
                 width={160} 
                 height={40} 
               />
               <p className="text-xs text-muted-foreground font-medium">
-                قسّم بذكاء، سافر براحة
+                {t('auth:slogan')}
               </p>
             </div>
             <CardTitle className="text-center">
-              {mode === "login" ? "تسجيل الدخول" : 
-               mode === "signup" ? "إنشاء حساب" : 
-               mode === "forgot-password" ? "نسيت كلمة المرور" :
-               mode === "reset-password" ? "إعادة تعيين كلمة المرور" :
-               authType === "phone" ? "تحقق من رقم الهاتف" : "تحقق من البريد الإلكتروني"}
+              {getTitle()}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -514,7 +506,7 @@ const [showPassword, setShowPassword] = useState(false);
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  الدخول بحساب Google
+                  {t('auth:buttons.google_login')}
                 </Button>
 
                 <div className="relative my-4">
@@ -522,7 +514,7 @@ const [showPassword, setShowPassword] = useState(false);
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">أو</span>
+                    <span className="bg-background px-2 text-muted-foreground">{t('auth:messages.or')}</span>
                   </div>
                 </div>
               </div>
@@ -535,65 +527,64 @@ const [showPassword, setShowPassword] = useState(false);
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="email" className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      البريد الإلكتروني
+                      {t('auth:tabs.email')}
                     </TabsTrigger>
                     <TabsTrigger value="phone" className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      رقم الهاتف
+                      {t('auth:tabs.phone')}
                     </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="email" className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                      <Label htmlFor="reset-email">{t('auth:fields.email')}</Label>
                       <Input 
                         id="reset-email" 
                         type="email" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
-                        placeholder="example@domain.com"
+                        placeholder={t('auth:fields.email_placeholder')}
                         dir="ltr"
                         className="text-left"
                       />
                     </div>
                     <Button className="w-full" onClick={handleForgotPasswordEmail} disabled={loading}>
-                      {loading ? "جاري الإرسال..." : "إرسال رابط إعادة التعيين"}
+                      {loading ? t('auth:loading.sending') : t('auth:buttons.send_reset_link')}
                     </Button>
                   </TabsContent>
                   
                   <TabsContent value="phone" className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="reset-phone">رقم الهاتف</Label>
+                      <Label htmlFor="reset-phone">{t('auth:fields.phone')}</Label>
                       <PhoneInputWithCountry
                         value={phone}
                         onChange={setPhone}
-                        placeholder="501234567"
+                        placeholder={t('auth:fields.phone_placeholder')}
                       />
                     </div>
                     <Button className="w-full" onClick={handleForgotPasswordPhone} disabled={loading}>
-                      {loading ? "جاري الإرسال..." : "إرسال رمز التحقق"}
+                      {loading ? t('auth:loading.sending') : t('auth:buttons.send_otp')}
                     </Button>
                   </TabsContent>
                 </Tabs>
                 
                 <Button variant="outline" className="w-full" onClick={() => setMode("login")}>
-                  العودة لتسجيل الدخول
+                  {t('auth:buttons.back_to_login')}
                 </Button>
               </div>
             )}
             
-            {/* Reset Password Mode (after OTP for phone or email link) */}
+            {/* Reset Password Mode */}
             {mode === "reset-password" && (
               <div className="space-y-4">
-                {/* Show OTP input only for phone reset */}
                 {authType === "phone" && (
                   <div className="space-y-2">
-                    <Label htmlFor="reset-otp">رمز التحقق</Label>
+                    <Label htmlFor="reset-otp">{t('auth:fields.otp')}</Label>
                     <Input 
                       id="reset-otp" 
                       value={otp} 
                       onChange={(e) => setOtp(e.target.value)} 
-                      placeholder="أدخل الرمز المرسل إلى هاتفك"
+                      placeholder={t('auth:fields.otp_placeholder')}
                       className="text-center text-lg tracking-widest"
                       maxLength={6}
                     />
@@ -601,14 +592,14 @@ const [showPassword, setShowPassword] = useState(false);
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">كلمة المرور الجديدة</Label>
+                  <Label htmlFor="new-password">{t('auth:fields.new_password')}</Label>
                   <div className="relative">
                     <Input 
                       id="new-password" 
                       type={showNewPassword ? "text" : "password"} 
                       value={newPassword} 
                       onChange={(e) => setNewPassword(e.target.value)} 
-                      placeholder="••••••••"
+                      placeholder={t('auth:fields.password_placeholder')}
                       className="pl-10"
                     />
                     <Button
@@ -624,14 +615,14 @@ const [showPassword, setShowPassword] = useState(false);
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
+                  <Label htmlFor="confirm-password">{t('auth:fields.confirm_password')}</Label>
                   <div className="relative">
                     <Input 
                       id="confirm-password" 
                       type={showConfirmPassword ? "text" : "password"} 
                       value={confirmPassword} 
                       onChange={(e) => setConfirmPassword(e.target.value)} 
-                      placeholder="••••••••"
+                      placeholder={t('auth:fields.password_placeholder')}
                       className="pl-10"
                     />
                     <Button
@@ -651,7 +642,7 @@ const [showPassword, setShowPassword] = useState(false);
                   onClick={authType === "phone" ? handleResetPasswordWithOtp : handleUpdatePasswordFromEmail} 
                   disabled={loading}
                 >
-                  {loading ? "جاري التحديث..." : "تحديث كلمة المرور"}
+                  {loading ? t('auth:loading.updating') : t('auth:buttons.update_password')}
                 </Button>
                 
                 <Button variant="outline" className="w-full" onClick={() => {
@@ -660,7 +651,7 @@ const [showPassword, setShowPassword] = useState(false);
                   setConfirmPassword("");
                   setOtp("");
                 }}>
-                  العودة لتسجيل الدخول
+                  {t('auth:buttons.back_to_login')}
                 </Button>
               </div>
             )}
@@ -668,18 +659,18 @@ const [showPassword, setShowPassword] = useState(false);
             {mode === "verify" ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="otp">رمز التحقق</Label>
+                  <Label htmlFor="otp">{t('auth:fields.otp')}</Label>
                   <Input 
                     id="otp" 
                     value={otp} 
                     onChange={(e) => setOtp(e.target.value)} 
-                    placeholder="أدخل الرمز المرسل إلى هاتفك"
+                    placeholder={t('auth:fields.otp_placeholder')}
                     className="text-center text-lg tracking-widest"
                     maxLength={6}
                   />
                 </div>
                 <Button className="w-full" onClick={handleVerifyOtp} disabled={loading}>
-                  {loading ? "جاري التحقق..." : "تحقق"}
+                  {loading ? t('auth:loading.verifying') : t('auth:buttons.verify')}
                 </Button>
                 <div className="flex gap-2">
                   <Button 
@@ -694,7 +685,7 @@ const [showPassword, setShowPassword] = useState(false);
                       setLoading(false);
                       if (error) {
                         toast({ 
-                          title: "خطأ", 
+                          title: t('common:error'), 
                           description: error.message, 
                           variant: "destructive" 
                         });
@@ -702,20 +693,20 @@ const [showPassword, setShowPassword] = useState(false);
                         setResendCountdown(60);
                         setCanResend(false);
                         toast({ 
-                          title: "تم إعادة الإرسال", 
-                          description: "تم إرسال رمز جديد إلى هاتفك" 
+                          title: t('auth:toast.otp_resent'), 
+                          description: t('auth:toast.otp_resent_desc') 
                         });
                       }
                     }}
                     disabled={loading || !canResend}
                   >
                     {resendCountdown > 0 
-                      ? `إعادة الإرسال (${resendCountdown})` 
-                      : "إعادة الإرسال"
+                      ? t('auth:buttons.resend_countdown', { seconds: resendCountdown })
+                      : t('auth:buttons.resend')
                     }
                   </Button>
                   <Button variant="outline" className="flex-1" onClick={() => setMode("signup")}>
-                    رجوع
+                    {t('auth:buttons.back')}
                   </Button>
                 </div>
               </>
@@ -725,42 +716,42 @@ const [showPassword, setShowPassword] = useState(false);
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="email" className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      البريد الإلكتروني
+                      {t('auth:tabs.email')}
                     </TabsTrigger>
                     <TabsTrigger value="phone" className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      رقم الهاتف
+                      {t('auth:tabs.phone')}
                     </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="email" className="space-y-4 mt-4">
                     {mode === "signup" && (
                       <div className="space-y-2">
-                        <Label htmlFor="name">الاسم</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" />
+                        <Label htmlFor="name">{t('auth:fields.name')}</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('auth:fields.name_placeholder')} />
                       </div>
                     )}
                     <div className="space-y-2">
-                      <Label htmlFor="email">البريد الإلكتروني</Label>
+                      <Label htmlFor="email">{t('auth:fields.email')}</Label>
                       <Input 
                         id="email" 
                         type="email" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
-                        placeholder="example@domain.com"
+                        placeholder={t('auth:fields.email_placeholder')}
                         dir="ltr"
                         className="text-left"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">كلمة المرور</Label>
+                      <Label htmlFor="password">{t('auth:fields.password')}</Label>
                       <div className="relative">
                         <Input 
                           id="password" 
                           type={showPassword ? "text" : "password"} 
                           value={password} 
                           onChange={(e) => setPassword(e.target.value)} 
-                          placeholder="••••••••"
+                          placeholder={t('auth:fields.password_placeholder')}
                           className="pl-10"
                         />
                         <Button
@@ -781,7 +772,7 @@ const [showPassword, setShowPassword] = useState(false);
                         className="text-sm text-primary p-0 h-auto"
                         onClick={() => setMode("forgot-password")}
                       >
-                        نسيت كلمة المرور؟
+                        {t('auth:buttons.forgot_password')}
                       </Button>
                     )}
                   </TabsContent>
@@ -789,27 +780,27 @@ const [showPassword, setShowPassword] = useState(false);
                   <TabsContent value="phone" className="space-y-4 mt-4">
                     {mode === "signup" && (
                       <div className="space-y-2">
-                        <Label htmlFor="name">الاسم</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="اسمك الكامل" />
+                        <Label htmlFor="name">{t('auth:fields.name')}</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('auth:fields.name_placeholder')} />
                       </div>
                     )}
                     <div className="space-y-2">
-                      <Label htmlFor="phone">رقم الهاتف</Label>
+                      <Label htmlFor="phone">{t('auth:fields.phone')}</Label>
                       <PhoneInputWithCountry
                         value={phone}
                         onChange={setPhone}
-                        placeholder="501234567"
+                        placeholder={t('auth:fields.phone_placeholder')}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">كلمة المرور</Label>
+                      <Label htmlFor="password">{t('auth:fields.password')}</Label>
                       <div className="relative">
                         <Input 
                           id="password" 
                           type={showPassword ? "text" : "password"} 
                           value={password} 
                           onChange={(e) => setPassword(e.target.value)} 
-                          placeholder="••••••••"
+                          placeholder={t('auth:fields.password_placeholder')}
                           className="pl-10"
                         />
                         <Button
@@ -830,7 +821,7 @@ const [showPassword, setShowPassword] = useState(false);
                         className="text-sm text-primary p-0 h-auto"
                         onClick={() => setMode("forgot-password")}
                       >
-                        نسيت كلمة المرور؟
+                        {t('auth:buttons.forgot_password')}
                       </Button>
                     )}
                   </TabsContent>
@@ -842,14 +833,14 @@ const [showPassword, setShowPassword] = useState(false);
                     <div className="space-y-2 mt-4">
                       <Label htmlFor="referralCode" className="flex items-center gap-2">
                         <Gift className="h-4 w-4 text-primary" />
-                        كود الإحالة (اختياري)
+                        {t('auth:fields.referral_code')}
                       </Label>
                       <div className="relative">
                         <Input
                           id="referralCode"
                           value={referralCode}
                           onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                          placeholder="أدخل كود الإحالة للحصول على 7 أيام مجانية"
+                          placeholder={t('auth:fields.referral_placeholder')}
                           className="text-center uppercase tracking-widest pr-10"
                           maxLength={8}
                           dir="ltr"
@@ -867,32 +858,52 @@ const [showPassword, setShowPassword] = useState(false);
                         </div>
                       </div>
                       {referralValid === true && (
-                        <p className="text-xs text-green-500 flex items-center gap-1">
-                          <Gift className="h-3 w-3" />
-                          ستحصل على 7 أيام مجانية عند التسجيل!
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          <Check className="h-3 w-3" />
+                          {t('auth:messages.referral_valid')}
                         </p>
                       )}
-                      {referralValid === false && referralCode && (
-                        <p className="text-xs text-destructive">
-                          كود الإحالة غير صالح
+                      {referralValid === false && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <X className="h-3 w-3" />
+                          {t('auth:messages.referral_invalid')}
                         </p>
                       )}
                     </div>
                     
-                    <PrivacyPolicyCheckbox
-                      checked={privacyAccepted}
-                      onCheckedChange={setPrivacyAccepted}
-                      className="my-4"
-                    />
+                    {/* Privacy Policy Checkbox */}
+                    <div className="mt-4">
+                      <PrivacyPolicyCheckbox
+                        checked={privacyAccepted}
+                        onCheckedChange={setPrivacyAccepted}
+                      />
+                    </div>
                   </>
                 )}
                 
-                <Button className="w-full" onClick={mode === "login" ? handleLogin : handleSignup} disabled={loading}>
-                  {loading ? "جاري المعالجة..." : mode === "login" ? "دخول" : "إنشاء حساب"}
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-                  {mode === "login" ? "ليس لديك حساب؟ أنشئ حساباً" : "لديك حساب؟ سجّل الدخول"}
-                </Button>
+                {mode !== "forgot-password" && mode !== "reset-password" && (
+                  <>
+                    <Button 
+                      className="w-full" 
+                      onClick={mode === "login" ? handleLogin : handleSignup} 
+                      disabled={loading || (mode === "signup" && !privacyAccepted)}
+                    >
+                      {loading 
+                        ? (mode === "login" ? t('auth:loading.logging_in') : t('auth:loading.signing_up'))
+                        : (mode === "login" ? t('auth:buttons.login') : t('auth:buttons.signup'))
+                      }
+                    </Button>
+                    <p className="text-center text-sm">
+                      {mode === "login" ? t('auth:buttons.no_account') : t('auth:buttons.has_account')}{" "}
+                      <button
+                        className="text-primary hover:underline"
+                        onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                      >
+                        {mode === "login" ? t('auth:buttons.signup') : t('auth:buttons.login')}
+                      </button>
+                    </p>
+                  </>
+                )}
               </>
             )}
           </CardContent>

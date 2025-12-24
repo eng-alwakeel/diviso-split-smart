@@ -1,0 +1,48 @@
+{
+  "welcome": "Welcome!",
+  "subtitle": "Smart shared expense management",
+  "help": "Help",
+  "error": {
+    "title": "An error occurred",
+    "unexpected": "An unexpected error occurred",
+    "retry": "Retry"
+  },
+  "stats": {
+    "monthly_expenses": "Monthly Expenses",
+    "groups": "Groups",
+    "weekly_expenses": "Weekly Expenses",
+    "my_paid": "I Paid",
+    "my_owed": "Owed to Me",
+    "currency": "SAR"
+  },
+  "quick_actions": {
+    "title": "Quick Actions",
+    "add_expense": "Add Expense",
+    "create_group": "Create Group",
+    "my_groups": "My Groups",
+    "my_expenses": "My Expenses"
+  },
+  "subscription": {
+    "title": "Subscription Status",
+    "free_plan": "Free Plan",
+    "personal_plan": "Personal Plan",
+    "family_plan": "Family Plan",
+    "trial_active": "Trial Active",
+    "days_left": "{{days}} days left",
+    "expired": "Expired",
+    "upgrade": "Upgrade Plan"
+  },
+  "usage": {
+    "title": "Usage Limits",
+    "groups": "Groups",
+    "expenses": "Weekly Expenses",
+    "of": "of"
+  },
+  "checkin": {
+    "title": "Daily Check-in",
+    "description": "Check in daily to earn rewards",
+    "button": "Check In",
+    "done": "Checked in today",
+    "streak": "{{days}} day streak"
+  }
+}
