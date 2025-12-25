@@ -4,6 +4,7 @@ import { Share } from '@capacitor/share';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { App } from '@capacitor/app';
+import { Geolocation, Position, WatchPositionCallback } from '@capacitor/geolocation';
 
 // Platform detection
 export const isNativePlatform = () => Capacitor.isNativePlatform();
@@ -253,4 +254,161 @@ export const openTelegramShare = (message: string) => {
   const url = `https://t.me/share/url?url=${encodedMessage}`;
   
   window.open(url, '_blank');
+};
+
+// ===== Geolocation Functions =====
+
+export interface LocationCoords {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  altitude?: number | null;
+  altitudeAccuracy?: number | null;
+  speed?: number | null;
+  heading?: number | null;
+}
+
+/**
+ * الحصول على الموقع الحالي
+ */
+export const getCurrentLocation = async (): Promise<LocationCoords | null> => {
+  if (!isNativePlatform()) {
+    // للويب: استخدام Geolocation API
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        console.log('Geolocation not available');
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            speed: position.coords.speed,
+            heading: position.coords.heading,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    });
+  }
+
+  try {
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000,
+    });
+
+    return {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      altitude: position.coords.altitude,
+      altitudeAccuracy: position.coords.altitudeAccuracy,
+      speed: position.coords.speed,
+      heading: position.coords.heading,
+    };
+  } catch (error) {
+    console.error('Error getting current location:', error);
+    return null;
+  }
+};
+
+/**
+ * مراقبة تغييرات الموقع
+ */
+export const watchLocation = async (
+  callback: (coords: LocationCoords | null, error?: any) => void
+): Promise<string | null> => {
+  if (!isNativePlatform()) {
+    // للويب: استخدام Geolocation API
+    if (!navigator.geolocation) {
+      console.log('Geolocation not available');
+      return null;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        callback({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude,
+          altitudeAccuracy: position.coords.altitudeAccuracy,
+          speed: position.coords.speed,
+          heading: position.coords.heading,
+        });
+      },
+      (error) => {
+        callback(null, error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+
+    return String(watchId);
+  }
+
+  try {
+    const watchId = await Geolocation.watchPosition(
+      {
+        enableHighAccuracy: true,
+      },
+      (position: Position | null, err?: any) => {
+        if (err) {
+          callback(null, err);
+          return;
+        }
+        
+        if (position) {
+          callback({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            speed: position.coords.speed,
+            heading: position.coords.heading,
+          });
+        }
+      }
+    );
+
+    return watchId;
+  } catch (error) {
+    console.error('Error watching location:', error);
+    return null;
+  }
+};
+
+/**
+ * إيقاف مراقبة الموقع
+ */
+export const clearLocationWatch = async (watchId: string): Promise<void> => {
+  if (!isNativePlatform()) {
+    navigator.geolocation.clearWatch(Number(watchId));
+    return;
+  }
+
+  try {
+    await Geolocation.clearWatch({ id: watchId });
+  } catch (error) {
+    console.error('Error clearing location watch:', error);
+  }
 };
