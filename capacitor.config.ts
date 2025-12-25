@@ -33,6 +33,11 @@ const config: CapacitorConfig = {
         permissions: ['camera', 'photos']
       }
     },
+    Contacts: {
+      ios: {
+        NSContactsUsageDescription: 'نحتاج الوصول لجهات الاتصال لدعوة أصدقائك'
+      }
+    },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
