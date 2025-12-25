@@ -8,65 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useNavigate } from "react-router-dom";
-
-const plans = [
-  {
-    name: "مجاني",
-    icon: User,
-    priceMonthly: "0",
-    priceYearly: "0",
-    description: "مثالي للاستخدام الشخصي البسيط",
-    features: [
-      "حتى 3 مجموعات نشطة",
-      "حد أقصى 5 أشخاص في المجموعة الواحدة",
-      "إضافة وتتبع المصاريف (50 شهرياً)",
-      "رفع الإيصالات (10 شهرياً)",
-      "إنشاء روابط دعوة (حد أقصى 4 أشخاص)",
-      "تقسيم بالتساوي",
-      "تقارير شهرية (5 تقارير)",
-      "حفظ البيانات (6 أشهر)",
-      "دعم عبر البريد الإلكتروني"
-    ],
-    buttonText: "ابدأ مجاناً",
-    popular: false
-  },
-  {
-    name: "شخصي",
-    icon: Star,
-    priceMonthly: "19",
-    priceYearly: "190",
-    description: "للأفراد والعائلات النشطة",
-    features: [
-      "عدد غير محدود من المجموعات",
-      "عدد غير محدود من الأعضاء في المجموعة",
-      "تقسيم متقدم (نسب ومبالغ)",
-      "مسح الإيصالات بالذكاء الاصطناعي",
-      "تحليلات وتوصيات ذكية",
-      "دردشة المجموعة",
-      "تصدير التقارير",
-      "دعم أولوية"
-    ],
-    buttonText: "اشترك الآن",
-    popular: true
-  },
-  {
-    name: "العائلية",
-    icon: Users,
-    priceMonthly: "75",
-    priceYearly: "750",
-    description: "للعائلات والمجموعات الصغيرة",
-    features: [
-      "جميع مزايا الباقة الشخصية",
-      "حتى 5 أعضاء في المجموعة",
-      "حدود مشتركة وسياسات إنفاق",
-      "تقارير للعائلة/المجموعة",
-      "موافقة على المصاريف",
-      "دعم أولوية"
-    ],
-    buttonText: "اشترك الآن",
-    popular: false
-  }
-];
+import { useTranslation } from "react-i18next";
 
 export const PricingSection = () => {
   const [isYearly, setIsYearly] = useState(false);
@@ -74,16 +16,70 @@ export const PricingSection = () => {
   const { toast } = useToast();
   const { getPlanBadgeConfig } = usePlanBadge();
   const navigate = useNavigate();
+  const { t } = useTranslation('pricing');
+
+  const plans = [
+    {
+      key: "free",
+      icon: User,
+      priceMonthly: "0",
+      priceYearly: "0",
+      features: [
+        t('plans.free.features.groups'),
+        t('plans.free.features.members'),
+        t('plans.free.features.expenses'),
+        t('plans.free.features.receipts'),
+        t('plans.free.features.invites'),
+        t('plans.free.features.split'),
+        t('plans.free.features.reports'),
+        t('plans.free.features.storage'),
+        t('plans.free.features.support')
+      ],
+      popular: false
+    },
+    {
+      key: "personal",
+      icon: Star,
+      priceMonthly: "19",
+      priceYearly: "190",
+      features: [
+        t('plans.personal.features.groups'),
+        t('plans.personal.features.members'),
+        t('plans.personal.features.split'),
+        t('plans.personal.features.ai'),
+        t('plans.personal.features.analytics'),
+        t('plans.personal.features.chat'),
+        t('plans.personal.features.export'),
+        t('plans.personal.features.support')
+      ],
+      popular: true
+    },
+    {
+      key: "family",
+      icon: Users,
+      priceMonthly: "75",
+      priceYearly: "750",
+      features: [
+        t('plans.family.features.allPersonal'),
+        t('plans.family.features.familyMembers'),
+        t('plans.family.features.limits'),
+        t('plans.family.features.familyReports'),
+        t('plans.family.features.approval'),
+        t('plans.family.features.support')
+      ],
+      popular: false
+    }
+  ];
 
   return (
     <section id="pricing" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            اختر الباقة 
+            {t('title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            باقات مرنة تناسب احتياجاتك، من الاستخدام الشخصي إلى إدارة الشركات
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center justify-center mb-10">
@@ -95,7 +91,7 @@ export const PricingSection = () => {
               className={!isYearly ? "shadow-elevated" : ""}
               aria-pressed={!isYearly}
             >
-              شهري
+              {t('monthly')}
             </Button>
             <Button
               variant={isYearly ? "default" : "ghost"}
@@ -104,7 +100,7 @@ export const PricingSection = () => {
               className={isYearly ? "shadow-elevated" : ""}
               aria-pressed={isYearly}
             >
-              سنوي <span className="ml-2 text-xs text-primary">وفر 20%</span>
+              {t('yearly')} <span className="ml-2 text-xs text-primary">{t('save')}</span>
             </Button>
           </div>
         </div>
@@ -112,6 +108,9 @@ export const PricingSection = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
+            const planName = t(`plans.${plan.key}.name`);
+            const planDescription = t(`plans.${plan.key}.description`);
+            
             return (
               <Card 
                 key={index} 
@@ -124,7 +123,7 @@ export const PricingSection = () => {
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <div className="bg-gradient-primary text-white px-4 py-2 rounded-full text-sm font-medium">
-                      الأكثر شعبية
+                      {t('mostPopular')}
                     </div>
                   </div>
                 )}
@@ -137,24 +136,21 @@ export const PricingSection = () => {
                       <Icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
                     </div>
                     <PlanBadge 
-                      config={getPlanBadgeConfig(
-                        plan.name === "مجاني" ? "free" : 
-                        plan.name === "شخصي" ? "personal" : "family"
-                      )} 
+                      config={getPlanBadgeConfig(plan.key as "free" | "personal" | "family")} 
                       size="lg"
                       showLabel={true}
                     />
                   </div>
                   
-                  <h3 className="text-2xl font-bold">{plan.name}</h3>
-                  <p className="text-muted-foreground text-sm">{plan.description}</p>
+                  <h3 className="text-2xl font-bold">{planName}</h3>
+                  <p className="text-muted-foreground text-sm">{planDescription}</p>
                   
                   <div className="mt-4">
                     <span className="text-4xl font-bold">{isYearly ? plan.priceYearly : plan.priceMonthly}</span>
                     <span className="text-muted-foreground mr-2">
-                      {isYearly ? "ريال/سنوياً" : "ريال/شهرياً"}
+                      {isYearly ? t('perYear') : t('perMonth')}
                     </span>
-                    {isYearly && <div className="text-xs text-primary mt-1">توفير 20% سنوياً</div>}
+                    {isYearly && <div className="text-xs text-primary mt-1">{t('yearlySavings')}</div>}
                   </div>
                 </CardHeader>
 
@@ -165,21 +161,21 @@ export const PricingSection = () => {
                         <div className="w-5 h-5 bg-gradient-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Check className="w-3 h-3 text-white" />
                         </div>
-                        <span className="text-sm">{feature || "الاشتراك"}</span>
+                        <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
                   <div className="pt-6">
-                    {plan.name === "مجاني" ? (
+                    {plan.key === "free" ? (
                       <Button 
                         variant={plan.popular ? "hero" : "outline"}
                         className="w-full"
                         size="lg"
                         onClick={() => navigate("/auth")}
-                        aria-label={`البدء في خطة ${plan.name}`}
+                        aria-label={`${t('startFree')} - ${planName}`}
                       >
-                        ابدأ مجاناً
+                        {t('startFree')}
                       </Button>
                     ) : (
                       <Button
@@ -187,48 +183,45 @@ export const PricingSection = () => {
                         className="w-full"
                         size="lg"
                         onClick={async () => {
-                          let planKey = "personal";
-                          if (plan.name === "العائلية") planKey = "family";
-                          
                           const { data: { session } } = await supabase.auth.getSession();
                           if (!session?.user) {
-                            const params = new URLSearchParams({ startTrial: planKey, redirectTo: "/dashboard" });
+                            const params = new URLSearchParams({ startTrial: plan.key, redirectTo: "/dashboard" });
                             navigate(`/auth?${params.toString()}`);
                             return;
                           }
                           
                           if (!canStartTrial) {
                             toast({ 
-                              title: "انتهت فترة التجربة المجانية", 
-                              description: "يرجى الاشتراك في الباقة للاستمرار في استخدام المزايا المتقدمة", 
+                              title: t('toasts.trialExpired'), 
+                              description: t('toasts.trialExpiredDesc'), 
                               variant: "default" 
                             });
                             return;
                           }
                           
-                          const res = await startTrial(planKey as any);
+                          const res = await startTrial(plan.key as any);
                           if ((res as any).error) {
                             const msg = (res as any).error === "trial_expired" 
-                              ? "لقد استنفدت أيام التجربة المجانية. يرجى الاشتراك للاستمرار." 
+                              ? t('toasts.trialExpiredFull')
                               : (res as any).error === "trial_exists" 
-                              ? "لديك تجربة سابقة أو نشطة." 
+                              ? t('toasts.trialExists')
                               : (res as any).error;
                             toast({ 
-                              title: "لا يمكن بدء التجربة", 
+                              title: t('toasts.cannotStartTrial'), 
                               description: msg, 
                               variant: "destructive" 
                             });
                           } else {
                             toast({ 
-                              title: "بدأت التجربة المجانية", 
-                              description: "صالحة لمدة ٧ أيام" 
+                              title: t('toasts.trialStarted'), 
+                              description: t('toasts.trialDuration')
                             });
                             navigate("/dashboard");
                           }
                         }}
-                        aria-label={`${canStartTrial ? 'ابدأ تجربة ٧ أيام' : 'اشترك الآن'} لخطة ${plan.name}`}
+                        aria-label={`${canStartTrial ? t('startTrial') : t('subscribe')} - ${planName}`}
                       >
-                        {canStartTrial ? "ابدأ تجربة ٧ أيام" : "اشترك الآن"}
+                        {canStartTrial ? t('startTrial') : t('subscribe')}
                       </Button>
                     )}
                   </div>
@@ -240,7 +233,7 @@ export const PricingSection = () => {
 
         <div className="text-center mt-12">
           <p className="text-muted-foreground">
-            ضمان استرداد المال خلال 30 يوماً • بدون رسوم إعداد • إلغاء في أي وقت
+            {t('guarantee')}
           </p>
         </div>
       </div>

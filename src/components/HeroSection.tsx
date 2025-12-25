@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Users, Calculator, TrendingUp, Shield } from "lucide-react";
 import heroImage from "@/assets/hero-illustration.png";
+import { useTranslation } from "react-i18next";
 
 export const HeroSection = () => {
+  const { t } = useTranslation('landing');
+
   return (
     <section className="relative py-20 bg-gradient-hero overflow-hidden">
       {/* Background Pattern */}
@@ -16,25 +19,24 @@ export const HeroSection = () => {
             {/* Slogan Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 border border-white/20">
               <span className="text-sm font-medium text-white">
-                قسّم بذكاء، سافر براحة
+                {t('hero.sloganAr')}
               </span>
               <span className="text-xs text-white/70">|</span>
               <span className="text-xs font-medium text-white/80">
-                Split Smart, Travel Easy
+                {t('hero.sloganEn')}
               </span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
-              إدارة المصاريف
+              {t('hero.title')}
               <br />
               <span className="bg-gradient-to-r from-white to-primary bg-clip-text text-transparent">
-                بذكاء وسهولة
+                {t('hero.titleHighlight')}
               </span>
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              قسّم المصاريف بين الأصدقاء والعائلة والزملاء بطريقة عادلة وذكية. 
-              تتبع النفقات، احسب الديون، وتلقى تحليلات مالية مدعومة بالذكاء الاصطناعي.
+              {t('hero.description')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end mb-8">
@@ -44,11 +46,11 @@ export const HeroSection = () => {
                 className="text-lg"
                 onClick={() => window.location.href = '/dashboard'}
               >
-                ابدأ مجاناً
+                {t('hero.startFree')}
                 <ArrowLeft className="w-5 h-5 mr-2" />
               </Button>
               <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                شاهد العرض التوضيحي
+                {t('hero.watchDemo')}
               </Button>
             </div>
 
@@ -56,11 +58,11 @@ export const HeroSection = () => {
             <div className="flex items-center justify-center lg:justify-end gap-6 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                <span className="text-sm">آمن ومشفر</span>
+                <span className="text-sm">{t('hero.secure')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                <span className="text-sm">+10,000 مستخدم</span>
+                <span className="text-sm">{t('hero.users')}</span>
               </div>
             </div>
           </div>
@@ -70,7 +72,7 @@ export const HeroSection = () => {
             <div className="relative z-10">
               <img 
                 src={heroImage} 
-                alt="صورة توضيحية لإدارة المصاريف وتقسيم الفواتير"
+                alt={t('hero.imageAlt')}
                 className="rounded-2xl shadow-elevated w-full max-w-lg mx-auto"
               />
             </div>
@@ -82,8 +84,8 @@ export const HeroSection = () => {
                   <Calculator className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">مصروف رحلة</p>
-                  <p className="text-xs text-muted-foreground">1,200 ريال</p>
+                  <p className="text-sm font-medium">{t('hero.tripExpense')}</p>
+                  <p className="text-xs text-muted-foreground">{t('hero.tripAmount')}</p>
                 </div>
               </div>
             </Card>
@@ -94,8 +96,8 @@ export const HeroSection = () => {
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">توفير 30%</p>
-                  <p className="text-xs text-muted-foreground">هذا الشهر</p>
+                  <p className="text-sm font-medium">{t('hero.savings')}</p>
+                  <p className="text-xs text-muted-foreground">{t('hero.thisMonth')}</p>
                 </div>
               </div>
             </Card>

@@ -12,6 +12,8 @@ import arErrors from './locales/ar/errors.json';
 import arFaq from './locales/ar/faq.json';
 import arQuota from './locales/ar/quota.json';
 import arNotifications from './locales/ar/notifications.json';
+import arLanding from './locales/ar/landing.json';
+import arPricing from './locales/ar/pricing.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
@@ -24,6 +26,8 @@ import enErrors from './locales/en/errors.json';
 import enFaq from './locales/en/faq.json';
 import enQuota from './locales/en/quota.json';
 import enNotifications from './locales/en/notifications.json';
+import enLanding from './locales/en/landing.json';
+import enPricing from './locales/en/pricing.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -52,7 +56,9 @@ i18n
         errors: arErrors,
         faq: arFaq,
         quota: arQuota,
-        notifications: arNotifications
+        notifications: arNotifications,
+        landing: arLanding,
+        pricing: arPricing
       },
       en: {
         common: enCommon,
@@ -64,13 +70,15 @@ i18n
         errors: enErrors,
         faq: enFaq,
         quota: enQuota,
-        notifications: enNotifications
+        notifications: enNotifications,
+        landing: enLanding,
+        pricing: enPricing
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing'],
     interpolation: {
       escapeValue: false
     },

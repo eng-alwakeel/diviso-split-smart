@@ -1,0 +1,82 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "howItWorks": "How it works",
+    "features": "Features",
+    "faq": "FAQ",
+    "pricing": "Pricing",
+    "slogan": "Split Smart, Travel Easy"
+  },
+  "hero": {
+    "sloganAr": "قسّم بذكاء، سافر براحة",
+    "sloganEn": "Split Smart, Travel Easy",
+    "title": "Expense Management",
+    "titleHighlight": "Smart & Easy",
+    "description": "Split expenses among friends, family, and colleagues fairly and smartly. Track expenses, calculate debts, and receive AI-powered financial insights.",
+    "startFree": "Start Free",
+    "watchDemo": "Watch Demo",
+    "secure": "Safe & Encrypted",
+    "users": "+10,000 Users",
+    "imageAlt": "Illustration of expense management and bill splitting",
+    "tripExpense": "Trip Expense",
+    "tripAmount": "1,200 SAR",
+    "savings": "30% Savings",
+    "thisMonth": "This Month"
+  },
+  "features": {
+    "title": "Features that make expense management",
+    "titleHighlight": "easier than ever",
+    "subtitle": "Enjoy a comprehensive set of smart tools that help you manage your money efficiently",
+    "groups": {
+      "title": "Group Management",
+      "description": "Create groups for trips, shared housing, or projects and invite members easily"
+    },
+    "smartSplit": {
+      "title": "Smart Split",
+      "description": "Split expenses equally, by percentage, or custom amounts based on your needs"
+    },
+    "ai": {
+      "title": "Artificial Intelligence",
+      "description": "Automatic receipt analysis and smart category suggestions for expenses"
+    },
+    "receiptScan": {
+      "title": "Receipt Scanning",
+      "description": "Advanced OCR technology to extract expense details from receipt photos"
+    },
+    "reports": {
+      "title": "Reports & Analytics",
+      "description": "Track spending and analyze budget with smart financial insights"
+    },
+    "chat": {
+      "title": "Group Chat",
+      "description": "Communicate with group members and discuss expenses within the app"
+    },
+    "referral": {
+      "title": "Referral Program",
+      "description": "Get free subscription days for every friend you invite"
+    },
+    "security": {
+      "title": "Security & Privacy",
+      "description": "Data encryption and secure authentication to protect your financial information"
+    },
+    "cta": {
+      "title": "Ready to start?",
+      "subtitle": "Join thousands of users managing their expenses smartly",
+      "startFree": "Start Free",
+      "downloadApp": "Download App"
+    }
+  },
+  "footer": {
+    "slogan": "Split Smart, Travel Easy | قسّم بذكاء، سافر براحة",
+    "description": "Smart and easy shared expense management. Split expenses and follow budgets with friends and family.",
+    "usefulLinks": "Useful Links",
+    "howItWorks": "How the app works",
+    "faq": "FAQ",
+    "pricing": "Pricing & Plans",
+    "privacy": "Privacy Policy",
+    "contactUs": "Contact Us",
+    "location": "Riyadh, Saudi Arabia",
+    "allRights": "All rights reserved"
+  }
+}

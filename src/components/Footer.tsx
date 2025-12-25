@@ -5,9 +5,13 @@ import {
   Phone, 
   MapPin
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 export const Footer = () => {
+  const { t } = useTranslation('landing');
+
   return (
     <footer className="bg-gradient-to-b from-muted/50 to-muted">
       <div className="container mx-auto px-4 py-16">
@@ -20,36 +24,36 @@ export const Footer = () => {
                 <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
               </div>
               <p className="text-sm font-medium text-muted-foreground/80">
-                قسّم بذكاء، سافر براحة | Split Smart, Travel Easy
+                {t('footer.slogan')}
               </p>
             </div>
             <p className="text-muted-foreground">
-              إدارة المصاريف المشتركة بذكاء وسهولة. قسّم النفقات واتبع الميزانية مع أصدقائك وعائلتك.
+              {t('footer.description')}
             </p>
           </div>
 
           {/* Useful Links */}
           <div>
-            <h4 className="font-semibold mb-4">روابط مفيدة</h4>
+            <h4 className="font-semibold mb-4">{t('footer.usefulLinks')}</h4>
             <div className="space-y-3 text-muted-foreground">
               <Link to="/how-it-works" className="block hover:text-foreground transition-colors text-sm">
-                كيف يعمل التطبيق
+                {t('footer.howItWorks')}
               </Link>
               <Link to="/faq" className="block hover:text-foreground transition-colors text-sm">
-                الأسئلة الشائعة
+                {t('footer.faq')}
               </Link>
               <Link to="/pricing" className="block hover:text-foreground transition-colors text-sm">
-                الباقات والأسعار
+                {t('footer.pricing')}
               </Link>
               <Link to="/privacy-policy" className="block hover:text-foreground transition-colors text-sm">
-                سياسة الخصوصية
+                {t('footer.privacy')}
               </Link>
             </div>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">تواصل معنا</h4>
+            <h4 className="font-semibold mb-4">{t('footer.contactUs')}</h4>
             <div className="space-y-3 text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
@@ -61,7 +65,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span className="text-sm">الرياض، المملكة العربية السعودية</span>
+                <span className="text-sm">{t('footer.location')}</span>
               </div>
             </div>
           </div>
@@ -72,7 +76,7 @@ export const Footer = () => {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <p>© 2024 Diviso. جميع الحقوق محفوظة.</p>
+            <p>© 2024 Diviso. {t('footer.allRights')}</p>
             <span className="px-2 py-1 bg-muted/50 rounded text-xs font-mono">
               v{new Date().toISOString().slice(0, 16).replace('T', '-')}
             </span>
