@@ -6,13 +6,16 @@ import { Footer } from "@/components/Footer";
 import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
 import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
 import { SEO } from "@/components/SEO";
+import { useTranslation } from "react-i18next";
 
 const Index = () => {
+  const { t } = useTranslation('landing');
+
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="قسّم بذكاء، سافر براحة"
-        description="تطبيق Diviso لإدارة المصاريف المشتركة بذكاء الاصطناعي. قسّم المصاريف بين الأصدقاء والعائلة بطريقة عادلة وذكية."
+        title={t('seo.title')}
+        description={t('seo.description')}
         canonical="https://diviso.app/"
       />
       <Header />

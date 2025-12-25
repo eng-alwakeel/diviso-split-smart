@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
@@ -43,6 +44,7 @@ export const Header = () => {
         <div className="grid grid-cols-3 items-center">
           {/* Left: Actions */}
           <div className="justify-self-start flex items-center gap-2">
+            <LanguageSwitcher />
             <Button 
               variant="hero" 
               size="sm"
