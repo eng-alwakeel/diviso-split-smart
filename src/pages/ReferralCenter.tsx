@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   ArrowRight, 
@@ -13,7 +14,8 @@ import {
   CheckCircle,
   Clock,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Link
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +23,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useReferralRewards } from "@/hooks/useReferralRewards";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -151,17 +154,42 @@ const ReferralCenter = () => {
           </CardContent>
         </Card>
 
-        {/* كود الإحالة */}
+        {/* QR Code ورابط الإحالة */}
         <Card className="shadow-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">كود الإحالة الخاص بك</CardTitle>
+            <CardTitle className="text-lg">شارك رابط الإحالة</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* عرض الكود */}
-            <div className="bg-muted/50 rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold font-mono tracking-wider text-primary">
-                {referralCode || '---'}
+            {/* QR Code */}
+            <div className="flex justify-center">
+              <QRCodeDisplay 
+                value={referralLink} 
+                size={180}
+                showActions={true}
+              />
+            </div>
+
+            <Separator />
+            
+            {/* رابط الإحالة */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Link className="w-4 h-4" />
+                رابط الإحالة:
               </p>
+              <div className="bg-muted/50 rounded-lg p-3 text-center">
+                <p className="text-sm font-mono break-all text-primary">
+                  {referralLink}
+                </p>
+              </div>
+            </div>
+            
+            {/* الكود */}
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <span>الكود:</span>
+              <Badge variant="secondary" className="font-mono text-base">
+                {referralCode || '---'}
+              </Badge>
             </div>
 
             {/* أزرار النسخ والمشاركة */}
