@@ -4,68 +4,69 @@ import {
   Calculator, 
   Brain, 
   PieChart, 
-  Smartphone, 
-  Shield,
   Camera,
   MessageCircle,
   Gift,
-  CreditCard
+  Shield
 } from "lucide-react";
-
-const features = [
-  {
-    icon: Users,
-    title: "إدارة المجموعات",
-    description: "أنشئ مجموعات للرحلات، السكن المشترك، أو المشاريع وادع الأعضاء بسهولة"
-  },
-  {
-    icon: Calculator,
-    title: "تقسيم ذكي",
-    description: "قسّم المصاريف بالتساوي، بنسب محددة، أو مبالغ مخصصة حسب احتياجاتك"
-  },
-  {
-    icon: Brain,
-    title: "ذكاء اصطناعي",
-    description: "تحليل الإيصالات تلقائياً واقتراح الفئات المناسبة للمصاريف"
-  },
-  {
-    icon: Camera,
-    title: "مسح الإيصالات",
-    description: "تقنية OCR متقدمة لاستخراج تفاصيل المصاريف من صور الإيصالات"
-  },
-  {
-    icon: PieChart,
-    title: "تقارير وتحليلات",
-    description: "تتبع الإنفاق وتحليل الميزانية مع رؤى مالية ذكية"
-  },
-  {
-    icon: MessageCircle,
-    title: "دردشة المجموعة",
-    description: "تواصل مع أعضاء المجموعة ومناقشة المصاريف داخل التطبيق"
-  },
-  {
-    icon: Gift,
-    title: "برنامج الإحالة",
-    description: "احصل على أيام مجانية من الاشتراك مقابل كل صديق تدعوه"
-  },
-  {
-    icon: Shield,
-    title: "الأمان والخصوصية",
-    description: "تشفير البيانات ونظام مصادقة آمن لحماية معلوماتك المالية"
-  }
-];
+import { useTranslation } from "react-i18next";
 
 export const FeaturesSection = () => {
+  const { t } = useTranslation('landing');
+
+  const features = [
+    {
+      icon: Users,
+      title: t('features.groups.title'),
+      description: t('features.groups.description')
+    },
+    {
+      icon: Calculator,
+      title: t('features.smartSplit.title'),
+      description: t('features.smartSplit.description')
+    },
+    {
+      icon: Brain,
+      title: t('features.ai.title'),
+      description: t('features.ai.description')
+    },
+    {
+      icon: Camera,
+      title: t('features.receiptScan.title'),
+      description: t('features.receiptScan.description')
+    },
+    {
+      icon: PieChart,
+      title: t('features.reports.title'),
+      description: t('features.reports.description')
+    },
+    {
+      icon: MessageCircle,
+      title: t('features.chat.title'),
+      description: t('features.chat.description')
+    },
+    {
+      icon: Gift,
+      title: t('features.referral.title'),
+      description: t('features.referral.description')
+    },
+    {
+      icon: Shield,
+      title: t('features.security.title'),
+      description: t('features.security.description')
+    }
+  ];
+
   return (
     <section id="features" className="py-20 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            مزايا تجعل إدارة المصاريف
-            <span className="bg-gradient-primary bg-clip-text text-transparent"> أسهل من أي وقت مضى</span>
+            {t('features.title')}
+            <span className="bg-gradient-primary bg-clip-text text-transparent"> {t('features.titleHighlight')}</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            استمتع بمجموعة شاملة من الأدوات الذكية التي تساعدك على إدارة أموالك بكفاءة
+            {t('features.subtitle')}
           </p>
         </div>
 
@@ -91,16 +92,16 @@ export const FeaturesSection = () => {
         {/* CTA Section */}
         <div className="text-center mt-16">
           <div className="bg-gradient-hero rounded-2xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">جاهز للبدء؟</h3>
+            <h3 className="text-2xl font-bold mb-4">{t('features.cta.title')}</h3>
             <p className="text-muted-foreground mb-6">
-              انضم إلى آلاف المستخدمين الذين يديرون مصاريفهم بذكاء
+              {t('features.cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="bg-white text-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                ابدأ مجاناً
+                {t('features.cta.startFree')}
               </button>
               <button className="border border-white/20 text-white px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors">
-                تحميل التطبيق
+                {t('features.cta.downloadApp')}
               </button>
             </div>
           </div>
