@@ -93,7 +93,11 @@
     "currency_selected": "العملة المحددة",
     "currency_note": "ستظهر جميع المبالغ محولة إلى العملة المفضلة",
     "refresh_rates": "تحديث أسعار الصرف",
-    "save_settings": "حفظ الإعدادات"
+    "save_settings": "حفظ الإعدادات",
+    "save_language": "حفظ اللغة",
+    "changing_language": "جاري تغيير اللغة...",
+    "language_changed": "تم تغيير اللغة",
+    "language_changed_desc": "تم تحديث لغة التطبيق بنجاح"
   },
   "notifications": {
     "title": "إعدادات الإشعارات",

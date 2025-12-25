@@ -39,6 +39,11 @@ const Settings = () => {
   const { toast } = useToast();
   const { t, i18n } = useTranslation(['common', 'settings']);
   const { changeLanguage, isRTL } = useLanguage();
+  
+  // Language change with countdown
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+  const [isLanguageChanging, setIsLanguageChanging] = useState(false);
+  const [languageCountdown, setLanguageCountdown] = useState(0);
   const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
@@ -494,11 +499,12 @@ const Settings = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="text-foreground">{t('settings:language_currency.language_label')}</Label>
                   <Select 
-                    value={i18n.language} 
-                    onValueChange={(value) => changeLanguage(value)}
+                    value={selectedLanguage} 
+                    onValueChange={(value) => setSelectedLanguage(value)}
+                    disabled={isLanguageChanging}
                   >
                     <SelectTrigger className="bg-background/50 border-border text-foreground">
                       <SelectValue />
@@ -508,6 +514,42 @@ const Settings = () => {
                       <SelectItem value="en">English</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  <Button 
+                    onClick={() => {
+                      setIsLanguageChanging(true);
+                      setLanguageCountdown(5);
+                      
+                      const timer = setInterval(() => {
+                        setLanguageCountdown(prev => {
+                          if (prev <= 1) {
+                            clearInterval(timer);
+                            changeLanguage(selectedLanguage);
+                            setIsLanguageChanging(false);
+                            toast({
+                              title: t('settings:language_currency.language_changed'),
+                              description: t('settings:language_currency.language_changed_desc'),
+                            });
+                            return 0;
+                          }
+                          return prev - 1;
+                        });
+                      }, 1000);
+                    }}
+                    disabled={selectedLanguage === i18n.language || isLanguageChanging}
+                    className="w-full"
+                  >
+                    {isLanguageChanging ? (
+                      <>
+                        {t('settings:language_currency.changing_language')} ({languageCountdown})
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 me-2" />
+                        {t('settings:language_currency.save_language')}
+                      </>
+                    )}
+                  </Button>
                 </div>
 
                 <div className="space-y-2">
