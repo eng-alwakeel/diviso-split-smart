@@ -6,7 +6,13 @@
     "features": "Features",
     "faq": "FAQ",
     "pricing": "Pricing",
-    "slogan": "Split Smart, Travel Easy"
+    "slogan": "Split Smart, Travel Easy",
+    "switchToArabic": "عربي",
+    "switchToEnglish": "EN"
+  },
+  "seo": {
+    "title": "Diviso - Smart Expense Splitting App",
+    "description": "Split expenses among friends, family, and colleagues fairly and smartly. Track expenses, calculate debts, and receive AI-powered financial insights."
   },
   "hero": {
     "sloganAr": "قسّم بذكاء، سافر براحة",
