@@ -136,7 +136,7 @@ export const PricingSection = () => {
                       <Icon className={`w-6 h-6 ${plan.popular ? 'text-white' : 'text-muted-foreground'}`} />
                     </div>
                     <PlanBadge 
-                      config={getPlanBadgeConfig(plan.key)} 
+                      config={getPlanBadgeConfig(plan.key as "free" | "personal" | "family")} 
                       size="lg"
                       showLabel={true}
                     />
