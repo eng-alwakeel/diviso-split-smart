@@ -38,6 +38,12 @@ const config: CapacitorConfig = {
         NSContactsUsageDescription: 'نحتاج الوصول لجهات الاتصال لدعوة أصدقائك'
       }
     },
+    Geolocation: {
+      ios: {
+        NSLocationWhenInUseUsageDescription: 'نحتاج موقعك لتحسين تجربة الاستخدام وعرض العروض القريبة منك',
+        NSLocationAlwaysAndWhenInUseUsageDescription: 'نحتاج موقعك لتتبع موقعك في الخلفية'
+      }
+    },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
