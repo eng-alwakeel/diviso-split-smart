@@ -93,7 +93,11 @@
     "currency_selected": "Selected currency",
     "currency_note": "All amounts will be converted to your preferred currency",
     "refresh_rates": "Refresh exchange rates",
-    "save_settings": "Save Settings"
+    "save_settings": "Save Settings",
+    "save_language": "Save Language",
+    "changing_language": "Changing language...",
+    "language_changed": "Language Changed",
+    "language_changed_desc": "The app language has been updated successfully"
   },
   "notifications": {
     "title": "Notification Settings",
