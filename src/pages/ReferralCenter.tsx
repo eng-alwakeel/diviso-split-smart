@@ -15,8 +15,10 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  Link
+  Link,
+  UserPlus
 } from "lucide-react";
+import { ContactsPicker } from "@/components/group/ContactsPicker";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -31,6 +33,7 @@ const ReferralCenter = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
 
   const { 
     referrals, 
@@ -77,6 +80,45 @@ const ReferralCenter = () => {
       // المستخدم ألغى المشاركة أو حدث خطأ
       if ((error as Error).name !== 'AbortError') {
         handleCopy();
+      }
+    }
+  };
+
+  // دعوة من جهات الاتصال
+  const handleContactSelected = async (
+    contact: { name: string },
+    phone: string,
+    isRegistered: boolean
+  ) => {
+    setContactsOpen(false);
+    
+    if (isRegistered) {
+      toast({
+        title: "صديق مسجل بالفعل!",
+        description: `${contact.name} موجود في ديفيسو`,
+      });
+    } else {
+      // مشاركة رابط الإحالة
+      const shareText = `انضم إلى تطبيق ديفيسو واحصل على 7 أيام مجانية!\n\nاستخدم كود الإحالة: ${referralCode || ''}\n${referralLink}`;
+      
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'دعوة لتطبيق ديفيسو',
+            text: shareText,
+            url: referralLink
+          });
+        } else {
+          navigator.clipboard.writeText(shareText);
+          toast({
+            title: "تم النسخ!",
+            description: `رابط الدعوة جاهز للمشاركة مع ${contact.name}`,
+          });
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          navigator.clipboard.writeText(shareText);
+        }
       }
     }
   };
@@ -210,8 +252,33 @@ const ReferralCenter = () => {
                 مشاركة
               </Button>
             </div>
+
+            {/* فاصل */}
+            <div className="relative">
+              <Separator />
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
+                أو
+              </span>
+            </div>
+
+            {/* زر دعوة من جهات الاتصال */}
+            <Button 
+              variant="outline" 
+              onClick={() => setContactsOpen(true)}
+              className="w-full h-12"
+            >
+              <UserPlus className="w-4 h-4 ms-2" />
+              دعوة من جهات الاتصال
+            </Button>
           </CardContent>
         </Card>
+
+        {/* ContactsPicker Dialog */}
+        <ContactsPicker
+          open={contactsOpen}
+          onOpenChange={setContactsOpen}
+          onContactSelected={handleContactSelected}
+        />
 
         {/* سجل الإحالات - قابل للطي */}
         {referrals.length > 0 && (
