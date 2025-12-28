@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface RecommendationNotificationProps {
-  type: "lunch" | "dinner" | "planning" | "post_expense";
+  type: "lunch" | "dinner" | "planning" | "post_expense" | "end_of_day";
   placeName?: string;
   onViewRecommendation?: () => void;
   onDismiss?: () => void;
@@ -65,6 +65,11 @@ export function RecommendationNotification({
         return {
           title: t("notifications.post_expense"),
           subtitle: t("notifications.post_expense_subtitle"),
+        };
+      case "end_of_day":
+        return {
+          title: t("notifications.default_title"),
+          subtitle: t("notifications.default_subtitle"),
         };
       default:
         return {
