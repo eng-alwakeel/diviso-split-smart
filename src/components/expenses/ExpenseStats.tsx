@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ interface ExpenseStatsProps {
 }
 
 export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => {
+  const { t } = useTranslation('expenses');
   const netBalanceColor = stats.total_net > 0 ? 'text-success' : stats.total_net < 0 ? 'text-destructive' : 'text-muted-foreground';
   const netBalanceIcon = stats.total_net > 0 ? TrendingUp : stats.total_net < 0 ? TrendingDown : DollarSign;
   const NetIcon = netBalanceIcon;
@@ -21,7 +23,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
       {/* Total Net Balance */}
       <Card className="border-l-4 border-l-primary">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">الرصيد الصافي</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('stats.net_balance')}</CardTitle>
           <NetIcon className={`h-4 w-4 ${netBalanceColor}`} />
         </CardHeader>
         <CardContent>
@@ -30,7 +32,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
             {stats.total_net.toLocaleString()} {currency}
           </div>
           <p className="text-xs text-muted-foreground">
-            {stats.total_net > 0 ? 'يجب أن تستلم' : stats.total_net < 0 ? 'يجب أن تدفع' : 'متوازن'}
+            {stats.total_net > 0 ? t('stats.should_receive') : stats.total_net < 0 ? t('stats.should_pay') : t('stats.balanced')}
           </p>
         </CardContent>
       </Card>
@@ -38,7 +40,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
       {/* Total Paid */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">إجمالي المدفوع</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('stats.total_paid')}</CardTitle>
           <TrendingUp className="h-4 w-4 text-success" />
         </CardHeader>
         <CardContent>
@@ -47,10 +49,10 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="text-success border-success/20">
-              {stats.approved_paid.toLocaleString()} مُوافق
+              {stats.approved_paid.toLocaleString()} {t('stats.approved')}
             </Badge>
             <Badge variant="outline" className="text-warning border-warning/20">
-              {stats.pending_paid.toLocaleString()} معلق
+              {stats.pending_paid.toLocaleString()} {t('stats.pending')}
             </Badge>
           </div>
         </CardContent>
@@ -59,7 +61,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
       {/* Total Owed */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">إجمالي المستحق</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('stats.total_owed')}</CardTitle>
           <TrendingDown className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
@@ -68,10 +70,10 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="text-success border-success/20">
-              {stats.approved_owed.toLocaleString()} مُوافق
+              {stats.approved_owed.toLocaleString()} {t('stats.approved')}
             </Badge>
             <Badge variant="outline" className="text-warning border-warning/20">
-              {stats.pending_owed.toLocaleString()} معلق
+              {stats.pending_owed.toLocaleString()} {t('stats.pending')}
             </Badge>
           </div>
         </CardContent>
@@ -80,7 +82,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
       {/* Activity Overview */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">نظرة عامة</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('stats.overview')}</CardTitle>
           <Receipt className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -88,20 +90,20 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-1">
                 <Receipt className="h-3 w-3" />
-                المصاريف
+                {t('stats.expenses')}
               </span>
               <span className="font-medium">{stats.total_count}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                المجموعات
+                {t('stats.groups')}
               </span>
               <span className="font-medium">{stats.groups_count}</span>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span>معدل الموافقة</span>
+                <span>{t('stats.approval_rate')}</span>
                 <span>{approvalRate.toFixed(0)}%</span>
               </div>
               <Progress value={approvalRate} className="h-1" />
@@ -113,7 +115,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
       {/* Status Breakdown */}
       <Card className="md:col-span-2 lg:col-span-4">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">تفصيل حالة المصاريف</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('stats.status_breakdown')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -122,7 +124,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
                 <CheckCircle className="h-4 w-4 text-success" />
               </div>
               <div>
-                <p className="text-sm font-medium">مُوافق عليه</p>
+                <p className="text-sm font-medium">{t('stats.approved')}</p>
                 <p className="text-xl font-bold text-success">
                   {stats.total_count - stats.rejected_count - (stats.pending_paid > 0 || stats.pending_owed > 0 ? 1 : 0)}
                 </p>
@@ -134,7 +136,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
                 <Clock className="h-4 w-4 text-warning" />
               </div>
               <div>
-                <p className="text-sm font-medium">في الانتظار</p>
+                <p className="text-sm font-medium">{t('stats.pending')}</p>
                 <p className="text-xl font-bold text-warning">
                   {(stats.pending_paid > 0 || stats.pending_owed > 0) ? 1 : 0}
                 </p>
@@ -146,7 +148,7 @@ export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => 
                 <XCircle className="h-4 w-4 text-destructive" />
               </div>
               <div>
-                <p className="text-sm font-medium">مرفوض</p>
+                <p className="text-sm font-medium">{t('stats.rejected')}</p>
                 <p className="text-xl font-bold text-destructive">{stats.rejected_count}</p>
               </div>
             </div>

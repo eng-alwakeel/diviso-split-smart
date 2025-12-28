@@ -40,7 +40,19 @@
     "trial_active": "Trial Active",
     "days_left": "{{days}} days left",
     "expired": "Expired",
-    "upgrade": "Upgrade Plan"
+    "upgrade": "Upgrade Plan",
+    "no_subscription": "No subscription",
+    "trialing_active": "Trial Active",
+    "trialing_expired": "Trial Expired",
+    "active": "Active",
+    "canceled": "Canceled",
+    "status": "Status",
+    "trial_days_left": "Trial days remaining",
+    "days": "days",
+    "free_days_from_referrals": "Free days from referrals",
+    "total_days_remaining": "Total days remaining",
+    "manage_subscription": "Manage Subscription",
+    "trial_warning": "Your trial will end in {{days}} days. Upgrade to continue using all features."
   },
   "usage": {
     "title": "Usage Limits",
@@ -49,8 +61,14 @@
     "of": "of"
   },
   "checkin": {
-    "title": "Daily Check-in",
-    "description": "Check in daily to earn rewards",
+    "title": "Daily Reward",
+    "description": "Check in daily to collect rewards",
+    "claiming": "Claiming...",
+    "claimed_today": "You've checked in today ✓",
+    "claim_button": "Get your daily reward",
+    "coins": "Coins",
+    "checkins": "Check-ins",
+    "longest_streak": "Longest Streak",
     "button": "Check In",
     "done": "Checked in today",
     "streak": "{{days}} day streak"

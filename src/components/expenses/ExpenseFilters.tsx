@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export const ExpenseFilters = ({
   groups = [], 
   loading = false 
 }: ExpenseFiltersProps) => {
+  const { t } = useTranslation('expenses');
   const { debounce } = usePerformanceOptimization();
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState<FilterType>(filters);
@@ -68,7 +70,7 @@ export const ExpenseFilters = ({
       <div className="relative">
         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="ابحث في أوصاف المصاريف..."
+          placeholder={t('filters.search_placeholder')}
           value={localFilters.search || ''}
           onChange={(e) => {
             const value = e.target.value;
@@ -106,7 +108,7 @@ export const ExpenseFilters = ({
           onClick={() => onFiltersChange({ ...filters, status: 'all' })}
           disabled={loading}
         >
-          الكل
+          {t('filters.all')}
         </Button>
         <Button
           variant={filters.status === 'pending' ? "default" : "outline"}
@@ -114,7 +116,7 @@ export const ExpenseFilters = ({
           onClick={() => onFiltersChange({ ...filters, status: 'pending' })}
           disabled={loading}
         >
-          في الانتظار
+          {t('filters.pending')}
         </Button>
         <Button
           variant={filters.status === 'approved' ? "default" : "outline"}
@@ -122,7 +124,7 @@ export const ExpenseFilters = ({
           onClick={() => onFiltersChange({ ...filters, status: 'approved' })}
           disabled={loading}
         >
-          مُوافق عليه
+          {t('filters.approved')}
         </Button>
         <Button
           variant={filters.status === 'rejected' ? "default" : "outline"}
@@ -130,7 +132,7 @@ export const ExpenseFilters = ({
           onClick={() => onFiltersChange({ ...filters, status: 'rejected' })}
           disabled={loading}
         >
-          مرفوض
+          {t('filters.rejected')}
         </Button>
       </div>
 
@@ -140,7 +142,7 @@ export const ExpenseFilters = ({
           <CollapsibleTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              فلاتر متقدمة
+              {t('filters.advanced')}
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
                   {activeFiltersCount}
@@ -158,7 +160,7 @@ export const ExpenseFilters = ({
               className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4 mr-1" />
-              إزالة الفلاتر
+              {t('filters.clear')}
             </Button>
           )}
         </div>
@@ -168,16 +170,16 @@ export const ExpenseFilters = ({
             <CardContent className="p-4 space-y-4">
               {/* Group Filter */}
               <div className="space-y-2">
-                <Label>المجموعة</Label>
+                <Label>{t('filters.group')}</Label>
                 <Select 
                   value={localFilters.group_id || ''} 
                   onValueChange={(value) => updateFilter('group_id', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="جميع المجموعات" />
+                    <SelectValue placeholder={t('filters.all_groups')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">جميع المجموعات</SelectItem>
+                    <SelectItem value="">{t('filters.all_groups')}</SelectItem>
                     {groups.map((group) => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.name}
@@ -192,7 +194,7 @@ export const ExpenseFilters = ({
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    من تاريخ
+                    {t('filters.date_from')}
                   </Label>
                   <Input
                     type="date"
@@ -203,7 +205,7 @@ export const ExpenseFilters = ({
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    إلى تاريخ
+                    {t('filters.date_to')}
                   </Label>
                   <Input
                     type="date"
@@ -218,7 +220,7 @@ export const ExpenseFilters = ({
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
-                    أقل مبلغ
+                    {t('filters.min_amount')}
                   </Label>
                   <Input
                     type="number"
@@ -230,7 +232,7 @@ export const ExpenseFilters = ({
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
-                    أعلى مبلغ
+                    {t('filters.max_amount')}
                   </Label>
                   <Input
                     type="number"
@@ -244,10 +246,10 @@ export const ExpenseFilters = ({
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
                 <Button onClick={handleApplyFilters} className="flex-1">
-                  تطبيق الفلاتر
+                  {t('filters.apply')}
                 </Button>
                 <Button variant="outline" onClick={() => setIsOpen(false)}>
-                  إلغاء
+                  {t('filters.cancel')}
                 </Button>
               </div>
             </CardContent>

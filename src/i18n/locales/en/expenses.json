@@ -55,7 +55,21 @@
     "this_week": "This Week",
     "this_month": "This Month",
     "by_category": "By Category",
-    "by_date": "By Date"
+    "by_date": "By Date",
+    "search_placeholder": "Search expense descriptions...",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "advanced": "Advanced Filters",
+    "clear": "Clear Filters",
+    "group": "Group",
+    "all_groups": "All Groups",
+    "date_from": "From Date",
+    "date_to": "To Date",
+    "min_amount": "Min Amount",
+    "max_amount": "Max Amount",
+    "apply": "Apply Filters",
+    "cancel": "Cancel"
   },
   "summary": {
     "total": "Total",
@@ -157,5 +171,43 @@
     "group": "Group",
     "status": "Status",
     "close": "Close"
+  },
+  "stats": {
+    "net_balance": "Net Balance",
+    "should_receive": "You should receive",
+    "should_pay": "You should pay",
+    "balanced": "Balanced",
+    "total_paid": "Total Paid",
+    "total_owed": "Total Owed",
+    "approved": "Approved",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "overview": "Overview",
+    "expenses": "Expenses",
+    "groups": "Groups",
+    "approval_rate": "Approval Rate",
+    "status_breakdown": "Expense Status Breakdown"
+  },
+  "card": {
+    "no_description": "Expense without description",
+    "members": "members",
+    "paid": "Paid:",
+    "your_share": "Your Share:",
+    "net": "Net:",
+    "view_details": "View Details",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "delete_confirm_title": "Delete Expense",
+    "delete_confirm_desc": "Are you sure you want to delete this expense? This action cannot be undone."
+  },
+  "charts": {
+    "monthly_trend": "Monthly Trend",
+    "status_distribution": "Expense Status Distribution",
+    "top_groups": "Top Spending Groups",
+    "paid": "Paid",
+    "owed": "Owed",
+    "net": "Net",
+    "count": "Count",
+    "amount": "Amount"
   }
 }
