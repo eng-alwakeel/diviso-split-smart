@@ -32,5 +32,21 @@
   "invite": {
     "title": "دعوة لتطبيق ديفيسو",
     "message": "انضم إلى تطبيق ديفيسو واحصل على 7 أيام مجانية!\n\nاستخدم كود الإحالة: {{code}}"
+  },
+  "qr": {
+    "invalid_link": "قيمة الرابط غير صحيحة",
+    "generation_failed": "فشل في توليد رمز QR",
+    "download_success": "تم تحميل رمز QR بنجاح",
+    "download_error": "خطأ في تحميل رمز QR",
+    "prepare_error": "خطأ في تحضير رمز QR",
+    "title": "رمز QR - Diviso",
+    "scan_to_join": "امسح للانضمام إلى Diviso",
+    "copied_to_clipboard": "تم نسخ رمز QR إلى الحافظة",
+    "share_error": "خطأ في مشاركة رمز QR",
+    "share_text": "امسح هذا الرمز للانضمام إلى Diviso",
+    "retry": "إعادة المحاولة",
+    "download": "تحميل",
+    "share": "مشاركة",
+    "enlarge": "تكبير"
   }
 }

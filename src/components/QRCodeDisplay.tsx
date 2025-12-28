@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Download, Maximize2, Share2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface QRCodeDisplayProps {
   value: string;
@@ -13,6 +14,7 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ value, size = 200, className = "", showActions = true }: QRCodeDisplayProps) {
+  const { t } = useTranslation('referral');
   const qrRef = useRef<HTMLDivElement>(null);
   const qrCodeRef = useRef<QRCodeStyling | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +22,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
 
   useEffect(() => {
     if (!value?.trim()) {
-      setError('قيمة الرابط غير صحيحة');
+      setError(t('qr.invalid_link'));
       setIsLoading(false);
       return;
     }
@@ -77,10 +79,10 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
       setIsLoading(false);
     } catch (err) {
       console.error('Error generating QR code:', err);
-      setError('فشل في توليد رمز QR');
+      setError(t('qr.generation_failed'));
       setIsLoading(false);
     }
-  }, [value, size]);
+  }, [value, size, t]);
 
   const downloadQRCode = async () => {
     if (!qrCodeRef.current) return;
@@ -90,10 +92,10 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
         name: "diviso-qr-code",
         extension: "png"
       });
-      toast.success('تم تحميل رمز QR بنجاح');
+      toast.success(t('qr.download_success'));
     } catch (err) {
       console.error('Error downloading QR code:', err);
-      toast.error('خطأ في تحميل رمز QR');
+      toast.error(t('qr.download_error'));
     }
   };
 
@@ -103,7 +105,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     try {
       const rawData = await qrCodeRef.current.getRawData('png');
       if (!rawData) {
-        toast.error('خطأ في تحضير رمز QR');
+        toast.error(t('qr.prepare_error'));
         return;
       }
 
@@ -120,8 +122,8 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'رمز QR - Diviso',
-          text: 'امسح هذا الرمز للانضمام إلى Diviso',
+          title: t('qr.title'),
+          text: t('qr.share_text'),
           files: [file],
         });
       } else {
@@ -130,11 +132,11 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
             'image/png': blob,
           }),
         ]);
-        toast.success('تم نسخ رمز QR إلى الحافظة');
+        toast.success(t('qr.copied_to_clipboard'));
       }
     } catch (err) {
       console.error('Error sharing QR code:', err);
-      toast.error('خطأ في مشاركة رمز QR');
+      toast.error(t('qr.share_error'));
     }
   };
 
@@ -164,7 +166,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
           <div className="flex flex-col items-center justify-center p-8 text-center bg-background rounded-xl">
             <p className="text-destructive text-sm mb-2">{error}</p>
             <Button onClick={retryGeneration} variant="outline" size="sm">
-              إعادة المحاولة
+              {t('qr.retry')}
             </Button>
           </div>
         ) : (
@@ -181,7 +183,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
         {!error && (
           <div className="mt-3 text-center space-y-1">
             <p className="text-sm font-medium text-foreground">
-              امسح للانضمام إلى Diviso
+              {t('qr.scan_to_join')}
             </p>
             <p className="text-xs text-muted-foreground">
               www.diviso.app
@@ -200,8 +202,8 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
             disabled={isLoading}
             className="rounded-full"
           >
-            <Download className="w-4 h-4 ml-2" />
-            تحميل
+            <Download className="w-4 h-4 me-2" />
+            {t('qr.download')}
           </Button>
           
           <Button 
@@ -211,8 +213,8 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
             disabled={isLoading}
             className="rounded-full"
           >
-            <Share2 className="w-4 h-4 ml-2" />
-            مشاركة
+            <Share2 className="w-4 h-4 me-2" />
+            {t('qr.share')}
           </Button>
           
           <Dialog>
@@ -223,13 +225,13 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
                 disabled={isLoading}
                 className="rounded-full"
               >
-                <Maximize2 className="w-4 h-4 ml-2" />
-                تكبير
+                <Maximize2 className="w-4 h-4 me-2" />
+                {t('qr.enlarge')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-center">رمز QR - Diviso</DialogTitle>
+                <DialogTitle className="text-center">{t('qr.title')}</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col items-center p-4 space-y-4">
                 <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-2xl border border-primary/20">
@@ -238,7 +240,7 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
                   </div>
                   <div className="mt-4 text-center space-y-1">
                     <p className="text-sm font-medium text-foreground">
-                      امسح للانضمام إلى Diviso
+                      {t('qr.scan_to_join')}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       www.diviso.app
@@ -248,12 +250,12 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
               </div>
               <div className="flex justify-center gap-2 pb-2">
                 <Button onClick={downloadQRCode} size="sm" className="rounded-full">
-                  <Download className="w-4 h-4 ml-2" />
-                  تحميل
+                  <Download className="w-4 h-4 me-2" />
+                  {t('qr.download')}
                 </Button>
                 <Button onClick={shareQRCode} variant="outline" size="sm" className="rounded-full">
-                  <Share2 className="w-4 h-4 ml-2" />
-                  مشاركة
+                  <Share2 className="w-4 h-4 me-2" />
+                  {t('qr.share')}
                 </Button>
               </div>
             </DialogContent>

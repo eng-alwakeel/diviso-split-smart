@@ -32,5 +32,21 @@
   "invite": {
     "title": "Diviso App Invitation",
     "message": "Join Diviso and get 7 free days!\n\nUse referral code: {{code}}"
+  },
+  "qr": {
+    "invalid_link": "Invalid link value",
+    "generation_failed": "Failed to generate QR code",
+    "download_success": "QR code downloaded successfully",
+    "download_error": "Error downloading QR code",
+    "prepare_error": "Error preparing QR code",
+    "title": "QR Code - Diviso",
+    "scan_to_join": "Scan to join Diviso",
+    "copied_to_clipboard": "QR code copied to clipboard",
+    "share_error": "Error sharing QR code",
+    "share_text": "Scan this code to join Diviso",
+    "retry": "Retry",
+    "download": "Download",
+    "share": "Share",
+    "enlarge": "Enlarge"
   }
 }
