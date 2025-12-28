@@ -21,6 +21,41 @@
       "description": "You have reached the maximum number of AI receipt scans"
     }
   },
+  "status": {
+    "free_plan": "Free Plan",
+    "personal_plan": "Personal Plan",
+    "family_plan": "Family Plan",
+    "loading": "Loading...",
+    "error_loading": "Error loading subscription limits"
+  },
+  "items": {
+    "groups": "Groups",
+    "members": "Members per Group",
+    "expenses": "Expenses (Monthly)",
+    "invites": "Invites (Monthly)",
+    "ocr": "Receipt Scans (Monthly)",
+    "report_export": "Report Exports (Monthly)"
+  },
+  "warnings": {
+    "reached_limit": "Reached maximum {{item}}",
+    "near_limit": "Warning: You've used {{percentage}}% of {{item}} limit",
+    "approaching_limit": "Alert: You've used 75% of {{item}} limit",
+    "blocked_message": "Reached maximum {{item}}! Upgrade to continue.",
+    "critical_message": "Warning: Used {{percentage}}% of {{item}} limit. Only {{remaining}} uses left!",
+    "warning_message": "Alert: Used {{percentage}}% of {{item}} limit. Running low.",
+    "motivation_message": "Excellent! Only used {{percentage}}% of {{item}} limit. Keep saving!",
+    "status_message": "{{item}} status: {{percentage}}%"
+  },
+  "upgrade": {
+    "button": "Upgrade Plan",
+    "suggestion_groups": "Get unlimited groups with Personal plan",
+    "suggestion_members": "Add more members with paid plans",
+    "suggestion_expenses": "Track unlimited expenses with upgrade",
+    "suggestion_invites": "Invite unlimited people",
+    "suggestion_ocr": "Scan receipts without limits with AI",
+    "suggestion_reports": "Export unlimited reports with paid plans",
+    "suggestion_default": "Get more features with upgrade"
+  },
   "plans": {
     "personal": {
       "name": "Personal Plan",
@@ -30,7 +65,15 @@
       "invites": "Unlimited invites",
       "ocr": "Unlimited scans + smart analysis",
       "price": "19 SAR",
-      "per_month": "per month"
+      "per_month": "per month",
+      "benefits": [
+        "Unlimited groups",
+        "Unlimited members",
+        "Unlimited expenses",
+        "AI receipt scanning",
+        "Smart analytics and recommendations",
+        "Group chat"
+      ]
     },
     "family": {
       "name": "Family Plan",
@@ -40,7 +83,14 @@
       "invites": "Unlimited invites + permission management",
       "ocr": "Unlimited scans + advanced reports",
       "price": "75 SAR",
-      "per_month": "per month"
+      "per_month": "per month",
+      "benefits": [
+        "All Personal plan features",
+        "Family management (up to 5 members)",
+        "Expense approvals",
+        "Advanced family reports",
+        "Custom spending policies"
+      ]
     }
   },
   "current_usage": "Current Usage",
@@ -56,6 +106,7 @@
   "unlimited": "Unlimited",
   "try_personal": "Try Personal Free",
   "try_family": "Try Family Free",
+  "of": "of",
   "features": {
     "groups": "Number of groups",
     "members": "Number of members",

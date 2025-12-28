@@ -60,6 +60,23 @@
     "expenses": "المصاريف الأسبوعية",
     "of": "من"
   },
+  "usage_limits": {
+    "title": "حدود الاستخدام",
+    "groups": "المجموعات",
+    "members": "الأعضاء",
+    "monthly_expenses": "المصاريف (شهرياً)",
+    "monthly_invites": "الدعوات (شهرياً)",
+    "monthly_ocr": "مسح الإيصالات (شهرياً)",
+    "report_export": "تصدير التقارير (شهرياً)",
+    "data_retention": "مدة حفظ البيانات",
+    "months": "شهر",
+    "blocked": "محظور",
+    "warning": "تحذير",
+    "average_usage": "معدل الاستخدام:",
+    "upgrade_for_higher_limits": "ترقية للحصول على حدود أعلى",
+    "unlimited_description": "احصل على مصاريف غير محدودة ومسح إيصالات أكثر مع الباقات المدفوعة",
+    "loading": "جاري التحميل..."
+  },
   "checkin": {
     "title": "المكافأة اليومية",
     "description": "سجل دخولك يومياً واجمع المكافآت",

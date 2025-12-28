@@ -6,9 +6,12 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useUsageData } from "@/hooks/useUsageData";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { BarChart3, Users, Layers, Receipt, MessageSquare, Scan, AlertTriangle, TrendingUp, FileDown, Calendar } from "lucide-react";
 
 export const UsageLimitsCard = () => {
+  const { t } = useTranslation(['dashboard', 'quota']);
+  
   // Safe navigation hook that handles missing router context
   const getNavigate = () => {
     try {
@@ -42,7 +45,7 @@ export const UsageLimitsCard = () => {
         <CardHeader>
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-primary" />
-            حدود الاستخدام
+            {t('dashboard:usage_limits.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -69,7 +72,8 @@ export const UsageLimitsCard = () => {
 
   const usageItems = [
     {
-      label: "المجموعات",
+      key: "groups",
+      label: t('dashboard:usage_limits.groups'),
       current: currentUsage.groups,
       limit: limits.groups,
       icon: Layers,
@@ -77,7 +81,8 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-groups/10",
     },
     {
-      label: "الأعضاء",
+      key: "members",
+      label: t('dashboard:usage_limits.members'),
       current: currentUsage.members,
       limit: limits.members,
       icon: Users,
@@ -85,7 +90,8 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-members/10",
     },
     {
-      label: "المصاريف (شهرياً)",
+      key: "expenses",
+      label: t('dashboard:usage_limits.monthly_expenses'),
       current: currentUsage.expenses,
       limit: limits.expenses,
       icon: Receipt,
@@ -93,7 +99,8 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-expenses/10",
     },
     {
-      label: "الدعوات (شهرياً)",
+      key: "invites",
+      label: t('dashboard:usage_limits.monthly_invites'),
       current: currentUsage.invites,
       limit: limits.invites,
       icon: MessageSquare,
@@ -101,7 +108,8 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-invites/10",
     },
     {
-      label: "مسح الإيصالات (شهرياً)",
+      key: "ocr",
+      label: t('dashboard:usage_limits.monthly_ocr'),
       current: currentUsage.ocr,
       limit: limits.ocr,
       icon: Scan,
@@ -109,7 +117,8 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-ocr/10",
     },
     {
-      label: "تصدير التقارير (شهرياً)",
+      key: "reportExport",
+      label: t('dashboard:usage_limits.report_export'),
       current: currentUsage.reportExport,
       limit: limits.reportExport,
       icon: FileDown,
@@ -117,13 +126,14 @@ export const UsageLimitsCard = () => {
       bgColor: "bg-usage-export/10",
     },
     {
-      label: "مدة حفظ البيانات",
+      key: "dataRetention",
+      label: t('dashboard:usage_limits.data_retention'),
       current: currentUsage.dataRetention,
       limit: limits.dataRetentionMonths,
       icon: Calendar,
       color: "text-usage-retention",
       bgColor: "bg-usage-retention/10",
-      unit: "شهر"
+      unit: t('dashboard:usage_limits.months')
     },
   ];
 
@@ -136,18 +146,18 @@ export const UsageLimitsCard = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-primary" />
-            حدود الاستخدام
+            {t('dashboard:usage_limits.title')}
           </CardTitle>
           {hasBlocked && (
             <Badge variant="destructive">
               <AlertTriangle className="w-3 h-3 mr-1" />
-              محظور
+              {t('dashboard:usage_limits.blocked')}
             </Badge>
           )}
           {hasWarnings && !hasBlocked && (
             <Badge variant="warning">
               <AlertTriangle className="w-3 h-3 mr-1" />
-              تحذير
+              {t('dashboard:usage_limits.warning')}
             </Badge>
           )}
         </div>
@@ -194,7 +204,7 @@ export const UsageLimitsCard = () => {
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
-              معدل الاستخدام:
+              {t('dashboard:usage_limits.average_usage')}
             </span>
             <span className="font-medium text-foreground">
               {Math.round(usageItems.reduce((acc, item) => acc + getUsagePercentage(item.current, item.limit), 0) / usageItems.length)}%
@@ -211,10 +221,10 @@ export const UsageLimitsCard = () => {
               size="sm"
               disabled={!navigate}
             >
-              ترقية للحصول على حدود أعلى
+              {t('dashboard:usage_limits.upgrade_for_higher_limits')}
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              احصل على مصاريف غير محدودة ومسح إيصالات أكثر مع الباقات المدفوعة
+              {t('dashboard:usage_limits.unlimited_description')}
             </p>
           </div>
         )}

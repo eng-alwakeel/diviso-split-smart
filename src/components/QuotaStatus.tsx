@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Crown, Users, Building, Receipt, MessageSquare, Eye, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useTranslation } from "react-i18next";
 
 interface QuotaUsage {
   members: number;
@@ -15,6 +16,7 @@ interface QuotaUsage {
 }
 
 export function QuotaStatus() {
+  const { t } = useTranslation('quota');
   const { 
     limits, 
     loading: limitsLoading, 
@@ -104,46 +106,49 @@ export function QuotaStatus() {
     return "hsl(var(--primary))";
   };
 
-  const getProgressMessage = (current: number, limit: number, itemType: string) => {
+  const getProgressMessage = (current: number, limit: number, itemKey: string) => {
     if (isUnlimited(limit)) return "";
-    if (isAtLimit(current, limit)) return `تم الوصول للحد الأقصى لـ${itemType}`;
-    if (isNearLimit(current, limit, 90)) return `تحذير: اقتربت من الحد الأقصى لـ${itemType}`;
-    if (isNearLimit(current, limit, 75)) return `تنبيه: استخدمت 75% من حد ${itemType}`;
+    const itemName = t(`items.${itemKey}`, itemKey);
+    const percentage = getUsagePercentage(current, limit);
+    
+    if (isAtLimit(current, limit)) return t('warnings.reached_limit', { item: itemName });
+    if (isNearLimit(current, limit, 90)) return t('warnings.near_limit', { item: itemName, percentage: Math.round(percentage) });
+    if (isNearLimit(current, limit, 75)) return t('warnings.approaching_limit', { item: itemName });
     return "";
   };
 
   const quotaItems = limits ? [
     { 
       key: "members", 
-      label: "الأعضاء في المجموعة", 
+      label: t('items.members'), 
       icon: Users, 
       current: usage.members, 
       limit: limits.members 
     },
     { 
       key: "groups", 
-      label: "المجموعات", 
+      label: t('items.groups'), 
       icon: Building, 
       current: usage.groups, 
       limit: limits.groups 
     },
     { 
       key: "expenses", 
-      label: "المصروفات (شهرياً)", 
+      label: t('items.expenses'), 
       icon: Receipt, 
       current: usage.expenses, 
       limit: limits.expenses 
     },
     { 
       key: "invites", 
-      label: "الدعوات (شهرياً)", 
+      label: t('items.invites'), 
       icon: MessageSquare, 
       current: usage.invites, 
       limit: limits.invites 
     },
     { 
       key: "ocr", 
-      label: "قراءة الفواتير (شهرياً)", 
+      label: t('items.ocr'), 
       icon: Eye, 
       current: usage.ocr, 
       limit: limits.ocr 
@@ -154,7 +159,7 @@ export function QuotaStatus() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">جاري التحميل...</div>
+          <div className="text-center text-muted-foreground">{t('status.loading')}</div>
         </CardContent>
       </Card>
     );
@@ -164,11 +169,17 @@ export function QuotaStatus() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center text-destructive">خطأ في تحميل حدود الاشتراك</div>
+          <div className="text-center text-destructive">{t('status.error_loading')}</div>
         </CardContent>
       </Card>
     );
   }
+
+  const getPlanLabel = () => {
+    if (isFreePlan) return t('status.free_plan');
+    if (currentPlan === "personal") return t('status.personal_plan');
+    return t('status.family_plan');
+  };
 
   return (
     <Card>
@@ -177,12 +188,12 @@ export function QuotaStatus() {
           {isFreePlan ? (
             <>
               <Crown className="w-5 h-5 text-muted-foreground" />
-              الباقة المجانية
+              {getPlanLabel()}
             </>
           ) : (
             <>
               <Crown className="w-5 h-5 text-primary" />
-              باقة {currentPlan === "personal" ? "شخصية" : "عائلية"}
+              {getPlanLabel()}
             </>
           )}
         </CardTitle>
@@ -191,7 +202,7 @@ export function QuotaStatus() {
         {quotaItems.map((item) => {
           const percentage = getUsagePercentage(item.current, item.limit);
           const Icon = item.icon;
-          const message = getProgressMessage(item.current, item.limit, item.label);
+          const message = getProgressMessage(item.current, item.limit, item.key);
           
           return (
             <div key={item.key} className="space-y-2">
@@ -242,7 +253,7 @@ export function QuotaStatus() {
               className="w-full" 
               onClick={() => window.location.href = '/pricing'}
             >
-              ترقية الباقة
+              {t('upgrade.button')}
             </Button>
           </div>
         )}
