@@ -60,5 +60,39 @@
     "settings_saved": "تم حفظ الإعدادات!",
     "settings_saved_description": "تم تحديث إعدادات التطبيق بنجاح",
     "settings_error": "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى."
+  },
+  "not_found": {
+    "title": "404",
+    "message": "عذراً! الصفحة غير موجودة",
+    "return_home": "العودة للرئيسية"
+  },
+  "amazon_affiliate": {
+    "title": "إدارة Amazon Affiliate",
+    "description": "مزامنة وإدارة منتجات Amazon.sa للإعلانات التابعة"
+  },
+  "notifications_page": {
+    "title": "الإشعارات",
+    "unread_count": "{{count}} إشعار غير مقروء",
+    "mark_all_read": "تعليم الكل كمقروء",
+    "archive_old": "أرشف القديم",
+    "archive_dialog_title": "أرشفة الإشعارات القديمة",
+    "archive_dialog_desc": "سيتم أرشفة جميع الإشعارات المقروءة الأقدم من 30 يوم. هل تريد المتابعة؟",
+    "archive_button": "أرشف",
+    "tabs": {
+      "active": "النشطة",
+      "archived": "المؤرشفة"
+    },
+    "empty": {
+      "active_title": "لا توجد إشعارات نشطة",
+      "active_desc": "ستظهر هنا الإشعارات الخاصة بالمصاريف والرسائل",
+      "archived_title": "لا توجد إشعارات مؤرشفة",
+      "archived_desc": "الإشعارات المؤرشفة ستظهر هنا"
+    },
+    "actions": {
+      "archive": "أرشف",
+      "delete": "احذف",
+      "delete_permanent": "احذف نهائياً"
+    },
+    "archived_time": "أُرشف {{time}}"
   }
 }

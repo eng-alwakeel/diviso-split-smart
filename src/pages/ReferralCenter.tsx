@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   ArrowRight, 
+  ArrowLeft,
   Gift, 
   Copy, 
   Share2, 
@@ -27,11 +28,15 @@ import { useReferrals } from "@/hooks/useReferrals";
 import { useReferralRewards } from "@/hooks/useReferralRewards";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ReferralCenter = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation('referral');
+  const { isRTL } = useLanguage();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
 
@@ -52,20 +57,20 @@ const ReferralCenter = () => {
   const totalReferrals = referrals.length;
   const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
 
-  // نسخ الرابط
+  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
     toast({
-      title: "تم النسخ!",
-      description: "تم نسخ رابط الإحالة إلى الحافظة",
+      title: t('toast.copied'),
+      description: t('toast.copied_desc'),
     });
   };
 
-  // مشاركة عبر نظام الجهاز
   const handleShare = async () => {
     const shareData = {
-      title: 'دعوة لتطبيق ديفيسو',
-      text: `انضم إلى تطبيق ديفيسو واحصل على 7 أيام مجانية!\n\nاستخدم كود الإحالة: ${referralCode || ''}`,
+      title: t('invite.title'),
+      text: t('invite.message', { code: referralCode || '' }),
       url: referralLink
     };
 
@@ -73,18 +78,15 @@ const ReferralCenter = () => {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // fallback: نسخ للحافظة
         handleCopy();
       }
     } catch (error) {
-      // المستخدم ألغى المشاركة أو حدث خطأ
       if ((error as Error).name !== 'AbortError') {
         handleCopy();
       }
     }
   };
 
-  // دعوة من جهات الاتصال
   const handleContactSelected = async (
     contact: { name: string },
     phone: string,
@@ -94,25 +96,24 @@ const ReferralCenter = () => {
     
     if (isRegistered) {
       toast({
-        title: "صديق مسجل بالفعل!",
-        description: `${contact.name} موجود في ديفيسو`,
+        title: t('toast.already_registered'),
+        description: t('toast.already_registered_desc', { name: contact.name }),
       });
     } else {
-      // مشاركة رابط الإحالة
-      const shareText = `انضم إلى تطبيق ديفيسو واحصل على 7 أيام مجانية!\n\nاستخدم كود الإحالة: ${referralCode || ''}\n${referralLink}`;
+      const shareText = `${t('invite.message', { code: referralCode || '' })}\n${referralLink}`;
       
       try {
         if (navigator.share) {
           await navigator.share({
-            title: 'دعوة لتطبيق ديفيسو',
+            title: t('invite.title'),
             text: shareText,
             url: referralLink
           });
         } else {
           navigator.clipboard.writeText(shareText);
           toast({
-            title: "تم النسخ!",
-            description: `رابط الدعوة جاهز للمشاركة مع ${contact.name}`,
+            title: t('toast.copied'),
+            description: t('toast.ready_to_share', { name: contact.name }),
           });
         }
       } catch (error) {
@@ -123,16 +124,14 @@ const ReferralCenter = () => {
     }
   };
 
-  // تنسيق التاريخ
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "dd/MM/yyyy", { locale: ar });
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: isRTL ? ar : enUS });
     } catch {
       return dateString;
     }
   };
 
-  // حالة التحميل
   if (referralsLoading || rewardsLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -160,13 +159,13 @@ const ReferralCenter = () => {
             onClick={() => navigate('/dashboard')}
             className="mb-4"
           >
-            <ArrowRight className="w-4 h-4 ms-2" />
-            العودة
+            <BackIcon className="w-4 h-4 ms-2" />
+            {t('back')}
           </Button>
-          <h1 className="text-2xl font-bold">مركز الإحالة</h1>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
         </div>
 
-        {/* بطاقة الرصيد */}
+        {/* Balance Card */}
         <Card className="shadow-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -175,31 +174,31 @@ const ReferralCenter = () => {
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-primary">{remainingDays}</p>
-                <p className="text-sm text-muted-foreground">يوم مجاني متبقي</p>
+                <p className="text-sm text-muted-foreground">{t('balance_card.free_days_remaining')}</p>
               </div>
             </div>
             
             <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t pt-4">
               <div>
                 <p className="font-semibold text-foreground">{totalReferrals}</p>
-                <p>إحالات</p>
+                <p>{t('balance_card.referrals')}</p>
               </div>
               <div className="border-s ps-6">
                 <p className="font-semibold text-foreground">{successfulReferrals}</p>
-                <p>ناجحة</p>
+                <p>{t('balance_card.successful')}</p>
               </div>
               <div className="border-s ps-6">
                 <p className="font-semibold text-foreground">{totalDaysEarned}</p>
-                <p>مكتسب</p>
+                <p>{t('balance_card.earned')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* QR Code ورابط الإحالة */}
+        {/* QR Code and Referral Link */}
         <Card className="shadow-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">شارك رابط الإحالة</CardTitle>
+            <CardTitle className="text-lg">{t('share.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* QR Code */}
@@ -213,11 +212,11 @@ const ReferralCenter = () => {
 
             <Separator />
             
-            {/* رابط الإحالة */}
+            {/* Referral Link */}
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <Link className="w-4 h-4" />
-                رابط الإحالة:
+                {t('share.link_label')}:
               </p>
               <div className="bg-muted/50 rounded-lg p-3 text-center">
                 <p className="text-sm font-mono break-all text-primary">
@@ -226,15 +225,15 @@ const ReferralCenter = () => {
               </div>
             </div>
             
-            {/* الكود */}
+            {/* Code */}
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>الكود:</span>
+              <span>{t('share.code_label')}:</span>
               <Badge variant="secondary" className="font-mono text-base">
                 {referralCode || '---'}
               </Badge>
             </div>
 
-            {/* أزرار النسخ والمشاركة */}
+            {/* Copy and Share Buttons */}
             <div className="grid grid-cols-2 gap-3">
               <Button 
                 variant="outline" 
@@ -242,33 +241,33 @@ const ReferralCenter = () => {
                 className="h-12"
               >
                 <Copy className="w-4 h-4 ms-2" />
-                نسخ الرابط
+                {t('share.copy')}
               </Button>
               <Button 
                 onClick={handleShare}
                 className="h-12"
               >
                 <Share2 className="w-4 h-4 ms-2" />
-                مشاركة
+                {t('share.share')}
               </Button>
             </div>
 
-            {/* فاصل */}
+            {/* Separator */}
             <div className="relative">
               <Separator />
               <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-sm text-muted-foreground">
-                أو
+                {t('share.or')}
               </span>
             </div>
 
-            {/* زر دعوة من جهات الاتصال */}
+            {/* Invite from Contacts Button */}
             <Button 
               variant="outline" 
               onClick={() => setContactsOpen(true)}
               className="w-full h-12"
             >
               <UserPlus className="w-4 h-4 ms-2" />
-              دعوة من جهات الاتصال
+              {t('share.invite_contacts')}
             </Button>
           </CardContent>
         </Card>
@@ -280,7 +279,7 @@ const ReferralCenter = () => {
           onContactSelected={handleContactSelected}
         />
 
-        {/* سجل الإحالات - قابل للطي */}
+        {/* Referral History - Collapsible */}
         {referrals.length > 0 && (
           <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
             <Card className="shadow-card">
@@ -289,7 +288,7 @@ const ReferralCenter = () => {
                   <CardTitle className="text-lg flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5" />
-                      سجل الإحالات
+                      {t('history.title')}
                       <Badge variant="secondary" className="ms-2">{referrals.length}</Badge>
                     </div>
                     {isHistoryOpen ? (
@@ -336,14 +335,14 @@ const ReferralCenter = () => {
                             : 'border-orange-300 text-orange-600'
                           }
                         >
-                          {referral.status === 'joined' ? 'انضم' : 'في الانتظار'}
+                          {referral.status === 'joined' ? t('history.joined') : t('history.pending')}
                         </Badge>
                       </div>
                     ))}
                     
                     {referrals.length > 10 && (
                       <p className="text-center text-sm text-muted-foreground pt-2">
-                        +{referrals.length - 10} إحالات أخرى
+                        {t('history.more_referrals', { count: referrals.length - 10 })}
                       </p>
                     )}
                   </div>

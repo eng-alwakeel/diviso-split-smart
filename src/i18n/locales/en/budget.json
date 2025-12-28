@@ -1,0 +1,51 @@
+{
+  "title": "Financial Plan",
+  "stats": {
+    "total_budget": "Total Budget",
+    "total_expenses": "Total Expenses",
+    "remaining": "Remaining",
+    "spending_percentage": "Spending %"
+  },
+  "buttons": {
+    "create_traditional": "Create Traditional Budget",
+    "create_unified": "Create Unified Budget",
+    "create_first": "Create First Budget",
+    "retry": "Retry"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "budgets": "Budgets",
+    "analytics": "Analytics"
+  },
+  "overview": {
+    "active_budgets": "Active Budgets",
+    "no_active": "No active budgets. Start by creating a new budget.",
+    "spent_of": "Spent: {{spent}} of {{total}}",
+    "exceeded": "Budget exceeded",
+    "near_limit": "Approaching limit"
+  },
+  "budgets_tab": {
+    "no_budgets": "No Budgets",
+    "no_budgets_desc": "Start by creating a budget to track your expenses and achieve your financial goals"
+  },
+  "analytics_tab": {
+    "monthly_spending": "Monthly Spending",
+    "category_breakdown": "Spending by Category",
+    "no_data": "Not enough data to display spending breakdown",
+    "of": "of",
+    "remaining": "Remaining"
+  },
+  "errors": {
+    "load_failed": "Error Loading Data",
+    "load_failed_desc": "Failed to load financial plan data. Please try again."
+  },
+  "messages": {
+    "created": "Budget created successfully",
+    "updated": "Budget updated successfully",
+    "deleted": "Budget deleted successfully",
+    "create_failed": "Failed to create budget",
+    "update_failed": "Failed to update budget",
+    "delete_failed": "Failed to delete budget",
+    "delete_confirm": "Are you sure you want to delete this budget?"
+  }
+}

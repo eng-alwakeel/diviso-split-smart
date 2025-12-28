@@ -15,6 +15,9 @@ import arNotifications from './locales/ar/notifications.json';
 import arLanding from './locales/ar/landing.json';
 import arPricing from './locales/ar/pricing.json';
 import arRecommendations from './locales/ar/recommendations.json';
+import arReferral from './locales/ar/referral.json';
+import arBudget from './locales/ar/budget.json';
+import arPrivacy from './locales/ar/privacy.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
@@ -30,6 +33,9 @@ import enNotifications from './locales/en/notifications.json';
 import enLanding from './locales/en/landing.json';
 import enPricing from './locales/en/pricing.json';
 import enRecommendations from './locales/en/recommendations.json';
+import enReferral from './locales/en/referral.json';
+import enBudget from './locales/en/budget.json';
+import enPrivacy from './locales/en/privacy.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -61,7 +67,10 @@ i18n
         notifications: arNotifications,
         landing: arLanding,
         pricing: arPricing,
-        recommendations: arRecommendations
+        recommendations: arRecommendations,
+        referral: arReferral,
+        budget: arBudget,
+        privacy: arPrivacy
       },
       en: {
         common: enCommon,
@@ -76,13 +85,16 @@ i18n
         notifications: enNotifications,
         landing: enLanding,
         pricing: enPricing,
-        recommendations: enRecommendations
+        recommendations: enRecommendations,
+        referral: enReferral,
+        budget: enBudget,
+        privacy: enPrivacy
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations', 'referral', 'budget', 'privacy'],
     interpolation: {
       escapeValue: false
     },

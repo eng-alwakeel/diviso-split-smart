@@ -1,0 +1,61 @@
+{
+  "title": "Privacy Policy",
+  "description": "We are committed to protecting your privacy and complying with the Personal Data Protection Law (PDPL) in Saudi Arabia",
+  "seo": {
+    "title": "Privacy Policy",
+    "description": "Read the Diviso app privacy policy. We are committed to protecting your privacy and complying with the Personal Data Protection Law (PDPL) in Saudi Arabia."
+  },
+  "sections": {
+    "data_collection": {
+      "title": "1. Data We Collect",
+      "intro": "When using the app, we may ask you to provide the following information:",
+      "items": {
+        "name": "Full name",
+        "phone": "Phone number",
+        "email": "Email address"
+      }
+    },
+    "data_usage": {
+      "title": "2. How We Use Data",
+      "intro": "We use your personal data for the following purposes only:",
+      "items": {
+        "account": "Creating your account in the app",
+        "communication": "Communicating with you about updates or services",
+        "experience": "Improving your experience within the app"
+      }
+    },
+    "data_protection": {
+      "title": "3. Data Protection",
+      "items": {
+        "storage": "Your data is stored in a secure environment",
+        "security": "We use appropriate technical measures to protect it from unauthorized access, modification, or disclosure",
+        "sharing": "We do not share your data with any third party unless required by law or with your prior consent"
+      }
+    },
+    "your_rights": {
+      "title": "4. Your Rights",
+      "intro": "Under the Personal Data Protection Law (PDPL), you have the right to:",
+      "items": {
+        "view": "View your personal data",
+        "modify": "Request modification or update",
+        "delete": "Request deletion whenever you wish"
+      }
+    },
+    "consent": {
+      "title": "5. Your Consent",
+      "content": "By using the app, you consent to the collection and use of your data in accordance with this policy."
+    },
+    "modifications": {
+      "title": "6. Modifications",
+      "content": "We may update the privacy policy from time to time, and you will be notified of any significant changes via the app or email."
+    },
+    "contact": {
+      "title": "7. Contact Us",
+      "intro": "If you have any questions about this policy or the use of your data, you can contact us via:",
+      "email": "Email: support@diviso.app",
+      "phone": "Phone: +966500000000"
+    }
+  },
+  "last_updated": "Last updated",
+  "back": "Back"
+}
