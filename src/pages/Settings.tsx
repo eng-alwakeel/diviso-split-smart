@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, ArrowLeft, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -28,6 +28,7 @@ import { SecurityTab } from "@/components/settings/SecurityTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
+import { RecommendationSettings } from "@/components/recommendations/RecommendationSettings";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -391,6 +392,10 @@ const Settings = () => {
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.notifications')}</span>
             </TabsTrigger>
+            <TabsTrigger value="recommendations" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('recommendations:settings.title', 'توصيات')}</span>
+            </TabsTrigger>
             <TabsTrigger value="privacy" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.privacy')}</span>
@@ -644,6 +649,11 @@ const Settings = () => {
               passwordLoading={passwordLoading}
               deleteAccount={deleteAccount}
             />
+          </TabsContent>
+
+          {/* Recommendations Tab */}
+          <TabsContent value="recommendations" className="space-y-6">
+            <RecommendationSettings />
           </TabsContent>
 
           {/* Admin Tab */}

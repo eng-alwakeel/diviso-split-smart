@@ -59,6 +59,9 @@ import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
 import { DeleteBudgetDialog } from "@/components/budgets/DeleteBudgetDialog";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
+import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
+import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
+import { useRecommendations } from "@/hooks/useRecommendations";
 
 
 const GroupDetails = () => {
@@ -109,6 +112,10 @@ const GroupDetails = () => {
   
   // Currency hook
   const { formatCurrency, currencies } = useCurrencies();
+  
+  // Recommendation hooks
+  const { shouldShow: showRecommendation, triggerType, mealType, dismissTrigger, isEnabled: recommendationsEnabled } = useRecommendationTriggers({ groupId: id });
+  const { addAsExpense, dismissRecommendation, currentRecommendation, generateRecommendation, isLoading: recommendationLoading } = useRecommendations();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -341,6 +348,33 @@ const GroupDetails = () => {
       />
 
       <div className="page-container space-y-6">
+        {/* Recommendation Notification */}
+        {recommendationsEnabled && showRecommendation && (
+          <RecommendationNotification
+            type={triggerType === 'meal_time' ? mealType || 'lunch' : triggerType}
+            placeName={currentRecommendation?.name}
+            onViewRecommendation={() => {
+              if (!currentRecommendation && id) {
+                generateRecommendation({
+                  trigger: (triggerType === 'meal_time' ? 'meal_time' : triggerType) || 'planning',
+                  groupId: id
+                });
+              }
+              // Navigate to add expense with recommendation
+              if (currentRecommendation) {
+                navigate(`/add-expense?groupId=${id}&fromRecommendation=true&recommendationId=${currentRecommendation.id}`);
+              }
+            }}
+            onDismiss={() => {
+              dismissTrigger();
+              if (currentRecommendation) {
+                dismissRecommendation(currentRecommendation.id);
+              }
+            }}
+            autoHideAfter={30000}
+          />
+        )}
+
         {/* Header */}
         <div>
           <Button 

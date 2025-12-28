@@ -33,6 +33,8 @@ import { useBudgetWarnings, BudgetWarning } from "@/hooks/useBudgetWarnings";
 import { BudgetWarningAlert } from "@/components/expenses/BudgetWarningAlert";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { expenseSchema, expenseSplitSchema, safeValidateInput } from "@/lib/validation";
+import { QuickRecommendation } from "@/components/recommendations/QuickRecommendation";
+import { useRecommendations } from "@/hooks/useRecommendations";
 
 interface UserGroup {
   id: string;
@@ -87,6 +89,13 @@ const AddExpense = () => {
   
   // Use the new hook for group members
   const { members, loading: membersLoading, getMemberDisplayName, getApprovers } = useGroupMembers(selectedGroup?.id || null);
+  
+  // Recommendations hook
+  const { currentRecommendation, generateRecommendation, isLoading: recommendationLoading } = useRecommendations(selectedGroup?.id);
+  
+  // Check for pre-filled recommendation data from URL
+  const fromRecommendation = searchParams.get('fromRecommendation') === 'true';
+  const recommendationId = searchParams.get('recommendationId');
 
   // Load user and groups
   useEffect(() => {
@@ -153,6 +162,18 @@ const AddExpense = () => {
 
     loadUserData();
   }, []);
+
+  // Pre-fill from recommendation if available
+  useEffect(() => {
+    if (fromRecommendation && currentRecommendation) {
+      if (currentRecommendation.name) {
+        setDescription(currentRecommendation.name_ar || currentRecommendation.name);
+      }
+      if (currentRecommendation.estimated_price) {
+        setAmount(currentRecommendation.estimated_price.toString());
+      }
+    }
+  }, [fromRecommendation, currentRecommendation]);
 
   // Enhanced OCR with AI analysis
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -577,6 +598,29 @@ const AddExpense = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Quick Recommendation - show if came from recommendation or has a current recommendation */}
+            {(fromRecommendation || currentRecommendation) && currentRecommendation && (
+              <QuickRecommendation
+                recommendation={{
+                  id: currentRecommendation.id,
+                  name: currentRecommendation.name,
+                  name_ar: currentRecommendation.name_ar,
+                  category: currentRecommendation.category,
+                  rating: currentRecommendation.rating,
+                }}
+                onView={() => {
+                  // Pre-fill form with recommendation data
+                  if (currentRecommendation.name) {
+                    setDescription(currentRecommendation.name_ar || currentRecommendation.name);
+                  }
+                  if (currentRecommendation.estimated_price) {
+                    setAmount(currentRecommendation.estimated_price.toString());
+                  }
+                }}
+                className="mb-4"
+              />
+            )}
+            
             {/* Receipt Scanner */}
             <Card className="bg-card border border-border shadow-card rounded-2xl">
               <CardHeader>
