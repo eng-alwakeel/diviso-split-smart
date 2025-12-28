@@ -11,25 +11,32 @@ export const AdsterraAd = ({ className = '' }: AdsterraAdProps) => {
   useEffect(() => {
     if (scriptLoaded.current || !adContainerRef.current) return;
 
-    const script = document.createElement('script');
-    script.src = 'https://pl28331867.effectivegatecpm.com/4f/6d/45/4f6d45e2d8a0216b1786a3e65182455b.js';
-    script.async = true;
-    script.type = 'text/javascript';
-    
-    adContainerRef.current.appendChild(script);
-    scriptLoaded.current = true;
+    // Add atOptions configuration
+    const optionsScript = document.createElement('script');
+    optionsScript.innerHTML = `
+      atOptions = {
+        'key' : '40b07d02ef97efae4bd57f91b2660b9e',
+        'format' : 'iframe',
+        'height' : 300,
+        'width' : 160,
+        'params' : {}
+      };
+    `;
+    adContainerRef.current.appendChild(optionsScript);
 
-    return () => {
-      if (adContainerRef.current && script.parentNode === adContainerRef.current) {
-        adContainerRef.current.removeChild(script);
-      }
-    };
+    // Add invoke script
+    const invokeScript = document.createElement('script');
+    invokeScript.src = 'https://www.highperformanceformat.com/40b07d02ef97efae4bd57f91b2660b9e/invoke.js';
+    invokeScript.async = true;
+    adContainerRef.current.appendChild(invokeScript);
+    
+    scriptLoaded.current = true;
   }, []);
 
   return (
     <div 
       ref={adContainerRef} 
-      className={`adsterra-ad-container ${className}`}
+      className={`adsterra-ad-container flex justify-center ${className}`}
     />
   );
 };
