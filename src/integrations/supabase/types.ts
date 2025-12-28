@@ -1341,6 +1341,36 @@ export type Database = {
           },
         ]
       }
+      places_cache: {
+        Row: {
+          category: string | null
+          city: string | null
+          created_at: string | null
+          data: Json
+          expires_at: string
+          id: string
+          place_id: string
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          created_at?: string | null
+          data: Json
+          expires_at?: string
+          id?: string
+          place_id: string
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          created_at?: string | null
+          data?: Json
+          expires_at?: string
+          id?: string
+          place_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1430,6 +1460,147 @@ export type Database = {
           vat?: number | null
         }
         Relationships: []
+      }
+      recommendation_analytics: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          recommendation_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          recommendation_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          recommendation_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_analytics_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "recommendations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recommendations: {
+        Row: {
+          affiliate_url: string | null
+          category: string | null
+          context: Json | null
+          converted_at: string | null
+          created_at: string | null
+          currency: string | null
+          estimated_price: number | null
+          external_id: string | null
+          group_id: string | null
+          id: string
+          interacted_at: string | null
+          is_partner: boolean | null
+          location: Json | null
+          name: string
+          name_ar: string | null
+          place_id: string | null
+          price_range: string | null
+          rating: number | null
+          recommendation_type: string
+          relevance_reason: string | null
+          relevance_reason_ar: string | null
+          shown_at: string | null
+          source: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          affiliate_url?: string | null
+          category?: string | null
+          context?: Json | null
+          converted_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          estimated_price?: number | null
+          external_id?: string | null
+          group_id?: string | null
+          id?: string
+          interacted_at?: string | null
+          is_partner?: boolean | null
+          location?: Json | null
+          name: string
+          name_ar?: string | null
+          place_id?: string | null
+          price_range?: string | null
+          rating?: number | null
+          recommendation_type: string
+          relevance_reason?: string | null
+          relevance_reason_ar?: string | null
+          shown_at?: string | null
+          source?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          affiliate_url?: string | null
+          category?: string | null
+          context?: Json | null
+          converted_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          estimated_price?: number | null
+          external_id?: string | null
+          group_id?: string | null
+          id?: string
+          interacted_at?: string | null
+          is_partner?: boolean | null
+          location?: Json | null
+          name?: string
+          name_ar?: string | null
+          place_id?: string | null
+          price_range?: string | null
+          rating?: number | null
+          recommendation_type?: string
+          relevance_reason?: string | null
+          relevance_reason_ar?: string | null
+          shown_at?: string | null
+          source?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_analytics: {
         Row: {
@@ -2016,6 +2187,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_recommendation_settings: {
+        Row: {
+          blocked_categories: string[] | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          last_notification_at: string | null
+          max_per_day: number | null
+          notifications_today: number | null
+          preferred_categories: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          blocked_categories?: string[] | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_notification_at?: string | null
+          max_per_day?: number | null
+          notifications_today?: number | null
+          preferred_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          blocked_categories?: string[] | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_notification_at?: string | null
+          max_per_day?: number | null
+          notifications_today?: number | null
+          preferred_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_recommendation_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_referral_codes: {
         Row: {
           created_at: string
@@ -2301,10 +2519,15 @@ export type Database = {
           remaining: number
         }[]
       }
+      check_recommendation_limit: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       check_referral_spam_protection: {
         Args: { p_phone: string; p_user_id: string }
         Returns: Json
       }
+      cleanup_expired_places_cache: { Args: never; Returns: number }
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
         Returns: number
@@ -2550,6 +2773,10 @@ export type Database = {
         Returns: boolean
       }
       increment_lifetime_purchases: { Args: never; Returns: boolean }
+      increment_recommendation_count: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       increment_usage: {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined
