@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -10,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Crown, Calendar, Gift, TrendingUp } from "lucide-react";
 
 export const SubscriptionStatusCard = () => {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { 
     subscription, 
@@ -40,7 +42,7 @@ export const SubscriptionStatusCard = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Crown className="w-5 h-5 text-primary" />
-            حالة الاشتراك
+            {t('subscription.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -55,16 +57,16 @@ export const SubscriptionStatusCard = () => {
   }
 
   const getStatusText = () => {
-    if (!subscription) return "لا يوجد اشتراك";
+    if (!subscription) return t('subscription.no_subscription');
     
     if (subscription.status === 'trialing') {
-      return isTrialActive ? "تجريبي نشط" : "تجريبي منتهي";
+      return isTrialActive ? t('subscription.trialing_active') : t('subscription.trialing_expired');
     }
     
     switch (subscription.status) {
-      case 'active': return "نشط";
-      case 'expired': return "منتهي";
-      case 'canceled': return "ملغي";
+      case 'active': return t('subscription.active');
+      case 'expired': return t('subscription.expired');
+      case 'canceled': return t('subscription.canceled');
       default: return subscription.status;
     }
   };
@@ -86,7 +88,7 @@ export const SubscriptionStatusCard = () => {
 
   const getProgressPercentage = () => {
     if (!subscription || !isTrialActive) return 0;
-    const totalTrialDays = 7; // الافتراض أن التجربة 7 أيام
+    const totalTrialDays = 7;
     return ((totalTrialDays - daysLeft) / totalTrialDays) * 100;
   };
 
@@ -98,7 +100,7 @@ export const SubscriptionStatusCard = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
             <Crown className="w-5 h-5 text-primary" />
-            حالة الاشتراك
+            {t('subscription.title')}
           </CardTitle>
           <Badge 
             className={`${badgeConfig.bgColor} ${badgeConfig.color} border-0`}
@@ -111,7 +113,7 @@ export const SubscriptionStatusCard = () => {
       <CardContent className="space-y-4">
         {/* حالة الاشتراك */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">الحالة:</span>
+          <span className="text-sm text-muted-foreground">{t('subscription.status')}:</span>
           <Badge variant={getStatusVariant()}>
             {getStatusText()}
           </Badge>
@@ -123,10 +125,10 @@ export const SubscriptionStatusCard = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                أيام التجربة المتبقية:
+                {t('subscription.trial_days_left')}:
               </span>
               <span className="text-sm font-medium text-foreground">
-                {daysLeft} يوم
+                {daysLeft} {t('subscription.days')}
               </span>
             </div>
             <Progress value={getProgressPercentage()} className="h-2" />
@@ -138,10 +140,10 @@ export const SubscriptionStatusCard = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground flex items-center gap-1">
               <Gift className="w-4 h-4" />
-              أيام مجانية من الإحالات:
+              {t('subscription.free_days_from_referrals')}:
             </span>
             <span className="text-sm font-medium text-success">
-              {freeDaysFromReferrals} يوم
+              {freeDaysFromReferrals} {t('subscription.days')}
             </span>
           </div>
         )}
@@ -151,10 +153,10 @@ export const SubscriptionStatusCard = () => {
           <div className="flex items-center justify-between p-2 bg-primary/5 rounded-lg">
             <span className="text-sm font-medium text-foreground flex items-center gap-1">
               <TrendingUp className="w-4 h-4" />
-              إجمالي الأيام المتبقية:
+              {t('subscription.total_days_remaining')}:
             </span>
             <span className="text-sm font-bold text-primary">
-              {totalDaysLeft} يوم
+              {totalDaysLeft} {t('subscription.days')}
             </span>
           </div>
         )}
@@ -167,7 +169,7 @@ export const SubscriptionStatusCard = () => {
               className="flex-1 bg-primary hover:bg-primary/90"
               size="sm"
             >
-              ترقية الباقة
+              {t('subscription.upgrade')}
             </Button>
           )}
           
@@ -177,7 +179,7 @@ export const SubscriptionStatusCard = () => {
             size="sm"
             className="flex-1"
           >
-            إدارة الاشتراك
+            {t('subscription.manage_subscription')}
           </Button>
         </div>
 
@@ -185,7 +187,7 @@ export const SubscriptionStatusCard = () => {
         {isTrialActive && daysLeft <= 2 && daysLeft > 0 && (
           <Alert variant="warning" className="p-3">
             <AlertDescription className="text-xs text-center">
-              ⚠️ ستنتهي فترة التجربة خلال {daysLeft} يوم. قم بالترقية للاستمرار في استخدام جميع الميزات.
+              ⚠️ {t('subscription.trial_warning', { days: daysLeft })}
             </AlertDescription>
           </Alert>
         )}

@@ -1,9 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 
 interface ExpenseChartProps {
   expenses: MyExpense[];
@@ -11,6 +12,10 @@ interface ExpenseChartProps {
 }
 
 export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) => {
+  const { t, i18n } = useTranslation('expenses');
+  const isArabic = i18n.language === 'ar';
+  const dateLocale = isArabic ? ar : enUS;
+
   // Monthly trend data
   const monthlyData = useMemo(() => {
     const last6Months = eachMonthOfInterval({
@@ -38,14 +43,14 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
         }, 0);
 
       return {
-        month: format(month, 'MMM yyyy', { locale: ar }),
+        month: format(month, 'MMM yyyy', { locale: dateLocale }),
         paid: totalPaid,
         owed: totalOwed,
         net: totalPaid - totalOwed,
         count: monthExpenses.length
       };
     });
-  }, [expenses]);
+  }, [expenses, dateLocale]);
 
   // Status distribution data
   const statusData = useMemo(() => {
@@ -55,11 +60,11 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
     }, {} as Record<string, number>);
 
     return [
-      { name: 'مُوافق عليه', value: statusCounts.approved || 0, color: 'hsl(var(--success))' },
-      { name: 'في الانتظار', value: statusCounts.pending || 0, color: 'hsl(var(--warning))' },
-      { name: 'مرفوض', value: statusCounts.rejected || 0, color: 'hsl(var(--destructive))' }
+      { name: t('status.approved'), value: statusCounts.approved || 0, color: 'hsl(var(--success))' },
+      { name: t('status.pending'), value: statusCounts.pending || 0, color: 'hsl(var(--warning))' },
+      { name: t('status.rejected'), value: statusCounts.rejected || 0, color: 'hsl(var(--destructive))' }
     ].filter(item => item.value > 0);
-  }, [expenses]);
+  }, [expenses, t]);
 
   // Group distribution data
   const groupData = useMemo(() => {
@@ -103,7 +108,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
       {/* Monthly Trend */}
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle className="text-lg">الاتجاه الشهري</CardTitle>
+          <CardTitle className="text-lg">{t('charts.monthly_trend')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -125,7 +130,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
                 dataKey="paid" 
                 stroke="hsl(var(--success))" 
                 strokeWidth={2}
-                name="المدفوع"
+                name={t('charts.paid')}
                 dot={{ fill: 'hsl(var(--success))', strokeWidth: 2 }}
               />
               <Line 
@@ -133,7 +138,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
                 dataKey="owed" 
                 stroke="hsl(var(--destructive))" 
                 strokeWidth={2}
-                name="المستحق"
+                name={t('charts.owed')}
                 dot={{ fill: 'hsl(var(--destructive))', strokeWidth: 2 }}
               />
               <Line 
@@ -141,7 +146,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
                 dataKey="net" 
                 stroke="hsl(var(--primary))" 
                 strokeWidth={3}
-                name="الصافي"
+                name={t('charts.net')}
                 dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
               />
             </LineChart>
@@ -152,7 +157,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
       {/* Status Distribution */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">توزيع حالة المصاريف</CardTitle>
+          <CardTitle className="text-lg">{t('charts.status_distribution')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -171,7 +176,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number) => [value, 'العدد']}
+                formatter={(value: number) => [value, t('charts.count')]}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--background))', 
@@ -198,7 +203,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
       {/* Top Groups */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">أكثر المجموعات إنفاقاً</CardTitle>
+          <CardTitle className="text-lg">{t('charts.top_groups')}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -218,7 +223,7 @@ export const ExpenseChart = ({ expenses, currency = 'SAR' }: ExpenseChartProps) 
                 width={80}
               />
               <Tooltip 
-                formatter={(value: number) => [`${value.toLocaleString()} ${currency}`, 'المبلغ']}
+                formatter={(value: number) => [`${value.toLocaleString()} ${currency}`, t('charts.amount')]}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--background))', 

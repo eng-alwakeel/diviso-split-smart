@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDailyCheckin } from '@/hooks/useDailyCheckin';
@@ -73,6 +74,7 @@ const DayCircle = memo(({
 DayCircle.displayName = 'DayCircle';
 
 const DailyCheckInCard = memo(() => {
+  const { t } = useTranslation('dashboard');
   const { streak, weekProgress, checkedInToday, loading, claiming, claimReward } = useDailyCheckin();
 
   if (loading) {
@@ -97,8 +99,8 @@ const DailyCheckInCard = memo(() => {
               <Trophy className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-bold text-foreground">المكافأة اليومية</h3>
-              <p className="text-xs text-muted-foreground">سجل دخولك يومياً واجمع المكافآت</p>
+              <h3 className="font-bold text-foreground">{t('checkin.title')}</h3>
+              <p className="text-xs text-muted-foreground">{t('checkin.description')}</p>
             </div>
           </div>
           {streak.currentStreak > 0 && (
@@ -136,17 +138,17 @@ const DailyCheckInCard = memo(() => {
           {claiming ? (
             <>
               <Loader2 className="h-4 w-4 ml-2 animate-spin" />
-              جاري التسجيل...
+              {t('checkin.claiming')}
             </>
           ) : checkedInToday ? (
             <>
               <Check className="h-4 w-4 ml-2" />
-              تم تسجيل دخولك اليوم ✓
+              {t('checkin.claimed_today')}
             </>
           ) : (
             <>
               <Gift className="h-4 w-4 ml-2" />
-              احصل على مكافأتك اليومية
+              {t('checkin.claim_button')}
             </>
           )}
         </Button>
@@ -156,17 +158,17 @@ const DailyCheckInCard = memo(() => {
           <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/50">
             <div className="text-center">
               <p className="text-lg font-bold text-primary">{streak.coins || streak.points}</p>
-              <p className="text-xs text-muted-foreground">عملة</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.coins')}</p>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">
               <p className="text-lg font-bold text-foreground">{streak.totalCheckIns}</p>
-              <p className="text-xs text-muted-foreground">تسجيل</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.checkins')}</p>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">
               <p className="text-lg font-bold text-amber-500">{streak.longestStreak}</p>
-              <p className="text-xs text-muted-foreground">أطول سلسلة</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.longest_streak')}</p>
             </div>
           </div>
         )}

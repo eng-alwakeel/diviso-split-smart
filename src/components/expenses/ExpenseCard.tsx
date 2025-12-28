@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
 
@@ -17,7 +18,11 @@ interface ExpenseCardProps {
 }
 
 export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDeleted }: ExpenseCardProps) => {
+  const { t, i18n } = useTranslation('expenses');
   const { deleteExpense, deleting } = useExpenseActions();
+  const isArabic = i18n.language === 'ar';
+  const dateLocale = isArabic ? ar : enUS;
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved': return 'bg-success/10 text-success border-success/20 hover:bg-success/20';
@@ -29,9 +34,9 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'approved': return 'مُوافق عليه';
-      case 'rejected': return 'مرفوض';
-      case 'pending': return 'في الانتظار';
+      case 'approved': return t('status.approved');
+      case 'rejected': return t('status.rejected');
+      case 'pending': return t('status.pending');
       default: return status;
     }
   };
@@ -68,7 +73,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
             
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-foreground truncate">
-                {expense.description || expense.note_ar || 'مصروف بدون وصف'}
+                {expense.description || expense.note_ar || t('card.no_description')}
               </h3>
               
               <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -85,7 +90,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
               <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
                 <span>
-                  {format(new Date(expense.spent_at), 'dd MMM yyyy', { locale: ar })}
+                  {format(new Date(expense.spent_at), 'dd MMM yyyy', { locale: dateLocale })}
                 </span>
               </div>
             </div>
@@ -107,7 +112,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
             
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Users className="h-3 w-3" />
-              <span>{expense.splits.length} أعضاء</span>
+              <span>{expense.splits.length} {t('card.members')}</span>
             </div>
           </div>
 
@@ -115,7 +120,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
           <div className="bg-gradient-card rounded-lg p-3 space-y-1 border border-border/30">
             {isPayer && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">دفعت:</span>
+                <span className="text-muted-foreground">{t('card.paid')}</span>
                 <span className="font-medium text-primary">
                   +{expense.amount.toLocaleString()} {expense.currency}
                 </span>
@@ -124,7 +129,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
             
             {shareAmount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">نصيبك:</span>
+                <span className="text-muted-foreground">{t('card.your_share')}</span>
                 <span className="font-medium text-destructive">
                   -{shareAmount.toLocaleString()} {expense.currency}
                 </span>
@@ -133,7 +138,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
             
             {isPayer && shareAmount > 0 && (
               <div className="flex justify-between text-sm border-t border-border pt-1">
-                <span className="text-muted-foreground">الصافي:</span>
+                <span className="text-muted-foreground">{t('card.net')}</span>
                 <span className={`font-medium ${
                   (expense.amount - shareAmount) > 0 ? 'text-success' : 'text-destructive'
                 }`}>
@@ -153,7 +158,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
               className="flex-1"
             >
               <MessageSquare className="h-3 w-3 mr-1" />
-              عرض التفاصيل
+              {t('card.view_details')}
             </Button>
             
             {canDelete && (
@@ -170,23 +175,23 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>حذف المصروف</AlertDialogTitle>
+                    <AlertDialogTitle>{t('card.delete_confirm_title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      هل أنت متأكد من حذف هذا المصروف؟ لا يمكن التراجع عن هذا الإجراء.
+                      {t('card.delete_confirm_desc')}
                       <br />
-                      <strong>{expense.description || expense.note_ar || 'مصروف بدون وصف'}</strong>
+                      <strong>{expense.description || expense.note_ar || t('card.no_description')}</strong>
                       <br />
-                      المبلغ: {expense.amount.toLocaleString()} {expense.currency}
+                      {t('details.amount')}: {expense.amount.toLocaleString()} {expense.currency}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       disabled={deleting}
                     >
-                      {deleting ? "جاري الحذف..." : "حذف"}
+                      {deleting ? t('card.deleting') : t('card.delete')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

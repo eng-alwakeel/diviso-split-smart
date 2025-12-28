@@ -40,7 +40,19 @@
     "trial_active": "تجربة نشطة",
     "days_left": "{{days}} يوم متبقي",
     "expired": "منتهي",
-    "upgrade": "ترقية الباقة"
+    "upgrade": "ترقية الباقة",
+    "no_subscription": "لا يوجد اشتراك",
+    "trialing_active": "تجريبي نشط",
+    "trialing_expired": "تجريبي منتهي",
+    "active": "نشط",
+    "canceled": "ملغي",
+    "status": "الحالة",
+    "trial_days_left": "أيام التجربة المتبقية",
+    "days": "يوم",
+    "free_days_from_referrals": "أيام مجانية من الإحالات",
+    "total_days_remaining": "إجمالي الأيام المتبقية",
+    "manage_subscription": "إدارة الاشتراك",
+    "trial_warning": "ستنتهي فترة التجربة خلال {{days}} يوم. قم بالترقية للاستمرار في استخدام جميع الميزات."
   },
   "usage": {
     "title": "حدود الاستخدام",
@@ -49,8 +61,14 @@
     "of": "من"
   },
   "checkin": {
-    "title": "تسجيل الحضور اليومي",
-    "description": "سجّل حضورك يومياً للحصول على مكافآت",
+    "title": "المكافأة اليومية",
+    "description": "سجل دخولك يومياً واجمع المكافآت",
+    "claiming": "جاري التسجيل...",
+    "claimed_today": "تم تسجيل دخولك اليوم ✓",
+    "claim_button": "احصل على مكافأتك اليومية",
+    "coins": "عملة",
+    "checkins": "تسجيل",
+    "longest_streak": "أطول سلسلة",
     "button": "سجّل الآن",
     "done": "تم التسجيل اليوم",
     "streak": "سلسلة {{days}} يوم"
