@@ -94,5 +94,15 @@
       "delete_permanent": "احذف نهائياً"
     },
     "archived_time": "أُرشف {{time}}"
+  },
+  "coins": {
+    "insufficient_balance": "رصيد غير كافٍ",
+    "need_coins": "تحتاج {{needed}} عملة، لديك {{have}} فقط",
+    "purchase_failed": "فشل الشراء",
+    "purchase_error": "حدث خطأ أثناء خصم العملات",
+    "purchase_success": "تم الشراء بنجاح! 🎉",
+    "available_for": "{{item}} متاح الآن لمدة {{days}} {{unit}}",
+    "day": "يوم",
+    "days": "أيام"
   }
 }

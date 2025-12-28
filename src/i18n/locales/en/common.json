@@ -94,5 +94,15 @@
       "delete_permanent": "Delete permanently"
     },
     "archived_time": "Archived {{time}}"
+  },
+  "coins": {
+    "insufficient_balance": "Insufficient Balance",
+    "need_coins": "You need {{needed}} coins, you have {{have}}",
+    "purchase_failed": "Purchase Failed",
+    "purchase_error": "Error deducting coins",
+    "purchase_success": "Purchase Successful! 🎉",
+    "available_for": "{{item}} is now available for {{days}} {{unit}}",
+    "day": "day",
+    "days": "days"
   }
 }

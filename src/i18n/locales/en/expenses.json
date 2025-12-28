@@ -209,5 +209,19 @@
     "net": "Net",
     "count": "Count",
     "amount": "Amount"
+  },
+  "category_selector": {
+    "search_placeholder": "Search categories...",
+    "add_new_category": "Add New Category",
+    "sections": {
+      "budget": "Budget Categories",
+      "recent": "Recently Used",
+      "suggested": "Suggested Categories",
+      "other": "Other Categories"
+    },
+    "budget_info": "Budget:",
+    "remaining": "Remaining:",
+    "used_times": "Used {{count}} times",
+    "suggested_based_on": "Suggested based on group type"
   }
 }
