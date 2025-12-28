@@ -31,6 +31,7 @@ import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTest
 import { RecommendationSettings } from "@/components/recommendations/RecommendationSettings";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 
 
@@ -52,6 +53,7 @@ const Settings = () => {
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { completeTask } = useOnboarding();
   
   const [activeTab, setActiveTab] = useState("profile");
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
@@ -174,6 +176,11 @@ const Settings = () => {
           title: t('common:toast.save_success'),
           description: t('common:toast.settings_saved_description'),
         });
+        
+        // Complete onboarding task for profile if name is filled
+        if (profile.name.trim()) {
+          await completeTask('profile');
+        }
       }
     } catch (error) {
       toast({

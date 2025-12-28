@@ -35,6 +35,7 @@ import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { expenseSchema, expenseSplitSchema, safeValidateInput } from "@/lib/validation";
 import { QuickRecommendation } from "@/components/recommendations/QuickRecommendation";
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 interface UserGroup {
   id: string;
@@ -55,6 +56,7 @@ const AddExpense = () => {
   const { currencies, convertCurrency, formatCurrency } = useCurrencies();
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   const { mutateAsync: checkBudgetWarnings } = useBudgetWarnings();
+  const { completeTask } = useOnboarding();
   
   // Form state
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
@@ -519,6 +521,9 @@ const AddExpense = () => {
           ? t('approval.saved_pending')
           : t('approval.saved_notified'),
       });
+
+      // Complete onboarding task for first expense
+      await completeTask('expense');
 
       // Reset form
       setAmount('');

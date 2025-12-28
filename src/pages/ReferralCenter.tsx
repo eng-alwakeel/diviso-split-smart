@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 const ReferralCenter = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const ReferralCenter = () => {
   const { isRTL } = useLanguage();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
+  const { completeTask } = useOnboarding();
 
   const { 
     referrals, 
@@ -59,12 +61,14 @@ const ReferralCenter = () => {
 
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     navigator.clipboard.writeText(referralLink);
     toast({
       title: t('toast.copied'),
       description: t('toast.copied_desc'),
     });
+    // Complete onboarding task for referral sharing
+    await completeTask('referral');
   };
 
   const handleShare = async () => {
@@ -77,6 +81,8 @@ const ReferralCenter = () => {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        // Complete onboarding task for referral sharing
+        await completeTask('referral');
       } else {
         handleCopy();
       }

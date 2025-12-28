@@ -89,5 +89,35 @@
     "button": "Check In",
     "done": "Checked in today",
     "streak": "{{days}} day streak"
+  },
+  "onboarding": {
+    "title": "Complete tasks & get 7 free days!",
+    "progress": "{{completed}}/{{total}} tasks completed",
+    "tasks": {
+      "profile": "Complete your profile",
+      "group": "Create your first group",
+      "expense": "Add your first expense",
+      "invite": "Invite a friend to a group",
+      "referral": "Share your referral link"
+    },
+    "tasks_desc": {
+      "profile": "Add your name and photo",
+      "group": "Create a group for shared expenses",
+      "expense": "Record your first expense",
+      "invite": "Invite someone to join",
+      "referral": "Share and earn rewards"
+    },
+    "go_to_task": "Go",
+    "claim_reward": "Claim your gift!",
+    "claiming": "Claiming...",
+    "reward_claimed": "Gift claimed ✓",
+    "final_reward": "Complete all = 7 free days!",
+    "task_completed": "Task completed!",
+    "earned_coins": "You earned +{{coins}} coins",
+    "congrats": "Congratulations! 🎉",
+    "reward_message": "You got 7 days of Personal plan + 50 bonus coins!",
+    "complete_all_first": "Complete all tasks first",
+    "already_claimed": "Reward already claimed",
+    "error": "An error occurred"
   }
 }
