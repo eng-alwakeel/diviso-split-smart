@@ -60,6 +60,23 @@
     "expenses": "Weekly Expenses",
     "of": "of"
   },
+  "usage_limits": {
+    "title": "Usage Limits",
+    "groups": "Groups",
+    "members": "Members",
+    "monthly_expenses": "Expenses (Monthly)",
+    "monthly_invites": "Invites (Monthly)",
+    "monthly_ocr": "Receipt Scans (Monthly)",
+    "report_export": "Report Exports (Monthly)",
+    "data_retention": "Data Retention",
+    "months": "months",
+    "blocked": "Blocked",
+    "warning": "Warning",
+    "average_usage": "Average Usage:",
+    "upgrade_for_higher_limits": "Upgrade for Higher Limits",
+    "unlimited_description": "Get unlimited expenses and more scans with paid plans",
+    "loading": "Loading..."
+  },
   "checkin": {
     "title": "Daily Reward",
     "description": "Check in daily to collect rewards",

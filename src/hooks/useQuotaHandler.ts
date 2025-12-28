@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
 import { useSubscriptionLimits } from "./useSubscriptionLimits";
 
 export function useQuotaHandler() {
@@ -58,30 +57,18 @@ export function useQuotaHandler() {
     };
   }, [getUsagePercentage, isNearLimit, isAtLimit]);
 
+  // Return translation keys instead of hardcoded strings
   const getPlanBenefits = useCallback(() => {
     return {
       personal: {
-        name: "الباقة الشخصية",
-        price: "19 ريال/شهر",
-        benefits: [
-          "مجموعات غير محدودة",
-          "أعضاء غير محدودين",
-          "مصاريف غير محدودة",
-          "مسح الإيصالات بالذكاء الاصطناعي",
-          "تحليلات وتوصيات ذكية",
-          "دردشة المجموعة"
-        ]
+        nameKey: "quota:plans.personal.name",
+        priceKey: "quota:plans.personal.price",
+        benefitsKey: "quota:plans.personal.benefits"
       },
       family: {
-        name: "الباقة العائلية",
-        price: "75 ريال/شهر",
-        benefits: [
-          "جميع مزايا الباقة الشخصية",
-          "إدارة العائلة (حتى 5 أعضاء)",
-          "موافقة على المصاريف",
-          "تقارير عائلية متقدمة",
-          "سياسات إنفاق مخصصة"
-        ]
+        nameKey: "quota:plans.family.name",
+        priceKey: "quota:plans.family.price",
+        benefitsKey: "quota:plans.family.benefits"
       }
     };
   }, []);
