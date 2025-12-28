@@ -6,14 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlusCircle, TrendingUp, PieChart, Calendar, Edit, Trash2, AlertTriangle, RefreshCw, Users, Target } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
+import { PlusCircle, TrendingUp, PieChart, AlertTriangle, RefreshCw } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import { useBudgets, Budget } from "@/hooks/useBudgets";
 import { useBudgetCategories } from "@/hooks/useBudgetCategories";
@@ -24,8 +20,12 @@ import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
 import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FinancialPlan() {
+  const { t } = useTranslation('budget');
+  const { isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [isCreatingBudget, setIsCreatingBudget] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -41,22 +41,22 @@ export default function FinancialPlan() {
   const createBudgetHandler = async (budgetData: any) => {
     try {
       await createBudget(budgetData);
-      toast.success("تم إنشاء الميزانية بنجاح");
+      toast.success(t('messages.created'));
     } catch (error: any) {
       console.error("Error creating budget:", error);
-      toast.error("فشل في إنشاء الميزانية: " + (error.message || "خطأ غير معروف"));
-      throw error; // Re-throw to let the dialog handle it
+      toast.error(t('messages.create_failed') + ": " + (error.message || ""));
+      throw error;
     }
   };
 
   const handleDeleteBudget = async (budgetId: string) => {
-    if (confirm("هل أنت متأكد من حذف هذه الميزانية؟")) {
+    if (confirm(t('messages.delete_confirm'))) {
       try {
         await deleteBudget(budgetId);
-        toast.success("تم حذف الميزانية بنجاح");
+        toast.success(t('messages.deleted'));
       } catch (error) {
         console.error("Error deleting budget:", error);
-        toast.error("فشل في حذف الميزانية");
+        toast.error(t('messages.delete_failed'));
       }
     }
   };
@@ -64,19 +64,18 @@ export default function FinancialPlan() {
   const handleUpdateBudget = async (id: string, updates: any) => {
     try {
       await updateBudget({ id, ...updates });
-      toast.success("تم تحديث الميزانية بنجاح");
+      toast.success(t('messages.updated'));
     } catch (error) {
       console.error("Error updating budget:", error);
-      toast.error("فشل في تحديث الميزانية");
+      toast.error(t('messages.update_failed'));
     }
   };
 
   const getBudgetData = (budget: Budget) => {
     if (!analytics) return { progress: 0, spent: 0, remaining: budget.amount_limit || budget.total_amount };
     
-    // Calculate spent amount for this specific budget (based on group and time period)
     const spent = analytics.categoryBreakdown
-      .reduce((sum, cat) => sum + cat.spent, 0) * 0.3; // Rough approximation for demo
+      .reduce((sum, cat) => sum + cat.spent, 0) * 0.3;
     
     const total = budget.amount_limit || budget.total_amount;
     const remaining = Math.max(0, total - spent);
@@ -86,7 +85,7 @@ export default function FinancialPlan() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', {
+    return new Intl.NumberFormat(isRTL ? 'ar-SA' : 'en-US', {
       style: 'currency',
       currency: 'SAR',
       minimumFractionDigits: 0
@@ -101,13 +100,13 @@ export default function FinancialPlan() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-8">
               <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-semibold mb-2">حدث خطأ في تحميل البيانات</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('errors.load_failed')}</h3>
               <p className="text-muted-foreground text-center mb-4">
-                تعذر تحميل بيانات الخطة المالية. يرجى المحاولة مرة أخرى.
+                {t('errors.load_failed_desc')}
               </p>
               <Button onClick={() => refetchBudgets()} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                إعادة المحاولة
+                <RefreshCw className="h-4 w-4 me-2" />
+                {t('buttons.retry')}
               </Button>
             </CardContent>
           </Card>
@@ -134,7 +133,7 @@ export default function FinancialPlan() {
               <div className="text-2xl font-bold text-primary">
                 {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalBudget || 0)}
               </div>
-              <p className="text-xs text-muted-foreground">إجمالي الميزانية</p>
+              <p className="text-xs text-muted-foreground">{t('stats.total_budget')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -142,7 +141,7 @@ export default function FinancialPlan() {
               <div className="text-2xl font-bold text-destructive">
                 {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalSpent || 0)}
               </div>
-              <p className="text-xs text-muted-foreground">إجمالي المصاريف</p>
+              <p className="text-xs text-muted-foreground">{t('stats.total_expenses')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -150,7 +149,7 @@ export default function FinancialPlan() {
               <div className="text-2xl font-bold text-green-600">
                 {isLoading ? <Skeleton className="h-8 w-20" /> : formatCurrency(analytics?.totalRemaining || 0)}
               </div>
-              <p className="text-xs text-muted-foreground">المتبقي</p>
+              <p className="text-xs text-muted-foreground">{t('stats.remaining')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -158,7 +157,7 @@ export default function FinancialPlan() {
               <div className="text-2xl font-bold">
                 {isLoading ? <Skeleton className="h-8 w-16" /> : `${analytics?.spendingPercentage.toFixed(1) || 0}%`}
               </div>
-              <p className="text-xs text-muted-foreground">نسبة الإنفاق</p>
+              <p className="text-xs text-muted-foreground">{t('stats.spending_percentage')}</p>
             </CardContent>
           </Card>
         </div>
@@ -172,16 +171,16 @@ export default function FinancialPlan() {
             onClick={() => setIsCreatingBudget(true)}
             variant="outline"
           >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            إنشاء ميزانية تقليدية
+            <PlusCircle className="h-4 w-4 me-2" />
+            {t('buttons.create_traditional')}
           </Button>
           
           <Button 
             className="flex-1 md:flex-none"
             onClick={() => window.location.href = '/create-unified-budget'}
           >
-            <PlusCircle className="h-4 w-4 mr-2" />
-            إنشاء ميزانية شاملة
+            <PlusCircle className="h-4 w-4 me-2" />
+            {t('buttons.create_unified')}
           </Button>
         </div>
 
@@ -196,15 +195,15 @@ export default function FinancialPlan() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-            <TabsTrigger value="budgets">الميزانيات</TabsTrigger>
-            <TabsTrigger value="analytics">التحليلات</TabsTrigger>
+            <TabsTrigger value="overview">{t('tabs.overview')}</TabsTrigger>
+            <TabsTrigger value="budgets">{t('tabs.budgets')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('tabs.analytics')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>الميزانيات النشطة</CardTitle>
+                <CardTitle>{t('overview.active_budgets')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -218,19 +217,19 @@ export default function FinancialPlan() {
                   </div>
                 ) : budgets.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    لا توجد ميزانيات نشطة. ابدأ بإنشاء ميزانية جديدة.
+                    {t('overview.no_active')}
                   </p>
                 ) : (
                   <div className="space-y-4">
                     {budgets.slice(0, 5).map((budget) => {
-                      const { progress, spent, remaining } = getBudgetData(budget);
+                      const { progress, spent } = getBudgetData(budget);
                       return (
                         <div key={budget.id} className="space-y-2">
                           <div className="flex justify-between items-center">
                             <div>
                               <h4 className="font-semibold">{budget.name}</h4>
                               <p className="text-sm text-muted-foreground">
-                                مصروف: {formatCurrency(spent)} من {formatCurrency(budget.amount_limit || budget.total_amount)}
+                                {t('overview.spent_of', { spent: formatCurrency(spent), total: formatCurrency(budget.amount_limit || budget.total_amount) })}
                               </p>
                             </div>
                             <Badge variant={progress > 100 ? "destructive" : progress > 80 ? "secondary" : "default"}>
@@ -241,7 +240,7 @@ export default function FinancialPlan() {
                           {progress >= 90 && (
                             <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                               <AlertTriangle className="h-3 w-3" />
-                              <span>{progress >= 100 ? "تم تجاوز الميزانية" : "اقتراب من الحد الأقصى"}</span>
+                              <span>{progress >= 100 ? t('overview.exceeded') : t('overview.near_limit')}</span>
                             </div>
                           )}
                         </div>
@@ -270,13 +269,13 @@ export default function FinancialPlan() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <PieChart className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">لا توجد ميزانيات</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('budgets_tab.no_budgets')}</h3>
                   <p className="text-muted-foreground text-center mb-4">
-                    ابدأ بإنشاء ميزانية لتتبع مصاريفك وتحقيق أهدافك المالية
+                    {t('budgets_tab.no_budgets_desc')}
                   </p>
                   <Button onClick={() => setIsCreatingBudget(true)}>
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    إنشاء أول ميزانية
+                    <PlusCircle className="h-4 w-4 me-2" />
+                    {t('buttons.create_first')}
                   </Button>
                 </CardContent>
               </Card>
@@ -319,7 +318,7 @@ export default function FinancialPlan() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5" />
-                      الإنفاق الشهري
+                      {t('analytics_tab.monthly_spending')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -339,7 +338,7 @@ export default function FinancialPlan() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>توزيع الإنفاق بالفئات</CardTitle>
+                    <CardTitle>{t('analytics_tab.category_breakdown')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     {analytics?.categoryBreakdown && analytics.categoryBreakdown.length > 0 ? (
@@ -349,15 +348,15 @@ export default function FinancialPlan() {
                             <div>
                               <h4 className="font-medium">{category.category}</h4>
                               <p className="text-sm text-muted-foreground">
-                                {formatCurrency(category.spent)} من {formatCurrency(category.budgeted)}
+                                {formatCurrency(category.spent)} {t('analytics_tab.of')} {formatCurrency(category.budgeted)}
                               </p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-end">
                               <p className="text-sm font-medium">
                                 {category.budgeted > 0 ? ((category.spent / category.budgeted) * 100).toFixed(1) : 0}%
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                متبقي: {formatCurrency(category.remaining)}
+                                {t('analytics_tab.remaining')}: {formatCurrency(category.remaining)}
                               </p>
                             </div>
                           </div>
@@ -365,7 +364,7 @@ export default function FinancialPlan() {
                       </div>
                     ) : (
                       <p className="text-center text-muted-foreground py-8">
-                        لا توجد بيانات كافية لعرض توزيع الإنفاق
+                        {t('analytics_tab.no_data')}
                       </p>
                     )}
                   </CardContent>

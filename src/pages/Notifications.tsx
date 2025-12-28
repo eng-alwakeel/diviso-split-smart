@@ -10,12 +10,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck, Archive, Trash2, MoreVertical, ArchiveRestore } from 'lucide-react';
+import { Bell, CheckCheck, Archive, Trash2, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Notifications() {
+  const { t } = useTranslation('common');
+  const { isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState('active');
   const { 
     notifications, 
@@ -36,7 +40,6 @@ export default function Notifications() {
       markAsRead(notification.id);
     }
 
-    // Navigate based on notification type - don't navigate for group invites as they have their own UI
     if (notification.type === 'group_invite') {
       return;
     } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
@@ -90,6 +93,8 @@ export default function Notifications() {
     }
   };
 
+  const dateLocale = isRTL ? ar : enUS;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -97,7 +102,7 @@ export default function Notifications() {
         <main className="page-container">
           <div className="text-center py-8">
             <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">جاري التحميل...</p>
+            <p className="mt-2 text-muted-foreground">{t('loading')}</p>
           </div>
         </main>
         <BottomNav />
@@ -121,10 +126,10 @@ export default function Notifications() {
               <Bell className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">الإشعارات</h1>
+              <h1 className="text-2xl font-bold">{t('notifications_page.title')}</h1>
               {unreadCount > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  {unreadCount} إشعار غير مقروء
+                  {t('notifications_page.unread_count', { count: unreadCount })}
                 </p>
               )}
             </div>
@@ -139,7 +144,7 @@ export default function Notifications() {
                 className="gap-2"
               >
                 <CheckCheck className="w-4 h-4" />
-                تعليم الكل كمقروء
+                {t('notifications_page.mark_all_read')}
               </Button>
             )}
             
@@ -148,20 +153,20 @@ export default function Notifications() {
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
                     <Archive className="w-4 h-4" />
-                    أرشف القديم
+                    {t('notifications_page.archive_old')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>أرشفة الإشعارات القديمة</AlertDialogTitle>
+                    <AlertDialogTitle>{t('notifications_page.archive_dialog_title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      سيتم أرشفة جميع الإشعارات المقروءة الأقدم من 30 يوم. هل تريد المتابعة؟
+                      {t('notifications_page.archive_dialog_desc')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={() => archiveOldNotifications()}>
-                      أرشف
+                      {t('notifications_page.archive_button')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -174,11 +179,11 @@ export default function Notifications() {
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="active" className="gap-2">
               <Bell className="w-4 h-4" />
-              النشطة ({notifications.length})
+              {t('notifications_page.tabs.active')} ({notifications.length})
             </TabsTrigger>
             <TabsTrigger value="archived" className="gap-2">
               <Archive className="w-4 h-4" />
-              المؤرشفة ({archivedNotifications.length})
+              {t('notifications_page.tabs.archived')} ({archivedNotifications.length})
             </TabsTrigger>
           </TabsList>
 
@@ -189,9 +194,9 @@ export default function Notifications() {
                   <div className="p-4 bg-muted rounded-full mb-4">
                     <Bell className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">لا توجد إشعارات نشطة</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('notifications_page.empty.active_title')}</h3>
                   <p className="text-muted-foreground text-center">
-                    ستظهر هنا الإشعارات الخاصة بالمصاريف والرسائل
+                    {t('notifications_page.empty.active_desc')}
                   </p>
                 </CardContent>
               </Card>
@@ -239,7 +244,7 @@ export default function Notifications() {
                             <span className="text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(notification.created_at), {
                                 addSuffix: true,
-                                locale: ar,
+                                locale: dateLocale,
                               })}
                             </span>
                           </div>
@@ -257,14 +262,14 @@ export default function Notifications() {
                               className="gap-2"
                             >
                               <Archive className="w-4 h-4" />
-                              أرشف
+                              {t('notifications_page.actions.archive')}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => deleteNotification(notification.id)}
                               className="gap-2 text-destructive"
                             >
                               <Trash2 className="w-4 h-4" />
-                              احذف
+                              {t('notifications_page.actions.delete')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -283,9 +288,9 @@ export default function Notifications() {
                   <div className="p-4 bg-muted rounded-full mb-4">
                     <Archive className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">لا توجد إشعارات مؤرشفة</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('notifications_page.empty.archived_title')}</h3>
                   <p className="text-muted-foreground text-center">
-                    الإشعارات المؤرشفة ستظهر هنا
+                    {t('notifications_page.empty.archived_desc')}
                   </p>
                 </CardContent>
               </Card>
@@ -308,9 +313,11 @@ export default function Notifications() {
                             {notification.payload.group_name}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            أُرشف {formatDistanceToNow(new Date(notification.archived_at!), {
-                              addSuffix: true,
-                              locale: ar,
+                            {t('notifications_page.archived_time', { 
+                              time: formatDistanceToNow(new Date(notification.archived_at!), {
+                                addSuffix: true,
+                                locale: dateLocale,
+                              })
                             })}
                           </span>
                         </div>
@@ -328,7 +335,7 @@ export default function Notifications() {
                             className="gap-2 text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />
-                            احذف نهائياً
+                            {t('notifications_page.actions.delete_permanent')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

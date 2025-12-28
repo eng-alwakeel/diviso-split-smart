@@ -1,0 +1,36 @@
+{
+  "title": "مركز الإحالة",
+  "back": "العودة",
+  "balance_card": {
+    "free_days_remaining": "يوم مجاني متبقي",
+    "referrals": "إحالات",
+    "successful": "ناجحة",
+    "earned": "مكتسب"
+  },
+  "share": {
+    "title": "شارك رابط الإحالة",
+    "link_label": "رابط الإحالة",
+    "code_label": "الكود",
+    "copy": "نسخ الرابط",
+    "share": "مشاركة",
+    "invite_contacts": "دعوة من جهات الاتصال",
+    "or": "أو"
+  },
+  "history": {
+    "title": "سجل الإحالات",
+    "joined": "انضم",
+    "pending": "في الانتظار",
+    "more_referrals": "+{{count}} إحالات أخرى"
+  },
+  "toast": {
+    "copied": "تم النسخ!",
+    "copied_desc": "تم نسخ رابط الإحالة إلى الحافظة",
+    "already_registered": "صديق مسجل بالفعل!",
+    "already_registered_desc": "{{name}} موجود في ديفيسو",
+    "ready_to_share": "رابط الدعوة جاهز للمشاركة مع {{name}}"
+  },
+  "invite": {
+    "title": "دعوة لتطبيق ديفيسو",
+    "message": "انضم إلى تطبيق ديفيسو واحصل على 7 أيام مجانية!\n\nاستخدم كود الإحالة: {{code}}"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "title": "الخطة المالية",
+  "stats": {
+    "total_budget": "إجمالي الميزانية",
+    "total_expenses": "إجمالي المصاريف",
+    "remaining": "المتبقي",
+    "spending_percentage": "نسبة الإنفاق"
+  },
+  "buttons": {
+    "create_traditional": "إنشاء ميزانية تقليدية",
+    "create_unified": "إنشاء ميزانية شاملة",
+    "create_first": "إنشاء أول ميزانية",
+    "retry": "إعادة المحاولة"
+  },
+  "tabs": {
+    "overview": "نظرة عامة",
+    "budgets": "الميزانيات",
+    "analytics": "التحليلات"
+  },
+  "overview": {
+    "active_budgets": "الميزانيات النشطة",
+    "no_active": "لا توجد ميزانيات نشطة. ابدأ بإنشاء ميزانية جديدة.",
+    "spent_of": "مصروف: {{spent}} من {{total}}",
+    "exceeded": "تم تجاوز الميزانية",
+    "near_limit": "اقتراب من الحد الأقصى"
+  },
+  "budgets_tab": {
+    "no_budgets": "لا توجد ميزانيات",
+    "no_budgets_desc": "ابدأ بإنشاء ميزانية لتتبع مصاريفك وتحقيق أهدافك المالية"
+  },
+  "analytics_tab": {
+    "monthly_spending": "الإنفاق الشهري",
+    "category_breakdown": "توزيع الإنفاق بالفئات",
+    "no_data": "لا توجد بيانات كافية لعرض توزيع الإنفاق",
+    "of": "من",
+    "remaining": "متبقي"
+  },
+  "errors": {
+    "load_failed": "حدث خطأ في تحميل البيانات",
+    "load_failed_desc": "تعذر تحميل بيانات الخطة المالية. يرجى المحاولة مرة أخرى."
+  },
+  "messages": {
+    "created": "تم إنشاء الميزانية بنجاح",
+    "updated": "تم تحديث الميزانية بنجاح",
+    "deleted": "تم حذف الميزانية بنجاح",
+    "create_failed": "فشل في إنشاء الميزانية",
+    "update_failed": "فشل في تحديث الميزانية",
+    "delete_failed": "فشل في حذف الميزانية",
+    "delete_confirm": "هل أنت متأكد من حذف هذه الميزانية؟"
+  }
+}

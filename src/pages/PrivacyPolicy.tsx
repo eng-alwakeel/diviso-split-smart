@@ -1,18 +1,24 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Users, Lock, Eye, Edit, Trash, FileText } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Users, Lock, Eye, Edit, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { SEO } from "@/components/SEO";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('privacy');
+  const { isRTL } = useLanguage();
+
+  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="سياسة الخصوصية"
-        description="اقرأ سياسة الخصوصية لتطبيق Diviso. نحن ملتزمون بحماية خصوصيتك والالتزام بنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية."
+        title={t('seo.title')}
+        description={t('seo.description')}
         canonical="https://diviso.app/privacy-policy"
       />
       <AppHeader />
@@ -24,139 +30,139 @@ const PrivacyPolicy = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            سياسة الخصوصية
+            {t('title')}
           </h1>
           <p className="text-muted-foreground">
-            نحن ملتزمون بحماية خصوصيتك والالتزام بنظام حماية البيانات الشخصية (PDPL) في المملكة العربية السعودية
+            {t('description')}
           </p>
         </div>
 
         <Card>
           <CardContent className="p-8 space-y-8">
-            {/* البيانات التي نجمعها */}
+            {/* Data Collection */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
                   <Users className="h-4 w-4 text-blue-600" />
                 </div>
-                <h2 className="text-xl font-semibold">1. البيانات التي نجمعها</h2>
+                <h2 className="text-xl font-semibold">{t('sections.data_collection.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <p className="text-foreground">عند استخدامك للتطبيق، قد نطلب منك تزويدنا بالمعلومات التالية:</p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground pr-4">
-                  <li>الاسم الكامل</li>
-                  <li>رقم الجوال</li>
-                  <li>البريد الإلكتروني</li>
+                <p className="text-foreground">{t('sections.data_collection.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.data_collection.items.name')}</li>
+                  <li>{t('sections.data_collection.items.phone')}</li>
+                  <li>{t('sections.data_collection.items.email')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* كيفية استخدام البيانات */}
+            {/* Data Usage */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
                   <FileText className="h-4 w-4 text-green-600" />
                 </div>
-                <h2 className="text-xl font-semibold">2. كيفية استخدام البيانات</h2>
+                <h2 className="text-xl font-semibold">{t('sections.data_usage.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <p className="text-foreground">نستخدم بياناتك الشخصية للأغراض التالية فقط:</p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground pr-4">
-                  <li>إنشاء حسابك في التطبيق</li>
-                  <li>التواصل معك بشأن التحديثات أو الخدمات</li>
-                  <li>تحسين تجربتك داخل التطبيق</li>
+                <p className="text-foreground">{t('sections.data_usage.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.data_usage.items.account')}</li>
+                  <li>{t('sections.data_usage.items.communication')}</li>
+                  <li>{t('sections.data_usage.items.experience')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* حماية البيانات */}
+            {/* Data Protection */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
                   <Lock className="h-4 w-4 text-purple-600" />
                 </div>
-                <h2 className="text-xl font-semibold">3. حماية البيانات</h2>
+                <h2 className="text-xl font-semibold">{t('sections.data_protection.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground pr-4">
-                  <li>يتم تخزين بياناتك في بيئة آمنة</li>
-                  <li>نستخدم وسائل تقنية مناسبة لحمايتها من الوصول غير المصرح به أو التعديل أو الإفصاح</li>
-                  <li>لا نشارك بياناتك مع أي طرف ثالث إلا إذا كان ذلك مطلوبًا بموجب القانون أو بموافقتك المسبقة</li>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.data_protection.items.storage')}</li>
+                  <li>{t('sections.data_protection.items.security')}</li>
+                  <li>{t('sections.data_protection.items.sharing')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* حقوقك */}
+            {/* Your Rights */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
                   <Eye className="h-4 w-4 text-orange-600" />
                 </div>
-                <h2 className="text-xl font-semibold">4. حقوقك</h2>
+                <h2 className="text-xl font-semibold">{t('sections.your_rights.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <p className="text-foreground">بموجب نظام حماية البيانات الشخصية (PDPL)، لك الحق في:</p>
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground pr-4">
-                  <li>الاطلاع على بياناتك الشخصية</li>
-                  <li>طلب تعديلها أو تحديثها</li>
-                  <li>طلب حذفها متى ما رغبت</li>
+                <p className="text-foreground">{t('sections.your_rights.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.your_rights.items.view')}</li>
+                  <li>{t('sections.your_rights.items.modify')}</li>
+                  <li>{t('sections.your_rights.items.delete')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* موافقتك */}
+            {/* Consent */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
                   <Shield className="h-4 w-4 text-teal-600" />
                 </div>
-                <h2 className="text-xl font-semibold">5. موافقتك</h2>
+                <h2 className="text-xl font-semibold">{t('sections.consent.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="text-muted-foreground">
-                  باستخدامك للتطبيق، فإنك توافق على جمع واستخدام بياناتك وفقًا لهذه السياسة.
+                  {t('sections.consent.content')}
                 </p>
               </div>
             </section>
 
-            {/* التعديلات */}
+            {/* Modifications */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
                   <Edit className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-xl font-semibold">6. التعديلات</h2>
+                <h2 className="text-xl font-semibold">{t('sections.modifications.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="text-muted-foreground">
-                  قد نقوم بتحديث سياسة الخصوصية من وقت لآخر، وسيتم إشعارك بأي تغييرات جوهرية عبر التطبيق أو البريد الإلكتروني.
+                  {t('sections.modifications.content')}
                 </p>
               </div>
             </section>
 
-            {/* التواصل معنا */}
+            {/* Contact */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
                   <FileText className="h-4 w-4 text-pink-600" />
                 </div>
-                <h2 className="text-xl font-semibold">7. التواصل معنا</h2>
+                <h2 className="text-xl font-semibold">{t('sections.contact.title')}</h2>
               </div>
               <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg">
                 <p className="text-foreground mb-4">
-                  إذا كان لديك أي استفسار حول هذه السياسة أو استخدام بياناتك، يمكنك التواصل معنا عبر:
+                  {t('sections.contact.intro')}
                 </p>
                 <div className="space-y-2 text-muted-foreground">
-                  <p>📧 البريد الإلكتروني: support@diviso.app</p>
-                  <p>📞 رقم الجوال: +966500000000</p>
+                  <p>{t('sections.contact.email')}</p>
+                  <p>{t('sections.contact.phone')}</p>
                 </div>
               </div>
             </section>
 
-            {/* تاريخ التحديث */}
+            {/* Last Updated */}
             <div className="text-center pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                آخر تحديث: {new Date().toLocaleDateString('ar-SA')}
+                {t('last_updated')}: {new Date().toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
               </p>
             </div>
           </CardContent>
@@ -168,8 +174,8 @@ const PrivacyPolicy = () => {
             className="gap-2"
             size="lg"
           >
-            <ArrowRight className="h-4 w-4" />
-            العودة
+            <BackIcon className="h-4 w-4" />
+            {t('back')}
           </Button>
         </div>
       </div>

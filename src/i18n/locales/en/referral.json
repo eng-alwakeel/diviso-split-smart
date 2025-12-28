@@ -1,0 +1,36 @@
+{
+  "title": "Referral Center",
+  "back": "Back",
+  "balance_card": {
+    "free_days_remaining": "Free days remaining",
+    "referrals": "Referrals",
+    "successful": "Successful",
+    "earned": "Earned"
+  },
+  "share": {
+    "title": "Share Referral Link",
+    "link_label": "Referral Link",
+    "code_label": "Code",
+    "copy": "Copy Link",
+    "share": "Share",
+    "invite_contacts": "Invite from Contacts",
+    "or": "or"
+  },
+  "history": {
+    "title": "Referral History",
+    "joined": "Joined",
+    "pending": "Pending",
+    "more_referrals": "+{{count}} more referrals"
+  },
+  "toast": {
+    "copied": "Copied!",
+    "copied_desc": "Referral link copied to clipboard",
+    "already_registered": "Already registered!",
+    "already_registered_desc": "{{name}} is already on Diviso",
+    "ready_to_share": "Ready to share with {{name}}"
+  },
+  "invite": {
+    "title": "Diviso App Invitation",
+    "message": "Join Diviso and get 7 free days!\n\nUse referral code: {{code}}"
+  }
+}
