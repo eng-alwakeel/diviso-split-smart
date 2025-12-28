@@ -8,17 +8,104 @@ const corsHeaders = {
 interface RecommendationRequest {
   group_id?: string;
   city?: string;
+  destination?: string; // For Travelpayouts (city code or IATA)
   trigger: 'planning' | 'meal_time' | 'post_expense' | 'end_of_day';
   current_time?: string;
   group_type?: string;
   member_count?: number;
+  check_in?: string; // For hotel search
+  check_out?: string;
 }
 
 interface RecommendationDecision {
   should_recommend: boolean;
-  recommendation_type: 'food' | 'accommodation' | 'activity' | null;
+  recommendation_type: 'food' | 'accommodation' | 'activity' | 'hotel' | 'flight' | 'car_rental' | null;
   reason: string;
   priority: number;
+  source?: 'google_places' | 'travelpayouts';
+}
+
+interface TravelpayoutsHotel {
+  hotelId: number;
+  hotelName: string;
+  stars: number;
+  priceFrom: number;
+  priceAvg: number;
+  photoUrl?: string;
+  location: {
+    lat: number;
+    lon: number;
+  };
+}
+
+// Travelpayouts API helper
+async function fetchTravelpayoutsHotels(
+  destination: string,
+  checkIn: string,
+  checkOut: string,
+  guests: number = 2
+): Promise<TravelpayoutsHotel[]> {
+  const token = Deno.env.get('TRAVELPAYOUTS_TOKEN');
+  if (!token) {
+    console.log('TRAVELPAYOUTS_TOKEN not configured');
+    return [];
+  }
+
+  try {
+    // Use Travelpayouts Hotel Search API
+    const url = `https://engine.hotellook.com/api/v2/cache.json?location=${encodeURIComponent(destination)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${guests}&limit=10&token=${token}`;
+    
+    console.log(`Fetching Travelpayouts hotels for: ${destination}`);
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error('Travelpayouts API error:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    
+    if (!Array.isArray(data)) {
+      console.log('No hotels found from Travelpayouts');
+      return [];
+    }
+
+    return data.map((hotel: any) => ({
+      hotelId: hotel.hotelId,
+      hotelName: hotel.hotelName,
+      stars: hotel.stars || 0,
+      priceFrom: hotel.priceFrom,
+      priceAvg: hotel.priceAvg,
+      photoUrl: hotel.photoUrl,
+      location: hotel.location || { lat: 0, lon: 0 }
+    }));
+  } catch (error) {
+    console.error('Error fetching Travelpayouts hotels:', error);
+    return [];
+  }
+}
+
+// Convert Travelpayouts hotel to recommendation format
+function convertHotelToRecommendation(hotel: TravelpayoutsHotel, destination: string) {
+  const token = Deno.env.get('TRAVELPAYOUTS_TOKEN');
+  const affiliateUrl = `https://search.hotellook.com/hotels?destination=${encodeURIComponent(destination)}&hotelId=${hotel.hotelId}&marker=${token}`;
+
+  return {
+    id: `tp_hotel_${hotel.hotelId}`,
+    name: hotel.hotelName,
+    category: 'hotel',
+    rating: hotel.stars,
+    estimated_price: hotel.priceFrom,
+    currency: 'USD',
+    price_range: hotel.priceFrom < 100 ? '$' : hotel.priceFrom < 200 ? '$$' : '$$$',
+    location: hotel.location,
+    affiliate_url: affiliateUrl,
+    is_partner: true,
+    source: 'travelpayouts',
+    relevance_reason: `فندق ${hotel.stars} نجوم بسعر يبدأ من $${hotel.priceFrom}`,
+    relevance_reason_ar: `فندق ${hotel.stars} نجوم بسعر يبدأ من $${hotel.priceFrom}`
+  };
 }
 
 Deno.serve(async (req) => {
@@ -54,7 +141,7 @@ Deno.serve(async (req) => {
     }
 
     const requestBody: RecommendationRequest = await req.json();
-    const { group_id, city, trigger, current_time, group_type, member_count = 4 } = requestBody;
+    const { group_id, city, destination, trigger, current_time, group_type, member_count = 4 } = requestBody;
 
     console.log(`Generate recommendation for trigger: ${trigger}, group: ${group_id}`);
 
@@ -158,7 +245,56 @@ Deno.serve(async (req) => {
       );
     }
 
-    // If we have a city, fetch actual recommendation
+    // Try Travelpayouts for accommodation/hotel recommendations
+    if ((decision.recommendation_type === 'accommodation' || decision.recommendation_type === 'hotel') && destination) {
+      console.log('Trying Travelpayouts for hotel recommendation...');
+      
+      const checkIn = requestBody.check_in || new Date().toISOString().split('T')[0];
+      const checkOutDate = new Date();
+      checkOutDate.setDate(checkOutDate.getDate() + 1);
+      const checkOut = requestBody.check_out || checkOutDate.toISOString().split('T')[0];
+      
+      const hotels = await fetchTravelpayoutsHotels(destination, checkIn, checkOut, groupMemberCount);
+      
+      if (hotels.length > 0) {
+        console.log(`Found ${hotels.length} hotels from Travelpayouts`);
+        
+        const mainHotel = hotels[0];
+        const recommendation = convertHotelToRecommendation(mainHotel, destination);
+        
+        // Save recommendation to database
+        await supabase.from('recommendations').insert({
+          user_id: user.id,
+          group_id: group_id,
+          name: recommendation.name,
+          recommendation_type: 'hotel',
+          category: 'hotel',
+          estimated_price: recommendation.estimated_price,
+          currency: 'USD',
+          price_range: recommendation.price_range,
+          rating: recommendation.rating,
+          affiliate_url: recommendation.affiliate_url,
+          is_partner: true,
+          source: 'travelpayouts',
+          relevance_reason: recommendation.relevance_reason,
+          relevance_reason_ar: recommendation.relevance_reason_ar,
+          external_id: recommendation.id,
+          location: recommendation.location,
+          context: { trigger, group_type: groupType }
+        });
+
+        return new Response(
+          JSON.stringify({ 
+            decision: { ...decision, source: 'travelpayouts' },
+            recommendation,
+            alternatives: hotels.slice(1, 4).map(h => convertHotelToRecommendation(h, destination))
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Fallback to Google Places for food/activity or if Travelpayouts has no results
     if (groupCity && decision.recommendation_type) {
       // Call get-place-recommendations function internally
       const { data: recommendation, error: recError } = await supabase.functions.invoke(
@@ -190,7 +326,7 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ 
-          decision,
+          decision: { ...decision, source: 'google_places' },
           recommendation: recommendation?.recommendation,
           alternatives: recommendation?.alternatives
         }),
@@ -202,7 +338,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         decision,
-        message: 'City required to fetch actual recommendation'
+        message: 'City or destination required to fetch actual recommendation'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -230,16 +366,18 @@ function makeRecommendationDecision(
       if (groupType === 'travel') {
         return {
           should_recommend: true,
-          recommendation_type: 'accommodation',
+          recommendation_type: 'hotel', // Use hotel for Travelpayouts
           reason: 'group_planning_travel',
-          priority: 2
+          priority: 2,
+          source: 'travelpayouts'
         };
       }
       return {
         should_recommend: true,
         recommendation_type: 'food',
         reason: 'group_planning',
-        priority: 1
+        priority: 1,
+        source: 'google_places'
       };
 
     case 'meal_time':
@@ -249,7 +387,8 @@ function makeRecommendationDecision(
           should_recommend: true,
           recommendation_type: 'food',
           reason: hour >= 19 ? 'dinner_time' : 'lunch_time',
-          priority: 3
+          priority: 3,
+          source: 'google_places'
         };
       }
       return {
@@ -265,7 +404,8 @@ function makeRecommendationDecision(
         should_recommend: true,
         recommendation_type: 'activity',
         reason: 'post_expense_suggestion',
-        priority: 1
+        priority: 1,
+        source: 'google_places'
       };
 
     case 'end_of_day':
@@ -273,9 +413,10 @@ function makeRecommendationDecision(
       if (groupType === 'travel') {
         return {
           should_recommend: true,
-          recommendation_type: 'accommodation',
+          recommendation_type: 'hotel',
           reason: 'end_of_day_travel',
-          priority: 2
+          priority: 2,
+          source: 'travelpayouts'
         };
       }
       return {
