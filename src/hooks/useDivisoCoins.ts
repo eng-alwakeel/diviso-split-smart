@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
@@ -91,6 +92,7 @@ const STORE_ITEMS: StoreItem[] = [
 ];
 
 export const useDivisoCoins = () => {
+  const { t } = useTranslation('common');
   const [balance, setBalance] = useState<CoinBalance>({
     coins: 0,
     totalEarned: 0,
@@ -214,8 +216,8 @@ export const useDivisoCoins = () => {
 
   const purchaseItem = useCallback(async (item: StoreItem) => {
     if (balance.coins < item.cost) {
-      toast.error('رصيد غير كافٍ', {
-        description: `تحتاج ${item.cost} عملة، لديك ${balance.coins} فقط`
+      toast.error(t('coins.insufficient_balance'), {
+        description: t('coins.need_coins', { needed: item.cost, have: balance.coins })
       });
       return { success: false, error: 'insufficient_balance' };
     }
@@ -233,7 +235,7 @@ export const useDivisoCoins = () => {
       );
 
       if (!spendResult?.success) {
-        toast.error('فشل الشراء', { description: 'حدث خطأ أثناء خصم العملات' });
+        toast.error(t('coins.purchase_failed'), { description: t('coins.purchase_error') });
         return spendResult;
       }
 
@@ -250,14 +252,15 @@ export const useDivisoCoins = () => {
 
       const typedUnlockResult = unlockResult as unknown as UnlockResult;
 
-      toast.success('تم الشراء بنجاح! 🎉', {
-        description: `${item.nameAr} متاح الآن لمدة ${item.durationDays} ${item.durationDays === 1 ? 'يوم' : 'أيام'}`
+      const durationUnit = item.durationDays === 1 ? t('coins.day') : t('coins.days');
+      toast.success(t('coins.purchase_success'), {
+        description: t('coins.available_for', { item: item.nameAr, days: item.durationDays, unit: durationUnit })
       });
 
       return { success: true, unlock: typedUnlockResult };
     } catch (error) {
       console.error('Error purchasing item:', error);
-      toast.error('فشل الشراء');
+      toast.error(t('coins.purchase_failed'));
       return { success: false, error: 'purchase_failed' };
     } finally {
       setPurchasing(false);

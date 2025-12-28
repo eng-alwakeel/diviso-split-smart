@@ -227,15 +227,6 @@ export function useSmartCategories(groupId: string | null) {
     isLoading,
     error,
     refetch,
-    getSectionTitle: (section: SmartCategory['section']) => {
-      switch (section) {
-        case 'budget': return 'فئات الميزانية';
-        case 'recent': return 'الفئات المستخدمة مؤخراً';
-        case 'suggested': return 'فئات مقترحة';
-        case 'other': return 'فئات أخرى';
-        default: return '';
-      }
-    },
     getSectionIcon: (section: SmartCategory['section']) => {
       switch (section) {
         case 'budget': return '💰';

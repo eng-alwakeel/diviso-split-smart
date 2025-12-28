@@ -209,5 +209,19 @@
     "net": "الصافي",
     "count": "العدد",
     "amount": "المبلغ"
+  },
+  "category_selector": {
+    "search_placeholder": "البحث في الفئات...",
+    "add_new_category": "إضافة فئة جديدة",
+    "sections": {
+      "budget": "فئات الميزانية",
+      "recent": "الفئات المستخدمة مؤخراً",
+      "suggested": "فئات مقترحة",
+      "other": "فئات أخرى"
+    },
+    "budget_info": "الميزانية:",
+    "remaining": "المتبقي:",
+    "used_times": "استُخدمت {{count}} مرة",
+    "suggested_based_on": "مقترحة بناءً على نوع المجموعة"
   }
 }
