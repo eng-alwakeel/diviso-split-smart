@@ -2,6 +2,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { MessageSquare, MessageCircle, Send } from "lucide-react";
 import { openSMSApp, openWhatsAppDirect, openTelegramShare } from "@/lib/native";
+import { useTranslation } from "react-i18next";
+
+export type InviteSource = 'sms' | 'whatsapp' | 'telegram';
 
 interface AppPickerDialogProps {
   open: boolean;
@@ -9,7 +12,7 @@ interface AppPickerDialogProps {
   phone: string;
   message: string;
   contactName?: string;
-  onSent?: () => void;
+  onSent?: (source: InviteSource) => void;
 }
 
 export const AppPickerDialog = ({
@@ -20,21 +23,23 @@ export const AppPickerDialog = ({
   contactName,
   onSent
 }: AppPickerDialogProps) => {
+  const { t } = useTranslation('groups');
+
   const handleSMS = () => {
     openSMSApp(phone, message);
-    onSent?.();
+    onSent?.('sms');
     onOpenChange(false);
   };
 
   const handleWhatsApp = () => {
     openWhatsAppDirect(phone, message);
-    onSent?.();
+    onSent?.('whatsapp');
     onOpenChange(false);
   };
 
   const handleTelegram = () => {
     openTelegramShare(message);
-    onSent?.();
+    onSent?.('telegram');
     onOpenChange(false);
   };
 
@@ -42,9 +47,11 @@ export const AppPickerDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-center">اختر طريقة الإرسال</DialogTitle>
+          <DialogTitle className="text-center">{t('contacts_invite.choose_app')}</DialogTitle>
           <DialogDescription className="text-center">
-            {contactName ? `إرسال دعوة إلى ${contactName}` : 'اختر التطبيق لإرسال الدعوة'}
+            {contactName 
+              ? t('contacts_invite.sending_to', { name: contactName }) 
+              : t('contacts_invite.choose_app_default')}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,7 +75,7 @@ export const AppPickerDialog = ({
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
               <MessageCircle className="w-6 h-6 text-emerald-600" />
             </div>
-            <span className="text-sm font-medium">واتساب</span>
+            <span className="text-sm font-medium">{t('contacts_invite.whatsapp')}</span>
           </Button>
 
           <Button
@@ -79,12 +86,12 @@ export const AppPickerDialog = ({
             <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
               <Send className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-sm font-medium">تليجرام</span>
+            <span className="text-sm font-medium">{t('contacts_invite.telegram')}</span>
           </Button>
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          سيتم فتح التطبيق مع رسالة جاهزة للإرسال
+          {t('contacts_invite.app_will_open')}
         </p>
       </DialogContent>
     </Dialog>
