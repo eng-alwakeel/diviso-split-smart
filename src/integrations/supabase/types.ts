@@ -1341,6 +1341,51 @@ export type Database = {
           },
         ]
       }
+      onboarding_tasks: {
+        Row: {
+          created_at: string | null
+          first_expense_added: boolean | null
+          first_group_created: boolean | null
+          first_invite_sent: boolean | null
+          first_referral_made: boolean | null
+          id: string
+          profile_completed: boolean | null
+          reward_claimed: boolean | null
+          reward_claimed_at: string | null
+          tasks_completed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          first_expense_added?: boolean | null
+          first_group_created?: boolean | null
+          first_invite_sent?: boolean | null
+          first_referral_made?: boolean | null
+          id?: string
+          profile_completed?: boolean | null
+          reward_claimed?: boolean | null
+          reward_claimed_at?: string | null
+          tasks_completed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          first_expense_added?: boolean | null
+          first_group_created?: boolean | null
+          first_invite_sent?: boolean | null
+          first_referral_made?: boolean | null
+          id?: string
+          profile_completed?: boolean | null
+          reward_claimed?: boolean | null
+          reward_claimed_at?: string | null
+          tasks_completed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       places_cache: {
         Row: {
           category: string | null
@@ -2527,6 +2572,7 @@ export type Database = {
         Args: { p_phone: string; p_user_id: string }
         Returns: Json
       }
+      claim_onboarding_reward: { Args: { p_user_id: string }; Returns: Json }
       cleanup_expired_places_cache: { Args: never; Returns: number }
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
@@ -2535,6 +2581,10 @@ export type Database = {
       cleanup_old_referrals: {
         Args: { p_months_old?: number }
         Returns: number
+      }
+      complete_onboarding_task: {
+        Args: { p_task_name: string; p_user_id: string }
+        Returns: Json
       }
       create_group_join_token: {
         Args: {

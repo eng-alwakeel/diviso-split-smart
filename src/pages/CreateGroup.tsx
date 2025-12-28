@@ -29,6 +29,7 @@ import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
 import { Bot } from 'lucide-react';
 import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const CreateGroup = () => {
   const { t } = useTranslation(['groups', 'common']);
   const { currencies } = useCurrencies();
   const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
+  const { completeTask } = useOnboarding();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
@@ -428,6 +430,9 @@ const CreateGroup = () => {
         .from('group_members')
         .insert({ group_id: groupInsert.id, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
+      
+      // Complete onboarding task for first group
+      await completeTask('group');
       
     } catch (e: any) {
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });

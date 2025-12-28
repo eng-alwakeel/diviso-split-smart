@@ -21,6 +21,7 @@ import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
+import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { useTranslation } from "react-i18next";
 
 const Dashboard = React.memo(() => {
@@ -149,6 +150,9 @@ const Dashboard = React.memo(() => {
               {t('dashboard:help')}
             </Button>
           </div>
+
+          {/* Onboarding Progress Card */}
+          <OnboardingProgress />
 
           {/* Daily Check-in Card */}
           <DailyCheckInCard />
