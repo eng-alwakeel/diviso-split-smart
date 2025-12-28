@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { AdminBadge } from "@/components/ui/admin-badge";
@@ -74,8 +75,9 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
-          {/* Left: Notifications */}
-          <div className="justify-self-start">
+          {/* Left: Notifications & Language */}
+          <div className="justify-self-start flex items-center gap-1">
+            <LanguageSwitcher />
             <NotificationBell />
           </div>
 
