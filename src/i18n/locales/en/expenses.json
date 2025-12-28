@@ -1,7 +1,18 @@
 {
   "title": "Expenses",
   "my_expenses": "My Expenses",
+  "my_expenses_desc": "Track all your expenses in one place",
   "add": "Add Expense",
+  "refresh": "Refresh",
+  "list": "List",
+  "analytics": "Analytics",
+  "no_expenses_filtered": "No expenses match the selected filters",
+  "add_first": "Add your first expense",
+  "loading": "Loading...",
+  "load_more": "Load More",
+  "no_analytics_data": "No data for analysis",
+  "no_analytics_desc": "Add expenses to see analytics",
+  "loading_data": "Loading data...",
   "add_new": "Add New Expense",
   "edit": "Edit Expense",
   "delete": "Delete Expense",
@@ -140,6 +151,11 @@
     "rejection_reason": "Rejection Reason",
     "no_reason": "No reason specified",
     "rejected_at": "Rejected at",
-    "edit_resubmit": "Edit and Resubmit"
+    "edit_resubmit": "Edit and Resubmit",
+    "description": "Description",
+    "amount": "Amount",
+    "group": "Group",
+    "status": "Status",
+    "close": "Close"
   }
 }
