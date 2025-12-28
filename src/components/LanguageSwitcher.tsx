@@ -13,13 +13,14 @@ export const LanguageSwitcher = () => {
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={toggleLanguage}
       disabled={isChanging}
-      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+      className="h-9 w-9 text-muted-foreground hover:text-foreground sm:w-auto sm:px-3"
+      title={currentLanguage === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
     >
       <Globe className="w-4 h-4" />
-      <span className="text-sm font-medium">
+      <span className="hidden sm:inline text-sm font-medium ms-1.5">
         {currentLanguage === 'ar' ? 'EN' : 'عربي'}
       </span>
     </Button>
