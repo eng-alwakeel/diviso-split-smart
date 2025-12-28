@@ -7,6 +7,7 @@ import { PersistentAdBanner } from "@/components/ads/PersistentAdBanner";
 import { PersistentAdSidebar } from "@/components/ads/PersistentAdSidebar";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
+import { AdsterraAd } from "@/components/ads/AdsterraAd";
 
 const Index = () => {
   const { t } = useTranslation('landing');
@@ -21,6 +22,11 @@ const Index = () => {
       <Header />
       <HeroSection />
       <FeaturesSection />
+      
+      {/* Adsterra Ad */}
+      <div className="container mx-auto px-4 py-8">
+        <AdsterraAd className="max-w-2xl mx-auto" />
+      </div>
       
       {/* Persistent ads for all visitors */}
       <div className="container mx-auto px-4 py-8">
