@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, RefreshCw, HelpCircle, Shield } from "lucide-react";
+import { AlertTriangle, RefreshCw, HelpCircle, Share2 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -23,14 +23,24 @@ import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { useTranslation } from "react-i18next";
+import { useAchievements } from "@/hooks/useAchievements";
+import { ShareableAchievementCard } from "@/components/achievements/ShareableAchievementCard";
+import { AchievementPopup } from "@/components/achievements/AchievementPopup";
+import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
 
 const Dashboard = React.memo(() => {
-  const { t } = useTranslation(['dashboard', 'common']);
+  const { t, i18n } = useTranslation(['dashboard', 'common']);
+  const isRTL = i18n.language === 'ar';
   const navigate = useNavigate();
   const {
     data: adminData
   } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
+  const [showAchievementPopup, setShowAchievementPopup] = useState(false);
+  
+  // Achievements hook
+  const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
+  
   const {
     data: dashboardData,
     isLoading: loading,
@@ -163,6 +173,14 @@ const Dashboard = React.memo(() => {
           {/* Fixed Ad Banner Below Stats */}
           <FixedStatsAdBanner placement="dashboard_stats" />
 
+          {/* Latest Unshared Achievement */}
+          {latestUnshared && (
+            <ShareableAchievementCard achievement={latestUnshared} compact />
+          )}
+
+          {/* Monthly Wrap Card */}
+          <MonthlyWrapCard stats={monthlyStats} />
+
           {/* Smart Promotion System */}
           <SmartPromotionBanner />
 
@@ -188,6 +206,13 @@ const Dashboard = React.memo(() => {
       
       {/* App Guide */}
       {showGuide && <AppGuide onClose={handleCloseGuide} />}
+
+      {/* Achievement Popup */}
+      <AchievementPopup
+        achievement={latestUnshared}
+        open={showAchievementPopup}
+        onClose={() => setShowAchievementPopup(false)}
+      />
 
       {/* Quota Upgrade Dialog */}
       {limits && <QuotaUpgradeDialog {...quotaDialogProps} />}

@@ -119,5 +119,27 @@
     "complete_all_first": "Complete all tasks first",
     "already_claimed": "Reward already claimed",
     "error": "An error occurred"
+  },
+  "achievements": {
+    "title": "My Achievements",
+    "new_achievement": "New Achievement!",
+    "share_for_coins": "Share and get {{coins}} coins!",
+    "expenses_milestone": "Tracked {{value}} expenses!",
+    "groups_milestone": "Created {{value}} groups!",
+    "savings_milestone": "Saved {{value}} SAR!",
+    "streak_milestone": "{{value}} day streak!",
+    "referrals_milestone": "Referred {{value}} friends!",
+    "share_now": "Share Now",
+    "share_later": "Maybe Later",
+    "already_shared": "Already Shared ✓",
+    "monthly_wrap": "Your Monthly Wrap",
+    "total_expenses": "Total Expenses",
+    "top_category": "Top Category",
+    "saved": "Saved",
+    "active_groups": "Active Groups",
+    "share_wrap": "Share your wrap & get 30 coins!",
+    "congrats": "Congratulations!",
+    "share_your_experience": "Share Your Experience",
+    "unshared_achievements": "{{count}} achievements to share"
   }
 }

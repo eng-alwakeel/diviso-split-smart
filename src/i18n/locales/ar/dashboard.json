@@ -119,5 +119,27 @@
     "complete_all_first": "أكمل جميع المهام أولاً",
     "already_claimed": "تم استلام المكافأة مسبقاً",
     "error": "حدث خطأ"
+  },
+  "achievements": {
+    "title": "إنجازاتي",
+    "new_achievement": "إنجاز جديد!",
+    "share_for_coins": "شارك واحصل على {{coins}} عملة!",
+    "expenses_milestone": "تتبعت {{value}} مصروف!",
+    "groups_milestone": "أنشأت {{value}} مجموعات!",
+    "savings_milestone": "وفرت {{value}} ريال!",
+    "streak_milestone": "سلسلة {{value}} يوم!",
+    "referrals_milestone": "دعوت {{value}} أصدقاء!",
+    "share_now": "شارك الآن",
+    "share_later": "لاحقاً",
+    "already_shared": "تم المشاركة ✓",
+    "monthly_wrap": "ملخصك الشهري",
+    "total_expenses": "إجمالي المصاريف",
+    "top_category": "أكثر فئة",
+    "saved": "وفرت",
+    "active_groups": "المجموعات النشطة",
+    "share_wrap": "شارك ملخصك واحصل على 30 عملة!",
+    "congrats": "تهانينا!",
+    "share_your_experience": "شارك تجربتك",
+    "unshared_achievements": "{{count}} إنجازات للمشاركة"
   }
 }
