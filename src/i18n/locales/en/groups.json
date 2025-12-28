@@ -242,9 +242,38 @@
     "member": "Member"
   },
 
-  "status": {
+"status": {
     "approved": "Approved",
     "pending": "Pending",
     "rejected": "Rejected"
+  },
+
+  "contacts_invite": {
+    "title": "Invite from Contacts",
+    "subtitle": "Select a contact to send an invitation",
+    "select_contact": "Select from Contacts",
+    "how_it_works": "How does smart invite work?",
+    "registered_friends": "Friends on Diviso",
+    "registered_desc": "They receive an instant in-app notification",
+    "new_friends": "New Friends",
+    "new_friends_desc": "You can send an invite via SMS or WhatsApp from your phone",
+    "free_message": "Invites are sent from your personal number - more reliable and free!",
+    "web_notice": "Real contacts only appear in the mobile app. Use mock numbers for testing.",
+    "notification_sent": "Invite sent!",
+    "notification_sent_to": "Internal notification sent to {{name}}",
+    "notification_error": "Error sending notification",
+    "invite_saved": "Invite saved",
+    "invite_saved_desc": "Invite recorded and will be sent via the selected app",
+    "invite_save_error": "Error saving invite",
+    "choose_app": "Choose sending method",
+    "sending_to": "Send invite to {{name}}",
+    "choose_app_default": "Choose the app to send the invite",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "app_will_open": "The app will open with a ready message to send",
+    "message_sent_confirm": "Was the message sent successfully?",
+    "yes_sent": "Yes, sent",
+    "no_cancel": "No, cancel",
+    "invite_marked_sent": "Invite status updated to sent"
   }
 }

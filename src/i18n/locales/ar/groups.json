@@ -243,9 +243,38 @@
     "member": "عضو"
   },
 
-  "status": {
+"status": {
     "approved": "معتمد",
     "pending": "قيد الانتظار",
     "rejected": "مرفوض"
+  },
+
+  "contacts_invite": {
+    "title": "دعوة من جهات الاتصال",
+    "subtitle": "اختر جهة اتصال لإرسال دعوة إليها",
+    "select_contact": "اختيار من جهات الاتصال",
+    "how_it_works": "كيف تعمل الدعوة الذكية؟",
+    "registered_friends": "أصدقاء على Diviso",
+    "registered_desc": "يحصلون على إشعار فوري داخل التطبيق",
+    "new_friends": "أصدقاء جدد",
+    "new_friends_desc": "يمكنك إرسال دعوة عبر SMS أو واتساب من جوالك",
+    "free_message": "الدعوات ترسل من رقمك الشخصي - أكثر موثوقية ومجانية!",
+    "web_notice": "جهات الاتصال الحقيقية تظهر فقط في تطبيق الجوال. استخدم الأرقام الوهمية للتجربة.",
+    "notification_sent": "تم إرسال الدعوة!",
+    "notification_sent_to": "تم إرسال إشعار داخلي إلى {{name}}",
+    "notification_error": "خطأ في إرسال الإشعار",
+    "invite_saved": "تم حفظ الدعوة",
+    "invite_saved_desc": "تم تسجيل الدعوة وسيتم إرسالها عبر التطبيق المختار",
+    "invite_save_error": "خطأ في حفظ الدعوة",
+    "choose_app": "اختر طريقة الإرسال",
+    "sending_to": "إرسال دعوة إلى {{name}}",
+    "choose_app_default": "اختر التطبيق لإرسال الدعوة",
+    "whatsapp": "واتساب",
+    "telegram": "تليجرام",
+    "app_will_open": "سيتم فتح التطبيق مع رسالة جاهزة للإرسال",
+    "message_sent_confirm": "هل تم إرسال الرسالة بنجاح؟",
+    "yes_sent": "نعم، تم الإرسال",
+    "no_cancel": "لا، إلغاء",
+    "invite_marked_sent": "تم تحديث حالة الدعوة إلى مُرسلة"
   }
 }
