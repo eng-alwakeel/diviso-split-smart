@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_level: string | null
+          achievement_type: string
+          achievement_value: number
+          coins_earned: number | null
+          created_at: string | null
+          id: string
+          shared: boolean | null
+          shared_at: string | null
+          shared_platform: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_level?: string | null
+          achievement_type: string
+          achievement_value?: number
+          coins_earned?: number | null
+          created_at?: string | null
+          id?: string
+          shared?: boolean | null
+          shared_at?: string | null
+          shared_platform?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_level?: string | null
+          achievement_type?: string
+          achievement_value?: number
+          coins_earned?: number | null
+          created_at?: string | null
+          id?: string
+          shared?: boolean | null
+          shared_at?: string | null
+          shared_platform?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_impressions: {
         Row: {
           ad_category: string | null
@@ -2738,6 +2780,10 @@ export type Database = {
           total_amount: number
         }[]
       }
+      get_monthly_stats: {
+        Args: { p_month?: number; p_year?: number }
+        Returns: Json
+      }
       get_pending_amounts: {
         Args: { p_group_id: string }
         Returns: {
@@ -2854,6 +2900,10 @@ export type Database = {
         Returns: Json
       }
       seed_demo_for_user: { Args: never; Returns: string }
+      share_achievement: {
+        Args: { p_achievement_id: string; p_platform: string }
+        Returns: Json
+      }
       spend_coins: {
         Args: {
           p_amount: number
