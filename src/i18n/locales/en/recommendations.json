@@ -1,0 +1,59 @@
+{
+  "title": "Recommendations",
+  "food_recommendation": "A restaurant perfect for your group",
+  "why_suitable": "Why it's suitable",
+  "add_as_expense": "Add as Expense",
+  "open_location": "Open Location",
+  "dismiss": "Dismiss",
+  "view": "View",
+  "partner_badge": "Diviso Partner",
+  "partner_disclosure": "This place is a partner and we may receive a small commission if you book through us. This doesn't affect our choices.",
+  "from_recommendation": "From Diviso recommendations",
+  "expense_prefilled": "Data prefilled",
+  "expense_prefilled_description": "Complete adding the expense with the required details",
+  
+  "notifications": {
+    "lunch_time": "It's lunch time! 🍽️",
+    "dinner_time": "It's dinner time! 🌙",
+    "planning": "Plan your trip",
+    "planning_subtitle": "Discover amazing places at your destination",
+    "post_expense": "Smart recommendation",
+    "post_expense_subtitle": "Based on your recent activity",
+    "default_title": "Recommendation for you",
+    "default_subtitle": "Discover a new place",
+    "suggested_place": "Try {{name}}",
+    "find_place": "Find a suitable place"
+  },
+  
+  "categories": {
+    "food": "Restaurants",
+    "restaurant": "Restaurants",
+    "accommodation": "Hotels",
+    "hotel": "Hotels",
+    "cafe": "Cafes",
+    "coffee": "Cafes",
+    "shopping": "Shopping",
+    "activity": "Activities"
+  },
+  
+  "settings": {
+    "title": "Recommendation Settings",
+    "description": "Control how recommendations are shown to you",
+    "enabled": "Enable Recommendations",
+    "enabled_description": "Get smart recommendations for places suitable for your group",
+    "meal_time_alerts": "Meal Time Alerts",
+    "meal_time_alerts_description": "Get notifications at lunch and dinner times",
+    "max_per_day": "Maximum Per Day",
+    "max_per_day_description": "Number of recommendations you want to see daily",
+    "categories": "Preferred Categories",
+    "categories_description": "Choose the types of places you're interested in",
+    "error": "Save Error",
+    "error_description": "An error occurred while saving settings. Please try again."
+  },
+  
+  "errors": {
+    "no_group": "Please select a group first",
+    "fetch_failed": "Failed to fetch recommendations",
+    "generic": "An error occurred. Please try again."
+  }
+}
