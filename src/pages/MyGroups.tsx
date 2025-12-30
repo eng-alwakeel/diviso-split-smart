@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function MyGroups() {
   const { t } = useTranslation(['common', 'groups']);
@@ -25,7 +26,8 @@ export default function MyGroups() {
   const {
     data: groups = [],
     isLoading,
-    error
+    error,
+    invalidateGroups
   } = useGroups(activeTab === "archived");
   const {
     archiveGroup,
@@ -33,6 +35,42 @@ export default function MyGroups() {
   } = useGroupArchive();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Real-time listener للتحديث الفوري عند تغيير الأعضاء
+  useEffect(() => {
+    const channel = supabase
+      .channel('group-members-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_members',
+        },
+        () => {
+          // إعادة تحميل القائمة عند أي تغيير
+          invalidateGroups();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'groups',
+        },
+        () => {
+          // إعادة تحميل القائمة عند تغيير القروبات
+          invalidateGroups();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [invalidateGroups]);
+
   const filteredGroups = groups.filter(group => group.name.toLowerCase().includes(searchQuery.toLowerCase()));
   const totalGroups = groups.length;
   const adminGroups = groups.filter(g => g.member_role === 'admin' || g.member_role === 'owner').length;
