@@ -2588,6 +2588,10 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: boolean
       }
+      check_and_create_achievements: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       check_budget_alerts: {
         Args: { p_group_id: string }
         Returns: {
@@ -2780,10 +2784,12 @@ export type Database = {
           total_amount: number
         }[]
       }
-      get_monthly_stats: {
-        Args: { p_month?: number; p_year?: number }
-        Returns: Json
-      }
+      get_monthly_stats:
+        | { Args: { p_month?: number; p_year?: number }; Returns: Json }
+        | {
+            Args: { p_month: number; p_user_id: string; p_year: number }
+            Returns: Json
+          }
       get_pending_amounts: {
         Args: { p_group_id: string }
         Returns: {
@@ -2886,7 +2892,19 @@ export type Database = {
       is_group_admin: { Args: { p_group_id: string }; Returns: boolean }
       is_group_member: { Args: { p_group_id: string }; Returns: boolean }
       is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
-      join_group_with_token: { Args: { p_token: string }; Returns: string }
+      join_group_with_token:
+        | {
+            Args: { p_token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.join_group_with_token(p_token => text), public.join_group_with_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { p_token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.join_group_with_token(p_token => text), public.join_group_with_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       log_security_event: {
         Args: { p_action: string; p_details?: Json; p_table_name?: string }
         Returns: undefined

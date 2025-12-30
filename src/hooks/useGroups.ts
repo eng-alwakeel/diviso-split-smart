@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCallback } from "react";
 
 export type Group = {
   id: string;
@@ -76,9 +77,21 @@ async function fetchUserGroups(showArchived = false): Promise<Group[]> {
 }
 
 export function useGroups(showArchived = false) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["user-groups", showArchived],
     queryFn: () => fetchUserGroups(showArchived),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds - تقليل الوقت للتحديث الأسرع
   });
+
+  // دالة لإعادة تحميل القروبات يدوياً
+  const invalidateGroups = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["user-groups"] });
+  }, [queryClient]);
+
+  return {
+    ...query,
+    invalidateGroups
+  };
 }
