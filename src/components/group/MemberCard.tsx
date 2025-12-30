@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Crown, UserMinus } from "lucide-react";
+import { Shield, Crown, UserMinus, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { useMemberActions } from "@/hooks/useMemberActions";
 import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 
@@ -23,6 +23,13 @@ interface GroupMember {
   profile?: Profile | null;
 }
 
+interface Balance {
+  user_id: string;
+  net_balance: number;
+  amount_paid: number;
+  amount_owed: number;
+}
+
 interface MemberCardProps {
   member: GroupMember;
   currentUserId: string | null;
@@ -31,6 +38,16 @@ interface MemberCardProps {
   groupId: string;
   onMemberRemoved?: () => void;
   planConfig?: any;
+  balance?: Balance;
+  pendingAmount?: {
+    user_id: string;
+    pending_paid: number;
+    pending_owed: number;
+    pending_net: number;
+  };
+  currency?: string;
+  allBalances?: Balance[];
+  profiles?: Record<string, { display_name?: string | null; name?: string | null }>;
 }
 
 export const MemberCard = ({ 
@@ -40,7 +57,12 @@ export const MemberCard = ({
   canAdmin, 
   groupId, 
   onMemberRemoved,
-  planConfig
+  planConfig,
+  balance,
+  pendingAmount,
+  currency = "ر.س",
+  allBalances = [],
+  profiles = {}
 }: MemberCardProps) => {
   const { removeMember, removing } = useMemberActions();
   
@@ -54,6 +76,49 @@ export const MemberCard = ({
       onMemberRemoved();
     }
   };
+
+  const formatName = (userId: string) => {
+    const profile = profiles[userId];
+    return profile?.display_name || profile?.name || `${userId.slice(0, 4)}...`;
+  };
+
+  // Calculate who this member owes or is owed by
+  const getSettlementInfo = () => {
+    if (!balance) return null;
+    
+    const netBalance = balance.net_balance;
+    if (Math.abs(netBalance) < 0.01) return null;
+    
+    if (netBalance < 0) {
+      // Member owes money - find creditors
+      const creditors = allBalances.filter(b => b.user_id !== member.user_id && b.net_balance > 0);
+      if (creditors.length > 0) {
+        const topCreditor = creditors.sort((a, b) => b.net_balance - a.net_balance)[0];
+        return {
+          type: 'owes' as const,
+          toUserId: topCreditor.user_id,
+          toName: formatName(topCreditor.user_id),
+          amount: Math.min(Math.abs(netBalance), topCreditor.net_balance)
+        };
+      }
+    } else {
+      // Member is owed money - find debtors
+      const debtors = allBalances.filter(b => b.user_id !== member.user_id && b.net_balance < 0);
+      if (debtors.length > 0) {
+        const topDebtor = debtors.sort((a, b) => a.net_balance - b.net_balance)[0];
+        return {
+          type: 'owed' as const,
+          fromUserId: topDebtor.user_id,
+          fromName: formatName(topDebtor.user_id),
+          amount: Math.min(netBalance, Math.abs(topDebtor.net_balance))
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  const settlementInfo = getSettlementInfo();
 
   const getRoleBadge = () => {
     switch (member.role) {
@@ -81,69 +146,125 @@ export const MemberCard = ({
     }
   };
 
-  return (
-    <div className="flex items-center justify-between p-4 rounded-lg bg-card border border-border">
-      <div className="flex items-center gap-3">
-        <UserDisplayWithBadges
-          user={{
-            id: member.user_id,
-            display_name: member.profile?.display_name,
-            name: member.profile?.name,
-            avatar_url: member.profile?.avatar_url,
-            phone: member.profile?.phone,
-            is_admin: (member.profile as any)?.is_admin
-          }}
-          isCurrentUser={isCurrentUser}
-          avatarSize="md"
-          badgeSize="sm"
-          showAvatar={true}
-          showPlanBadge={true}
-          className="flex-1"
-          planConfig={planConfig}
-        />
-        
-        <div className="flex items-center gap-2">
-          {isCurrentUser && (
-            <Badge variant="outline" className="text-xs">أنت</Badge>
-          )}
-          {getRoleBadge()}
-        </div>
-      </div>
+  const netBalance = balance?.net_balance ?? 0;
+  const isCreditor = netBalance > 0.01;
+  const isDebtor = netBalance < -0.01;
 
-      {canRemove && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:bg-destructive/10"
-              disabled={removing}
-            >
-              <UserMinus className="w-4 h-4" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>إزالة العضو</AlertDialogTitle>
-              <AlertDialogDescription>
-                هل أنت متأكد من إزالة <strong>{memberName}</strong> من المجموعة؟
-                <br /><br />
-                سيتم التحقق من عدم وجود أرصدة مستحقة أو مدينة قبل الإزالة.
-                إذا كان هناك رصيد، يجب تسويته أولاً.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleRemove}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+  return (
+    <div className="flex flex-col gap-3 p-4 rounded-lg bg-card border border-border">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <UserDisplayWithBadges
+            user={{
+              id: member.user_id,
+              display_name: member.profile?.display_name,
+              name: member.profile?.name,
+              avatar_url: member.profile?.avatar_url,
+              phone: member.profile?.phone,
+              is_admin: (member.profile as any)?.is_admin
+            }}
+            isCurrentUser={isCurrentUser}
+            avatarSize="md"
+            badgeSize="sm"
+            showAvatar={true}
+            showPlanBadge={true}
+            className="flex-1"
+            planConfig={planConfig}
+          />
+          
+          <div className="flex items-center gap-2">
+            {isCurrentUser && (
+              <Badge variant="outline" className="text-xs">أنت</Badge>
+            )}
+            {getRoleBadge()}
+          </div>
+        </div>
+
+        {canRemove && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:bg-destructive/10"
                 disabled={removing}
               >
-                {removing ? "جاري الإزالة..." : "إزالة"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                <UserMinus className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>إزالة العضو</AlertDialogTitle>
+                <AlertDialogDescription>
+                  هل أنت متأكد من إزالة <strong>{memberName}</strong> من المجموعة؟
+                  <br /><br />
+                  سيتم التحقق من عدم وجود أرصدة مستحقة أو مدينة قبل الإزالة.
+                  إذا كان هناك رصيد، يجب تسويته أولاً.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleRemove}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={removing}
+                >
+                  {removing ? "جاري الإزالة..." : "إزالة"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
+
+      {/* Balance Display */}
+      {balance && (
+        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          <div className="flex items-center gap-2">
+            {isCreditor && (
+              <>
+                <TrendingUp className="w-4 h-4 text-accent" />
+                <span className="text-sm font-medium text-accent">
+                  له {Math.abs(netBalance).toLocaleString()} {currency}
+                </span>
+              </>
+            )}
+            {isDebtor && (
+              <>
+                <TrendingDown className="w-4 h-4 text-destructive" />
+                <span className="text-sm font-medium text-destructive">
+                  عليه {Math.abs(netBalance).toLocaleString()} {currency}
+                </span>
+              </>
+            )}
+            {!isCreditor && !isDebtor && (
+              <span className="text-sm text-muted-foreground">متوازن</span>
+            )}
+          </div>
+          
+          {settlementInfo && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {settlementInfo.type === 'owes' ? (
+                <>
+                  <ArrowRight className="w-3 h-3" />
+                  <span>يدفع لـ {settlementInfo.toName}</span>
+                </>
+              ) : (
+                <>
+                  <span>يستلم من {settlementInfo.fromName}</span>
+                  <ArrowRight className="w-3 h-3 rotate-180" />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pending amounts */}
+      {pendingAmount && Math.abs(pendingAmount.pending_net) > 0.01 && (
+        <div className="text-xs text-amber-600 bg-amber-500/10 rounded px-2 py-1">
+          معلق: {pendingAmount.pending_net > 0 ? '+' : ''}{pendingAmount.pending_net.toLocaleString()} {currency}
+        </div>
       )}
     </div>
   );

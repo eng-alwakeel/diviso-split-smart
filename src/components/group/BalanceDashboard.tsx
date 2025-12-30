@@ -13,6 +13,7 @@ import {
   Clock
 } from "lucide-react";
 import { BalanceBreakdown } from "./BalanceBreakdown";
+import { AllMembersBalances } from "./AllMembersBalances";
 
 interface BalanceDashboardProps {
   currentUserId: string;
@@ -40,6 +41,7 @@ interface BalanceDashboardProps {
   }>;
   profiles: Record<string, { display_name?: string | null; name?: string | null }>;
   currency?: string;
+  onSettleClick?: (toUserId: string, amount: number) => void;
 }
 
 export const BalanceDashboard = ({
@@ -48,7 +50,8 @@ export const BalanceDashboard = ({
   pendingAmounts = [],
   settlements,
   profiles,
-  currency = "ر.س"
+  currency = "ر.س",
+  onSettleClick
 }: BalanceDashboardProps) => {
   const formatAmount = (amount: number) => {
     const sign = amount >= 0 ? "+" : "";
@@ -184,12 +187,23 @@ export const BalanceDashboard = ({
         </Card>
       </div>
 
-      <Tabs defaultValue="breakdown" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="breakdown">التفصيل</TabsTrigger>
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">الجميع</TabsTrigger>
+          <TabsTrigger value="breakdown">رصيدي</TabsTrigger>
           <TabsTrigger value="history">السجل</TabsTrigger>
           <TabsTrigger value="suggestions">اقتراحات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="all" className="space-y-4">
+          <AllMembersBalances
+            balances={balances}
+            profiles={profiles}
+            currentUserId={currentUserId}
+            currency={currency}
+            onSettleClick={onSettleClick}
+          />
+        </TabsContent>
 
         <TabsContent value="breakdown" className="space-y-4">
           <BalanceBreakdown
