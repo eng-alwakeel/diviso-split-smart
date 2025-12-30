@@ -734,6 +734,8 @@ const GroupDetails = () => {
                 const memberPlan = memberSubscription?.plan || 'free';
                 const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
                 const memberProfile = profiles[member.user_id];
+                const memberBalance = balances.find(b => b.user_id === member.user_id);
+                const memberPending = pendingAmounts.find(p => p.user_id === member.user_id);
                 
                 return (
                   <MemberCard
@@ -748,6 +750,11 @@ const GroupDetails = () => {
                     groupId={id!}
                     onMemberRemoved={refetch}
                     planConfig={memberPlanConfig}
+                    balance={memberBalance}
+                    pendingAmount={memberPending}
+                    currency={currencyLabel}
+                    allBalances={balances}
+                    profiles={profiles}
                   />
                 );
               })}
@@ -795,6 +802,11 @@ const GroupDetails = () => {
                 settlements={settlements}
                 profiles={profiles}
                 currency={currencyLabel}
+                onSettleClick={(toUserId, amount) => {
+                  setPrefillTo(toUserId);
+                  setPrefillAmount(amount);
+                  setSettleOpen(true);
+                }}
               />
             )}
 
