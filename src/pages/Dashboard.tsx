@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, RefreshCw, HelpCircle, Share2 } from "lucide-react";
@@ -27,6 +27,7 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { ShareableAchievementCard } from "@/components/achievements/ShareableAchievementCard";
 import { AchievementPopup } from "@/components/achievements/AchievementPopup";
 import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -37,6 +38,18 @@ const Dashboard = React.memo(() => {
   } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
+  const [userId, setUserId] = useState<string>();
+  
+  // Get user ID on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+      }
+    };
+    getUser();
+  }, []);
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
@@ -46,7 +59,7 @@ const Dashboard = React.memo(() => {
     isLoading: loading,
     error,
     refetch
-  } = useOptimizedDashboardData();
+  } = useOptimizedDashboardData(userId);
 
   const myPaid = dashboardData?.myPaid ?? 0;
   const myOwed = dashboardData?.myOwed ?? 0;
