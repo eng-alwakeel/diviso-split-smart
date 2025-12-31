@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -24,14 +25,7 @@ interface WeekProgress {
   };
 }
 
-interface DailyCheckinData {
-  streak: StreakData;
-  weekProgress: WeekProgress[];
-  checkedInToday: boolean;
-  loading: boolean;
-}
-
-// نظام المكافآت الأسبوعي الجديد (متوافق مع خطة الاشتراك)
+// Weekly rewards config
 const WEEKLY_REWARDS = [
   { type: 'coins' as const, value: 'عملات البداية', coins: 5, icon: 'Star' },
   { type: 'coins' as const, value: '+10 عملات', coins: 10, icon: 'Coins' },
@@ -42,126 +36,130 @@ const WEEKLY_REWARDS = [
   { type: 'soft_unlock' as const, value: 'تحليلات متقدمة 🏆', coins: 30, feature: 'advanced_analytics', icon: 'Trophy' },
 ];
 
-export const useDailyCheckin = () => {
-  const [data, setData] = useState<DailyCheckinData>({
-    streak: {
-      currentStreak: 0,
-      longestStreak: 0,
-      totalCheckIns: 0,
-      points: 0,
-      coins: 0,
-      lastCheckIn: null,
-    },
-    weekProgress: [],
-    checkedInToday: false,
-    loading: true,
-  });
-  const [claiming, setClaiming] = useState(false);
+// Fetch streak data with both queries combined
+const fetchCheckinData = async (userId: string) => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Run both queries in parallel
+  const [streakResult, checkinResult] = await Promise.all([
+    supabase
+      .from('user_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .single(),
+    supabase
+      .from('daily_checkins')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('check_in_date', today)
+      .single()
+  ]);
 
-  const calculateWeekProgress = useCallback((currentStreak: number, checkedToday: boolean): WeekProgress[] => {
-    const dayInWeek = currentStreak > 0 ? ((currentStreak - 1) % 7) + 1 : 0;
-    
-    return WEEKLY_REWARDS.map((reward, index) => {
-      const dayNumber = index + 1;
-      let completed = false;
-      let isToday = false;
+  const streakData = streakResult.data;
+  const checkedInToday = !!checkinResult.data;
 
-      if (checkedToday) {
-        completed = dayNumber <= dayInWeek;
-        isToday = dayNumber === dayInWeek;
-      } else {
-        completed = dayNumber < dayInWeek || (dayNumber <= dayInWeek && currentStreak > 0);
-        isToday = dayNumber === (dayInWeek === 0 ? 1 : dayInWeek + 1);
-        if (isToday && dayNumber > 7) isToday = false;
-      }
+  const streak: StreakData = streakData ? {
+    currentStreak: streakData.current_streak,
+    longestStreak: streakData.longest_streak,
+    totalCheckIns: streakData.total_check_ins,
+    points: streakData.points,
+    coins: streakData.coins ?? 0,
+    lastCheckIn: streakData.last_check_in,
+  } : {
+    currentStreak: 0,
+    longestStreak: 0,
+    totalCheckIns: 0,
+    points: 0,
+    coins: 0,
+    lastCheckIn: null,
+  };
 
-      return {
-        day: dayNumber,
-        completed,
-        isToday: !checkedToday && dayNumber === (dayInWeek === 0 ? 1 : Math.min(dayInWeek + 1, 7)),
-        reward,
-      };
-    });
-  }, []);
+  return { streak, checkedInToday };
+};
 
-  const fetchStreakData = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setData(prev => ({ ...prev, loading: false }));
-        return;
-      }
+// Calculate week progress
+const calculateWeekProgress = (currentStreak: number, checkedToday: boolean): WeekProgress[] => {
+  const dayInWeek = currentStreak > 0 ? ((currentStreak - 1) % 7) + 1 : 0;
+  
+  return WEEKLY_REWARDS.map((reward, index) => {
+    const dayNumber = index + 1;
+    let completed = false;
 
-      // جلب بيانات الـ streak
-      const { data: streakData } = await supabase
-        .from('user_streaks')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      // التحقق من تسجيل اليوم
-      const today = new Date().toISOString().split('T')[0];
-      const { data: todayCheckin } = await supabase
-        .from('daily_checkins')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('check_in_date', today)
-        .single();
-
-      const checkedInToday = !!todayCheckin;
-      const streak: StreakData = streakData ? {
-        currentStreak: streakData.current_streak,
-        longestStreak: streakData.longest_streak,
-        totalCheckIns: streakData.total_check_ins,
-        points: streakData.points,
-        coins: streakData.coins ?? 0,
-        lastCheckIn: streakData.last_check_in,
-      } : {
-        currentStreak: 0,
-        longestStreak: 0,
-        totalCheckIns: 0,
-        points: 0,
-        coins: 0,
-        lastCheckIn: null,
-      };
-
-      const weekProgress = calculateWeekProgress(streak.currentStreak, checkedInToday);
-
-      setData({
-        streak,
-        weekProgress,
-        checkedInToday,
-        loading: false,
-      });
-    } catch (error) {
-      console.error('Error fetching streak data:', error);
-      setData(prev => ({ ...prev, loading: false }));
+    if (checkedToday) {
+      completed = dayNumber <= dayInWeek;
+    } else {
+      completed = dayNumber < dayInWeek || (dayNumber <= dayInWeek && currentStreak > 0);
     }
-  }, [calculateWeekProgress]);
+
+    return {
+      day: dayNumber,
+      completed,
+      isToday: !checkedToday && dayNumber === (dayInWeek === 0 ? 1 : Math.min(dayInWeek + 1, 7)),
+      reward,
+    };
+  });
+};
+
+export const useDailyCheckin = () => {
+  const [claiming, setClaiming] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Get user ID
+  const { data: userId } = useQuery({
+    queryKey: ['current-user-id'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id || null;
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  // Fetch checkin data with React Query
+  const { 
+    data: checkinData,
+    isLoading: loading,
+    refetch
+  } = useQuery({
+    queryKey: ['daily-checkin', userId],
+    queryFn: () => fetchCheckinData(userId!),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000,
+  });
+
+  const streak = checkinData?.streak || {
+    currentStreak: 0,
+    longestStreak: 0,
+    totalCheckIns: 0,
+    points: 0,
+    coins: 0,
+    lastCheckIn: null,
+  };
+
+  const checkedInToday = checkinData?.checkedInToday || false;
+
+  const weekProgress = useMemo(() => 
+    calculateWeekProgress(streak.currentStreak, checkedInToday),
+    [streak.currentStreak, checkedInToday]
+  );
 
   const claimReward = useCallback(async () => {
-    if (claiming || data.checkedInToday) return null;
+    if (claiming || checkedInToday || !userId) return null;
 
     setClaiming(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('يجب تسجيل الدخول أولاً');
-        return null;
-      }
-
-      const dayInWeek = (data.streak.currentStreak % 7) + 1;
+      const dayInWeek = (streak.currentStreak % 7) + 1;
       const reward = WEEKLY_REWARDS[dayInWeek - 1] || WEEKLY_REWARDS[0];
 
       const { data: result, error } = await supabase.rpc('process_daily_checkin', {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_reward_type: reward.type,
         p_reward_value: { value: reward.value, coins: reward.coins, feature: reward.feature },
       });
 
       if (error) throw error;
 
-      // Type assertion for the RPC result
       const typedResult = result as { success: boolean; new_streak?: number; points_earned?: number; message?: string } | null;
 
       if (typedResult?.success) {
@@ -169,11 +167,10 @@ export const useDailyCheckin = () => {
           description: `+${reward.coins} عملات | سلسلة ${typedResult.new_streak} أيام`,
         });
         
-        await fetchStreakData();
+        queryClient.invalidateQueries({ queryKey: ['daily-checkin'] });
         return typedResult;
       } else if (typedResult?.message === 'already_checked_in') {
         toast.info('لقد سجلت دخولك اليوم بالفعل');
-        setData(prev => ({ ...prev, checkedInToday: true }));
       }
 
       return null;
@@ -184,16 +181,15 @@ export const useDailyCheckin = () => {
     } finally {
       setClaiming(false);
     }
-  }, [claiming, data.checkedInToday, data.streak.currentStreak, fetchStreakData]);
-
-  useEffect(() => {
-    fetchStreakData();
-  }, [fetchStreakData]);
+  }, [claiming, checkedInToday, userId, streak.currentStreak, queryClient]);
 
   return {
-    ...data,
+    streak,
+    weekProgress,
+    checkedInToday,
+    loading,
     claiming,
     claimReward,
-    refetch: fetchStreakData,
+    refetch,
   };
 };

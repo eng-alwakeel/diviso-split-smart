@@ -45,12 +45,12 @@ const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPag
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 3 * 60 * 1000, // 3 minutes (reduced from 5)
       gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
+      refetchOnMount: 'always', // Changed: always refetch on mount for fresh data
+      refetchOnReconnect: true, // Changed: refetch when reconnecting
       networkMode: 'offlineFirst',
     },
     mutations: {

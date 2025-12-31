@@ -20,6 +20,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingShareDialog } from '@/components/onboarding/OnboardingShareDialog';
+import { useUnifiedRealtimeListener } from '@/hooks/useUnifiedRealtimeListener';
 
 const iconMap: Record<string, React.ReactNode> = {
   User: <User className="w-4 h-4" />,
@@ -89,7 +90,6 @@ export const OnboardingProgress = memo(() => {
     allCompleted,
     rewardClaimed,
     loading,
-    refresh,
     showShareDialog,
     setShowShareDialog,
     rewardDetails
@@ -102,30 +102,11 @@ export const OnboardingProgress = memo(() => {
     });
   }, []);
 
-  // Real-time listener for onboarding changes
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel('onboarding-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'onboarding_tasks',
-          filter: `user_id=eq.${userId}`
-        },
-        () => {
-          refresh();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, refresh]);
+  // Use unified real-time listener (uses React Query invalidation automatically)
+  useUnifiedRealtimeListener({
+    userId,
+    tables: ['onboarding_tasks']
+  });
 
   const handleGoToTask = (route?: string) => {
     if (route) navigate(route);

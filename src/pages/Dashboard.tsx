@@ -1,16 +1,16 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, RefreshCw, HelpCircle, Share2 } from "lucide-react";
+import { AlertTriangle, RefreshCw, HelpCircle } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
-import { useOptimizedDashboardData, useQueryInvalidation, queryKeys } from "@/hooks/useOptimizedQueries";
+import { useOptimizedDashboardData } from "@/hooks/useOptimizedQueries";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { SubscriptionStatusCard } from "@/components/dashboard/SubscriptionStatusCard";
@@ -28,20 +28,16 @@ import { ShareableAchievementCard } from "@/components/achievements/ShareableAch
 import { AchievementPopup } from "@/components/achievements/AchievementPopup";
 import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useDashboardRealtimeListener } from "@/hooks/useUnifiedRealtimeListener";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
   const isRTL = i18n.language === 'ar';
   const navigate = useNavigate();
-  const {
-    data: adminData
-  } = useAdminAuth();
+  const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [userId, setUserId] = useState<string>();
-  const queryClient = useQueryClient();
-  const { invalidateDashboard } = useQueryInvalidation();
   
   // Get user ID on mount
   useEffect(() => {
@@ -54,39 +50,8 @@ const Dashboard = React.memo(() => {
     getUser();
   }, []);
 
-  // Real-time listener for expenses and settlements updates
-  useEffect(() => {
-    if (!userId) return;
-    
-    const channel = supabase
-      .channel('dashboard-realtime-updates')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'expenses'
-      }, () => {
-        invalidateDashboard(userId);
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'settlements'
-      }, () => {
-        invalidateDashboard(userId);
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'groups'
-      }, () => {
-        invalidateDashboard(userId);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, invalidateDashboard]);
+  // Use unified real-time listener (reduces connections from 7+ to 1)
+  useDashboardRealtimeListener(userId || null);
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
