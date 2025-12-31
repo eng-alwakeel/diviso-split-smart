@@ -559,6 +559,12 @@ const AddExpense = () => {
 
       // Notify referral progress (grants 10 RP to inviter if this is first expense)
       await notifyFirstUsage();
+      
+      // Update onboarding task - first expense added
+      await supabase.rpc('complete_onboarding_task', {
+        p_task_name: 'expense',
+        p_user_id: user.id
+      });
 
       // Reset form
       setAmount('');
