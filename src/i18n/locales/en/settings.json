@@ -204,5 +204,13 @@
     "plan_switched_description": "Successfully switched to {{plan}} plan",
     "subscription_canceled": "Canceled!",
     "subscription_canceled_description": "Your subscription has been canceled successfully"
+  },
+  "image_crop": {
+    "title": "Edit Image",
+    "zoom": "Zoom",
+    "rotate_left": "Rotate Left",
+    "rotate_right": "Rotate Right",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
 }

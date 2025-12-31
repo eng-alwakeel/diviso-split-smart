@@ -139,5 +139,13 @@
   "success": {
     "trial_started": "تم بدء التجربة المجانية!",
     "trial_started_description": "تم تفعيل باقة {{plan}} لمدة 7 أيام"
+  },
+  "image_crop": {
+    "title": "تعديل الصورة",
+    "zoom": "تكبير / تصغير",
+    "rotate_left": "تدوير يسار",
+    "rotate_right": "تدوير يمين",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء"
   }
 }
