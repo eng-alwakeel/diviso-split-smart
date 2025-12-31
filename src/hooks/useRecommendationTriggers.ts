@@ -15,6 +15,7 @@ interface UseRecommendationTriggersOptions {
   groupId?: string;
   groupType?: string;
   hasCity?: boolean;
+  city?: string;
   onTrigger?: (trigger: TriggerState) => void;
 }
 
@@ -22,6 +23,7 @@ export function useRecommendationTriggers({
   groupId,
   groupType,
   hasCity,
+  city,
   onTrigger,
 }: UseRecommendationTriggersOptions = {}) {
   const { settings, isEnabled, checkDailyLimit } = useRecommendationSettings();
@@ -35,18 +37,18 @@ export function useRecommendationTriggers({
   const lastTriggerRef = useRef<string | null>(null);
   const mealCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if current time is meal time
+  // Check if current time is meal time (expanded hours)
   const checkMealTime = useCallback((): MealType => {
     const now = new Date();
     const hours = now.getHours();
     
-    // Lunch time: 12:00 - 14:00
-    if (hours >= 12 && hours < 14) {
+    // Lunch time: 11:00 - 15:00 (expanded from 12-14)
+    if (hours >= 11 && hours < 15) {
       return "lunch";
     }
     
-    // Dinner time: 19:00 - 21:00
-    if (hours >= 19 && hours < 21) {
+    // Dinner time: 18:00 - 23:00 (expanded from 19-21)
+    if (hours >= 18 && hours < 23) {
       return "dinner";
     }
     

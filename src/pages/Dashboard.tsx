@@ -25,6 +25,12 @@ import { AchievementPopup } from "@/components/achievements/AchievementPopup";
 import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardRealtimeListener } from "@/hooks/useUnifiedRealtimeListener";
+import { useUserLocation } from "@/hooks/useUserLocation";
+import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { LocationPermissionDialog } from "@/components/LocationPermissionDialog";
+import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
+import { toast } from "@/hooks/use-toast";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -33,7 +39,50 @@ const Dashboard = React.memo(() => {
   const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [userId, setUserId] = useState<string>();
+  
+  // Location hook
+  const { 
+    city, 
+    requestLocation, 
+    dismissLocationRequest, 
+    shouldShowLocationPrompt 
+  } = useUserLocation();
+
+  // Recommendation triggers
+  const { 
+    shouldShow: showRecommendation,
+    triggerType,
+    mealType,
+    dismissTrigger,
+    isEnabled: recommendationsEnabled
+  } = useRecommendationTriggers({
+    city,
+    onTrigger: (trigger) => {
+      // Show toast when recommendation triggers
+      if (trigger.shouldShow) {
+        toast({
+          title: trigger.mealType === "lunch" 
+            ? t("recommendations:notifications.lunch_time")
+            : trigger.mealType === "dinner"
+            ? t("recommendations:notifications.dinner_time")
+            : t("recommendations:notifications.default_title"),
+          description: t("recommendations:notifications.find_place"),
+        });
+      }
+    }
+  });
+
+  // Recommendations hook
+  const { 
+    currentRecommendation, 
+    generateRecommendation, 
+    acceptRecommendation, 
+    dismissRecommendation,
+    addAsExpense,
+    isLoading: recommendationLoading 
+  } = useRecommendations();
   
   // Get user ID on mount
   useEffect(() => {
@@ -64,6 +113,45 @@ const Dashboard = React.memo(() => {
   const monthlyTotalExpenses = dashboardData?.monthlyTotalExpenses ?? 0;
   const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
+
+  // Show location dialog for first-time users
+  useEffect(() => {
+    if (userId && shouldShowLocationPrompt()) {
+      // Delay showing the dialog to not overwhelm new users
+      const timer = setTimeout(() => {
+        setShowLocationDialog(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [userId, shouldShowLocationPrompt]);
+
+  // Handle viewing a recommendation
+  const handleViewRecommendation = useCallback(async () => {
+    if (!recommendationsEnabled) return;
+    
+    // Generate a recommendation based on current context
+    const rec = await generateRecommendation({
+      trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
+      city,
+    });
+    
+    if (rec) {
+      // The recommendation will be shown in the notification component
+    }
+  }, [recommendationsEnabled, generateRecommendation, triggerType, city]);
+
+  // Handle location permission
+  const handleLocationAllow = useCallback(async () => {
+    const success = await requestLocation();
+    setShowLocationDialog(false);
+    return success;
+  }, [requestLocation]);
+
+  const handleLocationDismiss = useCallback(() => {
+    dismissLocationRequest();
+    setShowLocationDialog(false);
+  }, [dismissLocationRequest]);
+
   // Memoized callbacks for better performance
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
   const handleCloseGuide = useCallback(() => setShowGuide(false), []);
@@ -169,6 +257,23 @@ const Dashboard = React.memo(() => {
       
       {/* App Guide */}
       {showGuide && <AppGuide onClose={handleCloseGuide} />}
+
+      {/* Location Permission Dialog */}
+      <LocationPermissionDialog
+        open={showLocationDialog}
+        onAllow={handleLocationAllow}
+        onDismiss={handleLocationDismiss}
+      />
+
+      {/* Recommendation Notification */}
+      {showRecommendation && recommendationsEnabled && (
+        <RecommendationNotification
+          type={mealType === "lunch" ? "lunch" : mealType === "dinner" ? "dinner" : "post_expense"}
+          placeName={currentRecommendation?.name}
+          onViewRecommendation={handleViewRecommendation}
+          onDismiss={dismissTrigger}
+        />
+      )}
 
       {/* Achievement Popup */}
       <AchievementPopup
