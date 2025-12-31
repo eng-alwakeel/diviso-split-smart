@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, RefreshCw, HelpCircle } from "lucide-react";
@@ -13,12 +13,6 @@ import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { Card } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
-import { SubscriptionStatusCard } from "@/components/dashboard/SubscriptionStatusCard";
-import { UsageLimitsCard } from "@/components/dashboard/UsageLimitsCard";
-import { QuotaWarningBanner } from "@/components/quota/QuotaWarningBanner";
-import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
-import { useQuotaHandler } from "@/hooks/useQuotaHandler";
-import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
@@ -70,53 +64,10 @@ const Dashboard = React.memo(() => {
   const monthlyTotalExpenses = dashboardData?.monthlyTotalExpenses ?? 0;
   const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
-  const {
-    checkQuotaWarning,
-    upgradeDialogOpen,
-    setUpgradeDialogOpen,
-    currentQuotaType,
-    isFreePlan
-  } = useQuotaHandler();
-  const {
-    limits
-  } = useSubscriptionLimits();
-
   // Memoized callbacks for better performance
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
   const handleCloseGuide = useCallback(() => setShowGuide(false), []);
   const handleRetry = useCallback(() => refetch(), [refetch]);
-
-  // Check for quota warnings with memoization
-  const quotaWarnings = useMemo(() => {
-    if (!limits || !isFreePlan) return [];
-    return [{
-      type: 'groups',
-      usage: groupsCount || 0,
-      limit: limits.groups
-    }, {
-      type: 'expenses',
-      usage: weeklyExpensesCount || 0,
-      limit: limits.expenses
-    }].map(({
-      type,
-      usage,
-      limit
-    }) => ({
-      type,
-      usage,
-      limit,
-      ...checkQuotaWarning(usage, limit, type)
-    })).filter(warning => warning.showWarning || warning.showCritical);
-  }, [limits, isFreePlan, groupsCount, weeklyExpensesCount, checkQuotaWarning]);
-
-  // Memoized quota dialog props
-  const quotaDialogProps = useMemo(() => ({
-    open: upgradeDialogOpen,
-    onOpenChange: setUpgradeDialogOpen,
-    quotaType: currentQuotaType,
-    currentUsage: currentQuotaType === 'groups' ? groupsCount || 0 : currentQuotaType === 'expenses' ? weeklyExpensesCount || 0 : 0,
-    limit: currentQuotaType === 'groups' ? limits?.groups : currentQuotaType === 'expenses' ? limits?.expenses : 0
-  }), [upgradeDialogOpen, setUpgradeDialogOpen, currentQuotaType, groupsCount, weeklyExpensesCount, limits]);
   if (loading) {
     return <div className="min-h-screen bg-background">
         <AppHeader />
@@ -161,11 +112,6 @@ const Dashboard = React.memo(() => {
         showBottomBanner={false}
       >
         <div className="page-container space-y-6">
-          {/* Quota Warning Banners */}
-          {quotaWarnings.length > 0 && <div className="space-y-2">
-              {quotaWarnings.map(warning => <QuotaWarningBanner key={warning.type} type={warning.type!} quotaType={warning.type} currentUsage={warning.usage} limit={warning.limit} percentage={warning.percentage} />)}
-            </div>}
-
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
             <div>
@@ -207,12 +153,6 @@ const Dashboard = React.memo(() => {
           {/* Smart Promotion System */}
           <SmartPromotionBanner />
 
-          {/* Subscription and Usage Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SubscriptionStatusCard />
-            <UsageLimitsCard />
-          </div>
-
           {/* Admin Dashboard Card - Only for Admins */}
           {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
               
@@ -237,9 +177,6 @@ const Dashboard = React.memo(() => {
         onClose={() => setShowAchievementPopup(false)}
       />
 
-      {/* Quota Upgrade Dialog */}
-      {limits && <QuotaUpgradeDialog {...quotaDialogProps} />}
-      
       <div className="h-32" />
       <BottomNav />
     </div>;
