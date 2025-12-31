@@ -9,6 +9,8 @@ interface RecommendationRequest {
   group_id?: string;
   city?: string;
   destination?: string; // For Travelpayouts (city code or IATA)
+  latitude?: number;
+  longitude?: number;
   trigger: 'planning' | 'meal_time' | 'post_expense' | 'end_of_day';
   current_time?: string;
   group_type?: string;
@@ -141,7 +143,28 @@ Deno.serve(async (req) => {
     }
 
     const requestBody: RecommendationRequest = await req.json();
-    const { group_id, city, destination, trigger, current_time, group_type, member_count = 4 } = requestBody;
+    const { group_id, city, destination, latitude, longitude, trigger, current_time, group_type, member_count = 4 } = requestBody;
+
+    // Determine city from coordinates or use fallback
+    let resolvedCity = city;
+    if (!resolvedCity && latitude && longitude) {
+      // Use coordinates to get city name via reverse geocoding
+      try {
+        const geoResponse = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=en`
+        );
+        if (geoResponse.ok) {
+          const geoData = await geoResponse.json();
+          resolvedCity = geoData.address?.city || geoData.address?.town || geoData.address?.state;
+        }
+      } catch (e) {
+        console.log('Reverse geocoding failed:', e);
+      }
+    }
+    
+    // Fallback to Riyadh if no city determined
+    const DEFAULT_CITY = 'Riyadh';
+    const finalCity = resolvedCity || DEFAULT_CITY;
 
     console.log(`Generate recommendation for trigger: ${trigger}, group: ${group_id}`);
 
@@ -186,7 +209,7 @@ Deno.serve(async (req) => {
 
     // Get group info if group_id provided
     let groupInfo = null;
-    let groupCity = city;
+    let groupCity = finalCity;
     let groupMemberCount = member_count;
     let groupType = group_type;
 

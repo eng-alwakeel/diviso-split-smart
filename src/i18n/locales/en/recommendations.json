@@ -25,6 +25,18 @@
     "find_place": "Find a suitable place"
   },
   
+  "location": {
+    "title": "Discover places near you",
+    "description": "We need your location to suggest the best restaurants, hotels, and activities nearby",
+    "benefit_restaurants": "Best restaurants for groups",
+    "benefit_hotels": "Hotels at great prices",
+    "benefit_activities": "Fun activities nearby",
+    "allow_button": "Allow Location Access",
+    "skip_button": "Maybe Later",
+    "loading": "Getting your location...",
+    "privacy_note": "Your location is only used for recommendations and is never shared"
+  },
+  
   "categories": {
     "food": "Restaurants",
     "restaurant": "Restaurants",
