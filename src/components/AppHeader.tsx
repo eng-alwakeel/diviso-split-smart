@@ -8,7 +8,7 @@ import { AdminBadge } from "@/components/ui/admin-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, User, Coins } from "lucide-react";
+import { Shield, Settings, LogOut, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
@@ -76,23 +76,8 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
-          {/* Left: Notifications, Credits & Language */}
-          <div className="justify-self-start flex items-center gap-1">
-            <LanguageSwitcher />
-            <CreditBalance compact />
-            <NotificationBell />
-          </div>
-
-          {/* Center: Logo */}
-          <div
-            className="justify-self-center flex items-center gap-3 cursor-pointer"
-            onClick={() => navigate('/dashboard')}
-          >
-            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 w-auto" width={128} height={32} />
-          </div>
-
-          {/* Right: User Menu */}
-          <div className="justify-self-end flex items-center gap-2">
+          {/* Left: User Menu */}
+          <div className="justify-self-start flex items-center gap-2">
             {isAdmin && (
               <AdminBadge 
                 config={badgeConfig} 
@@ -102,8 +87,8 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" size="sm" className="rounded-full h-9 w-9 p-0">
+                  <Avatar className="h-9 w-9">
                     {userProfile?.avatar_url ? (
                       <AvatarImage src={userProfile.avatar_url} alt={t('profile')} />
                     ) : (
@@ -114,7 +99,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-sm border-border/50">
+              <DropdownMenuContent align="start" className="w-52 bg-background border-border">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -143,6 +128,15 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
+                {/* Language Switcher inside dropdown */}
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Globe className="h-4 w-4" />
+                    <span>{t('language')}</span>
+                  </div>
+                  <LanguageSwitcher />
+                </div>
+                <DropdownMenuSeparator />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem 
@@ -153,7 +147,7 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                       <span>{t('logout')}</span>
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-background/95 backdrop-blur-sm border-border/50">
+                  <AlertDialogContent className="bg-background border-border">
                     <AlertDialogHeader>
                       <AlertDialogTitle>{t('header.logout_confirm_title')}</AlertDialogTitle>
                       <AlertDialogDescription>
@@ -173,6 +167,20 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                 </AlertDialog>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+
+          {/* Center: Logo */}
+          <div
+            className="justify-self-center flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate('/dashboard')}
+          >
+            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 w-auto" width={128} height={32} />
+          </div>
+
+          {/* Right: Credits & Notifications */}
+          <div className="justify-self-end flex items-center gap-3">
+            <CreditBalance compact />
+            <NotificationBell />
           </div>
         </div>
       </div>
