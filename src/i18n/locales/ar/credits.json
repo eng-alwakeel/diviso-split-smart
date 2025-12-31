@@ -74,11 +74,6 @@
       "streak_3": "سلسلة 3 أيام",
       "streak_7": "سلسلة 7 أيام",
       "streak_30": "سلسلة 30 يوم",
-      "add_expense": "إضافة مصروف",
-      "settlement": "تسوية",
-      "create_group": "إنشاء مجموعة",
-      "use_ai": "استخدام AI",
-      "share_recommendation": "مشاركة اقتراح",
       "referral_signup": "تسجيل مدعو",
       "referral_active": "مدعو نشط",
       "referral_subscribed": "مدعو اشترك"
@@ -123,11 +118,10 @@
     "no_invites": "لم تقم بدعوة أي شخص بعد",
     "invite_now": "ادعُ أصدقاءك الآن",
     "stages": {
-      "signed_up": "مسجّل",
-      "first_usage": "أول استخدام",
-      "group_or_settlement": "قروب/تسوية",
-      "active_7_days": "نشط 7 أيام",
-      "subscribed": "مشترك"
+      "pending": "في الانتظار",
+      "joined": "انضم",
+      "expired": "منتهي",
+      "blocked": "محظور"
     }
   },
   "how_to_earn": {

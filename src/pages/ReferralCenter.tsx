@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   Link,
-  UserPlus
+  UserPlus,
+  Coins
 } from "lucide-react";
 import { ContactsPicker } from "@/components/group/ContactsPicker";
 import { AppHeader } from "@/components/AppHeader";
@@ -25,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useReferrals } from "@/hooks/useReferrals";
-import { useReferralRewards } from "@/hooks/useReferralRewards";
+import { useReferralStats } from "@/hooks/useReferralStats";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -50,10 +51,11 @@ const ReferralCenter = () => {
   } = useReferrals();
 
   const { 
-    totalDaysEarned,
-    remainingDays,
-    loading: rewardsLoading
-  } = useReferralRewards();
+    totalEarnedFromReferrals,
+    totalReferrals: totalReferralsCount,
+    joinedReferrals,
+    loading: statsLoading
+  } = useReferralStats();
 
   const referralLink = getReferralLink();
   const totalReferrals = referrals.length;
@@ -138,7 +140,7 @@ const ReferralCenter = () => {
     }
   };
 
-  if (referralsLoading || rewardsLoading) {
+  if (referralsLoading || statsLoading) {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
@@ -171,31 +173,27 @@ const ReferralCenter = () => {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
         </div>
 
-        {/* Balance Card */}
-        <Card className="shadow-card">
+        {/* Balance Card - Updated to show reward points */}
+        <Card className="shadow-card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <Gift className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 bg-purple-600/10 rounded-full flex items-center justify-center">
+                <Coins className="w-6 h-6 text-purple-600" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-primary">{remainingDays}</p>
-                <p className="text-sm text-muted-foreground">{t('balance_card.free_days_remaining')}</p>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-400">{totalEarnedFromReferrals}</p>
+                <p className="text-sm text-purple-600 dark:text-purple-500">{t('balance_card.earned')} ({t('common:points', 'نقطة')})</p>
               </div>
             </div>
             
-            <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t pt-4">
+            <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t border-purple-200 dark:border-purple-700 pt-4">
               <div>
                 <p className="font-semibold text-foreground">{totalReferrals}</p>
                 <p>{t('balance_card.referrals')}</p>
               </div>
-              <div className="border-s ps-6">
+              <div className="border-s border-purple-200 dark:border-purple-700 ps-6">
                 <p className="font-semibold text-foreground">{successfulReferrals}</p>
                 <p>{t('balance_card.successful')}</p>
-              </div>
-              <div className="border-s ps-6">
-                <p className="font-semibold text-foreground">{totalDaysEarned}</p>
-                <p>{t('balance_card.earned')}</p>
               </div>
             </div>
           </CardContent>

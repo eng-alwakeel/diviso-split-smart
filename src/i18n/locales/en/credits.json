@@ -74,11 +74,6 @@
       "streak_3": "3-Day Streak",
       "streak_7": "7-Day Streak",
       "streak_30": "30-Day Streak",
-      "add_expense": "Add Expense",
-      "settlement": "Settlement",
-      "create_group": "Create Group",
-      "use_ai": "Use AI",
-      "share_recommendation": "Share Recommendation",
       "referral_signup": "Referral Signup",
       "referral_active": "Active Referral",
       "referral_subscribed": "Referral Subscribed"
@@ -123,11 +118,10 @@
     "no_invites": "You haven't invited anyone yet",
     "invite_now": "Invite your friends now",
     "stages": {
-      "signed_up": "Signed Up",
-      "first_usage": "First Usage",
-      "group_or_settlement": "Group/Settlement",
-      "active_7_days": "Active 7 Days",
-      "subscribed": "Subscribed"
+      "pending": "Pending",
+      "joined": "Joined",
+      "expired": "Expired",
+      "blocked": "Blocked"
     }
   },
   "how_to_earn": {
