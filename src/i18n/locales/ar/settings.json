@@ -56,8 +56,24 @@
     "verify_email": "تأكيد الإيميل",
     "verify_phone": "تأكيد الجوال",
     "sent": "تم الإرسال",
-    "email_pending": "تم إرسال رابط التأكيد، يرجى مراجعة بريدك الإلكتروني",
+    "email_pending": "تم إرسال رمز التأكيد، يرجى إدخاله أدناه",
     "phone_verified_success": "تم التحقق من رقم الجوال بنجاح"
+  },
+  "email_verification": {
+    "title": "تأكيد البريد الإلكتروني",
+    "description": "أدخل رمز التحقق المرسل إلى",
+    "enter_code": "يرجى إدخال الرمز كاملاً",
+    "invalid_code": "الرمز غير صحيح أو منتهي الصلاحية",
+    "success": "تم تأكيد البريد الإلكتروني بنجاح",
+    "error": "فشل في التحقق من الرمز",
+    "expires_in": "ينتهي خلال",
+    "expired": "انتهت صلاحية الرمز",
+    "verifying": "جاري التحقق...",
+    "verify": "تأكيد",
+    "resend": "إعادة إرسال الرمز",
+    "resending": "جاري الإرسال...",
+    "resent": "تم إعادة إرسال الرمز",
+    "resend_error": "فشل في إعادة إرسال الرمز"
   },
   "security": {
     "title": "تغيير كلمة المرور",
@@ -141,11 +157,12 @@
     "logout_redirect": "سيتم تحويلك للصفحة الرئيسية",
     "logout_error": "خطأ في تسجيل الخروج",
     "logout_error_desc": "حدث خطأ، يرجى المحاولة مرة أخرى",
-    "email_verification_sent": "تم إرسال رابط التحقق",
-    "check_email_for_verification": "يرجى التحقق من بريدك الإلكتروني الجديد للتأكيد"
+    "email_verification_sent": "تم إرسال رمز التحقق",
+    "check_email_for_verification": "يرجى التحقق من بريدك الإلكتروني الجديد"
   },
   "errors": {
-    "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية"
+    "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية",
+    "email_verification_failed": "فشل في إرسال رمز التحقق"
   },
   "success": {
     "trial_started": "تم بدء التجربة المجانية!",
