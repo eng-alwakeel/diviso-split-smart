@@ -58,9 +58,9 @@ export const FeaturesSection = () => {
   ];
 
   return (
-    <section id="features" className="py-20 bg-muted/50">
+    <section id="features" className="py-12 bg-muted/50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             {t('features.title')}
             <span className="bg-gradient-primary bg-clip-text text-transparent"> {t('features.titleHighlight')}</span>
