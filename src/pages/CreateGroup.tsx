@@ -460,6 +460,12 @@ const CreateGroup = () => {
       // Consume credits after successful group creation
       await consumeCredits('create_group');
       
+      // Update onboarding task - first group created
+      await supabase.rpc('complete_onboarding_task', {
+        p_task_name: 'group',
+        p_user_id: user.id
+      });
+      
       // Notify referral progress (grants 20 RP to inviter if this is first group)
       await notifyMilestone('group');
       

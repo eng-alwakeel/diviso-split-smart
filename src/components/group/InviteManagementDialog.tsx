@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,8 +60,22 @@ export const InviteManagementDialog = ({
     setInviteLink(link);
   };
 
-  const handleInviteSent = () => {
+  const handleInviteSent = async () => {
     fetchInvites(); // Refresh invite list
+    
+    // Update onboarding task - first invite sent
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.rpc('complete_onboarding_task', {
+          p_task_name: 'invite',
+          p_user_id: user.id
+        });
+      }
+    } catch (error) {
+      console.error('Error updating onboarding task:', error);
+    }
+    
     toast({
       title: "تم إرسال الدعوة",
       description: "تم إرسال الدعوة بنجاح وإضافتها للمتابعة",
