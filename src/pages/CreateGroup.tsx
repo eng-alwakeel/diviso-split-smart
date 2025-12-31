@@ -30,6 +30,7 @@ import { Bot } from 'lucide-react';
 import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useReferralProgress } from '@/hooks/useReferralProgress';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const CreateGroup = () => {
   const { currencies } = useCurrencies();
   const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
   const { completeTask } = useOnboarding();
+  const { notifyMilestone } = useReferralProgress();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
@@ -433,6 +435,9 @@ const CreateGroup = () => {
       
       // Complete onboarding task for first group
       await completeTask('group');
+      
+      // Notify referral progress (grants 20 RP to inviter if this is first group)
+      await notifyMilestone('group');
       
     } catch (e: any) {
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });

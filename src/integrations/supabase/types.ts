@@ -1849,6 +1849,74 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_progress: {
+        Row: {
+          active_7_days_at: string | null
+          created_at: string | null
+          first_group_or_settlement_at: string | null
+          first_usage_at: string | null
+          id: string
+          invitee_id: string
+          inviter_id: string
+          points_for_active_7_days: number | null
+          points_for_first_usage: number | null
+          points_for_group_settlement: number | null
+          points_for_signup: number | null
+          points_for_subscription: number | null
+          referral_id: string
+          signup_completed: boolean | null
+          subscribed_at: string | null
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_7_days_at?: string | null
+          created_at?: string | null
+          first_group_or_settlement_at?: string | null
+          first_usage_at?: string | null
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          points_for_active_7_days?: number | null
+          points_for_first_usage?: number | null
+          points_for_group_settlement?: number | null
+          points_for_signup?: number | null
+          points_for_subscription?: number | null
+          referral_id: string
+          signup_completed?: boolean | null
+          subscribed_at?: string | null
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_7_days_at?: string | null
+          created_at?: string | null
+          first_group_or_settlement_at?: string | null
+          first_usage_at?: string | null
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          points_for_active_7_days?: number | null
+          points_for_first_usage?: number | null
+          points_for_group_settlement?: number | null
+          points_for_signup?: number | null
+          points_for_subscription?: number | null
+          referral_id?: string
+          signup_completed?: boolean | null
+          subscribed_at?: string | null
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_progress_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: true
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_rewards: {
         Row: {
           applied_at: string | null
@@ -2866,6 +2934,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      check_and_grant_active_7_days_bonus: { Args: never; Returns: number }
       check_budget_alerts: {
         Args: { p_group_id: string }
         Returns: {
@@ -3150,6 +3219,18 @@ export type Database = {
         }[]
       }
       grant_daily_credits: { Args: { p_user_id: string }; Returns: Json }
+      grant_referral_first_usage_bonus: {
+        Args: { p_invitee_id: string }
+        Returns: Json
+      }
+      grant_referral_milestone_bonus: {
+        Args: { p_invitee_id: string; p_milestone_type: string }
+        Returns: Json
+      }
+      grant_referral_subscription_bonus: {
+        Args: { p_invitee_id: string }
+        Returns: Json
+      }
       grant_subscription_credits: {
         Args: { p_plan_name: string; p_user_id: string }
         Returns: Json

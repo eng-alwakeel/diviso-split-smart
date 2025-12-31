@@ -227,8 +227,34 @@ const handler = async (req: Request): Promise<Response> => {
 
     const rewardDays = referralRecord?.reward_days || 7;
 
-    // Create referral reward for the inviter
-    console.log(`Creating referral reward for inviter: ${rewardDays} days`);
+    // =============================================
+    // NEW: Create referral_progress record (0 points on signup)
+    // Points are granted when milestones are completed
+    // =============================================
+    console.log("Creating referral_progress record (0 RP on signup - quality-based system)");
+    
+    const { error: progressError } = await supabaseClient
+      .from("referral_progress")
+      .insert({
+        referral_id: referralId,
+        inviter_id: inviterId,
+        invitee_id: userId,
+        signup_completed: true,
+        points_for_signup: 0, // No points on signup
+        total_points: 0
+      });
+
+    if (progressError) {
+      console.error("Error creating referral_progress:", progressError);
+      // Non-critical, continue
+    } else {
+      console.log("✅ Created referral_progress - waiting for invitee milestones");
+    }
+
+    // =============================================
+    // Create referral reward for the inviter (days only, no immediate RP)
+    // =============================================
+    console.log(`Creating referral reward for inviter: ${rewardDays} days (no immediate RP)`);
     
     const { error: rewardError } = await supabaseClient
       .from("referral_rewards")
@@ -269,14 +295,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
     const notifTier = notifTierData && notifTierData.length > 0 ? notifTierData[0] : null;
 
-    // Send notification to the inviter with source info
-    const notificationPayload: any = {
+    // Send notification to the inviter - updated message for quality-based system
+    const notificationPayload: Record<string, unknown> = {
       invitee_name: userName || "صديق جديد",
       reward_days: rewardDays,
       referral_code: referralCode,
       tier_applied: notifTier?.tier_name || "المبتدئ",
       bonus_multiplier: notifTier?.bonus_multiplier || 1,
-      source: isGroupReferral ? "group_invite" : "personal"
+      source: isGroupReferral ? "group_invite" : "personal",
+      // New: indicate that points come from milestones
+      points_pending: true,
+      message_ar: `${userName || 'صديق جديد'} سجّل! ستحصل على نقاط عند استخدامه للتطبيق`
     };
 
     if (referralRecord?.group_name) {
@@ -296,16 +325,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`📨 Notification sent to inviter: referral_joined (source: ${isGroupReferral ? 'group' : 'personal'})`);
-    console.log("✅ Referral signup processed successfully");
+    console.log("✅ Referral signup processed successfully (quality-based rewards active)");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "تم معالجة الإحالة بنجاح",
+        message: "تم معالجة الإحالة بنجاح - ستحصل على نقاط عند استخدام المدعو للتطبيق",
         referralId,
         trialDays: 7,
         isGroupReferral,
-        groupId
+        groupId,
+        qualityBased: true // New field to indicate quality-based system
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
