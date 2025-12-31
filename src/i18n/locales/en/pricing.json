@@ -1,71 +1,21 @@
 {
-  "title": "Choose Your Plan",
-  "subtitle": "Flexible plans to suit your needs, from personal use to business management",
-  "monthly": "Monthly",
-  "yearly": "Yearly",
-  "save": "Save 20%",
-  "perMonth": "SAR/month",
-  "perYear": "SAR/year",
-  "yearlySavings": "Save 20% annually",
-  "mostPopular": "Most Popular",
-  "startFree": "Start Free",
-  "startTrial": "Start 7-day Trial",
-  "subscribe": "Subscribe Now",
-  "guarantee": "30-day money back guarantee • No setup fees • Cancel anytime",
-  "plans": {
-    "free": {
-      "name": "Free",
-      "description": "Perfect for simple personal use",
-      "features": {
-        "groups": "Up to 3 active groups",
-        "members": "Maximum 5 people per group",
-        "expenses": "Add and track expenses (50/month)",
-        "receipts": "Upload receipts (10/month)",
-        "invites": "Create invite links (max 4 people)",
-        "split": "Equal split",
-        "reports": "Monthly reports (5 reports)",
-        "storage": "Data storage (6 months)",
-        "support": "Email support"
-      }
-    },
-    "personal": {
-      "name": "Personal",
-      "description": "For active individuals and families",
-      "features": {
-        "groups": "Unlimited groups",
-        "members": "Unlimited members per group",
-        "split": "Advanced split (percentages & amounts)",
-        "ai": "AI receipt scanning",
-        "analytics": "Smart analytics & recommendations",
-        "chat": "Group chat",
-        "export": "Export reports",
-        "support": "Priority support"
-      }
-    },
-    "family": {
-      "name": "Family",
-      "description": "For families and small groups",
-      "features": {
-        "allPersonal": "All Personal plan features",
-        "familyMembers": "Up to 5 members in group",
-        "limits": "Shared limits & spending policies",
-        "familyReports": "Family/group reports",
-        "approval": "Expense approval",
-        "support": "Priority support"
-      }
-    }
+  "title": "Start for Free",
+  "subtitle": "Get free credits instantly and use them across all app features",
+  "welcome_bonus": {
+    "title": "Welcome Credits",
+    "amount": "50",
+    "unit": "free credits",
+    "description": "Get them instantly upon registration"
   },
-  "toasts": {
-    "trialExpired": "Free trial has expired",
-    "trialExpiredDesc": "Please subscribe to continue using advanced features",
-    "cannotStartTrial": "Cannot start trial",
-    "trialExpiredFull": "You have exhausted your free trial days. Please subscribe to continue.",
-    "trialExists": "You have a previous or active trial.",
-    "trialStarted": "Free trial started",
-    "trialDuration": "Valid for 7 days"
+  "daily_bonus": {
+    "title": "Daily Credits",
+    "amount": "5",
+    "unit": "credits daily",
+    "description": "Login daily and get free credits"
   },
+  "cta": "Start Now for Free",
   "seo": {
-    "title": "Pricing & Plans",
-    "description": "Choose the right plan for you at Diviso. Free and paid plans for individuals and families with advanced features for managing shared expenses."
+    "title": "Start for Free - Diviso",
+    "description": "Get free welcome credits and use them across all app features"
   }
 }
