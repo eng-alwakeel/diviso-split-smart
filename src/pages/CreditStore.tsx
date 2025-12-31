@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { 
   Coins, 
   Gift, 
@@ -13,14 +14,20 @@ import {
   ArrowLeftRight,
   TrendingUp,
   Clock,
-  Loader2
+  Loader2,
+  UserPlus,
+  CheckCircle2,
+  Circle,
+  ArrowRight
 } from 'lucide-react';
 import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { useRewardPoints } from '@/hooks/useRewardPoints';
 import { useDailyCredits } from '@/hooks/useDailyCredits';
+import { useReferralStats } from '@/hooks/useReferralStats';
 import { CreditPackagesGrid } from '@/components/credits/CreditPackagesGrid';
 import { DailyCreditsCard } from '@/components/credits/DailyCreditsCard';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
 
@@ -28,10 +35,12 @@ const CreditStore = React.memo(() => {
   const { t, i18n } = useTranslation(['credits', 'common']);
   const isRTL = i18n.language === 'ar';
   const dateLocale = isRTL ? ar : enUS;
+  const navigate = useNavigate();
 
   const { balance, loading: creditsLoading, getConsumptionHistory } = useUsageCredits();
   const { summary, loading: rewardsLoading, converting, convertToCredits, getRewardHistory } = useRewardPoints();
   const { canClaim, dailyAmount } = useDailyCredits();
+  const { totalEarnedFromReferrals, inviteesProgress, loading: referralLoading } = useReferralStats();
 
   const [consumptionHistory, setConsumptionHistory] = useState<any[]>([]);
   const [rewardHistory, setRewardHistory] = useState<any[]>([]);
@@ -58,6 +67,18 @@ const CreditStore = React.memo(() => {
       setPointsToConvert(0);
     }
   };
+
+  // Referral journey steps
+  const referralJourneySteps = [
+    { key: 'signup', points: 0, icon: UserPlus },
+    { key: 'first_usage', points: 10, icon: CheckCircle2 },
+    { key: 'group_settlement', points: 20, icon: CheckCircle2 },
+  ];
+
+  const bonusRewards = [
+    { key: 'active_7_days', points: 5 },
+    { key: 'subscribed', points: 20 },
+  ];
 
   if (creditsLoading || rewardsLoading) {
     return (
@@ -181,12 +202,12 @@ const CreditStore = React.memo(() => {
                   </div>
                   <div className="text-center min-w-[80px]">
                     <div className="text-2xl font-bold text-purple-600">{pointsToConvert}</div>
-                    <div className="text-xs text-muted-foreground">نقطة مكافأة</div>
+                    <div className="text-xs text-muted-foreground">{t('balance_card.reward_points')}</div>
                   </div>
                   <div className="text-muted-foreground">=</div>
                   <div className="text-center min-w-[80px]">
                     <div className="text-2xl font-bold text-amber-600">{Math.floor(pointsToConvert / 10)}</div>
-                    <div className="text-xs text-muted-foreground">نقطة استخدام</div>
+                    <div className="text-xs text-muted-foreground">{t('balance_card.usage_credits')}</div>
                   </div>
                 </div>
 
@@ -225,29 +246,161 @@ const CreditStore = React.memo(() => {
               </CardContent>
             </Card>
 
+            {/* Referral Journey */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <UserPlus className="h-5 w-5" />
+                  {t('referral_journey.title')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Journey Steps */}
+                <div className="relative">
+                  <div className="flex justify-between items-center">
+                    {referralJourneySteps.map((step, index) => (
+                      <div key={step.key} className="flex flex-col items-center flex-1">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                          <step.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <span className="text-xs text-center text-muted-foreground">
+                          {t(`referral_journey.step_${step.key === 'signup' ? 'signup' : step.key === 'first_usage' ? 'first_usage' : 'group_settlement'}`)}
+                        </span>
+                        <Badge variant="secondary" className="mt-1">
+                          +{step.points}
+                        </Badge>
+                        {index < referralJourneySteps.length - 1 && (
+                          <ArrowRight className="absolute top-4 text-muted-foreground h-4 w-4" style={{ left: `${((index + 1) / referralJourneySteps.length) * 100 - 16}%` }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Successful Referral */}
+                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 text-center">
+                  <CheckCircle2 className="h-6 w-6 mx-auto text-green-600 mb-1" />
+                  <p className="font-medium text-green-700 dark:text-green-400">
+                    {t('referral_journey.successful_referral')} = 30 {t('referral_journey.points')}
+                  </p>
+                </div>
+
+                {/* Bonus Rewards */}
+                <div className="border-t pt-4">
+                  <p className="text-sm font-medium mb-3">{t('referral_journey.bonus_rewards')}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {bonusRewards.map((bonus) => (
+                      <div key={bonus.key} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                        <span className="text-sm">{t(`referral_journey.${bonus.key}`)}</span>
+                        <Badge variant="secondary">+{bonus.points}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Max per Referral */}
+                <div className="text-center p-2 rounded-lg bg-primary/5">
+                  <span className="text-sm font-medium text-primary">
+                    💎 {t('referral_journey.max_per_referral')} = 55 {t('referral_journey.points')}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Invitee Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="h-5 w-5" />
+                  {t('invitee_status.title')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Total Earned */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm font-medium">{t('invitee_status.total_earned')}</span>
+                  <Badge className="bg-primary">{totalEarnedFromReferrals} {t('referral_journey.points')}</Badge>
+                </div>
+
+                {/* Invitees List */}
+                {referralLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+                  </div>
+                ) : inviteesProgress.length === 0 ? (
+                  <div className="text-center py-6 space-y-3">
+                    <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                    <p className="text-muted-foreground">{t('invitee_status.no_invites')}</p>
+                    <Button variant="outline" onClick={() => navigate('/referral-center')}>
+                      {t('invitee_status.invite_now')}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {inviteesProgress.slice(0, 5).map((invitee) => (
+                      <div key={invitee.id} className="flex items-center justify-between p-2 rounded-lg border">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            {invitee.stage === 'joined' ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <Circle className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium">{invitee.name}</span>
+                        </div>
+                        <Badge variant={invitee.stage === 'joined' ? 'default' : 'secondary'}>
+                          {t(`invitee_status.stages.${invitee.stage}`)}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* How to Earn */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5" />
-                  كيف تكسب نقاط المكافآت؟
+                  {t('how_to_earn.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {Object.entries({
-                    daily_login: 2,
-                    add_expense: 1,
-                    create_group: 3,
-                    settlement: 2,
-                    referral_signup: 10,
-                    referral_active: 20
-                  }).map(([source, amount]) => (
-                    <div key={source} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                      <span className="text-sm">{t(`rewards.sources.${source}`)}</span>
-                      <Badge variant="secondary">+{amount}</Badge>
+                <div className="space-y-4">
+                  {/* Daily Streaks */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t('how_to_earn.daily_streaks')}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['streak_3', 'streak_7', 'streak_30'].map((streak) => (
+                        <div key={streak} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                          <span className="text-sm">{t(`rewards.sources.${streak}`)}</span>
+                          <Badge variant="secondary">
+                            +{streak === 'streak_3' ? 5 : streak === 'streak_7' ? 10 : 25}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Referral Rewards */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t('how_to_earn.referral_rewards')}</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        { key: 'first_usage', points: 10 },
+                        { key: 'group_settlement', points: 20 },
+                        { key: 'active_7_days', points: 5 },
+                        { key: 'subscribed', points: 20 },
+                      ].map((item) => (
+                        <div key={item.key} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                          <span className="text-sm">{t(`referral_journey.${item.key === 'first_usage' ? 'step_first_usage' : item.key === 'group_settlement' ? 'step_group_settlement' : item.key}`)}</span>
+                          <Badge variant="secondary">+{item.points}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -23,6 +23,7 @@ import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { DailyCreditsCard } from "@/components/credits/DailyCreditsCard";
+import { CreditBalanceCard } from "@/components/credits/CreditBalanceCard";
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ShareableAchievementCard } from "@/components/achievements/ShareableAchievementCard";
@@ -185,6 +186,9 @@ const Dashboard = React.memo(() => {
 
           {/* Daily Credits Card */}
           <DailyCreditsCard />
+
+          {/* Credit Balance Card */}
+          <CreditBalanceCard />
 
           {/* Stats Grid */}
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
