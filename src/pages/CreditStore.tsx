@@ -107,17 +107,17 @@ const CreditStore = React.memo(() => {
         {/* Balance Overview */}
         <div className="grid grid-cols-2 gap-4">
           {/* Usage Credits */}
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/20 border-amber-200 dark:border-amber-800">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-4 text-center">
-              <Coins className="h-8 w-8 mx-auto text-amber-600 mb-2" />
-              <div className="text-3xl font-bold text-amber-700 dark:text-amber-400">
+              <Coins className="h-8 w-8 mx-auto text-primary mb-2" />
+              <div className="text-3xl font-bold text-primary">
                 {balance.totalAvailable}
               </div>
-              <p className="text-sm text-amber-600 dark:text-amber-500">
+              <p className="text-sm text-primary/80">
                 {t('balance.credits')}
               </p>
               {balance.expiringSoon > 0 && (
-                <Badge variant="outline" className="mt-2 text-xs border-amber-300 text-amber-700">
+                <Badge variant="outline" className="mt-2 text-xs border-primary/30 text-primary">
                   {balance.expiringSoon} {t('balance.expiring_soon')}
                 </Badge>
               )}
@@ -125,17 +125,17 @@ const CreditStore = React.memo(() => {
           </Card>
 
           {/* Reward Points */}
-          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-4 text-center">
-              <Gift className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-              <div className="text-3xl font-bold text-purple-700 dark:text-purple-400">
+              <Gift className="h-8 w-8 mx-auto text-primary mb-2" />
+              <div className="text-3xl font-bold text-primary">
                 {summary.availableBalance}
               </div>
-              <p className="text-sm text-purple-600 dark:text-purple-500">
+              <p className="text-sm text-primary/80">
                 {t('rewards.balance')}
               </p>
               {summary.canConvert && summary.availableBalance >= 10 && (
-                <Badge className="mt-2 text-xs bg-purple-600">
+                <Badge className="mt-2 text-xs bg-primary text-primary-foreground">
                   {t('rewards.convert')}
                 </Badge>
               )}
@@ -201,12 +201,12 @@ const CreditStore = React.memo(() => {
                     </div>
                   </div>
                   <div className="text-center min-w-[80px]">
-                    <div className="text-2xl font-bold text-purple-600">{pointsToConvert}</div>
+                    <div className="text-2xl font-bold text-primary">{pointsToConvert}</div>
                     <div className="text-xs text-muted-foreground">{t('balance_card.reward_points')}</div>
                   </div>
                   <div className="text-muted-foreground">=</div>
                   <div className="text-center min-w-[80px]">
-                    <div className="text-2xl font-bold text-amber-600">{Math.floor(pointsToConvert / 10)}</div>
+                    <div className="text-2xl font-bold text-primary">{Math.floor(pointsToConvert / 10)}</div>
                     <div className="text-xs text-muted-foreground">{t('balance_card.usage_credits')}</div>
                   </div>
                 </div>
