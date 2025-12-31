@@ -304,5 +304,8 @@
   },
   "load_error": "حدث خطأ في تحميل المجموعات",
   "no_search_results": "لا توجد نتائج للبحث",
-  "create_first": "أنشئ مجموعتك الأولى"
+  "create_first": "أنشئ مجموعتك الأولى",
+  "search_currency": "ابحث عن العملة...",
+  "no_currency_found": "لم يتم العثور على عملة.",
+  "currency_other": "أخرى"
 }

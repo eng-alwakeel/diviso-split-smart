@@ -6,11 +6,13 @@ export interface Currency {
   id: string;
   code: string;
   name: string;
+  name_en?: string;
   symbol: string;
   is_active: boolean;
   country_code?: string;
   flag_emoji?: string;
   region?: string;
+  region_en?: string;
 }
 
 export interface ExchangeRate {

@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Currency } from "@/hooks/useCurrencies"
+import { useTranslation } from "react-i18next"
 
 interface CurrencySelectorProps {
   currencies: Currency[]
@@ -29,16 +30,27 @@ export function CurrencySelector({
   currencies,
   value,
   onValueChange,
-  placeholder = "اختر العملة...",
+  placeholder,
   className
 }: CurrencySelectorProps) {
   const [open, setOpen] = React.useState(false)
+  const { t, i18n } = useTranslation('groups')
+  const isRTL = i18n.language === 'ar'
+
+  // Helper functions to get localized name and region
+  const getName = (currency: Currency) => {
+    return isRTL ? currency.name : (currency.name_en || currency.name)
+  }
+
+  const getRegion = (currency: Currency) => {
+    return isRTL ? (currency.region || t('currency_other')) : (currency.region_en || currency.region || t('currency_other'))
+  }
 
   const selectedCurrency = currencies.find(currency => currency.code === value)
 
   // Group currencies by region
   const groupedCurrencies = currencies.reduce((acc, currency) => {
-    const region = currency.region || 'أخرى';
+    const region = getRegion(currency)
     if (!acc[region]) {
       acc[region] = [];
     }
@@ -61,26 +73,26 @@ export function CurrencySelector({
                 <span className="text-lg">{selectedCurrency.flag_emoji}</span>
               )}
               <span className="font-bold text-lg">{selectedCurrency.symbol}</span>
-              <span>{selectedCurrency.name}</span>
+              <span>{getName(selectedCurrency)}</span>
               <span className="text-muted-foreground text-sm">({selectedCurrency.code})</span>
             </span>
           ) : (
-            placeholder
+            placeholder || t('select_currency')
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 bg-background border shadow-lg z-50" align="start">
         <Command>
-          <CommandInput placeholder="ابحث عن العملة..." className="border-0" />
+          <CommandInput placeholder={t('search_currency')} className="border-0" />
           <CommandList className="max-h-80">
-            <CommandEmpty>لم يتم العثور على عملة.</CommandEmpty>
+            <CommandEmpty>{t('no_currency_found')}</CommandEmpty>
             {Object.entries(groupedCurrencies).map(([region, regionCurrencies]) => (
               <CommandGroup key={region} heading={region}>
                 {regionCurrencies.map((currency) => (
                   <CommandItem
                     key={currency.code}
-                    value={`${currency.code} ${currency.name} ${currency.region || ''}`}
+                    value={`${currency.code} ${currency.name} ${currency.name_en || ''} ${currency.region || ''} ${currency.region_en || ''}`}
                     onSelect={() => {
                       onValueChange(currency.code)
                       setOpen(false)
@@ -98,7 +110,7 @@ export function CurrencySelector({
                         <span className="text-lg">{currency.flag_emoji}</span>
                       )}
                       <span className="font-bold text-lg">{currency.symbol}</span>
-                      <span className="flex-1">{currency.name}</span>
+                      <span className="flex-1">{getName(currency)}</span>
                       <span className="text-muted-foreground text-sm">({currency.code})</span>
                     </div>
                   </CommandItem>

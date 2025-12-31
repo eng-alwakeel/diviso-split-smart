@@ -303,5 +303,8 @@
   },
   "load_error": "Error loading groups",
   "no_search_results": "No search results",
-  "create_first": "Create your first group"
+  "create_first": "Create your first group",
+  "search_currency": "Search currency...",
+  "no_currency_found": "No currency found.",
+  "currency_other": "Other"
 }
