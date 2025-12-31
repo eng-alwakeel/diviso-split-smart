@@ -33,14 +33,14 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
   // Dynamic color based on balance level
   const getBalanceColor = () => {
     if (hasLowBalance) return 'text-destructive';
-    if (hasMediumBalance) return 'text-amber-500';
-    return 'text-green-600 dark:text-green-400';
+    if (hasMediumBalance) return 'text-warning';
+    return 'text-primary';
   };
 
   const getIconColor = () => {
     if (hasLowBalance) return 'text-destructive';
-    if (hasMediumBalance) return 'text-amber-500';
-    return 'text-amber-500';
+    if (hasMediumBalance) return 'text-warning';
+    return 'text-primary';
   };
 
   if (compact) {
@@ -66,7 +66,7 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
           <TooltipContent side="bottom" className="text-center space-y-1">
             <p className="font-medium">{t('balance.current')}: {balance.totalAvailable} {t('balance.credits')}</p>
             {hasExpiringCredits && balance.expiringSoonDate && (
-              <p className="text-amber-500 text-xs">
+              <p className="text-warning text-xs">
                 {balance.expiringSoon} {t('balance.expiring_soon')}
               </p>
             )}
@@ -81,16 +81,16 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
 
   return (
     <div 
-      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors"
       onClick={() => navigate('/credit-store')}
     >
-      <Coins className="h-5 w-5 text-amber-500" />
+      <Coins className="h-5 w-5 text-primary" />
       <div className="flex flex-col">
         <span className="text-sm font-medium text-foreground">
           {balance.totalAvailable} {t('balance.credits')}
         </span>
         {hasExpiringCredits && balance.expiringSoonDate && (
-          <span className="text-xs text-amber-600 dark:text-amber-400">
+          <span className="text-xs text-warning">
             {balance.expiringSoon} {t('balance.expiring_soon')}
           </span>
         )}
