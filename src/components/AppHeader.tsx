@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { AdminBadge } from "@/components/ui/admin-badge";
@@ -27,7 +27,12 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const { isAdmin, badgeConfig } = useAdminBadge();
   const { toast } = useToast();
   const { t } = useTranslation('common');
+  const { currentLanguage, changeLanguage } = useLanguage();
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar_url?: string; email?: string } | null>(null);
+
+  const handleLanguageSwitch = () => {
+    changeLanguage(currentLanguage === 'ar' ? 'en' : 'ar');
+  };
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -128,14 +133,18 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                {/* Language Switcher inside dropdown */}
-                <div className="px-2 py-1.5">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <Globe className="h-4 w-4" />
+                <DropdownMenuItem 
+                  onClick={handleLanguageSwitch}
+                  className="cursor-pointer"
+                >
+                  <Globe className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                  <div className="flex flex-col">
                     <span>{t('language')}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {currentLanguage === 'ar' ? 'العربية → English' : 'English → العربية'}
+                    </span>
                   </div>
-                  <LanguageSwitcher />
-                </div>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
