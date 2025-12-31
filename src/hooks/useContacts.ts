@@ -9,46 +9,18 @@ export interface ContactInfo {
   phoneNumbers: string[];
 }
 
-// بيانات وهمية للتطوير على الويب
-const mockContacts: ContactInfo[] = [
-  {
-    id: '1',
-    name: 'أحمد محمد',
-    phoneNumbers: ['966501234567']
-  },
-  {
-    id: '2', 
-    name: 'سارة علي',
-    phoneNumbers: ['966551234567']
-  },
-  {
-    id: '3',
-    name: 'خالد فهد',
-    phoneNumbers: ['966561234567', '966581234567']
-  },
-  {
-    id: '4',
-    name: 'محمد سعيد',
-    phoneNumbers: ['966571234567']
-  },
-  {
-    id: '5',
-    name: 'فاطمة أحمد',
-    phoneNumbers: ['966591234567']
-  }
-];
-
 export const useContacts = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const isNativePlatform = Capacitor.isNativePlatform();
 
   const getContacts = async (): Promise<ContactInfo[]> => {
     setLoading(true);
     try {
-      // للويب: استخدام بيانات وهمية للتطوير
-      if (!Capacitor.isNativePlatform()) {
-        console.log('Running on web - using mock contacts');
-        return mockContacts;
+      // للويب: إرجاع مصفوفة فارغة - الوصول لجهات الاتصال متاح فقط في التطبيق
+      if (!isNativePlatform) {
+        console.log('Running on web - contacts not available');
+        return [];
       }
 
       // للموبايل: طلب صلاحية الوصول لجهات الاتصال
@@ -100,5 +72,6 @@ export const useContacts = () => {
   return {
     getContacts,
     loading,
+    isNativePlatform,
   };
 };
