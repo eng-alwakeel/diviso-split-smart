@@ -67,7 +67,13 @@
     "referral_days_desc": "أيام إضافية حصلت عليها من دعوة الأصدقاء",
     "available_days": "الأيام المتاحة للتطبيق:",
     "days_unit": "يوم",
-    "total_remaining_days": "إجمالي الأيام المتبقية:"
+    "total_remaining_days": "إجمالي الأيام المتبقية:",
+    "reward_points_title": "نقاط المكافآت",
+    "reward_points_desc": "نقاط حصلت عليها من الدعوات والنشاط اليومي",
+    "current_balance": "رصيدك الحالي",
+    "points_unit": "نقطة",
+    "go_to_store": "متجر النقاط",
+    "invite_friends": "دعوة أصدقاء"
   },
   "security": {
     "title": "تغيير كلمة المرور",

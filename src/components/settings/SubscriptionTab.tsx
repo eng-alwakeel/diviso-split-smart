@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { CreditCard, Calendar, Clock, Gift, Zap, Crown, XCircle } from "lucide-react";
+import { CreditCard, Calendar, Clock, Gift, Zap, Crown, XCircle, Gem, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -20,7 +20,7 @@ interface SubscriptionTabProps {
   remainingTrialDays: number;
   canStartTrial: boolean;
   canSwitchPlan: boolean;
-  freeDaysFromReferrals: number;
+  rewardPointsBalance: number;
   loading: boolean;
   handleStartTrial: (plan: 'personal' | 'family') => Promise<void>;
   handleSwitchPlan: (plan: 'personal' | 'family') => Promise<void>;
@@ -37,7 +37,7 @@ export function SubscriptionTab({
   remainingTrialDays,
   canStartTrial,
   canSwitchPlan,
-  freeDaysFromReferrals,
+  rewardPointsBalance,
   loading,
   handleStartTrial,
   handleSwitchPlan,
@@ -340,36 +340,47 @@ export function SubscriptionTab({
         </CardContent>
       </Card>
 
-      {freeDaysFromReferrals > 0 && (
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 shadow-card rounded-2xl backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-400">
-              <Gift className="w-5 h-5" />
-              {t('settings:subscription.referral_days_title')}
-            </CardTitle>
-            <CardDescription className="text-green-700 dark:text-green-300">
-              {t('settings:subscription.referral_days_desc')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-green-800 dark:text-green-400">{t('settings:subscription.available_days')}</span>
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-400 border-green-300 dark:border-green-700">
-                  {freeDaysFromReferrals} {t('settings:subscription.days_unit')}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-green-800 dark:text-green-400">{t('settings:subscription.total_remaining_days')}</span>
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-400 border-green-300 dark:border-green-700">
-                  {totalDaysLeft} {t('settings:subscription.days_unit')}
-                </Badge>
-              </div>
+      {/* قسم نقاط المكافآت */}
+      <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border border-purple-200 dark:border-purple-800 shadow-card rounded-2xl backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-400">
+            <Gem className="w-5 h-5" />
+            {t('settings:subscription.reward_points_title')}
+          </CardTitle>
+          <CardDescription className="text-purple-700 dark:text-purple-300">
+            {t('settings:subscription.reward_points_desc')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-purple-800 dark:text-purple-400">{t('settings:subscription.current_balance')}</span>
+              <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-400 border-purple-300 dark:border-purple-700">
+                {rewardPointsBalance} {t('settings:subscription.points_unit')}
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => navigate('/credit-store')}
+                variant="outline"
+                className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900"
+              >
+                <Gem className="w-4 h-4 me-2" />
+                {t('settings:subscription.go_to_store')}
+              </Button>
+              <Button 
+                onClick={() => navigate('/referral-center')}
+                variant="outline"
+                className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-100 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900"
+              >
+                <UserPlus className="w-4 h-4 me-2" />
+                {t('settings:subscription.invite_friends')}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

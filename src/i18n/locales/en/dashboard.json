@@ -52,7 +52,9 @@
     "free_days_from_referrals": "Free days from referrals",
     "total_days_remaining": "Total days remaining",
     "manage_subscription": "Manage Subscription",
-    "trial_warning": "Your trial will end in {{days}} days. Upgrade to continue using all features."
+    "trial_warning": "Your trial will end in {{days}} days. Upgrade to continue using all features.",
+    "reward_points": "Reward Points",
+    "points": "points"
   },
   "usage": {
     "title": "Usage Limits",

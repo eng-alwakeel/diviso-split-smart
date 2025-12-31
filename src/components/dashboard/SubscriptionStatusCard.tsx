@@ -8,7 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useNavigate } from "react-router-dom";
-import { Crown, Calendar, Gift, TrendingUp } from "lucide-react";
+import { Crown, Calendar, Gem, TrendingUp } from "lucide-react";
 
 export const SubscriptionStatusCard = () => {
   const { t } = useTranslation('dashboard');
@@ -18,7 +18,7 @@ export const SubscriptionStatusCard = () => {
     isTrialActive, 
     daysLeft, 
     totalDaysLeft, 
-    freeDaysFromReferrals,
+    rewardPointsBalance,
     loading
   } = useSubscription();
   const { currentPlan, badgeConfig } = usePlanBadge();
@@ -30,7 +30,7 @@ export const SubscriptionStatusCard = () => {
     daysLeft,
     totalDaysLeft,
     loading,
-    freeDaysFromReferrals,
+    rewardPointsBalance,
     currentPlan,
     planFromLimits
   });
@@ -135,16 +135,21 @@ export const SubscriptionStatusCard = () => {
           </div>
         )}
 
-        {/* الأيام المجانية من الإحالات */}
-        {freeDaysFromReferrals > 0 && (
+        {/* نقاط المكافآت */}
+        {rewardPointsBalance > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <Gift className="w-4 h-4" />
-              {t('subscription.free_days_from_referrals')}:
+              <Gem className="w-4 h-4" />
+              {t('subscription.reward_points')}:
             </span>
-            <span className="text-sm font-medium text-success">
-              {freeDaysFromReferrals} {t('subscription.days')}
-            </span>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-sm font-medium text-primary p-0 h-auto"
+              onClick={() => navigate('/credit-store')}
+            >
+              {rewardPointsBalance} {t('subscription.points')}
+            </Button>
           </div>
         )}
 

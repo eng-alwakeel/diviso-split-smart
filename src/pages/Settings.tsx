@@ -46,7 +46,7 @@ const Settings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
   const [isLanguageChanging, setIsLanguageChanging] = useState(false);
   const [languageCountdown, setLanguageCountdown] = useState(0);
-  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, freeDaysFromReferrals, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
+  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, rewardPointsBalance, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
@@ -447,7 +447,7 @@ const Settings = () => {
               remainingTrialDays={remainingTrialDays}
               canStartTrial={canStartTrial}
               canSwitchPlan={canSwitchPlan}
-              freeDaysFromReferrals={freeDaysFromReferrals}
+              rewardPointsBalance={rewardPointsBalance}
               loading={loading}
               handleStartTrial={handleStartTrial}
               handleSwitchPlan={handleSwitchPlan}
