@@ -118,7 +118,16 @@
     "reward_message": "You got 7 days of Personal plan + 50 bonus coins!",
     "complete_all_first": "Complete all tasks first",
     "already_claimed": "Reward already claimed",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "share_dialog": {
+      "title": "Congratulations! 🎉",
+      "subtitle": "You've completed all tasks!",
+      "free_days": "Free Days",
+      "coins": "Coins",
+      "share_for_more": "Share and get extra rewards!",
+      "skip": "Skip",
+      "continue": "Continue"
+    }
   },
   "achievements": {
     "title": "My Achievements",

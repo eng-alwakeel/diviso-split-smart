@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -74,6 +74,9 @@ export const useOnboarding = () => {
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [rewardDetails, setRewardDetails] = useState<{ trialDays?: number; bonusCoins?: number }>({});
+  const autoClaimTriggered = useRef(false);
 
   const fetchOnboardingStatus = useCallback(async () => {
     try {
@@ -172,7 +175,7 @@ export const useOnboarding = () => {
   }, [completing, fetchOnboardingStatus, t, toast]);
 
   const claimReward = useCallback(async () => {
-    if (claiming) return;
+    if (claiming) return { success: false };
     
     try {
       setClaiming(true);
@@ -185,36 +188,21 @@ export const useOnboarding = () => {
 
       if (error) {
         console.error('Error claiming reward:', error);
-        toast({
-          title: t('onboarding.error'),
-          description: error.message,
-          variant: 'destructive'
-        });
         return { success: false };
       }
 
       const resultObj = result as Record<string, unknown> | null;
       if (resultObj?.success) {
-        toast({
-          title: t('onboarding.congrats'),
-          description: t('onboarding.reward_message'),
-        });
+        const details = {
+          trialDays: resultObj.trial_days as number || 7,
+          bonusCoins: resultObj.bonus_coins as number || 50
+        };
+        setRewardDetails(details);
+        setShowShareDialog(true);
         
         await fetchOnboardingStatus();
-        return { success: true, trialDays: resultObj.trial_days, bonusCoins: resultObj.bonus_coins };
+        return { success: true, ...details };
       } else {
-        const errorCode = resultObj?.error as string;
-        const errorKey = errorCode === 'not_all_completed' 
-          ? 'onboarding.complete_all_first'
-          : errorCode === 'already_claimed'
-          ? 'onboarding.already_claimed'
-          : 'onboarding.error';
-        
-        toast({
-          title: t('onboarding.error'),
-          description: t(errorKey),
-          variant: 'destructive'
-        });
         return { success: false };
       }
     } catch (error) {
@@ -223,7 +211,7 @@ export const useOnboarding = () => {
     } finally {
       setClaiming(false);
     }
-  }, [claiming, fetchOnboardingStatus, t, toast]);
+  }, [claiming, fetchOnboardingStatus]);
 
   const tasks = useMemo<OnboardingTask[]>(() => {
     if (!data) return [];
@@ -240,6 +228,14 @@ export const useOnboarding = () => {
   const allCompleted = completedCount === totalTasks;
   const shouldShowOnboarding = !data?.rewardClaimed && !allCompleted;
 
+  // Auto-claim reward when all tasks completed
+  useEffect(() => {
+    if (allCompleted && !data?.rewardClaimed && !claiming && !autoClaimTriggered.current) {
+      autoClaimTriggered.current = true;
+      claimReward();
+    }
+  }, [allCompleted, data?.rewardClaimed, claiming, claimReward]);
+
   return {
     data,
     tasks,
@@ -254,7 +250,10 @@ export const useOnboarding = () => {
     claiming,
     completeTask,
     claimReward,
-    refresh: fetchOnboardingStatus
+    refresh: fetchOnboardingStatus,
+    showShareDialog,
+    setShowShareDialog,
+    rewardDetails
   };
 };
 
