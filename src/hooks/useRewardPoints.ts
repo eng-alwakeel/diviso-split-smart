@@ -93,7 +93,9 @@ export function useRewardPoints() {
 
       await fetchSummary();
       queryClient.invalidateQueries({ queryKey: ['reward-points'] });
-      return data === true;
+      // RPC يرجع JSONB كـ object فيه success
+      const result = data as { success?: boolean } | null;
+      return result?.success === true;
     } catch (error) {
       console.error('Error in addRewardPoints:', error);
       return false;
@@ -117,12 +119,24 @@ export function useRewardPoints() {
         return { success: false, creditsEarned: 0 };
       }
 
-      const creditsEarned = Math.floor(points / 10);
-      await fetchSummary();
-      queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
+      // RPC يرجع JSONB كـ object فيه success و uc_received
+      const result = data as { success?: boolean; uc_received?: number; reason?: string } | null;
+      if (result?.success === true) {
+        const creditsEarned = result.uc_received ?? Math.floor(points / 10);
+        await fetchSummary();
+        queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
+        toast({ title: `تم التحويل! حصلت على ${creditsEarned} نقطة` });
+        return { success: true, creditsEarned };
+      }
 
-      toast({ title: `تم التحويل! حصلت على ${creditsEarned} نقطة` });
-      return { success: true, creditsEarned };
+      // معالجة الأخطاء
+      if (result?.reason === 'insufficient_reward_points') {
+        toast({ title: 'رصيد نقاط المكافآت غير كافي', variant: 'destructive' });
+      } else if (result?.reason === 'conversion_cooldown') {
+        toast({ title: 'يرجى الانتظار قبل التحويل مجدداً', variant: 'destructive' });
+      }
+      
+      return { success: false, creditsEarned: 0 };
     } catch (error) {
       return { success: false, creditsEarned: 0 };
     } finally {
