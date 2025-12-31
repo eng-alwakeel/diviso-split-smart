@@ -281,7 +281,7 @@ export function ProfileTab({
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground flex items-center gap-2">
                 {t('settings:profile.email')}
-                {!hasEmailChanged && (
+              {!hasEmailChanged && profile.email && profile.email.trim() !== '' && (
                   <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10 text-xs">
                     <CheckCircle2 className="w-3 h-3 me-1" />
                     {t('settings:profile.verified')}
