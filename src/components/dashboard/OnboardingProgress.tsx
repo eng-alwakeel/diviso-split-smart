@@ -1,25 +1,25 @@
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   Gift, 
   Check, 
-  Circle, 
   User, 
   Users, 
   Receipt, 
   UserPlus, 
   Share2,
   ChevronLeft,
-  Coins,
-  Sparkles
+  Coins
 } from 'lucide-react';
 import { useOnboarding, OnboardingTask } from '@/hooks/useOnboarding';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { OnboardingShareDialog } from '@/components/onboarding/OnboardingShareDialog';
 
 const iconMap: Record<string, React.ReactNode> = {
   User: <User className="w-4 h-4" />,
@@ -80,6 +80,7 @@ TaskItem.displayName = 'TaskItem';
 export const OnboardingProgress = memo(() => {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
   const {
     tasks,
     completedCount,
@@ -87,79 +88,109 @@ export const OnboardingProgress = memo(() => {
     progressPercent,
     allCompleted,
     rewardClaimed,
-    shouldShowOnboarding,
     loading,
-    claiming,
-    claimReward
+    refresh,
+    showShareDialog,
+    setShowShareDialog,
+    rewardDetails
   } = useOnboarding();
 
-  // Don't show if already claimed or loading
-  if (loading || rewardClaimed) return null;
-  
-  // Don't show if all tasks completed but not claimed (show claim button)
-  // Actually, show if shouldShowOnboarding OR if all completed but not claimed
-  if (!shouldShowOnboarding && !allCompleted) return null;
+  // Get user ID for realtime subscription
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id ?? null);
+    });
+  }, []);
+
+  // Real-time listener for onboarding changes
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('onboarding-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'onboarding_tasks',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, refresh]);
 
   const handleGoToTask = (route?: string) => {
     if (route) navigate(route);
   };
 
-  const handleClaimReward = async () => {
-    await claimReward();
-  };
+  // Hide if loading, reward claimed, or all tasks completed
+  if (loading || rewardClaimed || allCompleted) {
+    return (
+      <OnboardingShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        rewardDetails={rewardDetails}
+      />
+    );
+  }
 
   return (
-    <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border-primary/20 shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Gift className="w-5 h-5 text-primary" />
-          {t('onboarding.title')}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              {t('onboarding.progress', { completed: completedCount, total: totalTasks })}
-            </span>
-            <span className="font-medium text-primary">{Math.round(progressPercent)}%</span>
+    <>
+      <Card className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border-primary/20 shadow-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Gift className="w-5 h-5 text-primary" />
+            {t('onboarding.title')}
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {t('onboarding.progress', { completed: completedCount, total: totalTasks })}
+              </span>
+              <span className="font-medium text-primary">{Math.round(progressPercent)}%</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
           </div>
-          <Progress value={progressPercent} className="h-2" />
-        </div>
 
-        {/* Tasks List */}
-        <div className="space-y-2">
-          {tasks.map(task => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onGo={() => handleGoToTask(task.route)}
-            />
-          ))}
-        </div>
+          {/* Tasks List */}
+          <div className="space-y-2">
+            {tasks.map(task => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onGo={() => handleGoToTask(task.route)}
+              />
+            ))}
+          </div>
 
-        {/* Reward Section */}
-        <div className="pt-2 border-t border-border/50">
-          {allCompleted && !rewardClaimed ? (
-            <Button
-              onClick={handleClaimReward}
-              disabled={claiming}
-              className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-            >
-              <Sparkles className="w-4 h-4 me-2" />
-              {claiming ? t('onboarding.claiming') : t('onboarding.claim_reward')}
-            </Button>
-          ) : (
+          {/* Final reward hint */}
+          <div className="pt-2 border-t border-border/50">
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Gift className="w-4 h-4 text-accent" />
               <span>{t('onboarding.final_reward')}</span>
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      <OnboardingShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        rewardDetails={rewardDetails}
+      />
+    </>
   );
 });
 
