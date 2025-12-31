@@ -29,7 +29,7 @@ interface ProfileTabProps {
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   uploading: boolean;
   isAdmin?: boolean;
-  planBadgeConfig: any;
+  planBadgeConfig?: any;
   isTrialActive?: boolean;
   daysLeft?: number;
   logout: () => void;

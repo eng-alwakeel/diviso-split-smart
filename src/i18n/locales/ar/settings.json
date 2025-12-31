@@ -4,12 +4,32 @@
   "back_to_dashboard": "العودة للوحة التحكم",
   "tabs": {
     "profile": "الملف الشخصي",
-    "subscription": "الاشتراك",
-    "family": "العائلة",
+    "credits": "النقاط",
     "language": "اللغة",
     "notifications": "الإشعارات",
     "privacy": "الأمان",
     "admin": "الإدارة"
+  },
+  "credits": {
+    "title": "النقاط والاستخدام",
+    "balance": "رصيد النقاط",
+    "available": "نقطة متاحة",
+    "buy_more": "شراء المزيد",
+    "expiring_soon": "نقطة ستنتهي قريباً",
+    "daily_title": "النقاط اليومية",
+    "daily_description": "يمكنك جمع {{amount}} نقاط مجانية يومياً",
+    "claim_daily": "اجمع نقاطك اليومية",
+    "claiming": "جاري الجمع...",
+    "claimed": "تم الجمع ✓",
+    "come_back": "العودة بعد {{hours}} ساعة",
+    "costs_title": "تكاليف العمليات",
+    "costs_description": "النقاط المطلوبة لكل عملية",
+    "point": "نقطة",
+    "points": "نقاط",
+    "reward_title": "نقاط المكافآت",
+    "reward_description": "نقاط إضافية من الإحالات والنشاط",
+    "credit_store": "متجر النقاط",
+    "referral_center": "مركز الإحالات"
   },
   "profile": {
     "title": "المعلومات الشخصية",
@@ -29,51 +49,6 @@
     "admin_badge": "مدير",
     "trial_remaining": "تجربة مجانية • {{days}} أيام متبقية",
     "phone_verify_notice": "سيتم طلب التحقق من رقم الجوال الجديد عند الحفظ"
-  },
-  "subscription": {
-    "title": "تفاصيل الاشتراك",
-    "description": "إدارة اشتراكك والباقات المتاحة",
-    "current_plan": "الباقة الحالية",
-    "status": "حالة الاشتراك",
-    "start_date": "تاريخ البداية",
-    "end_date": "تاريخ الانتهاء",
-    "days_remaining": "الأيام المتبقية (الاشتراك الفعلي)",
-    "days_count": "{{count}} أيام",
-    "total_days": "من إجمالي {{count}} يوم",
-    "loading": "جاري تحميل معلومات الاشتراك...",
-    "trial_days_remaining": "أيام التجربة المجانية المتبقية",
-    "unified_trial": "التجربة المجانية الموحدة",
-    "trial_days_count": "{{remaining}} من {{total}} أيام",
-    "switch_during_trial": "يمكنك التبديل بين الباقات خلال فترة التجربة المجانية",
-    "start_trial_title": "ابدأ تجربتك المجانية (7 أيام)",
-    "personal_plan": "الباقة الشخصية",
-    "personal_desc": "للاستخدام الشخصي",
-    "family_plan": "الباقة العائلية",
-    "family_desc": "للعائلات والمجموعات",
-    "free_trial_7_days": "تجربة مجانية 7 أيام",
-    "trial_expired_title": "انتهت فترة التجربة المجانية",
-    "trial_expired_desc": "لقد استنفدت فترة التجربة المجانية المتاحة لك (7 أيام). للاستمرار في استخدام المميزات المتقدمة، يرجى الاشتراك في إحدى الباقات.",
-    "subscribe_now": "اشترك الآن",
-    "switch_plan_title": "تبديل الباقة (ضمن التجربة المجانية)",
-    "switch_to_personal": "التبديل للباقة الشخصية",
-    "switch_to_family": "التبديل للباقة العائلية",
-    "manage_subscription": "إدارة الاشتراك",
-    "cancel_subscription": "إلغاء الاشتراك",
-    "cancel_confirm_title": "تأكيد إلغاء الاشتراك",
-    "cancel_confirm_desc": "هل أنت متأكد من رغبتك في إلغاء اشتراكك؟ سيتم إلغاء الاشتراك فوراً ولن تتمكن من استخدام المميزات المدفوعة. يمكنك الاشتراك مجدداً في أي وقت.",
-    "confirm_cancel": "تأكيد الإلغاء",
-    "canceling": "جاري الإلغاء...",
-    "referral_days_title": "الأيام المجانية من الإحالات",
-    "referral_days_desc": "أيام إضافية حصلت عليها من دعوة الأصدقاء",
-    "available_days": "الأيام المتاحة للتطبيق:",
-    "days_unit": "يوم",
-    "total_remaining_days": "إجمالي الأيام المتبقية:",
-    "reward_points_title": "نقاط المكافآت",
-    "reward_points_desc": "نقاط حصلت عليها من الدعوات والنشاط اليومي",
-    "current_balance": "رصيدك الحالي",
-    "points_unit": "نقطة",
-    "go_to_store": "متجر النقاط",
-    "invite_friends": "دعوة أصدقاء"
   },
   "security": {
     "title": "تغيير كلمة المرور",
@@ -125,13 +100,6 @@
     },
     "save_settings": "حفظ الإعدادات"
   },
-  "family": {
-    "upgrade_title": "ترقية للخطة العائلية",
-    "upgrade_description": "احصل على الخطة العائلية لإدارة أعضاء عائلتك ومشاركة الميزات معهم",
-    "start_trial": "بدء التجربة المجانية للخطة العائلية",
-    "view_plans": "عرض جميع الباقات والأسعار",
-    "starting_trial": "جاري البدء..."
-  },
   "admin": {
     "title": "لوحة التحكم الإدارية",
     "description": "الوصول إلى أدوات الإدارة والإحصائيات المتقدمة للنظام",
@@ -163,26 +131,13 @@
     "logout_success": "تم تسجيل الخروج بنجاح",
     "logout_redirect": "سيتم تحويلك للصفحة الرئيسية",
     "logout_error": "خطأ في تسجيل الخروج",
-    "logout_error_desc": "حدث خطأ، يرجى المحاولة مرة أخرى",
-    "subscription_canceled": "تم إلغاء الاشتراك",
-    "subscription_canceled_desc": "تم إلغاء اشتراكك بنجاح",
-    "cancel_error": "حدث خطأ أثناء إلغاء الاشتراك"
+    "logout_error_desc": "حدث خطأ، يرجى المحاولة مرة أخرى"
   },
   "errors": {
-    "trial_exists": "تجربة موجودة مسبقاً",
-    "trial_exists_description": "لديك تجربة مجانية نشطة بالفعل",
-    "trial_expired": "انتهت فترة التجربة",
-    "trial_expired_description": "لقد استنفدت فترة التجربة المجانية المتاحة (7 أيام)",
-    "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية",
-    "switch_plan_error": "حدث خطأ أثناء تبديل الباقة",
-    "cancel_error": "حدث خطأ أثناء إلغاء الاشتراك"
+    "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية"
   },
   "success": {
     "trial_started": "تم بدء التجربة المجانية!",
-    "trial_started_description": "تم تفعيل باقة {{plan}} لمدة 7 أيام",
-    "plan_switched": "تم تبديل الباقة!",
-    "plan_switched_description": "تم التبديل إلى باقة {{plan}} بنجاح",
-    "subscription_canceled": "تم الإلغاء!",
-    "subscription_canceled_description": "تم إلغاء اشتراكك بنجاح"
+    "trial_started_description": "تم تفعيل باقة {{plan}} لمدة 7 أيام"
   }
 }
