@@ -124,8 +124,11 @@ const Dashboard = React.memo(() => {
             </Button>
           </div>
 
-          {/* Onboarding Progress Card */}
+          {/* Onboarding Progress Card - Priority for new users */}
           <OnboardingProgress />
+
+          {/* Stats Grid - Main focus after onboarding */}
+          <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
 
           {/* Daily Check-in Card */}
           <DailyCheckInCard />
@@ -135,9 +138,6 @@ const Dashboard = React.memo(() => {
 
           {/* Credit Balance Card */}
           <CreditBalanceCard />
-
-          {/* Stats Grid */}
-          <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
 
           {/* Fixed Ad Banner Below Stats */}
           <FixedStatsAdBanner placement="dashboard_stats" />

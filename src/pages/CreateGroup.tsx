@@ -29,7 +29,6 @@ import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
 import { Bot } from 'lucide-react';
 import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
-import { useOnboarding } from '@/hooks/useOnboarding';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
 import { useUsageCredits, CreditActionType } from '@/hooks/useUsageCredits';
 import { InsufficientCreditsDialog } from '@/components/credits/InsufficientCreditsDialog';
@@ -40,7 +39,6 @@ const CreateGroup = () => {
   const { t } = useTranslation(['groups', 'common']);
   const { currencies } = useCurrencies();
   const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
-  const { completeTask } = useOnboarding();
   const { notifyMilestone } = useReferralProgress();
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
@@ -448,9 +446,6 @@ const CreateGroup = () => {
       
       // Consume credits after successful group creation
       await consumeCredits('create_group');
-      
-      // Complete onboarding task for first group
-      await completeTask('group');
       
       // Notify referral progress (grants 20 RP to inviter if this is first group)
       await notifyMilestone('group');
