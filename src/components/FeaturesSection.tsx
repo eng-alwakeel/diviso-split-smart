@@ -6,7 +6,7 @@ import {
   PieChart, 
   Camera,
   MessageCircle,
-  Gift,
+  Gem,
   Shield
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -46,7 +46,7 @@ export const FeaturesSection = () => {
       description: t('features.chat.description')
     },
     {
-      icon: Gift,
+      icon: Gem,
       title: t('features.referral.title'),
       description: t('features.referral.description')
     },
