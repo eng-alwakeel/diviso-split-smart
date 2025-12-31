@@ -67,7 +67,13 @@
     "referral_days_desc": "Extra days earned from inviting friends",
     "available_days": "Available days to apply:",
     "days_unit": "days",
-    "total_remaining_days": "Total remaining days:"
+    "total_remaining_days": "Total remaining days:",
+    "reward_points_title": "Reward Points",
+    "reward_points_desc": "Points earned from referrals and daily activity",
+    "current_balance": "Current Balance",
+    "points_unit": "points",
+    "go_to_store": "Credit Store",
+    "invite_friends": "Invite Friends"
   },
   "security": {
     "title": "Change Password",

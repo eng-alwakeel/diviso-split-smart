@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useReferralRewards } from "./useReferralRewards";
+import { useRewardPoints } from "./useRewardPoints";
 import { useGlobalSubscription } from "./useGlobalSubscription";
 import { useGlobalTrialDays } from "./useGlobalTrialDays";
 
@@ -25,7 +25,8 @@ export function useSubscription() {
   // Use global hooks for shared data
   const { subscription, loading, refetch, updateCache, invalidate } = useGlobalSubscription();
   const { remainingTrialDays } = useGlobalTrialDays();
-  const { remainingDays: freeDaysFromReferrals } = useReferralRewards();
+  const { summary: rewardPointsSummary } = useRewardPoints();
+  const rewardPointsBalance = rewardPointsSummary.availableBalance;
 
   // No useEffect needed - global hooks handle fetching
 
@@ -114,8 +115,8 @@ export function useSubscription() {
   }, [remainingTrialDays, updateCache, invalidate]);
 
   const totalDaysLeft = useMemo(() => {
-    return daysLeft + freeDaysFromReferrals;
-  }, [daysLeft, freeDaysFromReferrals]);
+    return daysLeft;
+  }, [daysLeft]);
 
   const canStartTrial = useMemo(() => {
     return remainingTrialDays > 0;
@@ -276,7 +277,7 @@ export function useSubscription() {
     startTrial,
     switchPlan,
     cancelSubscription,
-    freeDaysFromReferrals,
+    rewardPointsBalance,
     // Dev-only functions
     devSetSubscription,
     devResetToFree,
