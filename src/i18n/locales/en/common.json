@@ -104,5 +104,9 @@
     "available_for": "{{item}} is now available for {{days}} {{unit}}",
     "day": "day",
     "days": "days"
-  }
+  },
+  "language": "Language",
+  "switch_to_english": "Switch to English",
+  "switch_to_arabic": "Switch to Arabic",
+  "current_language": "English"
 }
