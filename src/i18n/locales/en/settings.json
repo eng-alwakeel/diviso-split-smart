@@ -49,7 +49,15 @@
     "admin_badge": "Admin",
     "trial_remaining": "Free Trial • {{days}} days remaining",
     "phone_verify_notice": "Phone verification will be required when saving",
-    "email_verify_notice": "A verification link will be sent to your new email"
+    "email_verify_notice": "A verification link will be sent to your new email",
+    "edit_request": "Edit",
+    "verified": "Verified",
+    "not_verified": "Not Verified",
+    "verify_email": "Verify Email",
+    "verify_phone": "Verify Phone",
+    "sent": "Sent",
+    "email_pending": "Verification link sent, please check your email",
+    "phone_verified_success": "Phone number verified successfully"
   },
   "subscription": {
     "title": "Subscription Details",
