@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Camera, Save, User, Crown, LogOut, Shield } from "lucide-react";
+import { Camera, Save, User, Crown, LogOut, Shield, Mail } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,7 @@ interface ProfileTabProps {
   uploading: boolean;
   isAdmin?: boolean;
   logout: () => void;
+  originalEmail?: string;
 }
 
 export function ProfileTab({
@@ -42,7 +43,8 @@ export function ProfileTab({
   handleImageUpload,
   uploading,
   isAdmin,
-  logout
+  logout,
+  originalEmail = ""
 }: ProfileTabProps) {
   const { t } = useTranslation(['settings']);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -183,6 +185,14 @@ export function ProfileTab({
               />
               {validationErrors.email && (
                 <p className="text-xs text-destructive">{validationErrors.email}</p>
+              )}
+              {profile.email !== originalEmail && profile.email.trim() && (
+                <div className="flex items-center gap-2 p-2 bg-accent/10 border border-accent/20 rounded-md">
+                  <Mail className="w-4 h-4 text-accent flex-shrink-0" />
+                  <span className="text-xs text-accent">
+                    {t('settings:profile.email_verify_notice')}
+                  </span>
+                </div>
               )}
             </div>
 

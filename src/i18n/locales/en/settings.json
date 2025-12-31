@@ -48,7 +48,8 @@
     "default_user": "User",
     "admin_badge": "Admin",
     "trial_remaining": "Free Trial • {{days}} days remaining",
-    "phone_verify_notice": "Phone verification will be required when saving"
+    "phone_verify_notice": "Phone verification will be required when saving",
+    "email_verify_notice": "A verification link will be sent to your new email"
   },
   "subscription": {
     "title": "Subscription Details",
@@ -186,7 +187,9 @@
     "logout_error_desc": "An error occurred, please try again",
     "subscription_canceled": "Subscription Canceled",
     "subscription_canceled_desc": "Your subscription has been canceled successfully",
-    "cancel_error": "An error occurred while canceling subscription"
+    "cancel_error": "An error occurred while canceling subscription",
+    "email_verification_sent": "Verification email sent",
+    "check_email_for_verification": "Please check your new email for the verification link"
   },
   "errors": {
     "trial_exists": "Trial Already Exists",

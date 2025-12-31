@@ -59,6 +59,9 @@ const Settings = () => {
     joinDate: ""
   });
   
+  // تتبع الإيميل الأصلي للتحقق من التغيير
+  const [originalEmail, setOriginalEmail] = useState("");
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -77,14 +80,16 @@ const Settings = () => {
           .single();
         
         if (profileData) {
+          const currentEmail = user.email || "";
           setProfile({
             name: profileData.name || profileData.display_name || "",
-            email: user.email || "",
+            email: currentEmail,
             phone: profileData.phone || "",
             avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('common:user.default_initial'),
             avatarUrl: profileData.avatar_url || "",
             joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')
           });
+          setOriginalEmail(currentEmail);
         }
       }
     };
@@ -122,24 +127,50 @@ const Settings = () => {
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            name: profile.name,
-            display_name: profile.name,
-            phone: profile.phone,
-            updated_at: new Date().toISOString()
-          });
+      if (!user) return;
+      
+      // التحقق من تغيير الإيميل
+      const emailChanged = profile.email.trim() !== originalEmail;
+      
+      if (emailChanged && profile.email.trim()) {
+        // تحديث الإيميل في Supabase Auth
+        // سيرسل رابط تأكيد للإيميل الجديد تلقائياً
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: profile.email.trim()
+        });
         
-        if (error) throw error;
+        if (emailError) {
+          toast({
+            title: t('common:error'),
+            description: emailError.message,
+            variant: "destructive"
+          });
+          return;
+        }
         
         toast({
-          title: t('common:toast.save_success'),
-          description: t('common:toast.settings_saved_description'),
+          title: t('settings:toast.email_verification_sent'),
+          description: t('settings:toast.check_email_for_verification'),
         });
       }
+      
+      // حفظ باقي البيانات في جدول profiles
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          name: profile.name,
+          display_name: profile.name,
+          phone: profile.phone,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: t('common:toast.save_success'),
+        description: t('common:toast.settings_saved_description'),
+      });
     } catch (error) {
       toast({
         title: t('common:error'),
@@ -309,6 +340,7 @@ const Settings = () => {
               uploading={uploading}
               isAdmin={adminData?.isAdmin}
               logout={logout}
+              originalEmail={originalEmail}
             />
           </TabsContent>
 
