@@ -36,7 +36,7 @@ export function useDailyCredits() {
         .from('usage_credits')
         .select('created_at')
         .eq('user_id', user.id)
-        .eq('source', 'daily_grant')
+        .eq('source', 'daily')
         .gte('created_at', today.toISOString())
         .limit(1);
 
