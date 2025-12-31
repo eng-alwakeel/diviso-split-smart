@@ -2924,10 +2924,6 @@ export type Database = {
         Args: { p_days_old?: number; p_user_id: string }
         Returns: number
       }
-      assert_quota: {
-        Args: { p_action: string; p_group_id: string; p_user_id: string }
-        Returns: undefined
-      }
       can_approve_group_expenses: {
         Args: { p_group_id: string }
         Returns: boolean
@@ -3075,10 +3071,6 @@ export type Database = {
           warning_type: string
         }[]
       }
-      get_current_count: {
-        Args: { p_action: string; p_group_id: string; p_user_id: string }
-        Returns: number
-      }
       get_family_quota_limits: {
         Args: { p_user_id: string }
         Returns: {
@@ -3197,7 +3189,6 @@ export type Database = {
           unread_notifications: number
         }[]
       }
-      get_user_plan: { Args: { p_user_id: string }; Returns: string }
       get_user_referral_tier: {
         Args: { p_user_id: string }
         Returns: {
