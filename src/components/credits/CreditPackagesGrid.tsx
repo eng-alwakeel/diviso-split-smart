@@ -60,12 +60,20 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
   const { toast } = useToast();
 
   const handlePurchase = (pkg: CreditPackage) => {
-    // TODO: Implement payment flow
     toast({
       title: 'قريباً!',
       description: 'سيتم تفعيل خاصية الشراء قريباً',
     });
     onPurchase?.(pkg.id);
+  };
+
+  const handleSubscribe = (plan: 'monthly' | 'yearly') => {
+    toast({
+      title: t('subscriptions.coming_soon'),
+      description: plan === 'monthly' 
+        ? 'سيتم تفعيل الاشتراك الشهري قريباً' 
+        : 'سيتم تفعيل الاشتراك السنوي قريباً',
+    });
   };
 
   return (
@@ -160,6 +168,106 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Separator */}
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-4 text-muted-foreground">
+            {t('subscriptions.title')}
+          </span>
+        </div>
+      </div>
+
+      {/* Subscription Plans */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Monthly Plan */}
+        <Card className="border-border hover:border-primary/50 transition-all hover:shadow-lg">
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+              <Crown className="h-7 w-7 text-primary" />
+            </div>
+            <h4 className="text-xl font-semibold">{t('subscriptions.monthly.name')}</h4>
+            <div>
+              <span className="text-3xl font-bold text-foreground">{t('subscriptions.monthly.price')}</span>
+              <span className="text-muted-foreground text-sm mr-1">{t('subscriptions.monthly.period')}</span>
+            </div>
+            <Badge variant="secondary" className="text-sm">
+              {t('subscriptions.monthly.credits')}
+            </Badge>
+            <ul className="text-sm space-y-2 text-right">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.monthly.features.credits')}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.monthly.features.smart')}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.monthly.features.no_ads')}</span>
+              </li>
+            </ul>
+            <Button 
+              className="w-full" 
+              variant="outline"
+              onClick={() => handleSubscribe('monthly')}
+            >
+              {t('subscriptions.subscribe_btn')}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Yearly Plan */}
+        <Card className="border-primary shadow-lg shadow-primary/10 relative">
+          <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground">
+            {t('subscriptions.yearly.save')}
+          </Badge>
+          <CardContent className="p-6 text-center space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+              <Crown className="h-7 w-7 text-primary" />
+            </div>
+            <h4 className="text-xl font-semibold">{t('subscriptions.yearly.name')}</h4>
+            <div>
+              <span className="text-3xl font-bold text-foreground">{t('subscriptions.yearly.price')}</span>
+              <span className="text-muted-foreground text-sm mr-1">{t('subscriptions.yearly.period')}</span>
+            </div>
+            <div className="text-sm text-primary font-medium">
+              {t('subscriptions.yearly.equivalent')}
+            </div>
+            <Badge variant="secondary" className="text-sm">
+              {t('subscriptions.yearly.credits')}
+            </Badge>
+            <ul className="text-sm space-y-2 text-right">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.yearly.features.credits')}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.yearly.features.smart')}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.yearly.features.no_ads')}</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                <span>{t('subscriptions.yearly.features.discount')}</span>
+              </li>
+            </ul>
+            <Button 
+              className="w-full"
+              onClick={() => handleSubscribe('yearly')}
+            >
+              {t('subscriptions.subscribe_btn')}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
