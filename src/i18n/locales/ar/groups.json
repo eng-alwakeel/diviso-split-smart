@@ -276,5 +276,33 @@
     "yes_sent": "نعم، تم الإرسال",
     "no_cancel": "لا، إلغاء",
     "invite_marked_sent": "تم تحديث حالة الدعوة إلى مُرسلة"
-  }
+  },
+  "my_groups_desc": "إدارة وتتبع مجموعاتك المشتركة",
+  "stats": {
+    "groups": "المجموعات",
+    "managed": "بإدارتي",
+    "members": "الأعضاء",
+    "member": "عضو"
+  },
+  "search_placeholder": "ابحث عن مجموعة...",
+  "tabs": {
+    "active": "النشطة",
+    "archived": "المؤرشفة"
+  },
+  "section_title": {
+    "active": "المجموعات النشطة",
+    "archived": "المجموعات المؤرشفة"
+  },
+  "card": {
+    "view": "عرض",
+    "expense": "مصروف",
+    "admin": "مشرف",
+    "options": "خيارات",
+    "settings": "الإعدادات",
+    "archive": "أرشفة",
+    "restore": "استعادة"
+  },
+  "load_error": "حدث خطأ في تحميل المجموعات",
+  "no_search_results": "لا توجد نتائج للبحث",
+  "create_first": "أنشئ مجموعتك الأولى"
 }
