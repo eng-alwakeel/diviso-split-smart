@@ -94,22 +94,42 @@ export const BalanceDashboard = ({
       .slice(0, 10); // Show last 10 settlements
   }, [settlements, currentUserId]);
 
-  // Balance trends (who owes what to whom)
+  // Balance trends (who owes what to whom) - works for both debtors and creditors
   const balanceTrends = useMemo(() => {
     const myBalance = balances.find(b => b.user_id === currentUserId);
-    if (!myBalance || myBalance.net_balance >= 0) return [];
+    if (!myBalance) return [];
 
-    // I owe money, find creditors
-    const creditors = balances
-      .filter(b => b.user_id !== currentUserId && b.net_balance > 0)
-      .sort((a, b) => b.net_balance - a.net_balance);
+    // If I owe money (negative balance), find creditors to pay
+    if (myBalance.net_balance < 0) {
+      const creditors = balances
+        .filter(b => b.user_id !== currentUserId && b.net_balance > 0)
+        .sort((a, b) => b.net_balance - a.net_balance);
 
-    return creditors.map(creditor => ({
-      user_id: creditor.user_id,
-      name: formatName(creditor.user_id),
-      amount: creditor.net_balance,
-      suggestedSettlement: Math.min(Math.abs(myBalance.net_balance), creditor.net_balance)
-    }));
+      return creditors.map(creditor => ({
+        user_id: creditor.user_id,
+        name: formatName(creditor.user_id),
+        amount: creditor.net_balance,
+        type: 'pay_to' as const,
+        suggestedSettlement: Math.min(Math.abs(myBalance.net_balance), creditor.net_balance)
+      }));
+    }
+
+    // If I am owed money (positive balance), find debtors who should pay me
+    if (myBalance.net_balance > 0) {
+      const debtors = balances
+        .filter(b => b.user_id !== currentUserId && b.net_balance < 0)
+        .sort((a, b) => a.net_balance - b.net_balance); // Most in debt first
+
+      return debtors.map(debtor => ({
+        user_id: debtor.user_id,
+        name: formatName(debtor.user_id),
+        amount: Math.abs(debtor.net_balance),
+        type: 'receive_from' as const,
+        suggestedSettlement: Math.min(myBalance.net_balance, Math.abs(debtor.net_balance))
+      }));
+    }
+
+    return [];
   }, [balances, currentUserId, profiles]);
 
   const myBalance = balances.find(b => b.user_id === currentUserId);
@@ -278,51 +298,75 @@ export const BalanceDashboard = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {myBalance && myBalance.net_balance < 0 && balanceTrends.length > 0 ? (
+              {balanceTrends.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                    <div className="text-sm text-amber-700 mb-2">
-                      💡 يمكنك تسوية ديونك بالترتيب التالي:
+                  <div className={`p-3 rounded-lg border ${
+                    myBalance && myBalance.net_balance < 0 
+                      ? 'bg-amber-500/10 border-amber-500/20' 
+                      : 'bg-accent/10 border-accent/20'
+                  }`}>
+                    <div className={`text-sm mb-2 ${
+                      myBalance && myBalance.net_balance < 0 ? 'text-amber-700' : 'text-accent'
+                    }`}>
+                      {myBalance && myBalance.net_balance < 0 
+                        ? '💡 يمكنك تسوية ديونك بالترتيب التالي:'
+                        : '💰 الأعضاء التالية أسماؤهم يدينون لك:'
+                      }
                     </div>
                   </div>
                   {balanceTrends.map((trend, index) => (
                     <div key={trend.user_id} className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-accent font-bold text-sm">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                          trend.type === 'pay_to' 
+                            ? 'bg-destructive/20 text-destructive' 
+                            : 'bg-accent/20 text-accent'
+                        }`}>
                           {index + 1}
                         </div>
                         <div>
                           <div className="text-sm font-medium">
-                            ادفع إلى {trend.name}
+                            {trend.type === 'pay_to' 
+                              ? `ادفع إلى ${trend.name}`
+                              : `${trend.name} يدين لك`
+                            }
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            الرصيد الإجمالي: +{trend.amount.toLocaleString()} {currency}
+                            {trend.type === 'pay_to' 
+                              ? `رصيده: +${trend.amount.toLocaleString()} ${currency}`
+                              : `عليه: ${trend.amount.toLocaleString()} ${currency}`
+                            }
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-accent">
+                        <div className={`text-sm font-medium ${
+                          trend.type === 'pay_to' ? 'text-destructive' : 'text-accent'
+                        }`}>
                           {trend.suggestedSettlement.toLocaleString()} {currency}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          مقترح
+                          {trend.type === 'pay_to' ? 'المبلغ المقترح' : 'المتوقع استلامه'}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : myBalance && myBalance.net_balance > 0 ? (
+              ) : myBalance && Math.abs(myBalance.net_balance) < 0.01 ? (
                 <div className="text-center py-8">
-                  <TrendingUp className="w-12 h-12 mx-auto mb-3 text-accent opacity-50" />
+                  <DollarSign className="w-12 h-12 mx-auto mb-3 text-accent opacity-50" />
                   <p className="text-sm text-muted-foreground">
-                    رائع! لديك رصيد إيجابي. لا حاجة لتسويات الآن.
+                    رصيدك متوازن تماماً! 🎉
                   </p>
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <DollarSign className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                  <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                   <p className="text-sm text-muted-foreground">
-                    رصيدك متوازن تماماً!
+                    لا توجد اقتراحات للتسوية حالياً
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ستظهر هنا عند وجود معاملات بين الأعضاء
                   </p>
                 </div>
               )}

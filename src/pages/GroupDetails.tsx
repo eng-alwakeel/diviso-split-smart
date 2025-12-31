@@ -253,13 +253,24 @@ const GroupDetails = () => {
 
   const nameOf = (uid: string) => (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`);
 
+  // Real-time listener for settlements AND expenses
   useEffect(() => {
     if (!id) return;
     const channel = supabase
-      .channel(`grp_settlements_${id}`)
+      .channel(`grp_updates_${id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'settlements', filter: `group_id=eq.${id}` },
+        () => refetch()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses', filter: `group_id=eq.${id}` },
+        () => refetch()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expense_approvals' },
         () => refetch()
       )
       .subscribe();

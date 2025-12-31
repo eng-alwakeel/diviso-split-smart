@@ -6,7 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
-import { useOptimizedDashboardData } from "@/hooks/useOptimizedQueries";
+import { useOptimizedDashboardData, useQueryInvalidation, queryKeys } from "@/hooks/useOptimizedQueries";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
@@ -28,6 +28,7 @@ import { ShareableAchievementCard } from "@/components/achievements/ShareableAch
 import { AchievementPopup } from "@/components/achievements/AchievementPopup";
 import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -39,6 +40,8 @@ const Dashboard = React.memo(() => {
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [userId, setUserId] = useState<string>();
+  const queryClient = useQueryClient();
+  const { invalidateDashboard } = useQueryInvalidation();
   
   // Get user ID on mount
   useEffect(() => {
@@ -50,6 +53,40 @@ const Dashboard = React.memo(() => {
     };
     getUser();
   }, []);
+
+  // Real-time listener for expenses and settlements updates
+  useEffect(() => {
+    if (!userId) return;
+    
+    const channel = supabase
+      .channel('dashboard-realtime-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'expenses'
+      }, () => {
+        invalidateDashboard(userId);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'settlements'
+      }, () => {
+        invalidateDashboard(userId);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'groups'
+      }, () => {
+        invalidateDashboard(userId);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, invalidateDashboard]);
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();

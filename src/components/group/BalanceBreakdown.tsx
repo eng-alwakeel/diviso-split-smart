@@ -34,18 +34,16 @@ export const BalanceBreakdown = ({
   currencies = [],
   convertCurrency
 }: BalanceBreakdownProps) => {
-  const userBalance = balances.find(b => b.user_id === userId);
+  // Use default zero balance if user has no balance data yet
+  const userBalance = balances.find(b => b.user_id === userId) || {
+    user_id: userId,
+    amount_paid: 0,
+    amount_owed: 0,
+    settlements_in: 0,
+    settlements_out: 0,
+    net_balance: 0
+  };
   const userPending = pendingAmounts.find(p => p.user_id === userId);
-
-  if (!userBalance) {
-    return (
-      <Card className="bg-card/50 border-border/50">
-        <CardContent className="p-4 text-center text-muted-foreground">
-          لا توجد بيانات رصيد متاحة
-        </CardContent>
-      </Card>
-    );
-  }
 
   // Get currency symbols
   const groupCurrencySymbol = currencies.find(c => c.code === groupCurrency)?.symbol || groupCurrency;
