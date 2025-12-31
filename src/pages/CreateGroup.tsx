@@ -31,6 +31,8 @@ import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
+import { useUsageCredits, CreditActionType } from '@/hooks/useUsageCredits';
+import { InsufficientCreditsDialog } from '@/components/credits/InsufficientCreditsDialog';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -40,7 +42,10 @@ const CreateGroup = () => {
   const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
   const { completeTask } = useOnboarding();
   const { notifyMilestone } = useReferralProgress();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
+  const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 5 });
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
     name: "",
@@ -413,6 +418,14 @@ const CreateGroup = () => {
       return;
     }
     
+    // Check credits before creating group
+    const creditCheck = await checkCredits('create_group');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setShowInsufficientDialog(true);
+      throw new Error('insufficient_credits');
+    }
+    
     try {
       const { data: groupInsert, error: groupErr } = await supabase
         .from('groups')
@@ -433,6 +446,9 @@ const CreateGroup = () => {
         .insert({ group_id: groupInsert.id, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
       
+      // Consume credits after successful group creation
+      await consumeCredits('create_group');
+      
       // Complete onboarding task for first group
       await completeTask('group');
       
@@ -440,6 +456,7 @@ const CreateGroup = () => {
       await notifyMilestone('group');
       
     } catch (e: any) {
+      if (e.message === 'insufficient_credits') throw e;
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
       throw e;
     }
@@ -783,6 +800,15 @@ const CreateGroup = () => {
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
+      
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        open={showInsufficientDialog}
+        onOpenChange={setShowInsufficientDialog}
+        actionType="create_group"
+        currentBalance={creditCheckResult.currentBalance}
+        requiredCredits={creditCheckResult.requiredCredits}
+      />
     </div>
   );
 };
