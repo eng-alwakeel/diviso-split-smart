@@ -68,7 +68,11 @@ export function FamilyPlanManagement() {
     );
   }
 
-  if (members.length === 0) {
+  if (members.length === 0 && !hasFamilyPlan) {
+    return null;
+  }
+
+  if (members.length === 0 && hasFamilyPlan) {
     return (
       <Card>
         <CardHeader>
@@ -77,26 +81,17 @@ export function FamilyPlanManagement() {
             إدارة الخطة العائلية
           </CardTitle>
           <CardDescription>
-            {hasFamilyPlan 
-              ? "لا يوجد أعضاء في خطتك العائلية حالياً. يمكنك دعوة أعضاء جدد للانضمام."
-              : "تحتاج إلى اشتراك عائلي لإدارة أعضاء العائلة."
-            }
+            لا يوجد أعضاء في خطتك العائلية حالياً. يمكنك دعوة أعضاء جدد للانضمام.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {hasFamilyPlan ? (
-            <Button 
-              onClick={() => setShowInviteForm(true)}
-              className="w-full"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              دعوة عضو جديد
-            </Button>
-          ) : (
-            <p className="text-center text-muted-foreground">
-              قم بترقية اشتراكك إلى الخطة العائلية لبدء دعوة الأعضاء
-            </p>
-          )}
+          <Button 
+            onClick={() => setShowInviteForm(true)}
+            className="w-full"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            دعوة عضو جديد
+          </Button>
         </CardContent>
       </Card>
     );
