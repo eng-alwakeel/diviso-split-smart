@@ -68,7 +68,7 @@ export const ShareableAchievementCard: React.FC<ShareableAchievementCardProps> =
   };
 
   const gradientColor = getAchievementColor(achievement.achievement_level);
-  const icon = getAchievementIcon(achievement.achievement_type, achievement.achievement_level);
+  const icon = getAchievementIcon(achievement.achievement_type);
 
   if (compact) {
     return (

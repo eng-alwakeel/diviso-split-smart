@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
@@ -67,88 +68,106 @@ const ONBOARDING_TASKS_CONFIG: Omit<OnboardingTask, 'completed'>[] = [
   }
 ];
 
+// Fetch onboarding data
+const fetchOnboardingData = async (userId: string): Promise<OnboardingData | null> => {
+  const { data, error } = await supabase
+    .from('onboarding_tasks')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching onboarding:', error);
+    return null;
+  }
+
+  if (data) {
+    return {
+      profileCompleted: data.profile_completed,
+      firstGroupCreated: data.first_group_created,
+      firstExpenseAdded: data.first_expense_added,
+      firstInviteSent: data.first_invite_sent,
+      firstReferralMade: data.first_referral_made,
+      tasksCompleted: data.tasks_completed,
+      rewardClaimed: data.reward_claimed,
+      rewardClaimedAt: data.reward_claimed_at
+    };
+  }
+
+  // Create record if not exists
+  const { error: insertError } = await supabase
+    .from('onboarding_tasks')
+    .insert({ user_id: userId });
+  
+  if (!insertError) {
+    return {
+      profileCompleted: false,
+      firstGroupCreated: false,
+      firstExpenseAdded: false,
+      firstInviteSent: false,
+      firstReferralMade: false,
+      tasksCompleted: 0,
+      rewardClaimed: false,
+      rewardClaimedAt: null
+    };
+  }
+  
+  return null;
+};
+
+function getTaskStatus(taskId: string, data: OnboardingData): boolean {
+  switch (taskId) {
+    case 'profile': return data.profileCompleted;
+    case 'group': return data.firstGroupCreated;
+    case 'expense': return data.firstExpenseAdded;
+    case 'invite': return data.firstInviteSent;
+    case 'referral': return data.firstReferralMade;
+    default: return false;
+  }
+}
+
 export const useOnboarding = () => {
   const { toast } = useToast();
   const { t } = useTranslation('dashboard');
-  const [data, setData] = useState<OnboardingData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [completing, setCompleting] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [rewardDetails, setRewardDetails] = useState<{ trialDays?: number; bonusCoins?: number }>({});
   const autoClaimTriggered = useRef(false);
 
-  const fetchOnboardingStatus = useCallback(async () => {
-    try {
+  // Get user ID
+  const { data: userId } = useQuery({
+    queryKey: ['current-user-id'],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      return user?.id || null;
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
 
-      const { data: onboardingData, error } = await supabase
-        .from('onboarding_tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching onboarding:', error);
-        setLoading(false);
-        return;
-      }
-
-      if (onboardingData) {
-        setData({
-          profileCompleted: onboardingData.profile_completed,
-          firstGroupCreated: onboardingData.first_group_created,
-          firstExpenseAdded: onboardingData.first_expense_added,
-          firstInviteSent: onboardingData.first_invite_sent,
-          firstReferralMade: onboardingData.first_referral_made,
-          tasksCompleted: onboardingData.tasks_completed,
-          rewardClaimed: onboardingData.reward_claimed,
-          rewardClaimedAt: onboardingData.reward_claimed_at
-        });
-      } else {
-        // No record yet - create one
-        const { error: insertError } = await supabase
-          .from('onboarding_tasks')
-          .insert({ user_id: user.id });
-        
-        if (!insertError) {
-          setData({
-            profileCompleted: false,
-            firstGroupCreated: false,
-            firstExpenseAdded: false,
-            firstInviteSent: false,
-            firstReferralMade: false,
-            tasksCompleted: 0,
-            rewardClaimed: false,
-            rewardClaimedAt: null
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchOnboardingStatus:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchOnboardingStatus();
-  }, [fetchOnboardingStatus]);
+  // Fetch onboarding data with React Query
+  const { 
+    data,
+    isLoading: loading,
+    refetch
+  } = useQuery({
+    queryKey: ['onboarding', userId],
+    queryFn: () => fetchOnboardingData(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   const completeTask = useCallback(async (taskId: string) => {
-    if (completing) return;
+    if (completing || !userId) return;
     
     try {
       setCompleting(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
 
       const { data: result, error } = await supabase.rpc('complete_onboarding_task', {
-        p_user_id: user.id,
+        p_user_id: userId,
         p_task_name: taskId
       });
 
@@ -164,26 +183,23 @@ export const useOnboarding = () => {
           description: t('onboarding.earned_coins', { coins: resultObj.coins_earned }),
         });
         
-        // Refresh data
-        await fetchOnboardingStatus();
+        queryClient.invalidateQueries({ queryKey: ['onboarding'] });
       }
     } catch (error) {
       console.error('Error in completeTask:', error);
     } finally {
       setCompleting(false);
     }
-  }, [completing, fetchOnboardingStatus, t, toast]);
+  }, [completing, userId, t, toast, queryClient]);
 
   const claimReward = useCallback(async () => {
-    if (claiming) return { success: false };
+    if (claiming || !userId) return { success: false };
     
     try {
       setClaiming(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { success: false };
 
       const { data: result, error } = await supabase.rpc('claim_onboarding_reward', {
-        p_user_id: user.id
+        p_user_id: userId
       });
 
       if (error) {
@@ -200,7 +216,7 @@ export const useOnboarding = () => {
         setRewardDetails(details);
         setShowShareDialog(true);
         
-        await fetchOnboardingStatus();
+        queryClient.invalidateQueries({ queryKey: ['onboarding'] });
         return { success: true, ...details };
       } else {
         return { success: false };
@@ -211,7 +227,7 @@ export const useOnboarding = () => {
     } finally {
       setClaiming(false);
     }
-  }, [claiming, fetchOnboardingStatus]);
+  }, [claiming, userId, queryClient]);
 
   const tasks = useMemo<OnboardingTask[]>(() => {
     if (!data) return [];
@@ -250,20 +266,9 @@ export const useOnboarding = () => {
     claiming,
     completeTask,
     claimReward,
-    refresh: fetchOnboardingStatus,
+    refresh: refetch,
     showShareDialog,
     setShowShareDialog,
     rewardDetails
   };
 };
-
-function getTaskStatus(taskId: string, data: OnboardingData): boolean {
-  switch (taskId) {
-    case 'profile': return data.profileCompleted;
-    case 'group': return data.firstGroupCreated;
-    case 'expense': return data.firstExpenseAdded;
-    case 'invite': return data.firstInviteSent;
-    case 'referral': return data.firstReferralMade;
-    default: return false;
-  }
-}

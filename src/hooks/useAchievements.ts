@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,43 +29,65 @@ export interface MonthlyStats {
   prev_month_total: number;
 }
 
+// Fetch functions
+const fetchAchievementsData = async (userId: string): Promise<Achievement[]> => {
+  const { data, error } = await supabase
+    .from('achievements')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
+const fetchMonthlyStatsData = async (): Promise<MonthlyStats | null> => {
+  const { data, error } = await supabase.rpc('get_monthly_stats');
+  if (error) throw error;
+  return data && typeof data === 'object' ? (data as unknown as MonthlyStats) : null;
+};
+
 export const useAchievements = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const fetchAchievements = useCallback(async () => {
-    try {
+  // Get user ID synchronously from cache or fetch
+  const { data: userId } = useQuery({
+    queryKey: ['current-user-id'],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      return user?.id || null;
+    },
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
 
-      const { data, error } = await supabase
-        .from('achievements')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+  // Achievements query with caching
+  const { 
+    data: achievements = [], 
+    isLoading: achievementsLoading,
+    refetch: refetchAchievements
+  } = useQuery({
+    queryKey: ['achievements', userId],
+    queryFn: () => fetchAchievementsData(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
+  });
 
-      if (error) throw error;
-      setAchievements(data || []);
-    } catch (error) {
-      console.error('Error fetching achievements:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Monthly stats query with caching
+  const { 
+    data: monthlyStats = null, 
+    isLoading: statsLoading 
+  } = useQuery({
+    queryKey: ['monthly-stats', userId],
+    queryFn: fetchMonthlyStatsData,
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 15 * 60 * 1000,
+  });
 
-  const fetchMonthlyStats = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.rpc('get_monthly_stats');
-      if (error) throw error;
-      if (data && typeof data === 'object') {
-        setMonthlyStats(data as unknown as MonthlyStats);
-      }
-    } catch (error) {
-      console.error('Error fetching monthly stats:', error);
-    }
-  }, []);
+  const loading = achievementsLoading || statsLoading;
 
   const shareAchievement = useCallback(async (achievementId: string, platform: string) => {
     try {
@@ -82,7 +105,7 @@ export const useAchievements = () => {
           title: '🎉 تم المشاركة!',
           description: `حصلت على ${result.coins_earned} عملة`,
         });
-        fetchAchievements();
+        queryClient.invalidateQueries({ queryKey: ['achievements'] });
         return { success: true, coinsEarned: result.coins_earned };
       } else if (result.already_shared) {
         toast({
@@ -98,17 +121,17 @@ export const useAchievements = () => {
       console.error('Error sharing achievement:', error);
       return { success: false };
     }
-  }, [toast, fetchAchievements]);
+  }, [toast, queryClient]);
 
-  const getLatestUnshared = useCallback(() => {
+  const latestUnshared = useMemo(() => {
     return achievements.find(a => !a.shared) || null;
   }, [achievements]);
 
-  const getUnsharedCount = useCallback(() => {
+  const unsharedCount = useMemo(() => {
     return achievements.filter(a => !a.shared).length;
   }, [achievements]);
 
-  const getAchievementIcon = (type: string, level: string | null): string => {
+  const getAchievementIcon = (type: string): string => {
     const icons: Record<string, string> = {
       expenses_milestone: '📊',
       groups_milestone: '👥',
@@ -130,19 +153,14 @@ export const useAchievements = () => {
     return colors[level || 'bronze'] || colors.bronze;
   };
 
-  useEffect(() => {
-    fetchAchievements();
-    fetchMonthlyStats();
-  }, [fetchAchievements, fetchMonthlyStats]);
-
   return {
     achievements,
     loading,
     monthlyStats,
-    latestUnshared: getLatestUnshared(),
-    unsharedCount: getUnsharedCount(),
+    latestUnshared,
+    unsharedCount,
     shareAchievement,
-    refetch: fetchAchievements,
+    refetch: refetchAchievements,
     getAchievementIcon,
     getAchievementColor
   };
