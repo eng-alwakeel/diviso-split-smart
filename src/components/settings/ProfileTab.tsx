@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Camera, Save, User, Crown, LogOut, Shield } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
+import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
 
 interface ProfileTabProps {
@@ -25,7 +26,7 @@ interface ProfileTabProps {
   setValidationErrors: (errors: any) => void;
   saveProfile: () => void;
   onPhoneChange: (phone: string) => void;
-  handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleImageUpload: (file: File) => void;
   uploading: boolean;
   isAdmin?: boolean;
   logout: () => void;
@@ -48,6 +49,34 @@ export function ProfileTab({
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [pendingPhone, setPendingPhone] = useState("");
   const [originalPhone, setOriginalPhone] = useState(profile.phone);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // التحقق من نوع الملف
+      if (!file.type.startsWith('image/')) {
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(reader.result as string);
+        setCropDialogOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+    // إعادة تعيين قيمة الـ input للسماح باختيار نفس الملف مرة أخرى
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const file = new File([croppedBlob], 'avatar.png', { type: 'image/png' });
+    handleImageUpload(file);
+    setSelectedImage(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -87,10 +116,18 @@ export function ProfileTab({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={handleFileSelect}
                 className="hidden"
               />
             </div>
+
+      {/* نافذة قص الصورة */}
+      <ImageCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageSrc={selectedImage}
+        onCropComplete={handleCropComplete}
+      />
             <div className="text-center sm:text-start">
               <h3 className="text-xl font-semibold text-foreground flex items-center gap-2 justify-center sm:justify-start">
                 {profile.name || t('settings:profile.default_user')}

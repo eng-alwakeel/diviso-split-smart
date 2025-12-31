@@ -169,10 +169,7 @@ const Settings = () => {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleImageUpload = async (file: File) => {
     try {
       const newAvatarUrl = await uploadProfileImage(file);
       setProfile(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
