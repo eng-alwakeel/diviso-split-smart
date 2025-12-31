@@ -8,8 +8,9 @@ import { AdminBadge } from "@/components/ui/admin-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, User } from "lucide-react";
+import { Shield, Settings, LogOut, User, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -75,9 +76,10 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
-          {/* Left: Notifications & Language */}
+          {/* Left: Notifications, Credits & Language */}
           <div className="justify-self-start flex items-center gap-1">
             <LanguageSwitcher />
+            <CreditBalance compact />
             <NotificationBell />
           </div>
 
