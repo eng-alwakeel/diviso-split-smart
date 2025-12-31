@@ -128,5 +128,36 @@
     "title": "كيف تكسب نقاط المكافآت؟",
     "daily_streaks": "سلسلة الدخول اليومي",
     "referral_rewards": "مكافآت الدعوات"
+  },
+  "subscriptions": {
+    "title": "أو اشترك للمزيد",
+    "subtitle": "90 نقطة شهرياً مع مميزات إضافية",
+    "monthly": {
+      "name": "Pro شهري",
+      "price": "19",
+      "period": "ريال/شهر",
+      "credits": "90 نقطة شهرياً",
+      "features": {
+        "credits": "90 نقطة شهرياً",
+        "smart": "توصيات ذكية",
+        "no_ads": "بدون إعلانات"
+      }
+    },
+    "yearly": {
+      "name": "Pro سنوي",
+      "price": "182",
+      "period": "ريال/سنة",
+      "equivalent": "≈ 15 ريال/شهر",
+      "save": "وفر 20%",
+      "credits": "90 نقطة شهرياً",
+      "features": {
+        "credits": "90 نقطة شهرياً",
+        "smart": "توصيات ذكية",
+        "no_ads": "بدون إعلانات",
+        "discount": "خصم 20%"
+      }
+    },
+    "subscribe_btn": "اشترك الآن",
+    "coming_soon": "قريباً"
   }
 }

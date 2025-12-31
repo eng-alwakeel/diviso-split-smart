@@ -128,5 +128,36 @@
     "title": "How to Earn Reward Points?",
     "daily_streaks": "Daily Login Streaks",
     "referral_rewards": "Referral Rewards"
+  },
+  "subscriptions": {
+    "title": "Or Subscribe for More",
+    "subtitle": "90 credits monthly with extra features",
+    "monthly": {
+      "name": "Pro Monthly",
+      "price": "19",
+      "period": "SAR/month",
+      "credits": "90 credits/month",
+      "features": {
+        "credits": "90 credits monthly",
+        "smart": "Smart recommendations",
+        "no_ads": "Ad-free experience"
+      }
+    },
+    "yearly": {
+      "name": "Pro Yearly",
+      "price": "182",
+      "period": "SAR/year",
+      "equivalent": "≈ 15 SAR/month",
+      "save": "Save 20%",
+      "credits": "90 credits/month",
+      "features": {
+        "credits": "90 credits monthly",
+        "smart": "Smart recommendations",
+        "no_ads": "Ad-free experience",
+        "discount": "20% discount"
+      }
+    },
+    "subscribe_btn": "Subscribe Now",
+    "coming_soon": "Coming Soon"
   }
 }
