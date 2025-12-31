@@ -167,6 +167,18 @@ const Settings = () => {
       
       if (error) throw error;
       
+      // التحقق من اكتمال الملف الشخصي وتحديث مهمة الـ onboarding
+      const isProfileComplete = 
+        profile.name.trim() !== "" && 
+        (profile.email.trim() !== "" || profile.phone.trim() !== "");
+      
+      if (isProfileComplete) {
+        await supabase.rpc('complete_onboarding_task', {
+          p_task_name: 'profile',
+          p_user_id: user.id
+        });
+      }
+      
       toast({
         title: t('common:toast.save_success'),
         description: t('common:toast.settings_saved_description'),
