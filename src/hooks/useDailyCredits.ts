@@ -77,33 +77,10 @@ export function useDailyCredits() {
       }
 
       if (data === true) {
-        toast({ title: `🎁 حصلت على ${state.dailyAmount} نقاط!` });
-        await checkDailyStatus();
-        queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      return false;
-    } finally {
-      setClaiming(false);
-    }
-  }, [state.canClaim, state.dailyAmount, checkDailyStatus, queryClient, toast]);
-
-  useEffect(() => {
-    checkDailyStatus();
-  }, [checkDailyStatus]);
-
-  return { ...state, loading, claiming, checkDailyStatus, claimDailyCredits };
-}
-
-      if (data) {
-        toast({
+        toast({ 
           title: `🎁 حصلت على ${state.dailyAmount} نقاط!`,
           description: 'نقاطك اليومية متاحة الآن'
         });
-
         await checkDailyStatus();
         queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
         return true;

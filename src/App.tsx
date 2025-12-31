@@ -42,6 +42,7 @@ const LazyHowItWorks = withLazyLoading(lazy(() => import("./pages/HowItWorks")))
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
 const LazyAdminManagement = withLazyLoading(lazy(() => import("./pages/AdminManagement")));
 const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPage")));
+const LazyCreditStore = withLazyLoading(lazy(() => import("./pages/CreditStore")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -99,6 +100,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
             <Route path="/ad-test" element={<AdTestPage />} />
+            <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
             <Route path="*" element={<NotFound />} />
         </Routes>
