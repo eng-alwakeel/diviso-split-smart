@@ -39,7 +39,7 @@ const Index = () => {
       <PricingSection />
       
       {/* Sidebar-style ad placement */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <PersistentAdSidebar className="max-w-sm mx-auto" />
       </div>
       <Footer />

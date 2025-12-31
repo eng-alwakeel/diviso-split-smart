@@ -14,7 +14,7 @@ export const Footer = () => {
 
   return (
     <footer className="bg-gradient-to-b from-muted/50 to-muted">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-10">
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Brand */}
