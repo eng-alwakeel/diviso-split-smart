@@ -1,29 +1,25 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, ArrowLeft, User, CreditCard, Users, Globe, Bell, Shield, Save, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Coins, Globe, Bell, Shield, Save, RefreshCw, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/hooks/useSubscription";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
-import { FamilyPlanManagement } from "@/components/family/FamilyPlanManagement";
 
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
-import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ProfileTab } from "@/components/settings/ProfileTab";
-import { SubscriptionTab } from "@/components/settings/SubscriptionTab";
+import CreditsTab from "@/components/settings/CreditsTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
@@ -31,9 +27,6 @@ import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTest
 import { RecommendationSettings } from "@/components/recommendations/RecommendationSettings";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-
-
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -45,43 +38,16 @@ const Settings = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
   const [isLanguageChanging, setIsLanguageChanging] = useState(false);
   const [languageCountdown, setLanguageCountdown] = useState(0);
-  const { subscription, isTrialActive, daysLeft, totalDaysLeft, remainingTrialDays, canStartTrial, canSwitchPlan, rewardPointsBalance, loading, refresh, startTrial, switchPlan, cancelSubscription } = useSubscription();
+  
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
-  const { getPlanBadgeConfig, currentPlan } = usePlanBadge();
-  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { data: adminData } = useAdminAuth();
   
   const [activeTab, setActiveTab] = useState("profile");
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
 
-  // Helper functions for plan and status display names
-  const getPlanDisplayName = (plan: string) => {
-    switch (plan) {
-      case 'personal':
-        return t('settings:plans.personal');
-      case 'family':
-        return t('settings:plans.family');
-      default:
-        return t('settings:plans.free');
-    }
-  };
-
-  const getStatusDisplayName = (status: string) => {
-    switch (status) {
-      case 'trialing':
-        return t('settings:status.trialing');
-      case 'active':
-        return t('settings:status.active');
-      case 'expired':
-        return t('settings:status.expired');
-      case 'canceled':
-        return t('settings:status.canceled');
-      default:
-        return t('settings:status.unknown');
-    }
-  };
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [profile, setProfile] = useState({
@@ -90,9 +56,9 @@ const Settings = () => {
     phone: "",
     avatar: "",
     avatarUrl: "",
-    joinDate: "",
-    plan: t('settings:plans.free')
+    joinDate: ""
   });
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -117,15 +83,14 @@ const Settings = () => {
             phone: profileData.phone || "",
             avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('common:user.default_initial'),
             avatarUrl: profileData.avatar_url || "",
-            joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US'),
-            plan: getPlanDisplayName(subscription?.plan || 'free')
+            joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')
           });
         }
       }
     };
     
     loadProfile();
-  }, [subscription, i18n.language]);
+  }, [i18n.language, t]);
 
   const validateProfile = () => {
     const errors: Record<string, string> = {};
@@ -233,9 +198,9 @@ const Settings = () => {
       // Sign out and redirect
       await supabase.auth.signOut();
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting account:', error);
-      const errorMessage = error.message || t('settings:toast.cancel_error');
+      const errorMessage = error.message || t('common:error');
       toast({
         title: t('settings:toast.delete_error'),
         description: errorMessage,
@@ -263,79 +228,6 @@ const Settings = () => {
         description: t('settings:toast.logout_error_desc'),
         variant: "destructive"
       });
-    }
-  };
-
-  const handleStartTrial = async (plan: 'personal' | 'family') => {
-    const result = await startTrial(plan);
-    if (result.error) {
-      if (result.error === 'trial_exists') {
-        toast({
-          title: t('settings:errors.trial_exists'),
-          description: t('settings:errors.trial_exists_description'),
-          variant: "destructive"
-        });
-      } else if (result.error === 'trial_expired') {
-        toast({
-          title: t('settings:errors.trial_expired'),
-          description: t('settings:errors.trial_expired_description'),
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: t('common:error'),
-          description: t('settings:errors.start_trial_error'),
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: t('settings:success.trial_started'),
-        description: t('settings:success.trial_started_description', { plan: getPlanDisplayName(plan) }),
-      });
-      await refresh();
-    }
-  };
-
-  const handleSwitchPlan = async (plan: 'personal' | 'family') => {
-    const result = await switchPlan(plan);
-    if (result.error) {
-      if (result.error === 'trial_expired') {
-        toast({
-          title: t('settings:errors.trial_expired'),
-          description: t('settings:errors.trial_expired_description'),
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: t('common:error'),
-          description: t('settings:errors.switch_plan_error'),
-          variant: "destructive"
-        });
-      }
-    } else {
-      toast({
-        title: t('settings:success.plan_switched'),
-        description: t('settings:success.plan_switched_description', { plan: getPlanDisplayName(plan) }),
-      });
-      await refresh();
-    }
-  };
-
-  const handleCancelSubscription = async () => {
-    const result = await cancelSubscription();
-    if (result.error) {
-      toast({
-        title: t('common:error'),
-        description: t('settings:errors.cancel_error'),
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: t('settings:success.subscription_canceled'),
-        description: t('settings:success.subscription_canceled_description'),
-      });
-      await refresh();
     }
   };
 
@@ -376,13 +268,9 @@ const Settings = () => {
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.profile')}</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('settings:tabs.subscription')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="family" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('settings:tabs.family')}</span>
+            <TabsTrigger value="credits" className="flex items-center gap-2">
+              <Coins className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('settings:tabs.credits')}</span>
             </TabsTrigger>
             <TabsTrigger value="language" className="flex items-center gap-2">
               <Globe className="w-4 h-4" />
@@ -423,36 +311,13 @@ const Settings = () => {
               handleImageUpload={handleImageUpload}
               uploading={uploading}
               isAdmin={adminData?.isAdmin}
-              planBadgeConfig={getPlanBadgeConfig(currentPlan)}
-              isTrialActive={isTrialActive}
-              daysLeft={daysLeft}
               logout={logout}
             />
           </TabsContent>
 
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6">
-            <SubscriptionTab
-              subscription={subscription}
-              isTrialActive={isTrialActive}
-              daysLeft={daysLeft}
-              totalDaysLeft={totalDaysLeft}
-              remainingTrialDays={remainingTrialDays}
-              canStartTrial={canStartTrial}
-              canSwitchPlan={canSwitchPlan}
-              rewardPointsBalance={rewardPointsBalance}
-              loading={loading}
-              handleStartTrial={handleStartTrial}
-              handleSwitchPlan={handleSwitchPlan}
-              handleCancelSubscription={handleCancelSubscription}
-              getPlanDisplayName={getPlanDisplayName}
-              getStatusDisplayName={getStatusDisplayName}
-            />
-          </TabsContent>
-
-          {/* Family Plan Tab */}
-          <TabsContent value="family" className="space-y-6">
-            <FamilyPlanManagement />
+          {/* Credits Tab */}
+          <TabsContent value="credits" className="space-y-6">
+            <CreditsTab />
           </TabsContent>
 
           {/* Language Tab */}
