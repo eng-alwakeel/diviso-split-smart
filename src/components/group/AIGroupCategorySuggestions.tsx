@@ -222,32 +222,32 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
             const selectedCategory = selectedCategories.find(c => c.category_name === suggestion.category_name);
             
             return (
-              <div key={index} className={`p-4 border rounded-lg transition-all ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}>
+              <div key={index} className={`p-4 border rounded-lg transition-all overflow-hidden ${isSelected ? 'border-primary bg-primary/5' : 'border-border'}`}>
                 <div className="flex items-start gap-3">
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleCategorySelection(suggestion)}
-                    className="mt-1"
+                    className="mt-1 shrink-0"
                   />
                   
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{suggestion.category_name}</h4>
+                  <div className="flex-1 space-y-3 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-medium text-sm sm:text-base">{suggestion.category_name}</h4>
                         {suggestion.is_new_category && (
-                          <Badge variant="outline" className="text-xs">
-                            <Plus className="h-3 w-3 mr-1" />
+                          <Badge variant="outline" className="text-xs whitespace-nowrap">
+                            <Plus className="h-3 w-3 ml-1" />
                             جديدة
                           </Badge>
                         )}
                         <Badge 
                           variant="outline" 
-                          className={`text-xs ${getConfidenceColor(suggestion.confidence)}`}
+                          className={`text-xs whitespace-nowrap ${getConfidenceColor(suggestion.confidence)}`}
                         >
                           {Math.round(suggestion.confidence * 100)}% ثقة
                         </Badge>
                       </div>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
                         {suggestion.percentage}% من الميزانية
                       </span>
                     </div>
