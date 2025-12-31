@@ -31,7 +31,7 @@ export const CreditBalanceCard = React.memo(() => {
     <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Coins className="h-5 w-5 text-amber-500" />
+          <Coins className="h-5 w-5 text-primary" />
           {t('balance_card.title')}
         </CardTitle>
       </CardHeader>
@@ -39,21 +39,21 @@ export const CreditBalanceCard = React.memo(() => {
         {/* Balance Display */}
         <div className="grid grid-cols-2 gap-4">
           {/* Usage Credits */}
-          <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-            <div className={`text-3xl font-bold ${hasLowBalance ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'}`}>
+          <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
+            <div className={`text-3xl font-bold ${hasLowBalance ? 'text-destructive' : 'text-primary'}`}>
               {balance.totalAvailable}
             </div>
-            <p className="text-sm text-amber-600 dark:text-amber-500">
+            <p className="text-sm text-muted-foreground">
               {t('balance_card.usage_credits')}
             </p>
           </div>
 
           {/* Reward Points */}
-          <div className="text-center p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
-            <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+          <div className="text-center p-3 rounded-lg bg-accent/10 border border-accent/20">
+            <div className="text-3xl font-bold text-accent-foreground">
               {summary.availableBalance}
             </div>
-            <p className="text-sm text-purple-600 dark:text-purple-500">
+            <p className="text-sm text-muted-foreground">
               {t('balance_card.reward_points')}
             </p>
           </div>
@@ -61,7 +61,7 @@ export const CreditBalanceCard = React.memo(() => {
 
         {/* Expiring Warning */}
         {hasExpiringCredits && (
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-warning/10 text-warning text-sm">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
             <span>
               {t('balance.expiring_soon')}: {balance.expiringSoon}

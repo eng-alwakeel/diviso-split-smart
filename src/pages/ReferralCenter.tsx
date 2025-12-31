@@ -174,24 +174,24 @@ const ReferralCenter = () => {
         </div>
 
         {/* Balance Card - Updated to show reward points */}
-        <Card className="shadow-card bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
+        <Card className="shadow-card bg-gradient-to-br from-card to-primary/10 border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-purple-600/10 rounded-full flex items-center justify-center">
-                <Coins className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <Coins className="w-6 h-6 text-primary" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-purple-700 dark:text-purple-400">{totalEarnedFromReferrals}</p>
-                <p className="text-sm text-purple-600 dark:text-purple-500">{t('balance_card.earned')} ({t('common:points', 'نقطة')})</p>
+                <p className="text-3xl font-bold text-primary">{totalEarnedFromReferrals}</p>
+                <p className="text-sm text-muted-foreground">{t('balance_card.earned')} ({t('common:points', 'نقطة')})</p>
               </div>
             </div>
             
-            <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t border-purple-200 dark:border-purple-700 pt-4">
+            <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t border-border pt-4">
               <div>
                 <p className="font-semibold text-foreground">{totalReferrals}</p>
                 <p>{t('balance_card.referrals')}</p>
               </div>
-              <div className="border-s border-purple-200 dark:border-purple-700 ps-6">
+              <div className="border-s border-border ps-6">
                 <p className="font-semibold text-foreground">{successfulReferrals}</p>
                 <p>{t('balance_card.successful')}</p>
               </div>
