@@ -416,6 +416,41 @@ const CreateGroup = () => {
       return;
     }
     
+    // Check group quota limit first
+    const { count: groupCount, error: countError } = await supabase
+      .from('groups')
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', user.id)
+      .is('archived_at', null);
+    
+    if (countError) {
+      console.error('Error checking group count:', countError);
+    }
+    
+    // Get current plan limits
+    const { data: planData } = await supabase.rpc('get_user_plan', { p_user_id: user.id });
+    const currentPlan = planData || 'free';
+    
+    const { data: limitData } = await supabase
+      .from('subscription_limits')
+      .select('limit_value')
+      .eq('plan', currentPlan)
+      .eq('action', 'group_created')
+      .single();
+    
+    const groupLimit = limitData?.limit_value ?? 3;
+    
+    // Check if user has reached group limit (skip if unlimited = -1)
+    if (groupLimit !== -1 && (groupCount ?? 0) >= groupLimit) {
+      toast({ 
+        title: t('quota:reached_limit.groups.title'), 
+        description: t('quota:reached_limit.groups.description'),
+        variant: 'destructive' 
+      });
+      navigate('/pricing');
+      throw new Error('quota_exceeded');
+    }
+    
     // Check credits before creating group
     const creditCheck = await checkCredits('create_group');
     if (!creditCheck.canPerform) {
@@ -451,7 +486,7 @@ const CreateGroup = () => {
       await notifyMilestone('group');
       
     } catch (e: any) {
-      if (e.message === 'insufficient_credits') throw e;
+      if (e.message === 'insufficient_credits' || e.message === 'quota_exceeded') throw e;
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
       throw e;
     }
