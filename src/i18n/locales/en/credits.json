@@ -1,0 +1,99 @@
+{
+  "balance": {
+    "current": "Your Balance",
+    "credits": "credits",
+    "expiring_soon": "Expiring Soon",
+    "expires_in": "Expires in {{days}} days",
+    "no_credits": "No credits"
+  },
+  "daily": {
+    "title": "Daily Credits",
+    "claim": "Claim Credits",
+    "claimed": "Claimed ✓",
+    "claiming": "Claiming...",
+    "next_in": "Next in {{hours}} hours",
+    "available": "Available now!",
+    "amount": "+{{amount}} credits daily"
+  },
+  "insufficient": {
+    "title": "Insufficient Credits",
+    "message": "Your current balance is not enough for this action.\nTo add an expense or complete a settlement, choose one of the following options 👇",
+    "current_balance": "Your balance: {{balance}} credits",
+    "required": "Required: {{required}} credits",
+    "shortfall": "Shortfall: {{shortfall}} credits",
+    "subscribe": "Continue Uninterrupted",
+    "subscribe_desc": "Pro subscription – 19 SAR/month",
+    "purchase": "Full Control As Needed",
+    "purchase_desc": "Buy credits",
+    "free": "Get Free Credits",
+    "free_desc": "Invite • Daily use • Engage"
+  },
+  "actions": {
+    "ocr_scan": "Receipt Scan",
+    "smart_category": "Smart Category",
+    "recommendation": "Smart Recommendation",
+    "advanced_report": "Advanced Report",
+    "export_pdf": "PDF Export",
+    "create_group": "Create Group",
+    "settlement": "Settlement"
+  },
+  "packages": {
+    "title": "Buy Credits",
+    "subtitle": "Choose the package that suits you",
+    "starter": {
+      "name": "Starter Pack",
+      "price": "25 SAR",
+      "credits": "100 credits",
+      "validity": "Valid for 30 days"
+    },
+    "popular": {
+      "name": "Most Popular",
+      "price": "50 SAR",
+      "credits": "220 credits",
+      "validity": "Valid for 45 days",
+      "bonus": "+20 free credits"
+    },
+    "pro": {
+      "name": "Pro Pack",
+      "price": "100 SAR",
+      "credits": "480 credits",
+      "validity": "Valid for 60 days",
+      "bonus": "+80 free credits"
+    }
+  },
+  "rewards": {
+    "title": "Reward Points",
+    "balance": "Rewards Balance",
+    "convert": "Convert to Usage Credits",
+    "converting": "Converting...",
+    "rate": "10 reward points = 1 usage credit",
+    "min_convert": "Minimum conversion: 10 points",
+    "next_conversion": "Next conversion available in {{hours}} hours",
+    "sources": {
+      "daily_login": "Daily Login",
+      "streak_3": "3-Day Streak",
+      "streak_7": "7-Day Streak",
+      "streak_30": "30-Day Streak",
+      "add_expense": "Add Expense",
+      "settlement": "Settlement",
+      "create_group": "Create Group",
+      "use_ai": "Use AI",
+      "share_recommendation": "Share Recommendation",
+      "referral_signup": "Referral Signup",
+      "referral_active": "Active Referral",
+      "referral_subscribed": "Referral Subscribed"
+    }
+  },
+  "store": {
+    "title": "Credit Store",
+    "my_balance": "My Balance",
+    "buy_credits": "Buy Credits",
+    "history": "Consumption History",
+    "no_history": "No consumption history",
+    "consumption": "Consumption",
+    "earned": "Earned"
+  },
+  "header": {
+    "credits": "credits"
+  }
+}
