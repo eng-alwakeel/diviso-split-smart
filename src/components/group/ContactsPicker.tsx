@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRegisteredContacts, RegisteredContact, ContactsWithRegistrationStatus } from "@/hooks/useRegisteredContacts";
 import { ContactInfo } from "@/hooks/useContacts";
-import { Contact, Search, Phone, Check, CheckCircle2, UserPlus, Sparkles } from "lucide-react";
+import { Contact, Search, Phone, Check, CheckCircle2, UserPlus, Sparkles, Smartphone, Send } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 
 interface ContactsPickerProps {
   open: boolean;
@@ -29,17 +30,24 @@ export const ContactsPicker = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<ContactInfo | null>(null);
   const [selectedPhone, setSelectedPhone] = useState<string>("");
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualName, setManualName] = useState("");
   const { checkRegisteredContacts, loading } = useRegisteredContacts();
+  const isNativePlatform = Capacitor.isNativePlatform();
 
   useEffect(() => {
     if (open) {
-      loadContacts();
+      if (isNativePlatform) {
+        loadContacts();
+      }
     } else {
       setSearchQuery("");
       setSelectedContact(null);
       setSelectedPhone("");
+      setManualPhone("");
+      setManualName("");
     }
-  }, [open]);
+  }, [open, isNativePlatform]);
 
   const loadContacts = async () => {
     const data = await checkRegisteredContacts(excludeNumbers);
@@ -78,20 +86,81 @@ export const ContactsPicker = ({
     }
   };
 
+  const handleManualSubmit = () => {
+    const cleanPhone = manualPhone.replace(/\D/g, '');
+    if (cleanPhone.length >= 9 && manualName.trim()) {
+      const contact: ContactInfo = {
+        id: `manual-${Date.now()}`,
+        name: manualName.trim(),
+        phoneNumbers: [cleanPhone]
+      };
+      onContactSelected(contact, cleanPhone, false);
+      onOpenChange(false);
+    }
+  };
+
+  const isManualFormValid = manualPhone.replace(/\D/g, '').length >= 9 && manualName.trim().length > 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Contact className="w-5 h-5" />
-            اختيار من جهات الاتصال
+            {isNativePlatform ? "اختيار من جهات الاتصال" : "إرسال دعوة"}
           </DialogTitle>
           <DialogDescription>
-            اختر جهة اتصال لإرسال دعوة انضمام للمجموعة
+            {isNativePlatform 
+              ? "اختر جهة اتصال لإرسال دعوة انضمام للمجموعة"
+              : "أدخل بيانات الشخص لإرسال دعوة انضمام للمجموعة"
+            }
           </DialogDescription>
         </DialogHeader>
 
-        {!selectedContact ? (
+        {/* واجهة الويب - إدخال يدوي */}
+        {!isNativePlatform && (
+          <div className="space-y-6 py-4">
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto">
+                <Smartphone className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  الوصول لجهات الاتصال متاح فقط في تطبيق الجوال
+                </p>
+              </div>
+            </div>
+            
+            <div className="border-t pt-4 space-y-4">
+              <p className="text-sm font-medium text-center">أدخل البيانات يدوياً</p>
+              <div className="space-y-3">
+                <Input 
+                  placeholder="اسم الشخص" 
+                  value={manualName} 
+                  onChange={(e) => setManualName(e.target.value)}
+                />
+                <Input 
+                  placeholder="رقم الجوال (مثال: 966501234567)" 
+                  value={manualPhone} 
+                  onChange={(e) => setManualPhone(e.target.value)}
+                  dir="ltr"
+                  className="text-left"
+                />
+                <Button 
+                  onClick={handleManualSubmit} 
+                  disabled={!isManualFormValid}
+                  className="w-full gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  إرسال الدعوة
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* واجهة التطبيق - جهات الاتصال */}
+        {isNativePlatform && !selectedContact && (
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -197,7 +266,10 @@ export const ContactsPicker = ({
               </div>
             </ScrollArea>
           </div>
-        ) : (
+        )}
+
+        {/* اختيار رقم من جهة اتصال متعددة الأرقام */}
+        {isNativePlatform && selectedContact && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-lg border bg-accent/10">
               <Avatar className="w-10 h-10">
