@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Camera, Save, User, Crown, LogOut, Shield } from "lucide-react";
-import { PlanBadge } from "@/components/ui/plan-badge";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 import { useTranslation } from "react-i18next";
 
@@ -29,9 +28,6 @@ interface ProfileTabProps {
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   uploading: boolean;
   isAdmin?: boolean;
-  planBadgeConfig?: any;
-  isTrialActive?: boolean;
-  daysLeft?: number;
   logout: () => void;
 }
 
@@ -45,9 +41,6 @@ export function ProfileTab({
   handleImageUpload,
   uploading,
   isAdmin,
-  planBadgeConfig,
-  isTrialActive,
-  daysLeft,
   logout
 }: ProfileTabProps) {
   const { t } = useTranslation(['settings']);
@@ -109,17 +102,6 @@ export function ProfileTab({
                 )}
               </h3>
               <p className="text-muted-foreground">{profile.email}</p>
-              <div className="flex gap-2 mt-2 justify-center sm:justify-start">
-                <PlanBadge 
-                  config={planBadgeConfig} 
-                  size="md"
-                />
-                {isTrialActive && (
-                  <Badge variant="outline" className="border-accent text-accent">
-                    {t('settings:profile.trial_remaining', { days: daysLeft })}
-                  </Badge>
-                )}
-              </div>
             </div>
           </div>
 
