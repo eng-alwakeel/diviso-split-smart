@@ -6,9 +6,12 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, TrendingUp, CheckCircle, XCircle, DollarSign } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
 import { useCategories } from "@/hooks/useCategories";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
+import { useToast } from "@/hooks/use-toast";
 
 type Profile = { id: string; display_name: string | null; name: string | null };
 
@@ -42,6 +45,10 @@ interface GroupReportDialogProps {
 export function GroupReportDialog({ open, onOpenChange, groupName, groupId, profiles, expenses, balances, totalExpenses }: GroupReportDialogProps) {
   const { categories } = useCategories();
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(groupId);
+  const { checkCredits, consumeCredits } = useUsageCredits();
+  const { toast } = useToast();
+  const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 2 });
   const rows = useMemo(() => {
     return expenses.map((e) => ({
       date: (e.spent_at ?? e.created_at ?? '').toString().slice(0,10),
@@ -87,7 +94,15 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
     }));
   }, [balances, profiles]);
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
+    // Check credits before export
+    const creditCheck = await checkCredits('advanced_report');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setShowInsufficientDialog(true);
+      return;
+    }
+    
     const expenseCsv = [
       ['التاريخ','الوصف','الدافع','المبلغ','العملة'],
       ...rows.map(r => [r.date, r.description, r.payer, r.amount.toString(), r.currency])
@@ -107,6 +122,11 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
     a.download = `group-report-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    
+    // Consume credits after successful export
+    await consumeCredits('advanced_report');
+    
+    toast({ title: "تم التصدير", description: "تم تصدير التقرير بنجاح" });
   };
 
   const printReport = () => {
@@ -344,6 +364,15 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
           </div>
         </div>
       </DialogContent>
+      
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        open={showInsufficientDialog}
+        onOpenChange={setShowInsufficientDialog}
+        actionType="advanced_report"
+        currentBalance={creditCheckResult.currentBalance}
+        requiredCredits={creditCheckResult.requiredCredits}
+      />
     </Dialog>
   );
 }

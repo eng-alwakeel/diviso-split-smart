@@ -13,6 +13,8 @@ import { useCurrencies } from "@/hooks/useCurrencies";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { settlementSchema, safeValidateInput } from "@/lib/validation";
 import { useReferralProgress } from "@/hooks/useReferralProgress";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
 
 export interface MemberRow {
   user_id: string;
@@ -83,8 +85,11 @@ export const GroupSettlementDialog = ({
   const { currencies, convertCurrency, getExchangeRate } = useCurrencies();
   const { settings } = useUserSettings();
   const { notifyMilestone } = useReferralProgress();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [rows, setRows] = useState<RowState[]>([{ to_user_id: initialToUserId || "", amount: initialAmount?.toString() || "", note: "" }]);
   const [submitting, setSubmitting] = useState(false);
+  const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 3 });
 
   useEffect(() => {
     if (open) {
@@ -144,6 +149,15 @@ export const GroupSettlementDialog = ({
   const handleSubmit = async () => {
     try {
       if (!canSubmit) return;
+      
+      // Check credits before settlement
+      const creditCheck = await checkCredits('settlement');
+      if (!creditCheck.canPerform) {
+        setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+        setShowInsufficientDialog(true);
+        return;
+      }
+      
       setSubmitting(true);
       
       // Validate each settlement row before submission
@@ -177,6 +191,9 @@ export const GroupSettlementDialog = ({
       if (error) {
         throw error;
       }
+      
+      // Consume credits after successful settlement
+      await consumeCredits('settlement');
       
       // Notify referral progress (grants 20 RP to inviter if this is first settlement)
       await notifyMilestone('settlement');
@@ -289,6 +306,15 @@ export const GroupSettlementDialog = ({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        open={showInsufficientDialog}
+        onOpenChange={setShowInsufficientDialog}
+        actionType="settlement"
+        currentBalance={creditCheckResult.currentBalance}
+        requiredCredits={creditCheckResult.requiredCredits}
+      />
     </Dialog>
   );
 };

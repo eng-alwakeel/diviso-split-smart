@@ -37,6 +37,8 @@ import { QuickRecommendation } from "@/components/recommendations/QuickRecommend
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useReferralProgress } from "@/hooks/useReferralProgress";
+import { useUsageCredits, CreditActionType } from "@/hooks/useUsageCredits";
+import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
 
 interface UserGroup {
   id: string;
@@ -88,6 +90,12 @@ const AddExpense = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showApprovalInfo, setShowApprovalInfo] = useState(false);
   const [budgetWarning, setBudgetWarning] = useState<BudgetWarning | null>(null);
+  
+  // Credits state
+  const { checkCredits, consumeCredits } = useUsageCredits();
+  const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [insufficientAction, setInsufficientAction] = useState<CreditActionType>('ocr_scan');
+  const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 1 });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -184,6 +192,15 @@ const AddExpense = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    // Check credits before OCR
+    const creditCheck = await checkCredits('ocr_scan');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setInsufficientAction('ocr_scan');
+      setShowInsufficientDialog(true);
+      return;
+    }
+
     setOcrProcessing(true);
     try {
       // Create preview URL
@@ -216,6 +233,9 @@ const AddExpense = () => {
           setSelectedCategory(enhancedData.suggested_category_id);
         }
         
+        // Consume credits after successful OCR
+        await consumeCredits('ocr_scan');
+        
         toast({
           title: t('receipt_scanner.success'),
           description: t('receipt_scanner.extracted'),
@@ -237,6 +257,9 @@ const AddExpense = () => {
           if (ocrData.total) setAmount(ocrData.total.toString());
           if (ocrData.merchant) setDescription(ocrData.merchant);
           if (ocrData.receipt_date) setSpentAt(ocrData.receipt_date);
+          
+          // Consume credits after successful basic OCR
+          await consumeCredits('ocr_scan');
           
           toast({
             title: t('receipt_scanner.basic_success'),
@@ -268,12 +291,24 @@ const AddExpense = () => {
       return;
     }
 
+    // Check credits before smart categorization
+    const creditCheck = await checkCredits('smart_category');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setInsufficientAction('smart_category');
+      setShowInsufficientDialog(true);
+      return;
+    }
+
     const suggestions = await suggestCategories(
       description,
       ocrResults[0]?.merchant || undefined,
       amount ? parseFloat(amount) : undefined,
       selectedGroup?.id
     );
+    
+    // Consume credits after successful categorization
+    await consumeCredits('smart_category');
     
     setCategorySuggestions(suggestions);
     setShowSuggestions(true);
@@ -1196,6 +1231,15 @@ const AddExpense = () => {
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
+      
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        open={showInsufficientDialog}
+        onOpenChange={setShowInsufficientDialog}
+        actionType={insufficientAction}
+        currentBalance={creditCheckResult.currentBalance}
+        requiredCredits={creditCheckResult.requiredCredits}
+      />
     </div>
   );
 };
