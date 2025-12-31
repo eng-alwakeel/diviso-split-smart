@@ -95,5 +95,44 @@
   },
   "header": {
     "credits": "نقاط"
+  },
+  "balance_card": {
+    "title": "رصيد النقاط",
+    "usage_credits": "نقاط استخدام",
+    "reward_points": "نقاط مكافآت",
+    "expiring_warning": "{{count}} نقاط تنتهي خلال {{days}} أيام",
+    "buy_credits": "شراء نقاط",
+    "invite_friends": "دعوة أصدقاء",
+    "low_balance": "رصيدك منخفض!"
+  },
+  "referral_journey": {
+    "title": "رحلة الدعوة الناجحة",
+    "step_signup": "تسجيل",
+    "step_first_usage": "أول استخدام",
+    "step_group_settlement": "قروب/تسوية",
+    "successful_referral": "دعوة ناجحة",
+    "points": "نقطة",
+    "bonus_rewards": "مكافآت إضافية",
+    "active_7_days": "نشط 7 أيام",
+    "subscribed": "اشترك",
+    "max_per_referral": "الحد الأقصى للدعوة"
+  },
+  "invitee_status": {
+    "title": "حالة دعواتك",
+    "total_earned": "إجمالي من الدعوات",
+    "no_invites": "لم تقم بدعوة أي شخص بعد",
+    "invite_now": "ادعُ أصدقاءك الآن",
+    "stages": {
+      "signed_up": "مسجّل",
+      "first_usage": "أول استخدام",
+      "group_or_settlement": "قروب/تسوية",
+      "active_7_days": "نشط 7 أيام",
+      "subscribed": "مشترك"
+    }
+  },
+  "how_to_earn": {
+    "title": "كيف تكسب نقاط المكافآت؟",
+    "daily_streaks": "سلسلة الدخول اليومي",
+    "referral_rewards": "مكافآت الدعوات"
   }
 }

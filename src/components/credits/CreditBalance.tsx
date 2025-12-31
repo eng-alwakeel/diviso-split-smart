@@ -27,7 +27,21 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
   }
 
   const hasLowBalance = balance.totalAvailable < 10;
+  const hasMediumBalance = balance.totalAvailable >= 10 && balance.totalAvailable <= 20;
   const hasExpiringCredits = balance.expiringSoon > 0;
+
+  // Dynamic color based on balance level
+  const getBalanceColor = () => {
+    if (hasLowBalance) return 'text-destructive';
+    if (hasMediumBalance) return 'text-amber-500';
+    return 'text-green-600 dark:text-green-400';
+  };
+
+  const getIconColor = () => {
+    if (hasLowBalance) return 'text-destructive';
+    if (hasMediumBalance) return 'text-amber-500';
+    return 'text-amber-500';
+  };
 
   if (compact) {
     return (
@@ -37,11 +51,11 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1.5 px-2 h-8"
+              className={`gap-1.5 px-2 h-8 ${hasLowBalance ? 'animate-pulse' : ''}`}
               onClick={() => navigate('/credit-store')}
             >
-              <Coins className="h-4 w-4 text-amber-500" />
-              <span className={`font-medium ${hasLowBalance ? 'text-destructive' : 'text-foreground'}`}>
+              <Coins className={`h-4 w-4 ${getIconColor()}`} />
+              <span className={`font-medium ${getBalanceColor()}`}>
                 {balance.totalAvailable}
               </span>
               {hasLowBalance && showWarning && (
@@ -49,12 +63,15 @@ export function CreditBalance({ compact = false, showWarning = true }: CreditBal
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-center">
-            <p>{t('balance.current')}: {balance.totalAvailable} {t('balance.credits')}</p>
+          <TooltipContent side="bottom" className="text-center space-y-1">
+            <p className="font-medium">{t('balance.current')}: {balance.totalAvailable} {t('balance.credits')}</p>
             {hasExpiringCredits && balance.expiringSoonDate && (
-              <p className="text-amber-500 text-xs mt-1">
+              <p className="text-amber-500 text-xs">
                 {balance.expiringSoon} {t('balance.expiring_soon')}
               </p>
+            )}
+            {hasLowBalance && (
+              <p className="text-destructive text-xs">{t('balance.no_credits')}</p>
             )}
           </TooltipContent>
         </Tooltip>

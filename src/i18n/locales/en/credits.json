@@ -95,5 +95,44 @@
   },
   "header": {
     "credits": "credits"
+  },
+  "balance_card": {
+    "title": "Credit Balance",
+    "usage_credits": "Usage Credits",
+    "reward_points": "Reward Points",
+    "expiring_warning": "{{count}} credits expiring in {{days}} days",
+    "buy_credits": "Buy Credits",
+    "invite_friends": "Invite Friends",
+    "low_balance": "Low balance!"
+  },
+  "referral_journey": {
+    "title": "Successful Referral Journey",
+    "step_signup": "Sign Up",
+    "step_first_usage": "First Usage",
+    "step_group_settlement": "Group/Settlement",
+    "successful_referral": "Successful Referral",
+    "points": "points",
+    "bonus_rewards": "Bonus Rewards",
+    "active_7_days": "Active 7 Days",
+    "subscribed": "Subscribed",
+    "max_per_referral": "Max per Referral"
+  },
+  "invitee_status": {
+    "title": "Your Invites Status",
+    "total_earned": "Total from Referrals",
+    "no_invites": "You haven't invited anyone yet",
+    "invite_now": "Invite your friends now",
+    "stages": {
+      "signed_up": "Signed Up",
+      "first_usage": "First Usage",
+      "group_or_settlement": "Group/Settlement",
+      "active_7_days": "Active 7 Days",
+      "subscribed": "Subscribed"
+    }
+  },
+  "how_to_earn": {
+    "title": "How to Earn Reward Points?",
+    "daily_streaks": "Daily Login Streaks",
+    "referral_rewards": "Referral Rewards"
   }
 }
