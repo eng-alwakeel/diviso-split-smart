@@ -469,6 +469,130 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_consumption_log: {
+        Row: {
+          action_type: string
+          amount_consumed: number
+          created_at: string | null
+          credit_id: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          amount_consumed: number
+          created_at?: string | null
+          credit_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          amount_consumed?: number
+          created_at?: string | null
+          credit_id?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_consumption_log_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "usage_credits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_packages: {
+        Row: {
+          bonus_credits: number | null
+          created_at: string | null
+          credits: number
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string
+          price_sar: number
+          sort_order: number | null
+          updated_at: string | null
+          validity_days: number
+        }
+        Insert: {
+          bonus_credits?: number | null
+          created_at?: string | null
+          credits: number
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar: string
+          price_sar: number
+          sort_order?: number | null
+          updated_at?: string | null
+          validity_days: number
+        }
+        Update: {
+          bonus_credits?: number | null
+          created_at?: string | null
+          credits?: number
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string
+          price_sar?: number
+          sort_order?: number | null
+          updated_at?: string | null
+          validity_days?: number
+        }
+        Relationships: []
+      }
+      credit_purchases: {
+        Row: {
+          created_at: string | null
+          credits_purchased: number
+          id: string
+          package_id: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          price_paid: number
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_purchased: number
+          id?: string
+          package_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          price_paid: number
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_purchased?: number
+          id?: string
+          package_id?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          price_paid?: number
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "credit_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       currencies: {
         Row: {
           code: string
@@ -1943,6 +2067,69 @@ export type Database = {
           },
         ]
       }
+      reward_points: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description_ar: string | null
+          id: string
+          metadata: Json | null
+          source: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description_ar?: string | null
+          id?: string
+          metadata?: Json | null
+          source: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description_ar?: string | null
+          id?: string
+          metadata?: Json | null
+          source?: string
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reward_points_summary: {
+        Row: {
+          available_balance: number | null
+          created_at: string | null
+          last_conversion_at: string | null
+          total_converted: number | null
+          total_earned: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          available_balance?: number | null
+          created_at?: string | null
+          last_conversion_at?: string | null
+          total_converted?: number | null
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          available_balance?: number | null
+          created_at?: string | null
+          last_conversion_at?: string | null
+          total_converted?: number | null
+          total_earned?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reward_types: {
         Row: {
           created_at: string
@@ -2133,6 +2320,42 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          billing_cycle: string
+          created_at: string | null
+          credits_per_month: number
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string
+          price_sar: number
+        }
+        Insert: {
+          billing_cycle: string
+          created_at?: string | null
+          credits_per_month: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar: string
+          price_sar: number
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string | null
+          credits_per_month?: number
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string
+          price_sar?: number
+        }
+        Relationships: []
+      }
       temporary_unlocks: {
         Row: {
           created_at: string
@@ -2168,6 +2391,42 @@ export type Database = {
           restrictions?: Json | null
           source?: string
           used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_credits: {
+        Row: {
+          amount: number
+          consumed: number | null
+          created_at: string | null
+          description_ar: string | null
+          expires_at: string
+          id: string
+          source: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          consumed?: number | null
+          created_at?: string | null
+          description_ar?: string | null
+          expires_at: string
+          id?: string
+          source: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          consumed?: number | null
+          created_at?: string | null
+          description_ar?: string | null
+          expires_at?: string
+          id?: string
+          source?: string
+          source_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2570,6 +2829,17 @@ export type Database = {
         }
         Returns: Json
       }
+      add_reward_points: {
+        Args: {
+          p_amount: number
+          p_description_ar?: string
+          p_metadata?: Json
+          p_source: string
+          p_source_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_delete_group: { Args: { p_group_id: string }; Returns: boolean }
       admin_toggle_user_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
@@ -2587,6 +2857,10 @@ export type Database = {
       can_approve_group_expenses: {
         Args: { p_group_id: string }
         Returns: boolean
+      }
+      can_perform_action: {
+        Args: { p_action_type: string; p_user_id: string }
+        Returns: Json
       }
       check_and_create_achievements: {
         Args: { p_user_id: string }
@@ -2632,6 +2906,16 @@ export type Database = {
         Args: { p_task_name: string; p_user_id: string }
         Returns: Json
       }
+      consume_credits: {
+        Args: {
+          p_action_type: string
+          p_amount: number
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      convert_rewards_to_credits: { Args: { p_user_id: string }; Returns: Json }
       create_group_join_token: {
         Args: {
           p_group_id: string
@@ -2683,6 +2967,14 @@ export type Database = {
           plan_type: string
           total_users: number
           trial_users: number
+        }[]
+      }
+      get_available_credits: {
+        Args: { p_user_id: string }
+        Returns: {
+          expiring_soon: number
+          expiring_soon_date: string
+          total_available: number
         }[]
       }
       get_balance_summary: {
@@ -2857,6 +3149,11 @@ export type Database = {
           phone: string
         }[]
       }
+      grant_daily_credits: { Args: { p_user_id: string }; Returns: Json }
+      grant_subscription_credits: {
+        Args: { p_plan_name: string; p_user_id: string }
+        Returns: Json
+      }
       grant_temporary_unlock: {
         Args: {
           p_duration_days: number
@@ -2867,6 +3164,7 @@ export type Database = {
         }
         Returns: Json
       }
+      grant_welcome_credits: { Args: { p_user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
