@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { Copy, Link, RefreshCw, Users, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useOnboarding } from "@/hooks/useOnboarding";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
@@ -19,7 +18,6 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
-  const { completeTask } = useOnboarding();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [linkInfo, setLinkInfo] = useState<{
@@ -70,9 +68,6 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
         title: "تم إنشاء رابط الدعوة", 
         description: `العدد المسموح: ${maxUsesText}، صالح لـ ${hoursLeft} ساعة`
       });
-      
-      // Complete onboarding task for first invite
-      await completeTask('invite');
     } catch (error: any) {
       console.error("[InviteLinkTab] create token error:", error);
       

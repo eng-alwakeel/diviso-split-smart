@@ -3,15 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Gift, 
+  Target, 
   Check, 
   User, 
   Users, 
   Receipt, 
   UserPlus, 
   Share2,
-  ChevronLeft,
-  Coins
+  ChevronLeft
 } from 'lucide-react';
 import { useOnboarding, OnboardingTask } from '@/hooks/useOnboarding';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { OnboardingShareDialog } from '@/components/onboarding/OnboardingShareDialog';
 import { useUnifiedRealtimeListener } from '@/hooks/useUnifiedRealtimeListener';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -54,11 +52,6 @@ const TaskItem = memo(({ task, onGo }: { task: OnboardingTask; onGo: () => void 
       </p>
       
       <div className="flex items-center gap-1 shrink-0">
-        <span className="text-[10px] text-primary font-medium flex items-center gap-0.5">
-          <Coins className="w-2.5 h-2.5" />
-          +{task.coinsReward}
-        </span>
-        
         {!task.completed && task.route && (
           <Button
             size="sm"
@@ -87,10 +80,7 @@ export const OnboardingProgress = memo(() => {
     progressPercent,
     allCompleted,
     rewardClaimed,
-    loading,
-    showShareDialog,
-    setShowShareDialog,
-    rewardDetails
+    loading
   } = useOnboarding();
 
   useEffect(() => {
@@ -108,54 +98,36 @@ export const OnboardingProgress = memo(() => {
     if (route) navigate(route);
   };
 
+  // Hide if loading, all completed, or reward claimed
   if (loading || rewardClaimed || allCompleted) {
-    return (
-      <OnboardingShareDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        rewardDetails={rewardDetails}
-      />
-    );
+    return null;
   }
 
   return (
-    <>
-      <Card className="bg-card border-primary/20">
-        <CardHeader className="pb-2 pt-3 px-3">
-          <CardTitle className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-1.5">
-              <Gift className="w-4 h-4 text-primary" />
-              <span>{t('onboarding.title')}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {completedCount}/{totalTasks}
-            </span>
-          </CardTitle>
-          <Progress value={progressPercent} className="h-1 mt-2" />
-        </CardHeader>
-        
-        <CardContent className="px-3 pb-3 space-y-1">
-          {tasks.map(task => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onGo={() => handleGoToTask(task.route)}
-            />
-          ))}
-
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground pt-1.5 border-t border-border/50">
-            <Gift className="w-3 h-3 text-primary" />
-            <span>{t('onboarding.final_reward')}</span>
+    <Card className="bg-card border-primary/20">
+      <CardHeader className="pb-2 pt-3 px-3">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-primary" />
+            <span>{t('onboarding.title')}</span>
           </div>
-        </CardContent>
-      </Card>
-
-      <OnboardingShareDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        rewardDetails={rewardDetails}
-      />
-    </>
+          <span className="text-xs text-muted-foreground">
+            {completedCount}/{totalTasks}
+          </span>
+        </CardTitle>
+        <Progress value={progressPercent} className="h-1 mt-2" />
+      </CardHeader>
+      
+      <CardContent className="px-3 pb-3 space-y-1">
+        {tasks.map(task => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            onGo={() => handleGoToTask(task.route)}
+          />
+        ))}
+      </CardContent>
+    </Card>
   );
 });
 
