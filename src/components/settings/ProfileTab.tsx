@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
+import { EmailVerificationDialog } from "./EmailVerificationDialog";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +63,9 @@ export function ProfileTab({
   
   // نوافذ التحقق
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [pendingPhone, setPendingPhone] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
   
   // قص الصورة
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -128,20 +131,36 @@ export function ProfileTab({
     setValidationErrors({});
   };
 
+  const sendVerificationEmail = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const response = await supabase.functions.invoke("send-email-verification", {
+      body: { email: profile.email, userName: profile.name },
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message || "Failed to send verification email");
+    }
+
+    if (response.data?.error) {
+      throw new Error(response.data.error);
+    }
+  };
+
   const handleSendEmailVerification = async () => {
     if (!profile.email.trim()) return;
     
     setSendingEmailVerification(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        email: profile.email
-      });
+      await sendVerificationEmail();
       
-      if (error) throw error;
-      
+      setPendingEmail(profile.email);
       setEmailVerificationSent(true);
+      setShowEmailVerification(true);
       toast.success(t('settings:toast.email_verification_sent'));
-      toast.info(t('settings:toast.check_email_for_verification'));
     } catch (error: any) {
       toast.error(error.message || t('settings:errors.email_verification_failed'));
     } finally {
@@ -495,6 +514,20 @@ export function ProfileTab({
           setPendingPhone("");
           setShowPhoneVerification(false);
         }}
+      />
+
+      {/* نافذة التحقق من البريد */}
+      <EmailVerificationDialog
+        open={showEmailVerification}
+        onOpenChange={setShowEmailVerification}
+        email={pendingEmail}
+        userName={profile.name}
+        onSuccess={() => {
+          setEmailVerificationSent(false);
+          setShowEmailVerification(false);
+          toast.success(t('settings:email_verification.success'));
+        }}
+        onResend={sendVerificationEmail}
       />
     </div>
   );

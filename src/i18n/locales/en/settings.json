@@ -56,8 +56,24 @@
     "verify_email": "Verify Email",
     "verify_phone": "Verify Phone",
     "sent": "Sent",
-    "email_pending": "Verification link sent, please check your email",
+    "email_pending": "Verification code sent, please enter it below",
     "phone_verified_success": "Phone number verified successfully"
+  },
+  "email_verification": {
+    "title": "Email Verification",
+    "description": "Enter the verification code sent to",
+    "enter_code": "Please enter the complete code",
+    "invalid_code": "Invalid or expired code",
+    "success": "Email verified successfully",
+    "error": "Failed to verify code",
+    "expires_in": "Expires in",
+    "expired": "Code has expired",
+    "verifying": "Verifying...",
+    "verify": "Verify",
+    "resend": "Resend Code",
+    "resending": "Sending...",
+    "resent": "Code resent successfully",
+    "resend_error": "Failed to resend code"
   },
   "subscription": {
     "title": "Subscription Details",
@@ -196,8 +212,8 @@
     "subscription_canceled": "Subscription Canceled",
     "subscription_canceled_desc": "Your subscription has been canceled successfully",
     "cancel_error": "An error occurred while canceling subscription",
-    "email_verification_sent": "Verification email sent",
-    "check_email_for_verification": "Please check your new email for the verification link"
+    "email_verification_sent": "Verification code sent",
+    "check_email_for_verification": "Please check your new email for the verification code"
   },
   "errors": {
     "trial_exists": "Trial Already Exists",
@@ -206,7 +222,8 @@
     "trial_expired_description": "You have used up your available free trial period (7 days)",
     "start_trial_error": "An error occurred while starting the free trial",
     "switch_plan_error": "An error occurred while switching plans",
-    "cancel_error": "An error occurred while canceling subscription"
+    "cancel_error": "An error occurred while canceling subscription",
+    "email_verification_failed": "Failed to send verification code"
   },
   "success": {
     "trial_started": "Free Trial Started!",
