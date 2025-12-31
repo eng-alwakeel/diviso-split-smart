@@ -275,5 +275,33 @@
     "yes_sent": "Yes, sent",
     "no_cancel": "No, cancel",
     "invite_marked_sent": "Invite status updated to sent"
-  }
+  },
+  "my_groups_desc": "Manage and track your shared groups",
+  "stats": {
+    "groups": "Groups",
+    "managed": "Managed",
+    "members": "Members",
+    "member": "member"
+  },
+  "search_placeholder": "Search for a group...",
+  "tabs": {
+    "active": "Active",
+    "archived": "Archived"
+  },
+  "section_title": {
+    "active": "Active Groups",
+    "archived": "Archived Groups"
+  },
+  "card": {
+    "view": "View",
+    "expense": "Expense",
+    "admin": "Admin",
+    "options": "Options",
+    "settings": "Settings",
+    "archive": "Archive",
+    "restore": "Restore"
+  },
+  "load_error": "Error loading groups",
+  "no_search_results": "No search results",
+  "create_first": "Create your first group"
 }
