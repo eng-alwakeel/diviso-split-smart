@@ -54,12 +54,13 @@ export function useUsageCredits() {
         return;
       }
 
-      const totalCredits = typeof data === 'number' ? data : 0;
-
+      // RPC يرجع TABLE كـ array أو object واحد
+      const row = Array.isArray(data) ? data[0] : data;
+      
       setBalance({
-        totalAvailable: totalCredits,
-        expiringSoon: 0,
-        expiringSoonDate: null
+        totalAvailable: row?.total_available ?? 0,
+        expiringSoon: row?.expiring_soon ?? 0,
+        expiringSoonDate: row?.expiring_soon_date ? new Date(row.expiring_soon_date) : null
       });
     } catch (error) {
       console.error('Error in fetchBalance:', error);
@@ -85,7 +86,9 @@ export function useUsageCredits() {
 
       if (error) throw error;
 
-      const availableCredits = typeof data === 'number' ? data : 0;
+      // RPC يرجع TABLE كـ array أو object واحد
+      const row = Array.isArray(data) ? data[0] : data;
+      const availableCredits = row?.total_available ?? 0;
       const canPerform = availableCredits >= requiredCredits;
 
       return {
@@ -120,7 +123,9 @@ export function useUsageCredits() {
         return false;
       }
 
-      const success = data === true;
+      // RPC يرجع JSONB كـ object فيه success
+      const result = data as { success?: boolean } | null;
+      const success = result?.success === true;
       if (success) {
         await fetchBalance();
         queryClient.invalidateQueries({ queryKey: ['usage-credits'] });

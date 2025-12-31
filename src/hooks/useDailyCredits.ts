@@ -76,7 +76,9 @@ export function useDailyCredits() {
         return false;
       }
 
-      if (data === true) {
+      // RPC يرجع JSONB كـ object فيه success
+      const result = data as { success?: boolean; reason?: string } | null;
+      if (result?.success === true) {
         toast({ 
           title: `🎁 حصلت على ${state.dailyAmount} نقاط!`,
           description: 'نقاطك اليومية متاحة الآن'
@@ -84,6 +86,11 @@ export function useDailyCredits() {
         await checkDailyStatus();
         queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
         return true;
+      }
+
+      // معالجة حالة "سبق الحصول عليها اليوم"
+      if (result?.reason === 'already_claimed_today') {
+        toast({ title: 'لقد حصلت على نقاطك اليوم بالفعل' });
       }
 
       return false;
