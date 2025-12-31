@@ -427,29 +427,7 @@ const CreateGroup = () => {
       console.error('Error checking group count:', countError);
     }
     
-    // Get current plan limits
-    const { data: planData } = await supabase.rpc('get_user_plan', { p_user_id: user.id });
-    const currentPlan = planData || 'free';
-    
-    const { data: limitData } = await supabase
-      .from('subscription_limits')
-      .select('limit_value')
-      .eq('plan', currentPlan)
-      .eq('action', 'group_created')
-      .single();
-    
-    const groupLimit = limitData?.limit_value ?? 3;
-    
-    // Check if user has reached group limit (skip if unlimited = -1)
-    if (groupLimit !== -1 && (groupCount ?? 0) >= groupLimit) {
-      toast({ 
-        title: t('quota:reached_limit.groups.title'), 
-        description: t('quota:reached_limit.groups.description'),
-        variant: 'destructive' 
-      });
-      navigate('/pricing');
-      throw new Error('quota_exceeded');
-    }
+    // Note: Subscription limits have been removed - groups are now unlimited
     
     // Check credits before creating group
     const creditCheck = await checkCredits('create_group');

@@ -48,7 +48,8 @@
     "default_user": "مستخدم",
     "admin_badge": "مدير",
     "trial_remaining": "تجربة مجانية • {{days}} أيام متبقية",
-    "phone_verify_notice": "سيتم طلب التحقق من رقم الجوال الجديد عند الحفظ"
+    "phone_verify_notice": "سيتم طلب التحقق من رقم الجوال الجديد عند الحفظ",
+    "email_verify_notice": "سيتم إرسال رابط تأكيد للإيميل الجديد"
   },
   "security": {
     "title": "تغيير كلمة المرور",
@@ -131,7 +132,9 @@
     "logout_success": "تم تسجيل الخروج بنجاح",
     "logout_redirect": "سيتم تحويلك للصفحة الرئيسية",
     "logout_error": "خطأ في تسجيل الخروج",
-    "logout_error_desc": "حدث خطأ، يرجى المحاولة مرة أخرى"
+    "logout_error_desc": "حدث خطأ، يرجى المحاولة مرة أخرى",
+    "email_verification_sent": "تم إرسال رابط التحقق",
+    "check_email_for_verification": "يرجى التحقق من بريدك الإلكتروني الجديد للتأكيد"
   },
   "errors": {
     "start_trial_error": "حدث خطأ أثناء بدء التجربة المجانية"
