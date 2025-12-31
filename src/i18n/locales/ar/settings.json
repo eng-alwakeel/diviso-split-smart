@@ -49,7 +49,15 @@
     "admin_badge": "مدير",
     "trial_remaining": "تجربة مجانية • {{days}} أيام متبقية",
     "phone_verify_notice": "سيتم طلب التحقق من رقم الجوال الجديد عند الحفظ",
-    "email_verify_notice": "سيتم إرسال رابط تأكيد للإيميل الجديد"
+    "email_verify_notice": "سيتم إرسال رابط تأكيد للإيميل الجديد",
+    "edit_request": "طلب تعديل",
+    "verified": "مؤكد",
+    "not_verified": "غير مؤكد",
+    "verify_email": "تأكيد الإيميل",
+    "verify_phone": "تأكيد الجوال",
+    "sent": "تم الإرسال",
+    "email_pending": "تم إرسال رابط التأكيد، يرجى مراجعة بريدك الإلكتروني",
+    "phone_verified_success": "تم التحقق من رقم الجوال بنجاح"
   },
   "security": {
     "title": "تغيير كلمة المرور",
