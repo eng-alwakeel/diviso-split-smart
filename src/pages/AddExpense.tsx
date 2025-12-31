@@ -36,6 +36,7 @@ import { expenseSchema, expenseSplitSchema, safeValidateInput } from "@/lib/vali
 import { QuickRecommendation } from "@/components/recommendations/QuickRecommendation";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useReferralProgress } from "@/hooks/useReferralProgress";
 
 interface UserGroup {
   id: string;
@@ -57,6 +58,7 @@ const AddExpense = () => {
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   const { mutateAsync: checkBudgetWarnings } = useBudgetWarnings();
   const { completeTask } = useOnboarding();
+  const { notifyFirstUsage } = useReferralProgress();
   
   // Form state
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
@@ -524,6 +526,9 @@ const AddExpense = () => {
 
       // Complete onboarding task for first expense
       await completeTask('expense');
+
+      // Notify referral progress (grants 10 RP to inviter if this is first expense)
+      await notifyFirstUsage();
 
       // Reset form
       setAmount('');

@@ -3,13 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
-// مصادر نقاط المكافآت
+// مصادر نقاط المكافآت - الدعوات فقط (Quality-Based)
 export const REWARD_SOURCES = {
   daily_login: { amount: 2, nameAr: 'دخول يومي', nameEn: 'Daily Login' },
-  add_expense: { amount: 1, nameAr: 'إضافة مصروف', nameEn: 'Add Expense' },
-  settlement: { amount: 2, nameAr: 'تسوية', nameEn: 'Settlement' },
-  create_group: { amount: 3, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group' },
-  referral_signup: { amount: 10, nameAr: 'تسجيل مدعو', nameEn: 'Referral Signup' }
+  // مراحل الدعوة
+  referral_first_usage: { amount: 10, nameAr: 'أول استخدام للمدعو', nameEn: 'Referral First Usage' },
+  referral_group_settlement: { amount: 20, nameAr: 'مدعو أنشأ قروب/تسوية', nameEn: 'Referral Group/Settlement' },
+  // مكافآت الجودة
+  referral_active_7_days: { amount: 5, nameAr: 'مدعو نشط 7 أيام', nameEn: 'Referral Active 7 Days' },
+  referral_subscribed: { amount: 20, nameAr: 'مدعو اشترك', nameEn: 'Referral Subscribed' }
 } as const;
 
 export type RewardSourceType = keyof typeof REWARD_SOURCES;

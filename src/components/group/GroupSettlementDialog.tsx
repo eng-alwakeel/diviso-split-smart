@@ -12,6 +12,7 @@ import { BalanceBreakdown } from "./BalanceBreakdown";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { settlementSchema, safeValidateInput } from "@/lib/validation";
+import { useReferralProgress } from "@/hooks/useReferralProgress";
 
 export interface MemberRow {
   user_id: string;
@@ -81,6 +82,7 @@ export const GroupSettlementDialog = ({
   const { toast } = useToast();
   const { currencies, convertCurrency, getExchangeRate } = useCurrencies();
   const { settings } = useUserSettings();
+  const { notifyMilestone } = useReferralProgress();
   const [rows, setRows] = useState<RowState[]>([{ to_user_id: initialToUserId || "", amount: initialAmount?.toString() || "", note: "" }]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -175,6 +177,10 @@ export const GroupSettlementDialog = ({
       if (error) {
         throw error;
       }
+      
+      // Notify referral progress (grants 20 RP to inviter if this is first settlement)
+      await notifyMilestone('settlement');
+      
       toast({ title: "تمت إضافة التسوية", description: "تم تسجيل التحويلات بنجاح." });
       onOpenChange(false);
       onCreated?.();
