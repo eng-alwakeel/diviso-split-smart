@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useDailyCheckin } from '@/hooks/useDailyCheckin';
-import { Gift, Check, HelpCircle, Trophy, Flame, Star, Loader2, Coins, Camera, Sparkles } from 'lucide-react';
+import { Gift, Check, Trophy, Flame, Star, Loader2, Coins, Camera, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DayCircle = memo(({ 
@@ -25,19 +25,19 @@ const DayCircle = memo(({
 }) => {
   const getIcon = () => {
     if (completed) {
-      return <Check className="h-4 w-4 text-primary-foreground" />;
+      return <Check className="h-4 w-4" />;
     }
     if (day === 7) {
-      return <Trophy className="h-4 w-4 text-amber-500" />;
+      return <Trophy className="h-4 w-4 text-primary" />;
     }
     if (reward.type === 'soft_unlock') {
-      return <Sparkles className="h-4 w-4 text-purple-500" />;
+      return <Sparkles className="h-4 w-4 text-primary" />;
     }
     if (reward.type === 'boost') {
-      return <Camera className="h-4 w-4 text-blue-500" />;
+      return <Camera className="h-4 w-4 text-primary" />;
     }
     if (reward.type === 'badge') {
-      return <Star className="h-4 w-4 text-amber-500" />;
+      return <Star className="h-4 w-4 text-primary" />;
     }
     if (reward.type === 'coins') {
       return <Coins className="h-4 w-4 text-muted-foreground" />;
@@ -49,9 +49,9 @@ const DayCircle = memo(({
     <div className="flex flex-col items-center gap-1">
       <div
         className={cn(
-          "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-          completed && "bg-primary shadow-lg shadow-primary/30",
-          isToday && !completed && "bg-accent border-2 border-primary animate-pulse",
+          "w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300",
+          completed && "bg-primary text-primary-foreground shadow-lg shadow-primary/30",
+          isToday && !completed && "bg-primary/20 border-2 border-primary animate-pulse",
           !completed && !isToday && "bg-muted border border-border"
         )}
       >
@@ -79,7 +79,7 @@ const DailyCheckInCard = memo(() => {
 
   if (loading) {
     return (
-      <Card className="bg-gradient-to-br from-card to-accent/20 border-primary/20">
+      <Card className="bg-card border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-center h-24">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -90,7 +90,7 @@ const DailyCheckInCard = memo(() => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-card to-accent/20 border-primary/20 overflow-hidden">
+    <Card className="bg-card border-primary/20 overflow-hidden">
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -104,9 +104,9 @@ const DailyCheckInCard = memo(() => {
             </div>
           </div>
           {streak.currentStreak > 0 && (
-            <div className="flex items-center gap-1 bg-destructive/10 px-3 py-1 rounded-full">
-              <Flame className="h-4 w-4 text-destructive" />
-              <span className="text-sm font-bold text-destructive">{streak.currentStreak}</span>
+            <div className="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full">
+              <Flame className="h-4 w-4 text-primary" />
+              <span className="text-sm font-bold text-primary">{streak.currentStreak}</span>
             </div>
           )}
         </div>
@@ -131,8 +131,8 @@ const DailyCheckInCard = memo(() => {
           className={cn(
             "w-full transition-all",
             checkedInToday 
-              ? "bg-primary/20 text-primary border border-primary/30" 
-              : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
+              ? "bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30" 
+              : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30"
           )}
         >
           {claiming ? (
@@ -167,7 +167,7 @@ const DailyCheckInCard = memo(() => {
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="text-center">
-              <p className="text-lg font-bold text-amber-500">{streak.longestStreak}</p>
+              <p className="text-lg font-bold text-primary">{streak.longestStreak}</p>
               <p className="text-xs text-muted-foreground">{t('checkin.longest_streak')}</p>
             </div>
           </div>
