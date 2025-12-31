@@ -17,7 +17,7 @@ import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { FamilyPlanManagement } from "@/components/family/FamilyPlanManagement";
-import { AcceptFamilyInvite } from "@/components/family/AcceptFamilyInvite";
+
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
@@ -459,46 +459,7 @@ const Settings = () => {
 
           {/* Family Plan Tab */}
           <TabsContent value="family" className="space-y-6">
-            <div className="space-y-6">
-              {subscription?.plan === 'family' ? (
-                <FamilyPlanManagement />
-              ) : (
-                <div className="space-y-6">
-                  <AcceptFamilyInvite />
-                  <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-foreground">
-                        <Users className="w-5 h-5 text-accent" />
-                        {t('settings:family.upgrade_title')}
-                      </CardTitle>
-                      <CardDescription>
-                        {t('settings:family.upgrade_description')}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {(!subscription || subscription?.status === "expired") && (
-                          <Button 
-                            onClick={() => handleStartTrial('family')}
-                            className="w-full"
-                            disabled={loading}
-                          >
-                            {loading ? t('settings:family.starting_trial') : t('settings:family.start_trial')}
-                          </Button>
-                        )}
-                        <Button 
-                          variant="outline"
-                          onClick={() => navigate('/pricing')}
-                          className="w-full"
-                        >
-                          {t('settings:family.view_plans')}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
+            <FamilyPlanManagement />
           </TabsContent>
 
           {/* Language Tab */}

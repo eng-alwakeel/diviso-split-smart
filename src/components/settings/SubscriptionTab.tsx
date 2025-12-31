@@ -7,7 +7,7 @@ import { CreditCard, Calendar, Clock, Gift, Zap, Crown, XCircle, Gem, UserPlus }
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
-import { QuotaStatus } from "@/components/QuotaStatus";
+
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -155,7 +155,7 @@ export function SubscriptionTab({
                 )}
               </div>
 
-              <QuotaStatus />
+              
 
               {/* Trial Days Remaining Display */}
               {remainingTrialDays > 0 && (
