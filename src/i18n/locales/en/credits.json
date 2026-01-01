@@ -100,14 +100,12 @@
     "settlement": "Settlement",
     "view_data": "View Data"
   },
-  "packages": {
+"packages": {
     "title": "Buy Credits",
     "subtitle": "Choose the package that suits you",
     "best_value": "Best Value",
     "most_popular": "Most Popular",
     "valid_for": "Valid for {{days}} days",
-    "coming_soon": "Coming Soon!",
-    "coming_soon_desc": "Credit purchasing will be available soon",
     "buy_now": "Buy Now",
     "load_error": "Failed to load packages",
     "large": {
@@ -171,10 +169,9 @@
       "qualified": "Qualified"
     }
   },
-  "subscriptions": {
+"subscriptions": {
     "title": "Subscriptions",
     "subtitle": "Choose the plan that fits your needs",
-    "subscribe_btn": "Subscribe Now",
-    "coming_soon": "Coming Soon"
+    "subscribe_btn": "Subscribe Now"
   }
 }
