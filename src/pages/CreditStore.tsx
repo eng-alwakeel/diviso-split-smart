@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import { 
   Coins, 
   Gift, 
@@ -19,7 +20,7 @@ import {
   CheckCircle2,
   Circle,
   AlertCircle,
-  ShoppingCart
+  Sparkles
 } from 'lucide-react';
 import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { useRewardPoints } from '@/hooks/useRewardPoints';
@@ -39,7 +40,7 @@ const CreditStore = React.memo(() => {
   const navigate = useNavigate();
 
   const { balance, loading: creditsLoading, getConsumptionHistory } = useUsageCredits();
-  const { summary, loading: rewardsLoading, converting, convertToCredits, getRewardHistory } = useRewardPoints();
+  const { summary, loading: rewardsLoading, converting, convertToCredits } = useRewardPoints();
   const { totalEarnedFromReferrals, inviteesProgress, loading: referralLoading } = useReferralStats();
 
   const [consumptionHistory, setConsumptionHistory] = useState<any[]>([]);
@@ -67,10 +68,13 @@ const CreditStore = React.memo(() => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="page-container space-y-4 px-4">
-          <Skeleton className="h-24 w-full rounded-xl" />
-          <Skeleton className="h-24 w-full rounded-xl" />
-          <Skeleton className="h-40 w-full rounded-xl" />
+        <div className="px-4 pt-4 pb-28 max-w-4xl mx-auto space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Skeleton className="h-28 rounded-2xl" />
+            <Skeleton className="h-28 rounded-2xl" />
+          </div>
+          <Skeleton className="h-12 rounded-xl" />
+          <Skeleton className="h-64 rounded-2xl" />
         </div>
         <BottomNav />
       </div>
@@ -82,52 +86,52 @@ const CreditStore = React.memo(() => {
       <SEO title={t('store.title')} noIndex={true} />
       <AppHeader />
       
-      <div className="page-container px-4 pb-32 space-y-5">
+      <main className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-4xl mx-auto space-y-5">
         {/* Header */}
         <div className="pt-2">
           <h1 className="text-xl font-bold text-foreground">{t('store.title')}</h1>
         </div>
 
-        {/* Balance Cards - Stack vertically on mobile */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Balance Cards - Responsive: 1 col on mobile, 2 cols on sm+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Usage Credits Card */}
-          <Card className="bg-gradient-to-br from-primary/15 to-primary/5 border-primary/20">
+          <Card className="bg-gradient-to-br from-primary/15 via-primary/10 to-transparent border-primary/20 rounded-2xl overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Coins className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Coins className="h-6 w-6 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-muted-foreground">{t('balance_card.usage_credits')}</p>
+                  <p className="text-2xl font-bold text-primary">{balance.totalAvailable}</p>
+                  {balance.expiringSoon > 0 && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{balance.expiringSoon} {t('balance.expiring_soon')}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-primary">
-                {balance.totalAvailable}
-              </div>
-              <p className="text-sm text-primary/80">{t('balance.credits')}</p>
-              {balance.expiringSoon > 0 && (
-                <div className="flex items-center gap-1 mt-2 text-xs text-amber-600 dark:text-amber-400">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>{balance.expiringSoon} {t('balance.expiring_soon')}</span>
-                </div>
-              )}
             </CardContent>
           </Card>
 
           {/* Reward Points Card */}
-          <Card className="bg-gradient-to-br from-accent/15 to-accent/5 border-accent/20">
+          <Card className="bg-gradient-to-br from-amber-500/15 via-amber-500/10 to-transparent border-amber-500/20 rounded-2xl overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                  <Gift className="h-5 w-5 text-accent-foreground" />
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                  <Gift className="h-6 w-6 text-amber-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-muted-foreground">{t('balance_card.reward_points')}</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{summary.availableBalance}</p>
+                  {summary.canConvert && summary.availableBalance >= 10 && (
+                    <Badge className="mt-1 text-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30">
+                      {t('rewards.convert')}
+                    </Badge>
+                  )}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-accent-foreground">
-                {summary.availableBalance}
-              </div>
-              <p className="text-sm text-muted-foreground">{t('rewards.balance')}</p>
-              {summary.canConvert && summary.availableBalance >= 10 && (
-                <Badge className="mt-2 text-xs bg-accent text-accent-foreground">
-                  {t('rewards.convert')}
-                </Badge>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -135,46 +139,71 @@ const CreditStore = React.memo(() => {
         {/* Daily Credits */}
         <DailyCheckInCard />
 
-        {/* Tabs - Full width with larger touch targets */}
+        {/* Main Tabs */}
         <Tabs defaultValue="buy" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-12">
-            <TabsTrigger value="buy" className="flex flex-col gap-0.5 h-full py-1.5 text-xs">
-              <ShoppingCart className="h-4 w-4" />
-              <span>{t('store.buy_credits')}</span>
+          <TabsList className="grid w-full grid-cols-3 h-12 rounded-xl bg-muted/50 p-1">
+            <TabsTrigger 
+              value="buy" 
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
+            >
+              <Coins className="h-4 w-4" />
+              <span className="hidden xs:inline">{isRTL ? 'شراء' : 'Buy'}</span>
             </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex flex-col gap-0.5 h-full py-1.5 text-xs">
+            <TabsTrigger 
+              value="rewards" 
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
+            >
               <Gift className="h-4 w-4" />
-              <span>{t('rewards.title')}</span>
+              <span className="hidden xs:inline">{isRTL ? 'مكافآت' : 'Rewards'}</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex flex-col gap-0.5 h-full py-1.5 text-xs">
+            <TabsTrigger 
+              value="history" 
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
+            >
               <History className="h-4 w-4" />
-              <span>{t('store.history')}</span>
+              <span className="hidden xs:inline">{isRTL ? 'سجل' : 'History'}</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Buy Credits Tab */}
           <TabsContent value="buy" className="mt-4 space-y-6">
-            <SubscriptionPlansGrid />
-            
-            {/* Divider */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-border" />
+            {/* Desktop: Two columns / Mobile: Stacked */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Subscriptions Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-base">{t('subscriptions.title')}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">{t('subscriptions.subtitle')}</p>
+                <SubscriptionPlansGrid />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-4 text-muted-foreground">
-                  {t('common:or')}
+
+              {/* Divider - Mobile only */}
+              <div className="flex items-center gap-4 lg:hidden">
+                <Separator className="flex-1" />
+                <span className="text-sm text-muted-foreground font-medium px-2">
+                  {isRTL ? 'أو' : 'OR'}
                 </span>
+                <Separator className="flex-1" />
+              </div>
+
+              {/* Credit Packages Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold text-base">{t('packages.title')}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">{t('packages.section_subtitle')}</p>
+                <CreditPackagesGrid />
               </div>
             </div>
-            
-            <CreditPackagesGrid />
           </TabsContent>
 
           {/* Rewards Tab */}
           <TabsContent value="rewards" className="mt-4 space-y-4">
             {/* Convert Section */}
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <ArrowLeftRight className="h-5 w-5 text-primary" />
@@ -186,7 +215,7 @@ const CreditStore = React.memo(() => {
                   {t('rewards.rate')}
                 </p>
                 
-                {/* Conversion UI - Simplified for mobile */}
+                {/* Conversion UI */}
                 <div className="space-y-3">
                   <input
                     type="range"
@@ -195,13 +224,13 @@ const CreditStore = React.memo(() => {
                     step={10}
                     value={pointsToConvert}
                     onChange={(e) => setPointsToConvert(Number(e.target.value))}
-                    className="w-full h-2 accent-primary"
+                    className="w-full h-2 accent-primary rounded-full"
                     disabled={!summary.canConvert || summary.availableBalance < 10}
                   />
                   
                   <div className="flex items-center justify-between text-sm">
                     <div className="text-center">
-                      <div className="text-xl font-bold text-primary">{pointsToConvert}</div>
+                      <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{pointsToConvert}</div>
                       <div className="text-xs text-muted-foreground">{t('balance_card.reward_points')}</div>
                     </div>
                     <div className="text-xl text-muted-foreground">=</div>
@@ -213,7 +242,7 @@ const CreditStore = React.memo(() => {
                 </div>
 
                 <Button 
-                  className="w-full h-12" 
+                  className="w-full h-11" 
                   disabled={pointsToConvert < 10 || converting || !summary.canConvert}
                   onClick={handleConvert}
                 >
@@ -247,8 +276,8 @@ const CreditStore = React.memo(() => {
               </CardContent>
             </Card>
 
-            {/* Referral Stats - Simplified */}
-            <Card>
+            {/* Referral Stats */}
+            <Card className="rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <TrendingUp className="h-5 w-5 text-primary" />
@@ -257,8 +286,8 @@ const CreditStore = React.memo(() => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Total Earned */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-primary/10">
-                  <span className="font-medium">{t('invitee_status.total_earned')}</span>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10">
+                  <span className="font-medium text-sm">{t('invitee_status.total_earned')}</span>
                   <Badge className="bg-primary text-primary-foreground text-sm">
                     {totalEarnedFromReferrals} {isRTL ? 'نقطة' : 'pts'}
                   </Badge>
@@ -266,7 +295,7 @@ const CreditStore = React.memo(() => {
 
                 {/* Invitees List */}
                 {referralLoading ? (
-                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-20 w-full rounded-xl" />
                 ) : inviteesProgress.length === 0 ? (
                   <div className="text-center py-4 space-y-3">
                     <UserPlus className="h-10 w-10 mx-auto text-muted-foreground/50" />
@@ -278,18 +307,18 @@ const CreditStore = React.memo(() => {
                 ) : (
                   <div className="space-y-2">
                     {inviteesProgress.slice(0, 3).map((invitee) => (
-                      <div key={invitee.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-card">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div key={invitee.id} className="flex items-center justify-between p-2.5 rounded-xl border bg-card">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             {invitee.stage === 'joined' ? (
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
                             ) : (
                               <Circle className="h-4 w-4 text-muted-foreground" />
                             )}
                           </div>
-                          <span className="text-sm font-medium">{invitee.name}</span>
+                          <span className="text-sm font-medium truncate">{invitee.name}</span>
                         </div>
-                        <Badge variant={invitee.stage === 'joined' ? 'default' : 'secondary'} className="text-xs">
+                        <Badge variant={invitee.stage === 'joined' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
                           {t(`invitee_status.stages.${invitee.stage}`)}
                         </Badge>
                       </div>
@@ -310,7 +339,7 @@ const CreditStore = React.memo(() => {
 
             {/* Invite CTA */}
             <Button 
-              className="w-full h-12" 
+              className="w-full h-11" 
               variant="outline"
               onClick={() => navigate('/referral-center')}
             >
@@ -324,11 +353,11 @@ const CreditStore = React.memo(() => {
             {historyLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-16 w-full rounded-xl" />
                 ))}
               </div>
             ) : consumptionHistory.length === 0 ? (
-              <Card>
+              <Card className="rounded-2xl">
                 <CardContent className="py-8 text-center text-muted-foreground">
                   <History className="h-10 w-10 mx-auto mb-3 opacity-50" />
                   <p className="text-sm">{t('store.no_history')}</p>
@@ -337,14 +366,14 @@ const CreditStore = React.memo(() => {
             ) : (
               <div className="space-y-2">
                 {consumptionHistory.map((item) => (
-                  <Card key={item.id} className="overflow-hidden">
+                  <Card key={item.id} className="overflow-hidden rounded-xl">
                     <CardContent className="p-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-9 h-9 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
                           <Coins className="h-4 w-4 text-destructive" />
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">
                             {t(`actions.${item.action_type}`) || item.action_type}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -352,7 +381,7 @@ const CreditStore = React.memo(() => {
                           </p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-destructive border-destructive/30">
+                      <Badge variant="outline" className="text-destructive border-destructive/30 flex-shrink-0">
                         -{item.amount_consumed}
                       </Badge>
                     </CardContent>
@@ -362,7 +391,7 @@ const CreditStore = React.memo(() => {
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       <BottomNav />
     </div>
