@@ -2,15 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 
-// تكاليف العمليات بالنقاط
+// تكاليف العمليات بالنقاط مع نظام الـ gating الجديد
 export const CREDIT_COSTS = {
-  ocr_scan: { type: 'ocr_scan', cost: 1, nameAr: 'مسح إيصال', nameEn: 'Receipt Scan' },
-  smart_category: { type: 'smart_category', cost: 1, nameAr: 'تصنيف ذكي', nameEn: 'Smart Category' },
-  recommendation: { type: 'recommendation', cost: 1, nameAr: 'توصية ذكية', nameEn: 'Smart Recommendation' },
-  advanced_report: { type: 'advanced_report', cost: 2, nameAr: 'تقرير متقدم', nameEn: 'Advanced Report' },
-  export_pdf: { type: 'export_pdf', cost: 1, nameAr: 'تصدير PDF', nameEn: 'PDF Export' },
-  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group' },
-  settlement: { type: 'settlement', cost: 3, nameAr: 'تسوية', nameEn: 'Settlement' }
+  // العمليات المجانية لكن مقفلة عند UC = 0
+  add_expense: { type: 'add_expense', cost: 0, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: true },
+  
+  // العمليات المدفوعة والمقفلة
+  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true },
+  settlement: { type: 'settlement', cost: 3, nameAr: 'تسوية', nameEn: 'Settlement', gated: true },
+  ocr_scan: { type: 'ocr_scan', cost: 1, nameAr: 'مسح إيصال', nameEn: 'Receipt Scan', gated: true },
+  smart_category: { type: 'smart_category', cost: 1, nameAr: 'تصنيف ذكي', nameEn: 'Smart Category', gated: true },
+  recommendation: { type: 'recommendation', cost: 1, nameAr: 'توصية ذكية', nameEn: 'Smart Recommendation', gated: true },
+  advanced_report: { type: 'advanced_report', cost: 2, nameAr: 'تقرير متقدم', nameEn: 'Advanced Report', gated: true },
+  export_pdf: { type: 'export_pdf', cost: 1, nameAr: 'تصدير PDF', nameEn: 'PDF Export', gated: true },
+  
+  // العمليات المسموحة دائماً
+  view_data: { type: 'view_data', cost: 0, nameAr: 'عرض البيانات', nameEn: 'View Data', gated: false }
 } as const;
 
 export type CreditActionType = keyof typeof CREDIT_COSTS;
@@ -26,6 +33,7 @@ interface CreditCheckResult {
   remainingCredits: number;
   requiredCredits: number;
   shortfall: number;
+  blocked: boolean;
 }
 
 export function useUsageCredits() {
@@ -44,7 +52,6 @@ export function useUsageCredits() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // استخدام الـ RPC function للحصول على الرصيد
       const { data, error } = await supabase.rpc('get_available_credits', {
         p_user_id: user.id
       });
@@ -54,7 +61,6 @@ export function useUsageCredits() {
         return;
       }
 
-      // RPC يرجع TABLE كـ array أو object واحد
       const row = Array.isArray(data) ? data[0] : data;
       
       setBalance({
@@ -69,7 +75,7 @@ export function useUsageCredits() {
     }
   }, []);
 
-  // التحقق من إمكانية تنفيذ عملية
+  // التحقق من إمكانية تنفيذ عملية مع الـ gating الجديد
   const checkCredits = useCallback(async (actionType: CreditActionType): Promise<CreditCheckResult> => {
     const action = CREDIT_COSTS[actionType];
     const requiredCredits = action.cost;
@@ -77,7 +83,7 @@ export function useUsageCredits() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits };
+        return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
       }
 
       const { data, error } = await supabase.rpc('get_available_credits', {
@@ -86,26 +92,41 @@ export function useUsageCredits() {
 
       if (error) throw error;
 
-      // RPC يرجع TABLE كـ array أو object واحد
       const row = Array.isArray(data) ? data[0] : data;
       const availableCredits = row?.total_available ?? 0;
-      const canPerform = availableCredits >= requiredCredits;
+      
+      // التحقق من الـ gating - إذا كانت العملية مقفلة وليس لديه نقاط
+      const isBlocked = action.gated && availableCredits === 0;
+      const canPerform = !isBlocked && availableCredits >= requiredCredits;
 
       return {
         canPerform,
         remainingCredits: availableCredits,
         requiredCredits,
-        shortfall: canPerform ? 0 : requiredCredits - availableCredits
+        shortfall: canPerform ? 0 : Math.max(0, requiredCredits - availableCredits),
+        blocked: isBlocked
       };
     } catch (error) {
       console.error('Error checking credits:', error);
-      return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits };
+      return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
     }
   }, []);
+
+  // التحقق السريع إذا كان المستخدم محجوب (UC = 0)
+  const isBlocked = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
+    const action = CREDIT_COSTS[actionType];
+    if (!action.gated) return false;
+    
+    return balance.totalAvailable === 0;
+  }, [balance.totalAvailable]);
 
   // استهلاك النقاط
   const consumeCredits = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
     const action = CREDIT_COSTS[actionType];
+    
+    // لا تستهلك نقاط للعمليات المجانية
+    if (action.cost === 0) return true;
+    
     setConsuming(true);
 
     try {
@@ -123,7 +144,6 @@ export function useUsageCredits() {
         return false;
       }
 
-      // RPC يرجع JSONB كـ object فيه success
       const result = data as { success?: boolean } | null;
       const success = result?.success === true;
       if (success) {
@@ -145,8 +165,6 @@ export function useUsageCredits() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
-
-      const action = CREDIT_COSTS[actionType];
 
       const { data, error } = await supabase.rpc('can_perform_action', {
         p_user_id: user.id,
@@ -201,6 +219,7 @@ export function useUsageCredits() {
     canPerformAction,
     getConsumptionHistory,
     getActionCost,
+    isBlocked,
     CREDIT_COSTS
   };
 }

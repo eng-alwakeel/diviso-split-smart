@@ -5,13 +5,19 @@
     "title": "Welcome Credits",
     "amount": "50",
     "unit": "free credits",
-    "description": "Get them instantly upon registration"
+    "description": "Get them instantly upon registration (valid for 7 days)"
   },
   "daily_bonus": {
     "title": "Daily Credits",
     "amount": "5",
     "unit": "credits daily",
-    "description": "Login daily and get free credits"
+    "description": "Login daily and get free credits (non-accumulating)"
+  },
+  "referral_bonus": {
+    "title": "Invite Friends",
+    "amount": "30",
+    "unit": "credits per referral",
+    "description": "10 on first usage + 20 on group creation or settlement"
   },
   "cta": "Start Now for Free",
   "seo": {
