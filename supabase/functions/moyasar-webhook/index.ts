@@ -16,6 +16,19 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const moyasarSecretKey = Deno.env.get('MOYASAR_SECRET_KEY');
+    const webhookSecret = Deno.env.get('MOYASAR_WEBHOOK_SECRET');
+
+    // Verify webhook secret token
+    const authHeader = req.headers.get('Authorization');
+    const providedToken = authHeader?.replace('Bearer ', '') || req.headers.get('X-Webhook-Secret');
+    
+    if (webhookSecret && providedToken !== webhookSecret) {
+      console.error('Invalid webhook secret token');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!moyasarSecretKey) {
       console.error('MOYASAR_SECRET_KEY not configured');
