@@ -9,6 +9,7 @@ import { Contact, Users, Sparkles, MessageSquare, AlertCircle } from "lucide-rea
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Capacitor } from "@capacitor/core";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 interface InviteContactsTabProps {
   groupId: string | undefined;
@@ -104,7 +105,7 @@ export const InviteContactsTab = ({
     if (inviteLink) return inviteLink;
     
     // إذا لم يكن هناك رابط، إنشاء token جديد
-    if (!groupId) return `${window.location.origin}`;
+    if (!groupId) return BRAND_CONFIG.url;
     
     try {
       const { data, error } = await supabase.rpc('create_group_join_token', {
@@ -113,11 +114,11 @@ export const InviteContactsTab = ({
       
       if (error) throw error;
       
-      return `${window.location.origin}/i/${data}`;
+      return `${BRAND_CONFIG.url}/i/${data}`;
     } catch (error) {
       console.error('Error creating invite token:', error);
       // Fallback: استخدام رابط الدعوة العام إذا فشل إنشاء التوكن
-      return inviteLink || `${window.location.origin}`;
+      return inviteLink || BRAND_CONFIG.url;
     }
   };
 

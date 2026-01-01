@@ -31,6 +31,7 @@ import {
 import { Share } from "@capacitor/share";
 import { Capacitor } from "@capacitor/core";
 import { useTranslation } from "react-i18next";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
@@ -135,7 +136,7 @@ const GroupInvite = () => {
       if (error) throw error;
 
       const tokenData = data[0];
-      const url = `${window.location.origin}/i/${tokenData.token}`;
+      const url = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
       setLink(url);
       setLinkInfo({
         maxUses: tokenData.max_uses,

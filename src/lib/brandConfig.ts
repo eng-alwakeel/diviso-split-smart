@@ -1,6 +1,7 @@
 // Brand configuration for Diviso
 export const BRAND_CONFIG = {
   name: "Diviso",
+  url: "https://diviso.app",
   slogan: {
     ar: "قسّم بذكاء، سافر براحة",
     en: "Split Smart, Travel Easy",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 export interface ReferralData {
   id: string;
@@ -295,7 +296,7 @@ export function useReferrals() {
 
   const getReferralLink = useCallback(() => {
     if (!referralCode) return null;
-    return `${window.location.origin}/join/${referralCode}`;
+    return `${BRAND_CONFIG.url}/join/${referralCode}`;
   }, [referralCode]);
 
   const getSuccessRate = useCallback(() => {

@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 export interface GroupJoinToken {
   id: string;
@@ -61,7 +62,7 @@ export function useGroupJoinTokens(groupId?: string) {
       if (error) throw error;
 
       const tokenData = data[0];
-      const url = `${window.location.origin}/i/${tokenData.token}`;
+      const url = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
       
       await fetchTokens(); // Refresh tokens list
       
