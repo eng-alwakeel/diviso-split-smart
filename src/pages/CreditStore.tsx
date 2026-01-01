@@ -25,6 +25,7 @@ import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { useRewardPoints } from '@/hooks/useRewardPoints';
 import { useReferralStats } from '@/hooks/useReferralStats';
 import { CreditPackagesGrid } from '@/components/credits/CreditPackagesGrid';
+import { SubscriptionPlansGrid } from '@/components/credits/SubscriptionPlansGrid';
 import DailyCheckInCard from '@/components/dashboard/DailyCheckInCard';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -165,7 +166,23 @@ const CreditStore = React.memo(() => {
           </TabsList>
 
           {/* Buy Credits Tab */}
-          <TabsContent value="buy" className="mt-4">
+          <TabsContent value="buy" className="mt-4 space-y-8">
+            {/* Subscription Plans Section */}
+            <SubscriptionPlansGrid />
+            
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-4 text-muted-foreground">
+                  {t('common:or')}
+                </span>
+              </div>
+            </div>
+            
+            {/* Credit Packages Section */}
             <CreditPackagesGrid />
           </TabsContent>
 
