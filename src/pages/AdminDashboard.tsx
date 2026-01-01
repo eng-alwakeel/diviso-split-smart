@@ -15,13 +15,14 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
 import { RetentionCohorts } from "@/components/admin/RetentionCohorts";
 import { MonetizationDashboard } from "@/components/admin/MonetizationDashboard";
 import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
+import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSection";
 
 export const AdminDashboard = () => {
   return (
@@ -229,7 +230,7 @@ const AdminDashboardContent = () => {
         </div>
 
         <Tabs defaultValue="executive" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="executive" className="flex items-center gap-1">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden md:inline">Executive</span>
@@ -249,6 +250,10 @@ const AdminDashboardContent = () => {
             <TabsTrigger value="credits" className="flex items-center gap-1">
               <Coins className="h-4 w-4" />
               <span className="hidden md:inline">Credits</span>
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="flex items-center gap-1">
+              <Lock className="h-4 w-4" />
+              <span className="hidden md:inline">الصلاحيات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -270,6 +275,10 @@ const AdminDashboardContent = () => {
 
           <TabsContent value="credits">
             <CreditsEconomyHealth />
+          </TabsContent>
+
+          <TabsContent value="permissions">
+            <RolesPermissionsSection />
           </TabsContent>
         </Tabs>
 
