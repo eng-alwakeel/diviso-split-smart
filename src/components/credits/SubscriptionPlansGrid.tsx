@@ -3,6 +3,7 @@ import { Check, Crown, Sparkles, Zap, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ export function SubscriptionPlansGrid() {
   
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -34,7 +36,6 @@ export function SubscriptionPlansGrid() {
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
-        .eq('billing_cycle', 'monthly')
         .order('price_sar', { ascending: true });
 
       if (error) {
@@ -107,6 +108,8 @@ export function SubscriptionPlansGrid() {
     return null;
   }
 
+  const filteredPlans = plans.filter(plan => plan.billing_cycle === billingCycle);
+
   return (
     <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="text-center mb-4">
@@ -114,9 +117,31 @@ export function SubscriptionPlansGrid() {
         <p className="text-sm text-muted-foreground">{t('subscriptions.subtitle')}</p>
       </div>
 
+      {/* Billing Cycle Toggle */}
+      <div className="flex items-center justify-center gap-3 mb-6">
+        <span className={`text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {t('plans.monthly')}
+        </span>
+        
+        <Switch 
+          checked={billingCycle === 'yearly'}
+          onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+        />
+        
+        <span className={`text-sm font-medium transition-colors ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {t('plans.yearly')}
+        </span>
+        
+        {billingCycle === 'yearly' && (
+          <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0">
+            {t('plans.save_up_to', { percent: 36 })}
+          </Badge>
+        )}
+      </div>
+
       {/* Plans Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {plans.map((plan) => {
+        {filteredPlans.map((plan) => {
           const name = isRTL ? plan.name_ar : plan.name;
           const isPopular = isPopularPlan(plan.name);
 
@@ -150,7 +175,7 @@ export function SubscriptionPlansGrid() {
                   <span className="text-3xl font-bold text-foreground">{plan.price_sar}</span>
                   <span className="text-muted-foreground mr-1 text-sm"> {t('common:sar')}</span>
                   <span className="text-muted-foreground text-sm">
-                    /{t('plans.month')}
+                    /{billingCycle === 'yearly' ? t('plans.year') : t('plans.month')}
                   </span>
                 </div>
 
