@@ -100,12 +100,25 @@ export const InviteContactsTab = ({
 
   // إنشاء رابط الدعوة الفريد
   const createUniqueInviteLink = async (): Promise<string> => {
-    if (!groupId) return inviteLink || `${window.location.origin}`;
-    
-    // استخدام رابط الدعوة الموجود أو إنشاء رابط جديد
+    // استخدام رابط الدعوة الموجود مسبقاً
     if (inviteLink) return inviteLink;
     
-    return `${window.location.origin}/invite/${groupId}`;
+    // إذا لم يكن هناك رابط، إنشاء token جديد
+    if (!groupId) return `${window.location.origin}`;
+    
+    try {
+      const { data, error } = await supabase.rpc('create_group_join_token', {
+        p_group_id: groupId
+      });
+      
+      if (error) throw error;
+      
+      return `${window.location.origin}/i/${data}`;
+    } catch (error) {
+      console.error('Error creating invite token:', error);
+      // Fallback: استخدام رابط الدعوة العام إذا فشل إنشاء التوكن
+      return inviteLink || `${window.location.origin}`;
+    }
   };
 
   // إنشاء رسالة الدعوة

@@ -210,6 +210,7 @@ export const InviteManagementDialog = ({
                   groupName={groupName}
                   existingMembers={existingMembers}
                   onInviteSent={handleInviteSent}
+                  inviteLink={inviteLink}
                 />
               </CardContent>
             </Card>

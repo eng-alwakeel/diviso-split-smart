@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, MessageSquare, Zap } from "lucide-react";
+import { MessageSquare, Zap } from "lucide-react";
 
 interface InvitePhoneTabProps {
   groupId: string | undefined;
@@ -22,44 +22,6 @@ export const InvitePhoneTab = ({
   const { toast } = useToast();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [smartInviteLoading, setSmartInviteLoading] = useState(false);
-
-  const sendSMSInvite = async () => {
-    if (!phoneNumber.trim() || !inviteLink || !groupName) {
-      toast({
-        title: "معلومات ناقصة",
-        description: "تأكد من إنشاء رابط الدعوة أولاً",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('send-sms-invite', {
-        body: {
-          phone: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
-          groupName,
-          inviteLink,
-          senderName: "المستخدم"
-        }
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: "تم إرسال SMS",
-        description: `تم إرسال دعوة SMS إلى ${phoneNumber}`,
-      });
-      
-      onInviteSent();
-      setPhoneNumber("");
-    } catch (error: any) {
-      toast({
-        title: "خطأ في إرسال SMS",
-        description: error.message || "حاول مرة أخرى",
-        variant: "destructive",
-      });
-    }
-  };
 
   const sendWhatsAppInvite = () => {
     if (!phoneNumber.trim() || !inviteLink || !groupName) {
@@ -156,34 +118,22 @@ export const InvitePhoneTab = ({
           دعوة ذكية (موصى بها)
         </Button>
         
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            disabled={!phoneNumber.trim() || !inviteLink}
-            onClick={sendWhatsAppInvite}
-            className="bg-green-500 hover:bg-green-600 text-white border-green-500"
-          >
-            <MessageSquare className="w-4 h-4 ml-2" />
-            واتساب
-          </Button>
-          <Button
-            variant="outline"
-            disabled={!phoneNumber.trim() || !inviteLink}
-            onClick={sendSMSInvite}
-            className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-          >
-            <Phone className="w-4 h-4 ml-2" />
-            SMS
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          disabled={!phoneNumber.trim() || !inviteLink}
+          onClick={sendWhatsAppInvite}
+          className="w-full bg-green-500 hover:bg-green-600 text-white border-green-500"
+        >
+          <MessageSquare className="w-4 h-4 ml-2" />
+          إرسال عبر واتساب
+        </Button>
       </div>
 
       <div className="p-3 bg-muted/50 rounded-lg">
         <h4 className="font-medium text-sm mb-2">طرق الدعوة:</h4>
         <ul className="text-xs text-muted-foreground space-y-1">
-          <li><strong>الدعوة الذكية:</strong> تتحقق من وجود حساب وترسل إشعار داخلي أو SMS</li>
-          <li><strong>واتساب:</strong> تفتح واتساب مع رسالة الدعوة جاهزة</li>
-          <li><strong>SMS:</strong> ترسل رسالة نصية مباشرة</li>
+          <li><strong>الدعوة الذكية:</strong> تتحقق من وجود حساب وترسل إشعار داخلي أو تفتح واتساب</li>
+          <li><strong>واتساب:</strong> تفتح واتساب مع رسالة الدعوة جاهزة للإرسال</li>
         </ul>
       </div>
     </div>
