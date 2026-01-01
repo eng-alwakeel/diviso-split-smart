@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.verify-email-code]
 verify_jwt = true
+
+[functions.moyasar-webhook]
+verify_jwt = false

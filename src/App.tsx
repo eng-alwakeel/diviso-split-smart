@@ -46,6 +46,7 @@ const LazySupportDashboard = withLazyLoading(lazy(() => import("./pages/SupportD
 const LazyMyTickets = withLazyLoading(lazy(() => import("./pages/MyTickets")));
 const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPage")));
 const LazyCreditStore = withLazyLoading(lazy(() => import("./pages/CreditStore")));
+const LazyPaymentCallback = withLazyLoading(lazy(() => import("./pages/PaymentCallback")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -107,6 +108,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/my-tickets" element={<ProtectedRoute><PageErrorBoundary><LazyMyTickets /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/ad-test" element={<AdTestPage />} />
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/payment-callback" element={<ProtectedRoute><PageErrorBoundary><LazyPaymentCallback /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
             <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
             <Route path="*" element={<NotFound />} />

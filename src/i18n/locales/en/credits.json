@@ -1,4 +1,26 @@
 {
+  "payment": {
+    "title": "Complete Payment",
+    "callback_title": "Payment Status",
+    "processing": "Processing Payment...",
+    "please_wait": "Please wait while we confirm your payment",
+    "success": "Payment Successful!",
+    "credits_added": "{{count}} credits have been added to your account",
+    "failed": "Payment Failed",
+    "failed_description": "Your payment could not be processed. Please try again.",
+    "pending": "Payment Pending",
+    "pending_description": "Your payment is being processed. Credits will be added shortly.",
+    "try_again": "Try Again",
+    "back_to_store": "Back to Store",
+    "continue_to_store": "Continue to Store",
+    "loading": "Loading payment form...",
+    "secure": "Secure payment powered by Moyasar",
+    "config_error": "Payment configuration error",
+    "init_error": "Failed to initialize payment form",
+    "purchase_description": "Credit Package Purchase",
+    "creating_order": "Creating order...",
+    "order_error": "Failed to create order"
+  },
   "balance": {
     "current": "Your Balance",
     "credits": "credits",
@@ -87,6 +109,7 @@
     "coming_soon": "Coming Soon!",
     "coming_soon_desc": "Credit purchasing will be available soon",
     "buy_now": "Buy Now",
+    "load_error": "Failed to load packages",
     "large": {
       "name": "Best Value"
     },

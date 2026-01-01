@@ -1,54 +1,23 @@
-import { useState } from 'react';
-import { Check, Sparkles, Crown, Coins } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, Sparkles, Crown, Coins, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { MoyasarPaymentDialog } from './MoyasarPaymentDialog';
 
 interface CreditPackage {
   id: string;
   name: string;
-  nameKey: string;
-  price: number;
+  name_ar: string;
+  price_sar: number;
   credits: number;
-  validityDays: number;
-  badge?: 'best_value' | 'most_popular';
-  icon: React.ReactNode;
+  validity_days: number;
+  bonus_credits: number | null;
+  sort_order: number | null;
 }
-
-// الباقات الجديدة S/M/L
-const packages: CreditPackage[] = [
-  {
-    id: 'large',
-    name: 'Large',
-    nameKey: 'packages.large',
-    price: 99,
-    credits: 450,
-    validityDays: 90,
-    badge: 'best_value',
-    icon: <Crown className="h-6 w-6" />
-  },
-  {
-    id: 'medium',
-    name: 'Medium',
-    nameKey: 'packages.medium',
-    price: 49,
-    credits: 200,
-    validityDays: 60,
-    badge: 'most_popular',
-    icon: <Sparkles className="h-6 w-6" />
-  },
-  {
-    id: 'small',
-    name: 'Small',
-    nameKey: 'packages.small',
-    price: 25,
-    credits: 90,
-    validityDays: 30,
-    icon: <Coins className="h-6 w-6" />
-  }
-];
 
 interface CreditPackagesGridProps {
   onPurchase?: (packageId: string) => void;
@@ -59,148 +28,296 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
   const { t, i18n } = useTranslation('credits');
   const { toast } = useToast();
   const isRTL = i18n.language === 'ar';
-  const [selectedPackage, setSelectedPackage] = useState(preselectedPackage || 'large');
+  
+  const [packages, setPackages] = useState<CreditPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(preselectedPackage || null);
+  const [processingPurchase, setProcessingPurchase] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [currentPurchase, setCurrentPurchase] = useState<{
+    packageDetails: { id: string; name: string; price: number; credits: number } | null;
+    purchaseId: string | null;
+    userId: string | null;
+  }>({ packageDetails: null, purchaseId: null, userId: null });
 
-  const handlePurchase = (pkg: CreditPackage) => {
+  // Fetch packages from database
+  useEffect(() => {
+    const fetchPackages = async () => {
+      const { data, error } = await supabase
+        .from('credit_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching packages:', error);
+        toast({
+          title: t('common:error'),
+          description: t('packages.load_error'),
+          variant: 'destructive',
+        });
+      } else {
+        setPackages(data || []);
+        if (data && data.length > 0 && !preselectedPackage) {
+          // Select the best value package by default (first one with highest credits/price ratio)
+          const bestValue = data.reduce((best, pkg) => 
+            (pkg.credits / pkg.price_sar) > (best.credits / best.price_sar) ? pkg : best
+          , data[0]);
+          setSelectedPackage(bestValue.id);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchPackages();
+  }, [t, toast, preselectedPackage]);
+
+  const handlePurchase = async (pkg: CreditPackage) => {
     setSelectedPackage(pkg.id);
-    toast({
-      title: t('packages.coming_soon'),
-      description: t('packages.coming_soon_desc'),
-    });
-    onPurchase?.(pkg.id);
-  };
+    setProcessingPurchase(true);
 
-  const getBadgeText = (badge?: string) => {
-    switch (badge) {
-      case 'best_value': return t('packages.best_value');
-      case 'most_popular': return t('packages.most_popular');
-      default: return null;
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: t('common:error'),
+          description: t('common:login_required'),
+          variant: 'destructive',
+        });
+        setProcessingPurchase(false);
+        return;
+      }
+
+      toast({
+        title: t('payment.creating_order'),
+      });
+
+      // Create pending purchase record
+      const { data: purchase, error: purchaseError } = await supabase
+        .from('credit_purchases')
+        .insert({
+          user_id: user.id,
+          package_id: pkg.id,
+          credits_purchased: pkg.credits + (pkg.bonus_credits || 0),
+          price_paid: pkg.price_sar,
+          status: 'pending',
+          payment_method: 'moyasar',
+        })
+        .select()
+        .single();
+
+      if (purchaseError) {
+        console.error('Error creating purchase:', purchaseError);
+        toast({
+          title: t('common:error'),
+          description: t('payment.order_error'),
+          variant: 'destructive',
+        });
+        setProcessingPurchase(false);
+        return;
+      }
+
+      // Open payment dialog
+      setCurrentPurchase({
+        packageDetails: {
+          id: pkg.id,
+          name: isRTL ? pkg.name_ar : pkg.name,
+          price: pkg.price_sar,
+          credits: pkg.credits + (pkg.bonus_credits || 0),
+        },
+        purchaseId: purchase.id,
+        userId: user.id,
+      });
+      setPaymentDialogOpen(true);
+      onPurchase?.(pkg.id);
+
+    } catch (error) {
+      console.error('Purchase error:', error);
+      toast({
+        title: t('common:error'),
+        description: t('payment.order_error'),
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingPurchase(false);
     }
   };
 
-  const getBadgeColor = (badge?: string) => {
-    switch (badge) {
-      case 'best_value': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-      case 'most_popular': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      default: return '';
-    }
+  const getPackageIcon = (index: number) => {
+    const icons = [
+      <Crown key="crown" className="h-6 w-6" />,
+      <Sparkles key="sparkles" className="h-6 w-6" />,
+      <Coins key="coins" className="h-6 w-6" />
+    ];
+    return icons[index % 3];
   };
+
+  const getBadgeInfo = (pkg: CreditPackage, index: number, allPackages: CreditPackage[]) => {
+    // Calculate value ratio for each package
+    const ratios = allPackages.map(p => p.credits / p.price_sar);
+    const maxRatio = Math.max(...ratios);
+    const pkgRatio = pkg.credits / pkg.price_sar;
+
+    if (pkgRatio === maxRatio) {
+      return { text: t('packages.best_value'), color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
+    }
+    if (index === 1) {
+      return { text: t('packages.most_popular'), color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' };
+    }
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold">{t('packages.title')}</h3>
-        <p className="text-sm text-muted-foreground">{t('packages.subtitle')}</p>
-      </div>
+    <>
+      <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-semibold">{t('packages.title')}</h3>
+          <p className="text-sm text-muted-foreground">{t('packages.subtitle')}</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {packages.map((pkg) => {
-          const isSelected = selectedPackage === pkg.id;
-          const isBestValue = pkg.badge === 'best_value';
-          
-          return (
-            <Card 
-              key={pkg.id}
-              className={`relative transition-all cursor-pointer ${
-                isSelected
-                  ? 'border-primary shadow-lg shadow-primary/10 ring-2 ring-primary/20' 
-                  : isBestValue
-                    ? 'border-green-300 dark:border-green-700 hover:border-primary/50'
-                    : 'border-border hover:border-primary/50'
-              } hover:shadow-lg`}
-              onClick={() => setSelectedPackage(pkg.id)}
-            >
-              {pkg.badge && (
-                <Badge 
-                  className={`absolute -top-3 left-1/2 -translate-x-1/2 ${getBadgeColor(pkg.badge)} border-0`}
-                >
-                  {getBadgeText(pkg.badge)}
-                </Badge>
-              )}
-              
-              {isSelected && (
-                <div className="absolute top-3 left-3">
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="h-4 w-4 text-primary-foreground" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {packages.map((pkg, index) => {
+            const isSelected = selectedPackage === pkg.id;
+            const badgeInfo = getBadgeInfo(pkg, index, packages);
+            const isBestValue = badgeInfo?.text === t('packages.best_value');
+            const totalCredits = pkg.credits + (pkg.bonus_credits || 0);
+            
+            return (
+              <Card 
+                key={pkg.id}
+                className={`relative transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-primary shadow-lg shadow-primary/10 ring-2 ring-primary/20' 
+                    : isBestValue
+                      ? 'border-green-300 dark:border-green-700 hover:border-primary/50'
+                      : 'border-border hover:border-primary/50'
+                } hover:shadow-lg`}
+                onClick={() => setSelectedPackage(pkg.id)}
+              >
+                {badgeInfo && (
+                  <Badge 
+                    className={`absolute -top-3 left-1/2 -translate-x-1/2 ${badgeInfo.color} border-0`}
+                  >
+                    {badgeInfo.text}
+                  </Badge>
+                )}
+                
+                {isSelected && (
+                  <div className="absolute top-3 left-3">
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="h-4 w-4 text-primary-foreground" />
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              <CardHeader className="text-center pb-2 pt-6">
-                <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-2 ${
-                  isBestValue 
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
-                    : pkg.badge === 'most_popular'
-                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
-                      : 'bg-muted text-muted-foreground'
-                }`}>
-                  {pkg.icon}
-                </div>
-                <CardTitle className="text-lg">
-                  {t(`${pkg.nameKey}.name`)}
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent className="text-center space-y-4">
-                {/* Price */}
-                <div>
-                  <span className="text-3xl font-bold text-foreground">{pkg.price}</span>
-                  <span className="text-muted-foreground mr-1"> {t('common:sar')}</span>
-                </div>
-
-                {/* Credits */}
-                <div className="space-y-1">
-                  <div className={`text-2xl font-semibold ${
-                    isBestValue ? 'text-green-600' : 'text-primary'
+                )}
+                
+                <CardHeader className="text-center pb-2 pt-6">
+                  <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                    isBestValue 
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
+                      : index === 1
+                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
+                        : 'bg-muted text-muted-foreground'
                   }`}>
-                    {pkg.credits}
+                    {getPackageIcon(index)}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {t('balance.credits')}
+                  <CardTitle className="text-lg">
+                    {isRTL ? pkg.name_ar : pkg.name}
+                  </CardTitle>
+                </CardHeader>
+                
+                <CardContent className="text-center space-y-4">
+                  {/* Price */}
+                  <div>
+                    <span className="text-3xl font-bold text-foreground">{pkg.price_sar}</span>
+                    <span className="text-muted-foreground mr-1"> {t('common:sar')}</span>
                   </div>
-                </div>
 
-                {/* Validity */}
-                <p className="text-sm text-muted-foreground">
-                  {t('packages.valid_for', { days: pkg.validityDays })}
-                </p>
+                  {/* Credits */}
+                  <div className="space-y-1">
+                    <div className={`text-2xl font-semibold ${
+                      isBestValue ? 'text-green-600' : 'text-primary'
+                    }`}>
+                      {totalCredits}
+                      {pkg.bonus_credits && pkg.bonus_credits > 0 && (
+                        <span className="text-sm text-green-500 mr-1">
+                          (+{pkg.bonus_credits})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {t('balance.credits')}
+                    </div>
+                  </div>
 
-                {/* Value per credit */}
-                <div className="bg-muted/50 rounded-lg p-2">
-                  <p className="text-xs text-muted-foreground">
-                    {(pkg.price / pkg.credits).toFixed(2)} {t('common:sar')} / {t('balance.credits')}
+                  {/* Validity */}
+                  <p className="text-sm text-muted-foreground">
+                    {t('packages.valid_for', { days: pkg.validity_days })}
                   </p>
-                </div>
 
-                {/* Features */}
-                <ul className="text-sm space-y-2 text-right">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>{t('packages.features.ocr', { count: pkg.credits })}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>{t('packages.features.groups', { count: Math.floor(pkg.credits / 5) })}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>{t('packages.features.settlements', { count: Math.floor(pkg.credits / 3) })}</span>
-                  </li>
-                </ul>
+                  {/* Value per credit */}
+                  <div className="bg-muted/50 rounded-lg p-2">
+                    <p className="text-xs text-muted-foreground">
+                      {(pkg.price_sar / totalCredits).toFixed(2)} {t('common:sar')} / {t('balance.credits')}
+                    </p>
+                  </div>
 
-                {/* Purchase Button */}
-                <Button 
-                  className="w-full"
-                  variant={isSelected ? 'default' : 'outline'}
-                  onClick={() => handlePurchase(pkg)}
-                >
-                  {t('packages.buy_now')}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  {/* Features */}
+                  <ul className="text-sm space-y-2 text-right">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span>{t('packages.features.ocr', { count: totalCredits })}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span>{t('packages.features.groups', { count: Math.floor(totalCredits / 5) })}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span>{t('packages.features.settlements', { count: Math.floor(totalCredits / 3) })}</span>
+                    </li>
+                  </ul>
+
+                  {/* Purchase Button */}
+                  <Button 
+                    className="w-full"
+                    variant={isSelected ? 'default' : 'outline'}
+                    onClick={() => handlePurchase(pkg)}
+                    disabled={processingPurchase}
+                  >
+                    {processingPurchase && selectedPackage === pkg.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
+                        {t('payment.creating_order')}
+                      </>
+                    ) : (
+                      t('packages.buy_now')
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* Payment Dialog */}
+      <MoyasarPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        packageDetails={currentPurchase.packageDetails}
+        purchaseId={currentPurchase.purchaseId}
+        userId={currentPurchase.userId}
+      />
+    </>
   );
 }
