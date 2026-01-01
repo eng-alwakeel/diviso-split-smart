@@ -3347,6 +3347,7 @@ export type Database = {
           unread_notifications: number
         }[]
       }
+      get_user_plan: { Args: { p_user_id: string }; Returns: string }
       get_user_referral_tier: {
         Args: { p_user_id: string }
         Returns: {
