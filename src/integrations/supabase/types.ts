@@ -212,6 +212,51 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_partners: {
+        Row: {
+          api_endpoint: string | null
+          api_key_env_name: string | null
+          commission_rate: number | null
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          name_ar: string | null
+          partner_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_env_name?: string | null
+          commission_rate?: number | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          name_ar?: string | null
+          partner_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_env_name?: string | null
+          commission_rate?: number | null
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          name_ar?: string | null
+          partner_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       affiliate_products: {
         Row: {
           active: boolean | null
@@ -2172,6 +2217,54 @@ export type Database = {
           },
         ]
       }
+      recommendation_requests: {
+        Row: {
+          created_at: string | null
+          group_id: string | null
+          id: string
+          preferences: Json | null
+          request_type: string
+          results: Json | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          preferences?: Json | null
+          request_type: string
+          results?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          preferences?: Json | null
+          request_type?: string
+          results?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendations: {
         Row: {
           affiliate_url: string | null
@@ -3297,6 +3390,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      trip_plans: {
+        Row: {
+          budget: string | null
+          country_code: string | null
+          created_at: string | null
+          days: number
+          destination: string
+          destination_ar: string | null
+          group_id: string | null
+          id: string
+          interests: string[] | null
+          is_public: boolean | null
+          plan_data: Json
+          share_token: string | null
+          updated_at: string | null
+          user_id: string | null
+          views_count: number | null
+        }
+        Insert: {
+          budget?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          days: number
+          destination: string
+          destination_ar?: string | null
+          group_id?: string | null
+          id?: string
+          interests?: string[] | null
+          is_public?: boolean | null
+          plan_data?: Json
+          share_token?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          budget?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          days?: number
+          destination?: string
+          destination_ar?: string | null
+          group_id?: string | null
+          id?: string
+          interests?: string[] | null
+          is_public?: boolean | null
+          plan_data?: Json
+          share_token?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_plans_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usage_credits: {
         Row: {

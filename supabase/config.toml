@@ -47,3 +47,12 @@ verify_jwt = false
 
 [functions.verify-payment]
 verify_jwt = false
+
+[functions.smart-group-suggestions]
+verify_jwt = true
+
+[functions.ask-recommendation]
+verify_jwt = true
+
+[functions.generate-trip-plan]
+verify_jwt = true
