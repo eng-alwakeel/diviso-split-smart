@@ -3895,19 +3895,7 @@ export type Database = {
       is_group_admin: { Args: { p_group_id: string }; Returns: boolean }
       is_group_member: { Args: { p_group_id: string }; Returns: boolean }
       is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
-      join_group_with_token:
-        | {
-            Args: { p_token: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.join_group_with_token(p_token => text), public.join_group_with_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
-        | {
-            Args: { p_token: string }
-            Returns: {
-              error: true
-            } & "Could not choose the best candidate function between: public.join_group_with_token(p_token => text), public.join_group_with_token(p_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
-          }
+      join_group_with_token: { Args: { p_token: string }; Returns: string }
       log_security_event: {
         Args: { p_action: string; p_details?: Json; p_table_name?: string }
         Returns: undefined
