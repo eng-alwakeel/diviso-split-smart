@@ -59,7 +59,20 @@
     "save_error": "Save Error",
     "settings_saved": "Settings saved!",
     "settings_saved_description": "App settings updated successfully",
-    "settings_error": "An error occurred while saving settings. Please try again."
+    "settings_error": "An error occurred while saving settings. Please try again.",
+    "copied": "Copied!",
+    "link_copied": "Link copied to clipboard.",
+    "login_required": "Login required",
+    "login_required_desc": "Please login to continue.",
+    "export_success": "Exported",
+    "export_success_desc": "Report exported successfully",
+    "category_added": "Added",
+    "category_added_desc": "Category added successfully",
+    "category_updated": "Updated",
+    "category_updated_desc": "Category name updated",
+    "validation_error": "Data validation error",
+    "send_failed": "Failed to send",
+    "send_failed_desc": "Please try again"
   },
   "not_found": {
     "title": "404",

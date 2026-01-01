@@ -234,7 +234,17 @@
     "settlement_delete_failed": "تعذر حذف التسوية",
     "settlement_deleted": "تم حذف التسوية",
     "budget_created": "تم إنشاء الميزانية!",
-    "budget_created_with_categories": "تم إنشاء ميزانية بقيمة {{amount}} {{currency}} مع {{count}} فئات"
+    "budget_created_with_categories": "تم إنشاء ميزانية بقيمة {{amount}} {{currency}} مع {{count}} فئات",
+    "joined_success": "تم الانضمام بنجاح",
+    "added_to_group": "تمت إضافتك إلى المجموعة.",
+    "invalid_invite_link": "رابط دعوة غير صالح",
+    "invalid_invite_link_desc": "هذا الرابط غير صحيح أو منتهي الصلاحية. تأكد من أنه رابط دعوة مجموعة وليس رابط إحالة.",
+    "invite_expired": "رابط الدعوة منتهي الصلاحية",
+    "invite_expired_desc": "هذا الرابط انتهت صلاحيته أو غير صحيح. اطلب رابط جديد من مدير المجموعة.",
+    "link_usage_exceeded": "تم استنفاد عدد المستخدمين المسموح",
+    "link_usage_exceeded_desc": "وصل هذا الرابط للحد الأقصى من المستخدمين. اطلب رابط جديد من مدير المجموعة.",
+    "join_error": "خطأ في الانضمام للمجموعة",
+    "join_error_desc": "تحقق من صلاحية رابط الدعوة. إذا كان لديك رابط إحالة (/join/...)، فهو مخصص للأشخاص الجدد فقط."
   },
 
   "roles": {

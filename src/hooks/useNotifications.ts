@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +18,59 @@ export const useNotifications = (includeArchived = false) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
+
+  const getNotificationTitle = (type: string): string => {
+    const key = `titles.${type}`;
+    const translated = t(key);
+    // If translation exists (not same as key), use it; otherwise use default
+    return translated !== key ? translated : t('titles.default');
+  };
+
+  const getNotificationDescription = (notification: Notification): string => {
+    const { type, payload } = notification;
+
+    switch (type) {
+      case 'expense_created':
+        return t('descriptions.expense_created', { 
+          name: payload.creator_name, 
+          amount: payload.amount, 
+          currency: payload.currency, 
+          group: payload.group_name 
+        });
+      case 'expense_approved':
+        return t('descriptions.expense_approved', { 
+          amount: payload.amount, 
+          currency: payload.currency, 
+          group: payload.group_name 
+        });
+      case 'expense_rejected':
+        return t('descriptions.expense_rejected', { 
+          amount: payload.amount, 
+          currency: payload.currency, 
+          group: payload.group_name 
+        });
+      case 'new_message':
+        return t('descriptions.new_message', { 
+          name: payload.sender_name, 
+          content: payload.content, 
+          group: payload.group_name 
+        });
+      case 'group_invite':
+        return t('descriptions.group_invite', { 
+          inviter: payload.inviter_name, 
+          group: payload.group_name 
+        });
+      case 'referral_joined':
+      case 'referral_completed':
+        return t('descriptions.referral_joined', { 
+          name: payload.invitee_name, 
+          days: payload.reward_days 
+        });
+      default:
+        return t('descriptions.default');
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -49,8 +103,8 @@ export const useNotifications = (includeArchived = false) => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في تحميل الإشعارات',
+        title: t('toasts.error'),
+        description: t('toasts.loading_failed'),
         variant: 'destructive',
       });
     } finally {
@@ -120,14 +174,14 @@ export const useNotifications = (includeArchived = false) => {
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       toast({
-        title: 'تم الأرشفة',
-        description: 'تم أرشفة الإشعار بنجاح',
+        title: t('toasts.archived'),
+        description: t('toasts.archive_success'),
       });
     } catch (error) {
       console.error('Error archiving notification:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في أرشفة الإشعار',
+        title: t('toasts.error'),
+        description: t('toasts.archive_failed'),
         variant: 'destructive',
       });
     }
@@ -145,16 +199,16 @@ export const useNotifications = (includeArchived = false) => {
       await fetchNotifications();
       
       toast({
-        title: 'تم الأرشفة',
-        description: `تم أرشفة ${data || 0} إشعار`,
+        title: t('toasts.archived'),
+        description: t('toasts.archive_old_success', { count: data || 0 }),
       });
       
       return data || 0;
     } catch (error) {
       console.error('Error archiving old notifications:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في أرشفة الإشعارات القديمة',
+        title: t('toasts.error'),
+        description: t('toasts.archive_old_failed'),
         variant: 'destructive',
       });
       return 0;
@@ -174,14 +228,14 @@ export const useNotifications = (includeArchived = false) => {
       setArchivedNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       toast({
-        title: 'تم الحذف',
-        description: 'تم حذف الإشعار نهائياً',
+        title: t('toasts.deleted'),
+        description: t('toasts.delete_success'),
       });
     } catch (error) {
       console.error('Error deleting notification:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في حذف الإشعار',
+        title: t('toasts.error'),
+        description: t('toasts.delete_failed'),
         variant: 'destructive',
       });
     }
@@ -232,47 +286,4 @@ export const useNotifications = (includeArchived = false) => {
     deleteNotification,
     refetch: fetchNotifications,
   };
-};
-
-const getNotificationTitle = (type: string): string => {
-  switch (type) {
-    case 'expense_created':
-      return 'مصروف جديد';
-    case 'expense_approved':
-      return 'تم اعتماد المصروف';
-    case 'expense_rejected':
-      return 'تم رفض المصروف';
-    case 'new_message':
-      return 'رسالة جديدة';
-    case 'group_invite':
-      return 'دعوة انضمام لمجموعة';
-    case 'referral_joined':
-      return 'إحالة ناجحة 🎉';
-    case 'referral_completed':
-      return 'إحالة ناجحة 🎉';
-    default:
-      return 'إشعار جديد';
-  }
-};
-
-const getNotificationDescription = (notification: Notification): string => {
-  const { type, payload } = notification;
-
-  switch (type) {
-    case 'expense_created':
-      return `${payload.creator_name} أضاف مصروف بقيمة ${payload.amount} ${payload.currency} في ${payload.group_name}`;
-    case 'expense_approved':
-      return `تم اعتماد مصروفك بقيمة ${payload.amount} ${payload.currency} في ${payload.group_name}`;
-    case 'expense_rejected':
-      return `تم رفض مصروفك بقيمة ${payload.amount} ${payload.currency} في ${payload.group_name}`;
-    case 'new_message':
-      return `${payload.sender_name}: ${payload.content} في ${payload.group_name}`;
-    case 'group_invite':
-      return `${payload.inviter_name} دعاك للانضمام إلى مجموعة "${payload.group_name}"`;
-    case 'referral_joined':
-    case 'referral_completed':
-      return `${payload.invitee_name} انضم عبر إحالتك! حصلت على ${payload.reward_days} أيام مجانية`;
-    default:
-      return 'إشعار جديد';
-  }
 };

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuotaHandler } from '@/hooks/useQuotaHandler';
@@ -9,6 +10,7 @@ const InviteRoute = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
+  const { t } = useTranslation(['groups', 'errors']);
 
   useEffect(() => {
     const run = async () => {
@@ -29,13 +31,16 @@ const InviteRoute = () => {
         const { data, error } = await supabase.rpc('join_group_with_token', { p_token: code });
         if (error) throw error;
         if (data) {
-          toast({ title: 'تم الانضمام بنجاح', description: 'تمت إضافتك إلى المجموعة.' });
+          toast({ 
+            title: t('groups:messages.joined_success'), 
+            description: t('groups:messages.added_to_group') 
+          });
           navigate(`/group/${data}`);
         } else {
           toast({ 
             variant: 'destructive', 
-            title: 'رابط دعوة غير صالح', 
-            description: 'هذا الرابط غير صحيح أو منتهي الصلاحية. تأكد من أنه رابط دعوة مجموعة وليس رابط إحالة.' 
+            title: t('groups:messages.invalid_invite_link'), 
+            description: t('groups:messages.invalid_invite_link_desc') 
           });
           navigate('/dashboard');
         }
@@ -47,27 +52,27 @@ const InviteRoute = () => {
           if (e.message === 'invalid_or_expired_token') {
             toast({ 
               variant: 'destructive', 
-              title: 'رابط الدعوة منتهي الصلاحية', 
-              description: 'هذا الرابط انتهت صلاحيته أو غير صحيح. اطلب رابط جديد من مدير المجموعة.' 
+              title: t('groups:messages.invite_expired'), 
+              description: t('groups:messages.invite_expired_desc') 
             });
           } else if (e.message === 'link_usage_exceeded') {
             toast({ 
               variant: 'destructive', 
-              title: 'تم استنفاد عدد المستخدمين المسموح', 
-              description: 'وصل هذا الرابط للحد الأقصى من المستخدمين. اطلب رابط جديد من مدير المجموعة.' 
+              title: t('groups:messages.link_usage_exceeded'), 
+              description: t('groups:messages.link_usage_exceeded_desc') 
             });
           } else {
             toast({ 
               variant: 'destructive', 
-              title: 'رابط دعوة غير صالح', 
-              description: 'هذا الرابط غير صحيح أو منتهي الصلاحية. تأكد من أنه رابط دعوة مجموعة وليس رابط إحالة.' 
+              title: t('groups:messages.invalid_invite_link'), 
+              description: t('groups:messages.invalid_invite_link_desc') 
             });
           }
         } else if (!handleQuotaError(e)) {
           toast({ 
             variant: 'destructive', 
-            title: 'خطأ في الانضمام للمجموعة', 
-            description: 'تحقق من صلاحية رابط الدعوة. إذا كان لديك رابط إحالة (/join/...)، فهو مخصص للأشخاص الجدد فقط.' 
+            title: t('groups:messages.join_error'), 
+            description: t('groups:messages.join_error_desc') 
           });
         }
         navigate('/dashboard');

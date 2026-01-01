@@ -233,7 +233,17 @@
     "settlement_delete_failed": "Failed to delete settlement",
     "settlement_deleted": "Settlement deleted",
     "budget_created": "Budget created!",
-    "budget_created_with_categories": "Budget created with {{amount}} {{currency}} and {{count}} categories"
+    "budget_created_with_categories": "Budget created with {{amount}} {{currency}} and {{count}} categories",
+    "joined_success": "Joined successfully",
+    "added_to_group": "You have been added to the group.",
+    "invalid_invite_link": "Invalid invite link",
+    "invalid_invite_link_desc": "This link is invalid or expired. Make sure it's a group invite link and not a referral link.",
+    "invite_expired": "Invite link expired",
+    "invite_expired_desc": "This link has expired or is invalid. Request a new link from the group admin.",
+    "link_usage_exceeded": "Usage limit reached",
+    "link_usage_exceeded_desc": "This link has reached the maximum number of uses. Request a new link from the group admin.",
+    "join_error": "Error joining group",
+    "join_error_desc": "Check the invite link validity. If you have a referral link (/join/...), it's for new users only."
   },
 
   "roles": {
