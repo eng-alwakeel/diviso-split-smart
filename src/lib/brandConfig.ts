@@ -13,8 +13,8 @@ export const BRAND_CONFIG = {
     address: "مكة المكرمة، العوالي، ابراهيم الجفالي، 2437"
   },
   company: {
-    legalName: "شركة تكامل البناء للمقاولات العامة المحدودة",
-    legalNameEn: "Takamul Al-Bina General Contracting Company Ltd."
+    legalName: "مؤسسة تكامل البناء التجارية",
+    legalNameEn: "Takamul Al-Bina Trading Est."
   },
   vat: {
     number: "310137963800003",
