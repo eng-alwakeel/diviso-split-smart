@@ -72,6 +72,8 @@
     "save_up_to": "وفر حتى",
     "recommended": "موصى به",
     "credits_per_month": "نقطة / شهر",
+    "renews_monthly": "يتجدد شهرياً (لا يتراكم)",
+    "annual_note": "12 شهر",
     "starter": {
       "name": "Starter"
     },
@@ -100,9 +102,10 @@
     "settlement": "تسوية",
     "view_data": "عرض البيانات"
   },
-"packages": {
+  "packages": {
     "title": "شراء نقاط",
     "subtitle": "اختر الباقة المناسبة لك",
+    "section_subtitle": "تحكم ومرونة - اشترِ حسب حاجتك",
     "best_value": "أفضل قيمة",
     "most_popular": "الأكثر شيوعاً",
     "valid_for": "صالحة {{days}} يوم",

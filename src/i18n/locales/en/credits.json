@@ -72,6 +72,8 @@
     "save_up_to": "Save up to",
     "recommended": "Recommended",
     "credits_per_month": "credits / month",
+    "renews_monthly": "Renews monthly (no accumulation)",
+    "annual_note": "12 months",
     "starter": {
       "name": "Starter"
     },
@@ -100,9 +102,10 @@
     "settlement": "Settlement",
     "view_data": "View Data"
   },
-"packages": {
+  "packages": {
     "title": "Buy Credits",
     "subtitle": "Choose the package that suits you",
+    "section_subtitle": "Control and flexibility - Buy as you need",
     "best_value": "Best Value",
     "most_popular": "Most Popular",
     "valid_for": "Valid for {{days}} days",

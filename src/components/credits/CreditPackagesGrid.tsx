@@ -180,12 +180,13 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
   return (
     <>
       <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
-        <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold">{t('packages.title')}</h3>
-          <p className="text-sm text-muted-foreground">{t('packages.subtitle')}</p>
+        <div className="text-center mb-4 sm:mb-6">
+          <h3 className="text-lg sm:text-xl font-semibold">{t('packages.title')}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">{t('packages.subtitle')}</p>
+          <p className="text-[10px] sm:text-xs text-primary/70 mt-1">{t('packages.section_subtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {packages.map((pkg, index) => {
             const isSelected = selectedPackage === pkg.id;
             const badgeInfo = getBadgeInfo(pkg, index, packages);
@@ -206,22 +207,22 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
               >
                 {badgeInfo && (
                   <Badge 
-                    className={`absolute -top-3 left-1/2 -translate-x-1/2 ${badgeInfo.color} border-0`}
+                    className={`absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 ${badgeInfo.color} border-0 text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1`}
                   >
                     {badgeInfo.text}
                   </Badge>
                 )}
                 
                 {isSelected && (
-                  <div className="absolute top-3 left-3">
-                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="h-4 w-4 text-primary-foreground" />
+                  <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
                     </div>
                   </div>
                 )}
                 
-                <CardHeader className="text-center pb-2 pt-6">
-                  <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                <CardHeader className="text-center pb-2 pt-5 sm:pt-6">
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-full flex items-center justify-center mb-2 ${
                     isBestValue 
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
                       : index === 1
@@ -230,59 +231,59 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
                   }`}>
                     {getPackageIcon(index)}
                   </div>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-base sm:text-lg">
                     {isRTL ? pkg.name_ar : pkg.name}
                   </CardTitle>
                 </CardHeader>
                 
-                <CardContent className="text-center space-y-4">
+                <CardContent className="text-center space-y-3 sm:space-y-4">
                   {/* Price */}
                   <div>
-                    <span className="text-3xl font-bold text-foreground">{pkg.price_sar}</span>
-                    <span className="text-muted-foreground mr-1"> {t('common:sar')}</span>
+                    <span className="text-2xl sm:text-3xl font-bold text-foreground">{pkg.price_sar}</span>
+                    <span className="text-muted-foreground mr-1 text-sm"> {t('common:sar')}</span>
                   </div>
 
                   {/* Credits */}
-                  <div className="space-y-1">
-                    <div className={`text-2xl font-semibold ${
+                  <div className="space-y-0.5 sm:space-y-1">
+                    <div className={`text-xl sm:text-2xl font-semibold ${
                       isBestValue ? 'text-green-600' : 'text-primary'
                     }`}>
                       {totalCredits}
                       {pkg.bonus_credits && pkg.bonus_credits > 0 && (
-                        <span className="text-sm text-green-500 mr-1">
+                        <span className="text-xs sm:text-sm text-green-500 mr-1">
                           (+{pkg.bonus_credits})
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-xs sm:text-sm text-muted-foreground">
                       {t('balance.credits')}
                     </div>
                   </div>
 
                   {/* Validity */}
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {t('packages.valid_for', { days: pkg.validity_days })}
                   </p>
 
                   {/* Value per credit */}
-                  <div className="bg-muted/50 rounded-lg p-2">
-                    <p className="text-xs text-muted-foreground">
+                  <div className="bg-muted/50 rounded-lg p-1.5 sm:p-2">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
                       {(pkg.price_sar / totalCredits).toFixed(2)} {t('common:sar')} / {t('balance.credits')}
                     </p>
                   </div>
 
                   {/* Features */}
-                  <ul className="text-sm space-y-2 text-right">
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <ul className="text-xs sm:text-sm space-y-1.5 sm:space-y-2 text-right">
+                    <li className="flex items-center gap-1.5 sm:gap-2">
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                       <span>{t('packages.features.ocr', { count: totalCredits })}</span>
                     </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <li className="flex items-center gap-1.5 sm:gap-2">
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                       <span>{t('packages.features.groups', { count: Math.floor(totalCredits / 5) })}</span>
                     </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <li className="flex items-center gap-1.5 sm:gap-2">
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                       <span>{t('packages.features.settlements', { count: Math.floor(totalCredits / 3) })}</span>
                     </li>
                   </ul>
