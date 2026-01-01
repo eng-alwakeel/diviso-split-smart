@@ -184,9 +184,16 @@
       // Register service worker for caching
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
+          navigator.serviceWorker
+            .register('/sw.js', { updateViaCache: 'none' })
+            .then(async (registration) => {
               console.log('SW registered: ', registration);
+              // Force update check (and bypass HTTP cache)
+              try {
+                await registration.update();
+              } catch (e) {
+                console.warn('SW update check failed:', e);
+              }
             })
             .catch((registrationError) => {
               console.log('SW registration failed: ', registrationError);

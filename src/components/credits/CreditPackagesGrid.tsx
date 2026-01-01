@@ -57,18 +57,30 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
           variant: 'destructive',
         });
       } else {
+        // Normalize numeric fields (some cached/old payloads may coerce numbers into strings)
+        const normalized = (data || []).map((p: any) => ({
+          ...p,
+          credits: Number(p.credits) || 0,
+          bonus_credits: p.bonus_credits == null ? null : Number(p.bonus_credits) || 0,
+          price_sar: Number(p.price_sar) || 0,
+          validity_days: Number(p.validity_days) || 0,
+          sort_order: p.sort_order == null ? null : Number(p.sort_order) || null,
+        })) as CreditPackage[];
+
         // DEBUG: Log packages data to verify correct values from Supabase
-        console.debug('[CreditPackagesGrid] Packages from Supabase:', data?.map(p => ({
+        console.debug('[CreditPackagesGrid] Packages from Supabase:', normalized.map(p => ({
           name: p.name,
           credits: p.credits,
           bonus: p.bonus_credits,
-          total: p.credits + (p.bonus_credits || 0)
+          total: Number(p.credits) + (p.bonus_credits || 0),
+          creditsType: typeof (p as any).credits,
+          bonusType: typeof (p as any).bonus_credits,
         })));
-        
-        setPackages(data || []);
+
+        setPackages(normalized);
         // Select the best value package by default (highest credits = first one = L)
-        if (data && data.length > 0) {
-          setSelectedPackage(data[0].id);
+        if (normalized.length > 0) {
+          setSelectedPackage(normalized[0].id);
         }
       }
       setLoading(false);
