@@ -31,7 +31,9 @@ import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { LocationPermissionDialog } from "@/components/LocationPermissionDialog";
 import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
+import { RecommendationDialog } from "@/components/recommendations/RecommendationDialog";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
 
 const Dashboard = React.memo(() => {
@@ -42,6 +44,7 @@ const Dashboard = React.memo(() => {
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const [userId, setUserId] = useState<string>();
   
   // Location hook
@@ -62,7 +65,7 @@ const Dashboard = React.memo(() => {
   } = useRecommendationTriggers({
     city,
     onTrigger: (trigger) => {
-      // Show toast when recommendation triggers
+      // Show interactive toast when recommendation triggers
       if (trigger.shouldShow) {
         toast({
           title: trigger.mealType === "lunch" 
@@ -71,6 +74,16 @@ const Dashboard = React.memo(() => {
             ? t("recommendations:notifications.dinner_time")
             : t("recommendations:notifications.default_title"),
           description: t("recommendations:notifications.find_place"),
+          action: (
+            <ToastAction 
+              altText={t("recommendations:view")} 
+              onClick={() => {
+                handleViewRecommendation();
+              }}
+            >
+              {t("recommendations:view")}
+            </ToastAction>
+          ),
         });
       }
     }
@@ -131,15 +144,14 @@ const Dashboard = React.memo(() => {
   const handleViewRecommendation = useCallback(async () => {
     if (!recommendationsEnabled) return;
     
+    // Open dialog first
+    setShowRecommendationDialog(true);
+    
     // Generate a recommendation based on current context
-    const rec = await generateRecommendation({
+    await generateRecommendation({
       trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
       city,
     });
-    
-    if (rec) {
-      // The recommendation will be shown in the notification component
-    }
   }, [recommendationsEnabled, generateRecommendation, triggerType, city]);
 
   // Handle location permission
@@ -277,6 +289,26 @@ const Dashboard = React.memo(() => {
           onDismiss={dismissTrigger}
         />
       )}
+
+      {/* Recommendation Dialog */}
+      <RecommendationDialog
+        open={showRecommendationDialog}
+        onOpenChange={setShowRecommendationDialog}
+        recommendation={currentRecommendation}
+        onAddAsExpense={addAsExpense}
+        onOpenLocation={(rec) => {
+          if (rec.location?.lat && rec.location?.lng) {
+            window.open(`https://www.google.com/maps?q=${rec.location.lat},${rec.location.lng}`, "_blank");
+          } else if (rec.affiliate_url) {
+            window.open(rec.affiliate_url, "_blank");
+          }
+        }}
+        onDismiss={(id) => {
+          dismissRecommendation(id);
+          setShowRecommendationDialog(false);
+        }}
+        isLoading={recommendationLoading}
+      />
 
       {/* Achievement Popup */}
       <AchievementPopup
