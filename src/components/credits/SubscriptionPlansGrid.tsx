@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { SubscriptionPaymentDialog } from './SubscriptionPaymentDialog';
 
 interface SubscriptionPlan {
   id: string;
@@ -20,12 +21,18 @@ interface SubscriptionPlan {
 
 export function SubscriptionPlansGrid() {
   const { t, i18n } = useTranslation(['credits', 'common']);
-  const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
   
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+  
+  // Payment states
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [purchaseId, setPurchaseId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -53,8 +60,43 @@ export function SubscriptionPlansGrid() {
     fetchPlans();
   }, []);
 
-  const handleSubscribe = (plan: SubscriptionPlan) => {
-    navigate('/pricing', { state: { selectedPlan: plan.name.toLowerCase() } });
+  const handleSubscribe = async (plan: SubscriptionPlan) => {
+    setProcessing(true);
+    setSelectedPlan(plan);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error(isRTL ? 'يجب تسجيل الدخول أولاً' : 'Please login first');
+        setProcessing(false);
+        return;
+      }
+
+      setUserId(user.id);
+
+      // Create pending subscription purchase
+      const { data: purchase, error } = await supabase
+        .from('subscription_purchases')
+        .insert({
+          user_id: user.id,
+          plan_id: plan.id,
+          billing_cycle: billingCycle,
+          price_paid: plan.price_sar,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setPurchaseId(purchase.id);
+      setPaymentDialogOpen(true);
+    } catch (error) {
+      console.error('Error creating subscription purchase:', error);
+      toast.error(isRTL ? 'حدث خطأ، حاول مرة أخرى' : 'Error occurred, please try again');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const getPlanIcon = (planName: string) => {
@@ -217,8 +259,13 @@ export function SubscriptionPlansGrid() {
                   className="w-full mt-4 h-10 rounded-xl"
                   variant={badge ? 'default' : 'outline'}
                   onClick={() => handleSubscribe(plan)}
+                  disabled={processing}
                 >
-                  {t('subscriptions.subscribe_btn')}
+                  {processing && selectedPlan?.id === plan.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    t('subscriptions.subscribe_btn')
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -230,6 +277,21 @@ export function SubscriptionPlansGrid() {
       <p className="text-xs text-center text-muted-foreground px-4">
         {t('plans.auto_renew_note')}
       </p>
+
+      {/* Payment Dialog */}
+      <SubscriptionPaymentDialog
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        planDetails={selectedPlan ? {
+          id: selectedPlan.id,
+          name: isRTL ? selectedPlan.name_ar : selectedPlan.name,
+          price: selectedPlan.price_sar,
+          credits: selectedPlan.credits_per_month,
+          billingCycle: billingCycle
+        } : null}
+        purchaseId={purchaseId}
+        userId={userId}
+      />
     </div>
   );
 }

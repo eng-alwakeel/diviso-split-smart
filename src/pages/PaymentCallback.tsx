@@ -8,6 +8,7 @@ import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { SEO } from '@/components/SEO';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
+type PaymentType = 'credits' | 'subscription';
 
 const PaymentCallback: React.FC = () => {
   const { t, i18n } = useTranslation(['credits', 'common']);
@@ -16,30 +17,43 @@ const PaymentCallback: React.FC = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<PaymentStatus>('loading');
   const [creditsAdded, setCreditsAdded] = useState<number>(0);
+  const [paymentType, setPaymentType] = useState<PaymentType>('credits');
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
       const purchaseId = searchParams.get('purchase_id');
       const paymentStatus = searchParams.get('status');
       const paymentId = searchParams.get('id');
+      const type = searchParams.get('type') as PaymentType || 'credits';
+      
+      setPaymentType(type);
 
-      console.log('Payment callback params:', { purchaseId, paymentStatus, paymentId });
+      console.log('Payment callback params:', { purchaseId, paymentStatus, paymentId, type });
 
       if (!purchaseId) {
         setStatus('failed');
         return;
       }
 
+      const tableName = type === 'subscription' ? 'subscription_purchases' : 'credit_purchases';
+
       // If Moyasar indicates failed payment
       if (paymentStatus === 'failed') {
         await supabase
-          .from('credit_purchases')
+          .from(tableName)
           .update({ status: 'failed' })
           .eq('id', purchaseId);
         setStatus('failed');
         return;
       }
 
+      // For subscriptions, handle differently
+      if (type === 'subscription') {
+        await handleSubscriptionPayment(purchaseId, paymentId);
+        return;
+      }
+
+      // For credits, use existing logic
       // First, try to verify payment directly via edge function (fallback for webhook)
       if (paymentId) {
         console.log('Attempting direct payment verification...');
@@ -120,11 +134,105 @@ const PaymentCallback: React.FC = () => {
       return () => clearInterval(interval);
     };
 
+    const handleSubscriptionPayment = async (purchaseId: string, paymentId: string | null) => {
+      try {
+        // Update subscription purchase with payment ID
+        if (paymentId) {
+          await supabase
+            .from('subscription_purchases')
+            .update({ 
+              status: 'completed', 
+              payment_id: paymentId,
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', purchaseId);
+        }
+
+        // Get the subscription purchase details
+        const { data: purchase, error } = await supabase
+          .from('subscription_purchases')
+          .select('*, subscription_plans(*)')
+          .eq('id', purchaseId)
+          .single();
+
+        if (error || !purchase) {
+          console.error('Error fetching subscription purchase:', error);
+          setStatus('failed');
+          return;
+        }
+
+        // Calculate subscription dates
+        const now = new Date();
+        const expiresAt = new Date(now);
+        if (purchase.billing_cycle === 'yearly') {
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        } else {
+          expiresAt.setMonth(expiresAt.getMonth() + 1);
+        }
+
+        // Check if user already has a subscription
+        const { data: existingSub } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', purchase.user_id)
+          .single();
+
+        const rawPlanName = purchase.subscription_plans?.name?.toLowerCase() || 'personal';
+        // Map plan name to valid subscription plan type
+        const planName: 'personal' | 'family' | 'lifetime' = 
+          rawPlanName === 'family' || rawPlanName === 'max' ? 'family' : 
+          rawPlanName === 'lifetime' ? 'lifetime' : 'personal';
+
+        if (existingSub) {
+          // Update existing subscription
+          const { error: updateError } = await supabase
+            .from('user_subscriptions')
+            .update({
+              plan: planName,
+              status: 'active' as const,
+              started_at: now.toISOString(),
+              expires_at: expiresAt.toISOString(),
+              updated_at: now.toISOString()
+            })
+            .eq('user_id', purchase.user_id);
+
+          if (updateError) {
+            console.error('Error updating subscription:', updateError);
+            setStatus('failed');
+            return;
+          }
+        } else {
+          // Create new subscription
+          const { error: insertError } = await supabase
+            .from('user_subscriptions')
+            .insert([{
+              user_id: purchase.user_id,
+              plan: planName,
+              status: 'active' as const,
+              started_at: now.toISOString(),
+              expires_at: expiresAt.toISOString()
+            }]);
+
+          if (insertError) {
+            console.error('Error creating subscription:', insertError);
+            setStatus('failed');
+            return;
+          }
+        }
+
+        setCreditsAdded(purchase.subscription_plans?.credits_per_month || 0);
+        setStatus('success');
+      } catch (err) {
+        console.error('Error handling subscription payment:', err);
+        setStatus('failed');
+      }
+    };
+
     checkPaymentStatus();
   }, [searchParams]);
 
   const handleContinue = () => {
-    navigate('/credit-store');
+    navigate(paymentType === 'subscription' ? '/dashboard' : '/credit-store');
   };
 
   return (
