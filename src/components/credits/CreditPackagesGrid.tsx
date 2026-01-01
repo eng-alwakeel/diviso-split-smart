@@ -42,9 +42,10 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
   // Fetch packages from database - ordered: L first (best value), then M, then S
   useEffect(() => {
     const fetchPackages = async () => {
+      // Force fresh data - bypass any caching
       const { data, error } = await supabase
         .from('credit_packages')
-        .select('*')
+        .select('id, name, name_ar, price_sar, credits, validity_days, bonus_credits, sort_order')
         .eq('is_active', true)
         .order('credits', { ascending: false }); // L (450) first, then M (200), then S (90)
 
