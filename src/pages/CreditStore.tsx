@@ -23,10 +23,9 @@ import {
 } from 'lucide-react';
 import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { useRewardPoints } from '@/hooks/useRewardPoints';
-import { useDailyCredits } from '@/hooks/useDailyCredits';
 import { useReferralStats } from '@/hooks/useReferralStats';
 import { CreditPackagesGrid } from '@/components/credits/CreditPackagesGrid';
-import { DailyCreditsCard } from '@/components/credits/DailyCreditsCard';
+import DailyCheckInCard from '@/components/dashboard/DailyCheckInCard';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -40,7 +39,7 @@ const CreditStore = React.memo(() => {
 
   const { balance, loading: creditsLoading, getConsumptionHistory } = useUsageCredits();
   const { summary, loading: rewardsLoading, converting, convertToCredits, getRewardHistory } = useRewardPoints();
-  const { canClaim, dailyAmount } = useDailyCredits();
+  
   const { totalEarnedFromReferrals, inviteesProgress, loading: referralLoading } = useReferralStats();
 
   const [consumptionHistory, setConsumptionHistory] = useState<any[]>([]);
@@ -146,7 +145,7 @@ const CreditStore = React.memo(() => {
         </div>
 
         {/* Daily Credits */}
-        <DailyCreditsCard />
+        <DailyCheckInCard />
 
         {/* Tabs */}
         <Tabs defaultValue="buy" className="w-full">

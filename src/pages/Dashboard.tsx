@@ -17,7 +17,7 @@ import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
-import { DailyCreditsCard } from "@/components/credits/DailyCreditsCard";
+
 import { CreditBalanceCard } from "@/components/credits/CreditBalanceCard";
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -236,8 +236,6 @@ const Dashboard = React.memo(() => {
           {/* Daily Check-in Card */}
           <DailyCheckInCard />
 
-          {/* Daily Credits Card */}
-          <DailyCreditsCard />
 
           {/* Credit Balance Card */}
           <CreditBalanceCard />

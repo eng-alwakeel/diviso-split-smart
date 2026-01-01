@@ -21,7 +21,7 @@ import {
   Lightbulb
 } from "lucide-react";
 import { useUsageCredits, CREDIT_COSTS } from "@/hooks/useUsageCredits";
-import { useDailyCredits } from "@/hooks/useDailyCredits";
+import { useDailyCheckin } from "@/hooks/useDailyCheckin";
 import { useRewardPoints } from "@/hooks/useRewardPoints";
 
 const CreditsTab = memo(() => {
@@ -30,7 +30,7 @@ const CreditsTab = memo(() => {
   const isRTL = i18n.language === "ar";
   
   const { balance, loading: creditsLoading } = useUsageCredits();
-  const { canClaim, hoursUntilNext, dailyAmount, loading: dailyLoading, claiming, claimDailyCredits } = useDailyCredits();
+  const { checkedInToday, streak, loading: dailyLoading, claiming, claimReward } = useDailyCheckin();
   const { summary, loading: rewardLoading } = useRewardPoints();
 
   const operationCosts = [
@@ -91,30 +91,30 @@ const CreditsTab = memo(() => {
         </CardContent>
       </Card>
 
-      {/* النقاط اليومية */}
-      <Card className={canClaim ? "border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-500/10" : ""}>
+      {/* المكافأة اليومية */}
+      <Card className={!checkedInToday ? "border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-500/10" : ""}>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Gift className="h-5 w-5 text-green-500" />
-            {isRTL ? "النقاط اليومية" : "Daily Credits"}
+            {isRTL ? "المكافأة اليومية" : "Daily Reward"}
           </CardTitle>
           <CardDescription>
             {isRTL 
-              ? `يمكنك جمع ${dailyAmount} نقاط مجانية يومياً` 
-              : `Collect ${dailyAmount} free credits daily`}
+              ? `سلسلتك الحالية: ${streak?.currentStreak || 0} يوم` 
+              : `Current streak: ${streak?.currentStreak || 0} days`}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {canClaim ? (
+          {!checkedInToday ? (
             <Button 
-              onClick={claimDailyCredits} 
+              onClick={claimReward} 
               disabled={claiming}
               className="w-full gap-2 bg-green-600 hover:bg-green-700"
             >
               <Gift className="h-4 w-4" />
               {claiming 
                 ? (isRTL ? "جاري الجمع..." : "Claiming...") 
-                : (isRTL ? "اجمع نقاطك اليومية" : "Claim Daily Credits")}
+                : (isRTL ? "اجمع مكافأتك اليومية" : "Claim Daily Reward")}
             </Button>
           ) : (
             <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
@@ -122,8 +122,8 @@ const CreditsTab = memo(() => {
                 <Clock className="h-4 w-4" />
                 <span>
                   {isRTL 
-                    ? `العودة بعد ${hoursUntilNext} ساعة` 
-                    : `Come back in ${hoursUntilNext}h`}
+                    ? "عد غداً للاستمرار" 
+                    : "Come back tomorrow"}
                 </span>
               </div>
               <Badge variant="secondary">
