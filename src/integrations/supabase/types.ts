@@ -2950,6 +2950,50 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_purchases: {
+        Row: {
+          billing_cycle: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          payment_id: string | null
+          plan_id: string
+          price_paid: number
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          billing_cycle: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          plan_id: string
+          price_paid: number
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          plan_id?: string
+          price_paid?: number
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_purchases_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_analytics: {
         Row: {
           avg_first_response_minutes: number | null
