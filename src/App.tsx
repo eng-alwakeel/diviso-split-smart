@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
+import { RoleAssignmentNotification } from "@/components/RoleAssignmentNotification";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -75,6 +76,7 @@ const AppRoutes: React.FC = () => {
       <EnhancedPerformanceMonitor />
       <Toaster />
       <Sonner />
+      <RoleAssignmentNotification />
       <ImprovedErrorBoundary>
         <Routes>
             <Route path="/auth" element={<Auth />} />

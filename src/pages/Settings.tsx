@@ -18,16 +18,18 @@ import { useCurrencies } from "@/hooks/useCurrencies";
 
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 import { ProfileTab } from "@/components/settings/ProfileTab";
 import CreditsTab from "@/components/settings/CreditsTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
+import { RolesTab } from "@/components/settings/RolesTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
 import { RecommendationSettings } from "@/components/recommendations/RecommendationSettings";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Crown } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ const Settings = () => {
   const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
-  const { data: adminData } = useAdminAuth();
+  const { adminRoles, hasAnyAdminRole } = useCurrentUserRoles();
   
   const [activeTab, setActiveTab] = useState("profile");
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
@@ -330,10 +332,10 @@ const Settings = () => {
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.privacy')}</span>
             </TabsTrigger>
-            {adminData?.isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center gap-2 text-primary">
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">{t('settings:tabs.admin')}</span>
+            {hasAnyAdminRole && (
+              <TabsTrigger value="roles" className="flex items-center gap-2 text-primary">
+                <Crown className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('settings:tabs.roles', 'أدوارك')}</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -352,7 +354,7 @@ const Settings = () => {
               onPhoneChange={handlePhoneChange}
               handleImageUpload={handleImageUpload}
               uploading={uploading}
-              isAdmin={adminData?.isAdmin}
+              isAdmin={hasAnyAdminRole}
               logout={logout}
               originalEmail={originalEmail}
             />
@@ -525,23 +527,10 @@ const Settings = () => {
             <RecommendationSettings />
           </TabsContent>
 
-          {/* Admin Tab */}
-          {adminData?.isAdmin && (
-            <TabsContent value="admin" className="space-y-6">
-              <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Shield className="w-5 h-5 text-primary" />
-                    {t('settings:admin.title')}
-                  </CardTitle>
-                  <CardDescription>{t('settings:admin.description')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate('/admin')}>
-                    {t('settings:admin.enter_dashboard')}
-                  </Button>
-                </CardContent>
-              </Card>
+          {/* Roles Tab */}
+          {hasAnyAdminRole && (
+            <TabsContent value="roles" className="space-y-6">
+              <RolesTab />
             </TabsContent>
           )}
         </Tabs>

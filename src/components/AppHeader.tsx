@@ -2,18 +2,20 @@ import { Button } from "@/components/ui/button";
 import { NavLink, useNavigate } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { useAdminBadge } from "@/hooks/useAdminBadge";
-import { AdminBadge } from "@/components/ui/admin-badge";
+import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
+import { RoleBadgesList } from "@/components/ui/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, Globe } from "lucide-react";
+import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
@@ -21,10 +23,21 @@ interface AppHeaderProps {
   showNavigation?: boolean;
 }
 
+// Role menu items configuration
+const ROLE_MENU_CONFIG: Partial<Record<AppRole, { icon: React.ReactNode; label: string; path: string; color: string }>> = {
+  owner: { icon: <Crown className="h-4 w-4" />, label: "لوحة المالك", path: "/admin-dashboard", color: "text-yellow-600" },
+  admin: { icon: <Shield className="h-4 w-4" />, label: "لوحة الإدارة", path: "/admin-dashboard", color: "text-primary" },
+  finance_admin: { icon: <DollarSign className="h-4 w-4" />, label: "الإدارة المالية", path: "/admin-dashboard?tab=monetization", color: "text-emerald-600" },
+  growth_admin: { icon: <TrendingUp className="h-4 w-4" />, label: "إدارة النمو", path: "/admin-dashboard?tab=stats", color: "text-orange-600" },
+  ads_admin: { icon: <Megaphone className="h-4 w-4" />, label: "إدارة الإعلانات", path: "/admin-dashboard?tab=stats", color: "text-pink-600" },
+  support_agent: { icon: <HeadphonesIcon className="h-4 w-4" />, label: "لوحة الدعم", path: "/support-dashboard", color: "text-cyan-600" },
+  analyst: { icon: <ChartBar className="h-4 w-4" />, label: "التحليلات", path: "/admin-dashboard?tab=stats", color: "text-violet-600" },
+  developer: { icon: <Code className="h-4 w-4" />, label: "أدوات المطور", path: "/admin-dashboard?tab=system", color: "text-slate-600" },
+};
+
 export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
   const navigate = useNavigate();
-  const { data: adminData, isLoading: adminLoading } = useAdminAuth();
-  const { isAdmin, badgeConfig } = useAdminBadge();
+  const { adminRoles, hasAnyAdminRole, getMainDashboard } = useCurrentUserRoles();
   const { toast } = useToast();
   const { t } = useTranslation('common');
   const { currentLanguage, changeLanguage } = useLanguage();
@@ -83,11 +96,8 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
         <div className="grid grid-cols-3 items-center">
           {/* Left: User Menu */}
           <div className="justify-self-start flex items-center gap-2">
-            {isAdmin && (
-              <AdminBadge 
-                config={badgeConfig} 
-                size="sm"
-              />
+            {adminRoles.length > 0 && (
+              <RoleBadgesList roles={adminRoles} size="sm" maxVisible={2} />
             )}
             
             <DropdownMenu>
@@ -123,15 +133,20 @@ export const AppHeader = ({ showNavigation = true }: AppHeaderProps) => {
                   <Settings className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
                   <span>{t('settings')}</span>
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/admin-dashboard')}
-                    className="cursor-pointer text-primary"
-                  >
-                    <Shield className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                    <span>{t('header.admin_dashboard')}</span>
-                  </DropdownMenuItem>
-                )}
+                {adminRoles.map((role) => {
+                  const config = ROLE_MENU_CONFIG[role];
+                  if (!config) return null;
+                  return (
+                    <DropdownMenuItem 
+                      key={role}
+                      onClick={() => navigate(config.path)}
+                      className={`cursor-pointer ${config.color}`}
+                    >
+                      <span className="ltr:mr-2 rtl:ml-2">{config.icon}</span>
+                      <span>{config.label}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleLanguageSwitch}
