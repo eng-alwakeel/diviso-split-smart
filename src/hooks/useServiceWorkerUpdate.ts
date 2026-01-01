@@ -1,92 +1,82 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
 
 export const useServiceWorkerUpdate = () => {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
   const [showReload, setShowReload] = useState(false);
 
+  const reloadPage = useCallback(() => {
+    if (waitingWorker) {
+      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    }
+    window.location.reload();
+  }, [waitingWorker]);
+
+  const showUpdateToast = useCallback(() => {
+    const lang = localStorage.getItem('i18nextLng') || 'ar';
+    const isRTL = lang === 'ar';
+    
+    toast({
+      title: isRTL ? '🔄 تحديث متوفر' : '🔄 Update Available',
+      description: isRTL 
+        ? 'نسخة جديدة من التطبيق متوفرة. أعد تحميل الصفحة للتحديث.'
+        : 'A new version is available. Reload the page to update.',
+      duration: 15000,
+    });
+  }, []);
+
   useEffect(() => {
-    // Only run in browser and if service workers are supported
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
     }
-
-    const reloadPage = () => {
-      if (waitingWorker) {
-        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-      }
-      window.location.reload();
-    };
 
     const handleServiceWorkerUpdate = (registration: ServiceWorkerRegistration) => {
       if (registration.waiting) {
         setWaitingWorker(registration.waiting);
         setShowReload(true);
-        
-        // Show toast notification with update button
-        toast({
-          title: "تحديث جديد متاح! 🎉",
-          description: "نسخة جديدة من التطبيق متاحة الآن. انقر لتحديث الصفحة.",
-          duration: 10000,
-        });
+        showUpdateToast();
       }
     };
 
-    // Listen for service worker updates
     navigator.serviceWorker.ready.then((registration) => {
-      // Check for updates periodically
       const updateInterval = setInterval(() => {
-        registration.update();
-      }, 60000); // Check every minute
+        registration.update().catch(console.error);
+      }, 5 * 60 * 1000);
 
-      // Listen for new service worker waiting
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              handleServiceWorkerUpdate(registration);
+              setWaitingWorker(newWorker);
+              setShowReload(true);
+              showUpdateToast();
             }
           });
         }
       });
 
-      // Check if there's already a waiting service worker
       if (registration.waiting) {
         handleServiceWorkerUpdate(registration);
       }
 
-      // Cleanup interval on unmount
       return () => clearInterval(updateInterval);
     });
 
-    // Listen for controller change (new service worker activated)
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
+    const onControllerChange = () => {
       if (showReload) {
         window.location.reload();
       }
-    });
+    };
+    
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
 
-    // Message handler for service worker
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
-        toast({
-          title: "تحديث جديد متاح! 🎉",
-          description: "نسخة جديدة من التطبيق متاحة الآن. انقر لتحديث الصفحة.",
-          duration: 10000,
-        });
-      }
-    });
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+    };
+  }, [showReload, showUpdateToast]);
 
-  }, [waitingWorker, showReload]);
-
-  return { 
-    showReload, 
-    reloadPage: () => {
-      if (waitingWorker) {
-        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-      }
-      window.location.reload();
-    }
-  };
+  return { showReload, reloadPage };
 };
+
+export default useServiceWorkerUpdate;
