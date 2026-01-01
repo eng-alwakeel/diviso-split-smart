@@ -197,7 +197,7 @@ export function useCreateTicket() {
 
       const { data, error } = await supabase
         .from('support_tickets')
-        .insert({
+        .insert([{
           user_id: user.id,
           category: ticketData.category,
           priority,
@@ -207,7 +207,7 @@ export function useCreateTicket() {
           app_version: ticketData.app_version || deviceInfo.app_version,
           last_event_id: ticketData.last_event_id,
           screenshot_url: ticketData.screenshot_url,
-        })
+        }])
         .select()
         .single();
 

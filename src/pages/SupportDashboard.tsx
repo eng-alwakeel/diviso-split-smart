@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AppHeader } from '@/components/AppHeader';
+import { ArrowLeft } from 'lucide-react';
 import { AdminProtectedRoute } from '@/components/AdminProtectedRoute';
 import {
   useAllTickets,
@@ -155,11 +155,14 @@ function SupportDashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader
-        title={t('admin.dashboard_title')}
-        showBack
-        onBack={() => navigate('/admin')}
-      />
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admin')} className="rtl:rotate-180">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="flex-1 text-lg font-semibold text-center mr-10">{t('admin.dashboard_title')}</h1>
+        </div>
+      </header>
 
       <main className="container max-w-6xl mx-auto p-4">
         <Tabs defaultValue="overview" className="space-y-4">
