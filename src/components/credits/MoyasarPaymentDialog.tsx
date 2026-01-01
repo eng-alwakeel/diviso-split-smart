@@ -116,7 +116,12 @@ export function MoyasarPaymentDialog({
             user_id: userId,
             package_id: packageDetails.id,
           },
-          methods: ['creditcard', 'stcpay'],
+          methods: ['creditcard', 'applepay'],
+          apple_pay: {
+            country: 'SA',
+            label: 'Diviso',
+            validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate',
+          },
         });
 
         console.log('Moyasar initialized successfully');
