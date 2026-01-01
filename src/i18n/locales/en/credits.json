@@ -13,7 +13,11 @@
     "claiming": "Claiming...",
     "next_in": "Next in {{hours}} hours",
     "available": "Available now!",
-    "amount": "+{{amount}} credits daily"
+    "amount": "+{{amount}} credits daily",
+    "already_claimed": "You've already claimed your credits today",
+    "claim_failed": "Failed to claim credits",
+    "claim_success": "🎁 You got {{amount}} credits!",
+    "claim_success_desc": "Your daily credits are now available"
   },
   "insufficient": {
     "title": "Insufficient Credits",

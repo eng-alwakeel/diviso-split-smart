@@ -59,7 +59,20 @@
     "save_error": "خطأ في الحفظ",
     "settings_saved": "تم حفظ الإعدادات!",
     "settings_saved_description": "تم تحديث إعدادات التطبيق بنجاح",
-    "settings_error": "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى."
+    "settings_error": "حدث خطأ أثناء حفظ الإعدادات. حاول مرة أخرى.",
+    "copied": "تم النسخ!",
+    "link_copied": "تم نسخ الرابط إلى الحافظة.",
+    "login_required": "تسجيل الدخول مطلوب",
+    "login_required_desc": "سجّل الدخول للمتابعة.",
+    "export_success": "تم التصدير",
+    "export_success_desc": "تم تصدير التقرير بنجاح",
+    "category_added": "تمت الإضافة",
+    "category_added_desc": "تمت إضافة الفئة بنجاح",
+    "category_updated": "تم التعديل",
+    "category_updated_desc": "تم تحديث اسم الفئة",
+    "validation_error": "خطأ في البيانات",
+    "send_failed": "تعذر الإرسال",
+    "send_failed_desc": "حاول مرة أخرى"
   },
   "not_found": {
     "title": "404",

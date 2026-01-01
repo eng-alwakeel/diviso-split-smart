@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ export function useDailyCredits() {
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('credits');
   const queryClient = useQueryClient();
 
   const checkDailyStatus = useCallback(async () => {
@@ -58,7 +60,7 @@ export function useDailyCredits() {
 
   const claimDailyCredits = useCallback(async (): Promise<boolean> => {
     if (!state.canClaim) {
-      toast({ title: 'لقد حصلت على نقاطك اليوم' });
+      toast({ title: t('daily.already_claimed') });
       return false;
     }
 
@@ -72,7 +74,7 @@ export function useDailyCredits() {
       });
 
       if (error) {
-        toast({ title: 'فشل الحصول على النقاط', variant: 'destructive' });
+        toast({ title: t('daily.claim_failed'), variant: 'destructive' });
         return false;
       }
 
@@ -80,8 +82,8 @@ export function useDailyCredits() {
       const result = data as { success?: boolean; reason?: string } | null;
       if (result?.success === true) {
         toast({ 
-          title: `🎁 حصلت على ${state.dailyAmount} نقاط!`,
-          description: 'نقاطك اليومية متاحة الآن'
+          title: t('daily.claim_success', { amount: state.dailyAmount }),
+          description: t('daily.claim_success_desc')
         });
         await checkDailyStatus();
         queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
@@ -90,7 +92,7 @@ export function useDailyCredits() {
 
       // معالجة حالة "سبق الحصول عليها اليوم"
       if (result?.reason === 'already_claimed_today') {
-        toast({ title: 'لقد حصلت على نقاطك اليوم بالفعل' });
+        toast({ title: t('daily.already_claimed') });
       }
 
       return false;
@@ -100,7 +102,7 @@ export function useDailyCredits() {
     } finally {
       setClaiming(false);
     }
-  }, [state.canClaim, state.dailyAmount, checkDailyStatus, queryClient, toast]);
+  }, [state.canClaim, state.dailyAmount, checkDailyStatus, queryClient, toast, t]);
 
   useEffect(() => {
     checkDailyStatus();

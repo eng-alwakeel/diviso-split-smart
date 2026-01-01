@@ -11,5 +11,36 @@
     "group_invite": "Invitation to join group \"{{group}}\"",
     "referral_joined": "🎉 {{name}} joined via your referral! +{{days}} days",
     "new_notification": "New notification"
+  },
+  "titles": {
+    "expense_created": "New Expense",
+    "expense_approved": "Expense Approved",
+    "expense_rejected": "Expense Rejected",
+    "new_message": "New Message",
+    "group_invite": "Group Invitation",
+    "referral_joined": "Successful Referral 🎉",
+    "referral_completed": "Successful Referral 🎉",
+    "default": "New Notification"
+  },
+  "descriptions": {
+    "expense_created": "{{name}} added an expense of {{amount}} {{currency}} in {{group}}",
+    "expense_approved": "Your expense of {{amount}} {{currency}} in {{group}} was approved",
+    "expense_rejected": "Your expense of {{amount}} {{currency}} in {{group}} was rejected",
+    "new_message": "{{name}}: {{content}} in {{group}}",
+    "group_invite": "{{inviter}} invited you to join group \"{{group}}\"",
+    "referral_joined": "{{name}} joined via your referral! You earned {{days}} free days",
+    "default": "New notification"
+  },
+  "toasts": {
+    "error": "Error",
+    "loading_failed": "Failed to load notifications",
+    "archived": "Archived",
+    "archive_success": "Notification archived successfully",
+    "archive_failed": "Failed to archive notification",
+    "archive_old_success": "{{count}} notifications archived",
+    "archive_old_failed": "Failed to archive old notifications",
+    "deleted": "Deleted",
+    "delete_success": "Notification permanently deleted",
+    "delete_failed": "Failed to delete notification"
   }
 }

@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 
 export const GroupChat = ({ groupId }: GroupChatProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation(['groups', 'common', 'errors']);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -59,7 +61,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
       if (!active) return;
       if (messagesError) {
         console.error("[GroupChat] fetch error", messagesError);
-        toast({ title: "تعذر تحميل الرسائل", description: messagesError.message, variant: "destructive" });
+        toast({ title: t('groups:chat_tab.load_error', 'Failed to load messages'), description: messagesError.message, variant: "destructive" });
         return;
       }
 
@@ -109,7 +111,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [groupId, canUseRealtime, toast]);
+  }, [groupId, canUseRealtime, toast, t]);
 
   const sendMessage = async () => {
     const content = newMessage.trim();
@@ -118,7 +120,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     const { data: auth } = await supabase.auth.getSession();
     const user = auth.session?.user;
     if (!user) {
-      toast({ title: "تسجيل الدخول مطلوب", description: "سجّل الدخول لإرسال الرسائل." });
+      toast({ title: t('common:toast.login_required'), description: t('common:toast.login_required_desc') });
       window.location.href = "/auth?redirectTo=/";
       return;
     }
@@ -131,7 +133,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 
     if (validation.success === false) {
       toast({
-        title: "خطأ في البيانات",
+        title: t('common:toast.validation_error'),
         description: validation.error,
         variant: "destructive",
       });
@@ -151,8 +153,8 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     if (error) {
       console.error("[GroupChat] insert error", error);
       toast({
-        title: "تعذر إرسال الرسالة",
-        description: error.message || "تأكد أنك عضو في المجموعة.",
+        title: t('common:toast.send_failed'),
+        description: error.message || t('common:toast.send_failed_desc'),
         variant: "destructive",
       });
       return;
@@ -166,7 +168,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     return (
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          هذه صفحة مجموعة تجريبية. افتح مجموعة حقيقية (UUID) لتفعيل الدردشة الحية.
+          {t('groups:chat_tab.demo_notice', 'This is a demo group page. Open a real group (UUID) to enable live chat.')}
         </p>
       </div>
     );
@@ -182,13 +184,13 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
           <MessageBubble key={m.id} message={m} profiles={profiles} />
         ))}
         {messages.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground">لا توجد رسائل بعد.</p>
+          <p className="text-center text-sm text-muted-foreground">{t('groups:chat_tab.no_messages', 'No messages yet.')}</p>
         )}
       </div>
 
       <div className="flex gap-2">
         <Input
-          placeholder="اكتب رسالتك..."
+          placeholder={t('groups:chat_tab.write_message')}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !sending && sendMessage()}

@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 
 export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, existingMembers = [] }: InviteByLinkDialogProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation(['groups', 'common']);
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,10 +34,10 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
   const [smartInviteLoading, setSmartInviteLoading] = useState(false);
 
   const disabledReason = useMemo(() => {
-    if (!groupId) return "لا يوجد معرف مجموعة.";
-    if (!isUUID(groupId)) return "هذه مجموعة تجريبية، افتح مجموعة حقيقية (UUID) لتفعيل الدعوات.";
+    if (!groupId) return t('groups:invite.no_group_id', 'No group ID.');
+    if (!isUUID(groupId)) return t('groups:invite.demo_group', 'This is a demo group. Open a real group (UUID) to enable invites.');
     return null;
-  }, [groupId]);
+  }, [groupId, t]);
 
   useEffect(() => {
     if (!open) {
@@ -48,7 +50,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
 
   const generateLink = async () => {
     if (disabledReason) {
-      toast({ title: "لا يمكن إنشاء الدعوة", description: disabledReason, variant: "destructive" });
+      toast({ title: t('groups:invite.cannot_create'), description: disabledReason, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -67,8 +69,8 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       // Handle quota errors
       if (!handleQuotaError(error)) {
         toast({
-          title: "تعذر إنشاء رابط الدعوة",
-          description: error.message || "تحقق من أنك مدير للمجموعة ومسجل دخول.",
+          title: t('groups:invite.link_error'),
+          description: error.message || t('groups:invite.check_admin'),
           variant: "destructive",
         });
       }
@@ -78,13 +80,13 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     const token = data?.token as string;
     const url = `${window.location.origin}/i/${token}`;
     setLink(url);
-    toast({ title: "تم إنشاء رابط الدعوة", description: "انسخ الرابط وشاركه مع الأعضاء." });
+    toast({ title: t('groups:invite.invite_created'), description: t('groups:invite.share_with_members') });
   };
 
   const copyLink = async () => {
     if (!link) return;
     await navigator.clipboard.writeText(link);
-    toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة إلى الحافظة." });
+    toast({ title: t('common:toast.copied'), description: t('common:toast.link_copied') });
   };
 
   const sendSMSInvite = async () => {
@@ -103,13 +105,13 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       if (error) throw error;
       
       toast({
-        title: "تم إرسال الدعوة",
-        description: `تم إرسال دعوة SMS إلى ${phoneNumber}`,
+        title: t('groups:invite.sms_sent'),
+        description: t('groups:invite.sms_sent_to') + ` ${phoneNumber}`,
       });
     } catch (error: any) {
       toast({
-        title: "خطأ في إرسال SMS",
-        description: error.message || "حاول مرة أخرى",
+        title: t('groups:invite.sms_error'),
+        description: error.message || t('groups:invite.try_again'),
         variant: "destructive",
       });
     }
@@ -118,13 +120,13 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
   const sendWhatsAppInvite = () => {
     if (!phoneNumber.trim() || !link || !groupName) return;
     
-    const message = `مرحباً! تمت دعوتك للانضمام لمجموعة "${groupName}" على تطبيق ديفيزو لتقسيم المصاريف.\n\nانقر على الرابط للانضمام:\n${link}`;
+    const message = t('groups:invite.whatsapp_message', { groupName, inviteLink: link });
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     
     toast({
-      title: "تم فتح واتس اب!",
-      description: "تم توجيهك لإرسال الدعوة عبر واتس اب",
+      title: t('groups:invite.whatsapp_opened'),
+      description: t('groups:invite.whatsapp_redirect'),
     });
   };
 
@@ -145,7 +147,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       if (error) throw error;
 
       toast({
-        title: data.userExists ? "تم إرسال إشعار داخلي" : "تم إرسال SMS",
+        title: data.userExists ? t('groups:contacts_invite.notification_sent') : t('groups:invite.sms_sent'),
         description: data.message,
         variant: data.success ? "default" : "destructive",
       });
@@ -155,8 +157,8 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       }
     } catch (error: any) {
       toast({
-        title: "خطأ في إرسال الدعوة",
-        description: error.message || "حاول مرة أخرى",
+        title: t('groups:invite.error'),
+        description: error.message || t('groups:invite.try_again'),
         variant: "destructive",
       });
     } finally {
@@ -172,13 +174,13 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>دعوة عضو جديد</DialogTitle>
-          <DialogDescription>أنشئ رابط دعوة لمشاركة الانضمام إلى المجموعة.</DialogDescription>
+          <DialogTitle>{t('groups:members_tab.invite_new')}</DialogTitle>
+          <DialogDescription>{t('groups:invite.link_description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>معرف المجموعة</Label>
+            <Label>{t('groups:invite.group_id', 'Group ID')}</Label>
             <Input value={groupId || ""} readOnly />
             {disabledReason && <p className="text-xs text-destructive mt-1">{disabledReason}</p>}
           </div>
@@ -186,14 +188,14 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
           <div className="flex gap-2">
             <Button className="flex items-center gap-2" onClick={generateLink} disabled={!!disabledReason || loading}>
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link className="w-4 h-4" />}
-              إنشاء رابط دعوة
+              {t('groups:invite.create_link', 'Create Invite Link')}
             </Button>
           </div>
 
           <div className="space-y-2">
-            <Label>الرابط</Label>
+            <Label>{t('groups:invite.link_title')}</Label>
             <div className="flex gap-2">
-              <Input value={link} readOnly placeholder="سيظهر الرابط هنا بعد الإنشاء" />
+              <Input value={link} readOnly placeholder={t('groups:invite.link_placeholder', 'Link will appear here after creation')} />
               <Button variant="outline" onClick={copyLink} disabled={!link} className="shrink-0">
                 <Copy className="w-4 h-4" />
               </Button>
@@ -203,7 +205,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
           <Separator />
           
           <div className="space-y-4">
-            <Label className="text-sm font-medium">دعوة الأعضاء</Label>
+            <Label className="text-sm font-medium">{t('groups:invite.title')}</Label>
             
             {/* Smart invite from contacts */}
             <div className="flex gap-2">
@@ -214,17 +216,17 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
                 className="flex-1"
               >
                 <Contact className="w-4 h-4 ml-2" />
-                من جهات الاتصال
+                {t('groups:contacts_invite.select_contact')}
               </Button>
             </div>
 
             {link && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">أو أدخل رقم الجوال</Label>
+                  <Label htmlFor="phone">{t('groups:invite.or_enter_phone', 'Or enter phone number')}</Label>
                   <Input
                     id="phone"
-                    placeholder="966xxxxxxxxx"
+                    placeholder={t('groups:invite.phone_placeholder')}
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     className="text-left"
@@ -240,7 +242,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
                     className="bg-primary/20 border-primary/30 text-primary hover:bg-primary/30"
                   >
                     <Phone className="w-4 h-4 ml-2" />
-                    دعوة ذكية
+                    {t('groups:invite.smart_invite', 'Smart Invite')}
                   </Button>
                   <Button
                     variant="outline"
@@ -249,7 +251,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
                     className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                   >
                     <MessageSquare className="w-4 h-4 ml-2" />
-                    واتساب
+                    {t('groups:invite.whatsapp')}
                   </Button>
                   <Button
                     variant="outline"
@@ -258,7 +260,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
                     className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
                   >
                     <Phone className="w-4 h-4 ml-2" />
-                    SMS
+                    {t('groups:invite.sms')}
                   </Button>
                 </div>
               </>

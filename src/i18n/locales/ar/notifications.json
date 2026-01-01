@@ -11,5 +11,36 @@
     "group_invite": "دعوة انضمام لمجموعة \"{{group}}\"",
     "referral_joined": "🎉 {{name}} انضم عبر إحالتك! +{{days}} أيام",
     "new_notification": "إشعار جديد"
+  },
+  "titles": {
+    "expense_created": "مصروف جديد",
+    "expense_approved": "تم اعتماد المصروف",
+    "expense_rejected": "تم رفض المصروف",
+    "new_message": "رسالة جديدة",
+    "group_invite": "دعوة انضمام لمجموعة",
+    "referral_joined": "إحالة ناجحة 🎉",
+    "referral_completed": "إحالة ناجحة 🎉",
+    "default": "إشعار جديد"
+  },
+  "descriptions": {
+    "expense_created": "{{name}} أضاف مصروف بقيمة {{amount}} {{currency}} في {{group}}",
+    "expense_approved": "تم اعتماد مصروفك بقيمة {{amount}} {{currency}} في {{group}}",
+    "expense_rejected": "تم رفض مصروفك بقيمة {{amount}} {{currency}} في {{group}}",
+    "new_message": "{{name}}: {{content}} في {{group}}",
+    "group_invite": "{{inviter}} دعاك للانضمام إلى مجموعة \"{{group}}\"",
+    "referral_joined": "{{name}} انضم عبر إحالتك! حصلت على {{days}} أيام مجانية",
+    "default": "إشعار جديد"
+  },
+  "toasts": {
+    "error": "خطأ",
+    "loading_failed": "فشل في تحميل الإشعارات",
+    "archived": "تم الأرشفة",
+    "archive_success": "تم أرشفة الإشعار بنجاح",
+    "archive_failed": "فشل في أرشفة الإشعار",
+    "archive_old_success": "تم أرشفة {{count}} إشعار",
+    "archive_old_failed": "فشل في أرشفة الإشعارات القديمة",
+    "deleted": "تم الحذف",
+    "delete_success": "تم حذف الإشعار نهائياً",
+    "delete_failed": "فشل في حذف الإشعار"
   }
 }
