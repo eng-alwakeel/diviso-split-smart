@@ -2308,6 +2308,27 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          permission: Database["public"]["Enums"]["permission_scope"]
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permission: Database["public"]["Enums"]["permission_scope"]
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["permission_scope"]
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
       security_logs: {
         Row: {
           action: string
@@ -3347,6 +3368,10 @@ export type Database = {
           unread_notifications: number
         }[]
       }
+      get_user_permissions: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["permission_scope"][]
+      }
       get_user_plan: { Args: { p_user_id: string }; Returns: string }
       get_user_referral_tier: {
         Args: { p_user_id: string }
@@ -3359,6 +3384,10 @@ export type Database = {
           tier_name: string
           total_reward_days: number
         }[]
+      }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
       }
       get_users_for_admin: {
         Args: never
@@ -3402,6 +3431,20 @@ export type Database = {
         Returns: Json
       }
       grant_welcome_credits: { Args: { p_user_id: string }; Returns: Json }
+      has_any_permission: {
+        Args: {
+          _permissions: Database["public"]["Enums"]["permission_scope"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_permission: {
+        Args: {
+          _permission: Database["public"]["Enums"]["permission_scope"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3418,6 +3461,7 @@ export type Database = {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined
       }
+      is_admin_level_user: { Args: { _user_id: string }; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       is_family_member_of: {
         Args: { p_family_owner_id: string; p_user_id: string }
@@ -3510,6 +3554,30 @@ export type Database = {
       income_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
+      permission_scope:
+        | "users.view"
+        | "users.edit"
+        | "users.ban"
+        | "users.delete"
+        | "billing.view"
+        | "billing.refund"
+        | "billing.cancel_subscription"
+        | "pricing.view"
+        | "pricing.edit"
+        | "credits.view"
+        | "credits.grant"
+        | "credits.deduct"
+        | "rewards.view"
+        | "rewards.manage_campaigns"
+        | "rewards.grant_manual"
+        | "ads.view"
+        | "ads.manage_partners"
+        | "ads.manage_campaigns"
+        | "analytics.view"
+        | "analytics.export"
+        | "system.feature_flags"
+        | "system.logs"
+        | "system.settings"
       referral_status: "pending" | "joined" | "blocked" | "expired"
       subscription_plan: "personal" | "family" | "lifetime"
       subscription_status: "trialing" | "active" | "expired" | "canceled"
@@ -3665,6 +3733,31 @@ export const Constants = {
       income_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
+      permission_scope: [
+        "users.view",
+        "users.edit",
+        "users.ban",
+        "users.delete",
+        "billing.view",
+        "billing.refund",
+        "billing.cancel_subscription",
+        "pricing.view",
+        "pricing.edit",
+        "credits.view",
+        "credits.grant",
+        "credits.deduct",
+        "rewards.view",
+        "rewards.manage_campaigns",
+        "rewards.grant_manual",
+        "ads.view",
+        "ads.manage_partners",
+        "ads.manage_campaigns",
+        "analytics.view",
+        "analytics.export",
+        "system.feature_flags",
+        "system.logs",
+        "system.settings",
+      ],
       referral_status: ["pending", "joined", "blocked", "expired"],
       subscription_plan: ["personal", "family", "lifetime"],
       subscription_status: ["trialing", "active", "expired", "canceled"],
