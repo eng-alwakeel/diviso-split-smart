@@ -125,7 +125,7 @@ export const MonthlyWrapCard: React.FC<MonthlyWrapCardProps> = ({ stats, onShare
           >
             <Share2 className="w-4 h-4" />
             <Coins className="w-4 h-4" />
-            {isRTL ? 'شارك ملخصك واحصل على 30 عملة!' : 'Share your wrap & get 30 coins!'}
+            {isRTL ? 'شارك ملخصك واحصل على عملة!' : 'Share your wrap & get 1 coin!'}
           </Button>
         ) : (
           <div className="flex gap-2">
