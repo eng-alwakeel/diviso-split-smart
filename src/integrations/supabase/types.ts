@@ -575,6 +575,74 @@ export type Database = {
           },
         ]
       }
+      credit_notes: {
+        Row: {
+          created_at: string
+          credit_note_number: string
+          currency: string
+          id: string
+          issue_datetime: string
+          issued_by: string | null
+          original_invoice_id: string
+          pdf_url: string | null
+          qr_base64: string | null
+          qr_payload: string | null
+          reason: string
+          reason_ar: string | null
+          total_excl_vat: number
+          total_incl_vat: number
+          total_vat: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit_note_number: string
+          currency?: string
+          id?: string
+          issue_datetime?: string
+          issued_by?: string | null
+          original_invoice_id: string
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          reason: string
+          reason_ar?: string | null
+          total_excl_vat?: number
+          total_incl_vat?: number
+          total_vat?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credit_note_number?: string
+          currency?: string
+          id?: string
+          issue_datetime?: string
+          issued_by?: string | null
+          original_invoice_id?: string
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          reason?: string
+          reason_ar?: string | null
+          total_excl_vat?: number
+          total_incl_vat?: number
+          total_vat?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_packages: {
         Row: {
           bonus_credits: number | null
@@ -1568,6 +1636,167 @@ export type Database = {
             columns: ["referral_id"]
             isOneToOne: false
             referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          description_ar: string | null
+          id: string
+          invoice_id: string
+          item_type: string
+          line_total_incl_vat: number
+          quantity: number
+          unit_price_excl_vat: number
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          description_ar?: string | null
+          id?: string
+          invoice_id: string
+          item_type: string
+          line_total_incl_vat: number
+          quantity?: number
+          unit_price_excl_vat: number
+          vat_amount: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          description_ar?: string | null
+          id?: string
+          invoice_id?: string
+          item_type?: string
+          line_total_incl_vat?: number
+          quantity?: number
+          unit_price_excl_vat?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          credit_purchase_id: string | null
+          currency: string
+          id: string
+          invoice_number: string
+          invoice_type: string
+          issue_datetime: string
+          notes: string | null
+          original_invoice_id: string | null
+          payment_provider: string | null
+          payment_status: string
+          payment_txn_id: string | null
+          pdf_url: string | null
+          qr_base64: string | null
+          qr_payload: string | null
+          seller_address: string | null
+          seller_cr_number: string | null
+          seller_legal_name: string
+          seller_vat_number: string | null
+          subscription_id: string | null
+          total_excl_vat: number
+          total_incl_vat: number
+          total_vat: number
+          updated_at: string
+          user_id: string
+          vat_rate: number
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          credit_purchase_id?: string | null
+          currency?: string
+          id?: string
+          invoice_number: string
+          invoice_type?: string
+          issue_datetime?: string
+          notes?: string | null
+          original_invoice_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string
+          payment_txn_id?: string | null
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          seller_address?: string | null
+          seller_cr_number?: string | null
+          seller_legal_name?: string
+          seller_vat_number?: string | null
+          subscription_id?: string | null
+          total_excl_vat?: number
+          total_incl_vat?: number
+          total_vat?: number
+          updated_at?: string
+          user_id: string
+          vat_rate?: number
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          credit_purchase_id?: string | null
+          currency?: string
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          issue_datetime?: string
+          notes?: string | null
+          original_invoice_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string
+          payment_txn_id?: string | null
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          seller_address?: string | null
+          seller_cr_number?: string | null
+          seller_legal_name?: string
+          seller_vat_number?: string | null
+          subscription_id?: string | null
+          total_excl_vat?: number
+          total_incl_vat?: number
+          total_vat?: number
+          updated_at?: string
+          user_id?: string
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_credit_purchase_id_fkey"
+            columns: ["credit_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "credit_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -3513,6 +3742,8 @@ export type Database = {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
         Returns: string
       }
+      generate_credit_note_number: { Args: never; Returns: string }
+      generate_invoice_number: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
       get_admin_activity_stats: {
