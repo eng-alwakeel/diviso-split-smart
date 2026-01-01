@@ -10,7 +10,11 @@ export const BRAND_CONFIG = {
   contact: {
     email: "support@diviso.app",
     phone: "+966 50 123 4567",
-    address: "الرياض، المملكة العربية السعودية"
+    address: "مكة المكرمة، العوالي، ابراهيم الجفالي، 2437"
+  },
+  company: {
+    legalName: "شركة تكامل البناء للمقاولات العامة المحدودة",
+    legalNameEn: "Takamul Al-Bina General Contracting Company Ltd."
   },
   vat: {
     number: "310137963800003",
