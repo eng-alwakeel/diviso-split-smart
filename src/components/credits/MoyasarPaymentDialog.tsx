@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2, CreditCard, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
+import { BRAND_CONFIG } from '@/lib/brandConfig';
 interface MoyasarPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -101,7 +101,8 @@ export function MoyasarPaymentDialog({
           return;
         }
 
-        const callbackUrl = `${window.location.origin}/payment-callback?purchase_id=${purchaseId}`;
+        // Use BRAND_CONFIG.url for production callback
+        const callbackUrl = `${BRAND_CONFIG.url}/payment-callback?purchase_id=${purchaseId}`;
         console.log('Moyasar callback URL:', callbackUrl);
 
         window.Moyasar.init({
@@ -116,7 +117,7 @@ export function MoyasarPaymentDialog({
             user_id: userId,
             package_id: packageDetails.id,
           },
-          methods: ['creditcard', 'applepay'],
+          methods: ['creditcard', 'stcpay', 'applepay'],
           apple_pay: {
             country: 'SA',
             label: 'Diviso',
