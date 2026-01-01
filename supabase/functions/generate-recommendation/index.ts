@@ -8,14 +8,14 @@ const corsHeaders = {
 interface RecommendationRequest {
   group_id?: string;
   city?: string;
-  destination?: string; // For Travelpayouts (city code or IATA)
+  destination?: string;
   latitude?: number;
   longitude?: number;
   trigger: 'planning' | 'meal_time' | 'post_expense' | 'end_of_day';
   current_time?: string;
   group_type?: string;
   member_count?: number;
-  check_in?: string; // For hotel search
+  check_in?: string;
   check_out?: string;
 }
 
@@ -24,7 +24,7 @@ interface RecommendationDecision {
   recommendation_type: 'food' | 'accommodation' | 'activity' | 'hotel' | 'flight' | 'car_rental' | null;
   reason: string;
   priority: number;
-  source?: 'google_places' | 'travelpayouts';
+  source?: 'google_places' | 'travelpayouts' | 'fallback';
 }
 
 interface TravelpayoutsHotel {
@@ -40,6 +40,70 @@ interface TravelpayoutsHotel {
   };
 }
 
+interface GooglePlace {
+  id: string;
+  displayName: { text: string; languageCode: string };
+  formattedAddress: string;
+  rating?: number;
+  priceLevel?: string;
+  types?: string[];
+  location?: { latitude: number; longitude: number };
+  photos?: { name: string }[];
+}
+
+// Fallback recommendations for Saudi cities
+const FALLBACK_RECOMMENDATIONS: Record<string, Record<string, any[]>> = {
+  'Riyadh': {
+    food: [
+      { name: 'مطعم نجد', name_ar: 'مطعم نجد', category: 'restaurant', rating: 4.5, estimated_price: 80, price_range: '$$', relevance_reason_ar: 'مطعم شعبي سعودي مميز' },
+      { name: 'مطعم القرية النجدية', name_ar: 'مطعم القرية النجدية', category: 'restaurant', rating: 4.6, estimated_price: 100, price_range: '$$', relevance_reason_ar: 'أجواء تراثية وأكل سعودي أصيل' },
+    ],
+    activity: [
+      { name: 'بوليفارد رياض سيتي', name_ar: 'بوليفارد رياض سيتي', category: 'entertainment', rating: 4.7, estimated_price: 50, price_range: '$', relevance_reason_ar: 'منطقة ترفيهية متكاملة' },
+      { name: 'حديقة الملك عبدالله', name_ar: 'حديقة الملك عبدالله', category: 'park', rating: 4.5, estimated_price: 0, price_range: '$', relevance_reason_ar: 'حديقة عائلية جميلة' },
+    ],
+  },
+  'Jeddah': {
+    food: [
+      { name: 'مطعم البيك', name_ar: 'مطعم البيك', category: 'restaurant', rating: 4.4, estimated_price: 40, price_range: '$', relevance_reason_ar: 'أشهر مطاعم الوجبات السريعة في السعودية' },
+      { name: 'مطعم تواصي', name_ar: 'مطعم تواصي', category: 'restaurant', rating: 4.5, estimated_price: 60, price_range: '$$', relevance_reason_ar: 'مأكولات بحرية طازجة' },
+    ],
+    activity: [
+      { name: 'كورنيش جدة', name_ar: 'كورنيش جدة', category: 'attraction', rating: 4.6, estimated_price: 0, price_range: '$', relevance_reason_ar: 'إطلالة رائعة على البحر الأحمر' },
+      { name: 'نافورة الملك فهد', name_ar: 'نافورة الملك فهد', category: 'landmark', rating: 4.7, estimated_price: 0, price_range: '$', relevance_reason_ar: 'أطول نافورة في العالم' },
+    ],
+  },
+  'default': {
+    food: [
+      { name: 'مطعم محلي مميز', name_ar: 'مطعم محلي مميز', category: 'restaurant', rating: 4.3, estimated_price: 60, price_range: '$$', relevance_reason_ar: 'مطعم موصى به في المنطقة' },
+    ],
+    activity: [
+      { name: 'جولة في المدينة', name_ar: 'جولة في المدينة', category: 'activity', rating: 4.4, estimated_price: 30, price_range: '$', relevance_reason_ar: 'استكشف المعالم المحلية' },
+    ],
+  },
+};
+
+// Get fallback recommendation
+function getFallbackRecommendation(city: string, type: string): any {
+  const cityData = FALLBACK_RECOMMENDATIONS[city] || FALLBACK_RECOMMENDATIONS['default'];
+  const typeData = cityData[type] || cityData['food'] || [];
+  
+  if (typeData.length === 0) {
+    return null;
+  }
+  
+  const randomIndex = Math.floor(Math.random() * typeData.length);
+  const recommendation = typeData[randomIndex];
+  
+  return {
+    id: `fallback_${Date.now()}`,
+    ...recommendation,
+    currency: 'SAR',
+    is_partner: false,
+    source: 'fallback',
+  };
+}
+
 // Travelpayouts API helper
 async function fetchTravelpayoutsHotels(
   destination: string,
@@ -49,27 +113,26 @@ async function fetchTravelpayoutsHotels(
 ): Promise<TravelpayoutsHotel[]> {
   const token = Deno.env.get('TRAVELPAYOUTS_TOKEN');
   if (!token) {
-    console.log('TRAVELPAYOUTS_TOKEN not configured');
+    console.log('[generate-recommendation] TRAVELPAYOUTS_TOKEN not configured');
     return [];
   }
 
   try {
-    // Use Travelpayouts Hotel Search API
     const url = `https://engine.hotellook.com/api/v2/cache.json?location=${encodeURIComponent(destination)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=${guests}&limit=10&token=${token}`;
     
-    console.log(`Fetching Travelpayouts hotels for: ${destination}`);
+    console.log(`[generate-recommendation] Fetching Travelpayouts hotels for: ${destination}`);
     
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error('Travelpayouts API error:', response.status);
+      console.error('[generate-recommendation] Travelpayouts API error:', response.status);
       return [];
     }
 
     const data = await response.json();
     
     if (!Array.isArray(data)) {
-      console.log('No hotels found from Travelpayouts');
+      console.log('[generate-recommendation] No hotels found from Travelpayouts');
       return [];
     }
 
@@ -83,7 +146,7 @@ async function fetchTravelpayoutsHotels(
       location: hotel.location || { lat: 0, lon: 0 }
     }));
   } catch (error) {
-    console.error('Error fetching Travelpayouts hotels:', error);
+    console.error('[generate-recommendation] Error fetching Travelpayouts hotels:', error);
     return [];
   }
 }
@@ -108,6 +171,147 @@ function convertHotelToRecommendation(hotel: TravelpayoutsHotel, destination: st
     relevance_reason: `فندق ${hotel.stars} نجوم بسعر يبدأ من $${hotel.priceFrom}`,
     relevance_reason_ar: `فندق ${hotel.stars} نجوم بسعر يبدأ من $${hotel.priceFrom}`
   };
+}
+
+// Fetch places from Google Places API directly
+async function fetchGooglePlaces(
+  city: string,
+  recommendationType: string,
+  budget: string
+): Promise<{ recommendation: any; alternatives: any[] } | null> {
+  const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+  
+  if (!googleApiKey) {
+    console.log('[generate-recommendation] GOOGLE_PLACES_API_KEY not configured, using fallback');
+    return null;
+  }
+
+  try {
+    // Build search query based on recommendation type
+    let searchQuery = '';
+    switch (recommendationType) {
+      case 'food':
+        searchQuery = `best restaurants for groups in ${city}`;
+        break;
+      case 'activity':
+        searchQuery = `popular activities and attractions in ${city}`;
+        break;
+      case 'accommodation':
+      case 'hotel':
+        searchQuery = `hotels in ${city}`;
+        break;
+      default:
+        searchQuery = `popular places in ${city}`;
+    }
+
+    // Add budget filter to query
+    if (budget === 'low') {
+      searchQuery += ' budget friendly affordable';
+    } else if (budget === 'high') {
+      searchQuery += ' luxury premium';
+    }
+
+    console.log(`[generate-recommendation] Searching Google Places: "${searchQuery}"`);
+
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': googleApiKey,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.types,places.location,places.photos'
+      },
+      body: JSON.stringify({
+        textQuery: searchQuery,
+        languageCode: 'ar',
+        maxResultCount: 10
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[generate-recommendation] Google Places API error: ${response.status}`, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    const places: GooglePlace[] = data.places || [];
+
+    console.log(`[generate-recommendation] Found ${places.length} places from Google`);
+
+    if (places.length === 0) {
+      return null;
+    }
+
+    // Score and sort places
+    const scoredPlaces = places.map((place) => {
+      let score = 0;
+      
+      // Rating score (0-5 points)
+      if (place.rating) {
+        score += place.rating;
+      }
+      
+      // Price level match
+      const priceLevel = place.priceLevel || 'PRICE_LEVEL_MODERATE';
+      if (budget === 'low' && priceLevel === 'PRICE_LEVEL_INEXPENSIVE') score += 2;
+      if (budget === 'medium' && priceLevel === 'PRICE_LEVEL_MODERATE') score += 2;
+      if (budget === 'high' && (priceLevel === 'PRICE_LEVEL_EXPENSIVE' || priceLevel === 'PRICE_LEVEL_VERY_EXPENSIVE')) score += 2;
+
+      return { place, score };
+    }).sort((a, b) => b.score - a.score);
+
+    // Convert to recommendation format
+    const convertPlace = (place: GooglePlace, index: number) => {
+      const priceMap: Record<string, string> = {
+        'PRICE_LEVEL_FREE': '$',
+        'PRICE_LEVEL_INEXPENSIVE': '$',
+        'PRICE_LEVEL_MODERATE': '$$',
+        'PRICE_LEVEL_EXPENSIVE': '$$$',
+        'PRICE_LEVEL_VERY_EXPENSIVE': '$$$$'
+      };
+
+      const estimatedPriceMap: Record<string, number> = {
+        'PRICE_LEVEL_FREE': 0,
+        'PRICE_LEVEL_INEXPENSIVE': 30,
+        'PRICE_LEVEL_MODERATE': 75,
+        'PRICE_LEVEL_EXPENSIVE': 150,
+        'PRICE_LEVEL_VERY_EXPENSIVE': 300
+      };
+
+      const priceLevel = place.priceLevel || 'PRICE_LEVEL_MODERATE';
+
+      return {
+        id: place.id,
+        name: place.displayName?.text || 'Unknown',
+        name_ar: place.displayName?.text,
+        category: recommendationType,
+        rating: place.rating || 0,
+        price_range: priceMap[priceLevel] || '$$',
+        estimated_price: estimatedPriceMap[priceLevel] || 75,
+        currency: 'SAR',
+        location: place.location ? {
+          address: place.formattedAddress,
+          lat: place.location.latitude,
+          lng: place.location.longitude
+        } : null,
+        is_partner: false,
+        source: 'google_places',
+        relevance_reason_ar: `تقييم ${place.rating || 'غير متوفر'} - ${place.formattedAddress || city}`,
+        relevance_reason: `Rating: ${place.rating || 'N/A'} - ${place.formattedAddress || city}`
+      };
+    };
+
+    const mainRecommendation = convertPlace(scoredPlaces[0].place, 0);
+    const alternatives = scoredPlaces.slice(1, 4).map((sp, i) => convertPlace(sp.place, i + 1));
+
+    return {
+      recommendation: mainRecommendation,
+      alternatives
+    };
+  } catch (error) {
+    console.error('[generate-recommendation] Error fetching Google Places:', error);
+    return null;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -145,10 +349,11 @@ Deno.serve(async (req) => {
     const requestBody: RecommendationRequest = await req.json();
     const { group_id, city, destination, latitude, longitude, trigger, current_time, group_type, member_count = 4 } = requestBody;
 
+    console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}`);
+
     // Determine city from coordinates or use fallback
     let resolvedCity = city;
     if (!resolvedCity && latitude && longitude) {
-      // Use coordinates to get city name via reverse geocoding
       try {
         const geoResponse = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=en`
@@ -156,22 +361,21 @@ Deno.serve(async (req) => {
         if (geoResponse.ok) {
           const geoData = await geoResponse.json();
           resolvedCity = geoData.address?.city || geoData.address?.town || geoData.address?.state;
+          console.log(`[generate-recommendation] Resolved city from coordinates: ${resolvedCity}`);
         }
       } catch (e) {
-        console.log('Reverse geocoding failed:', e);
+        console.log('[generate-recommendation] Reverse geocoding failed:', e);
       }
     }
     
-    // Fallback to Riyadh if no city determined
     const DEFAULT_CITY = 'Riyadh';
     const finalCity = resolvedCity || DEFAULT_CITY;
 
-    console.log(`Generate recommendation for trigger: ${trigger}, group: ${group_id}`);
-
-    // Check user's recommendation limit first
+    // Check user's recommendation limit
     const { data: canRecommend } = await supabase.rpc('check_recommendation_limit', { p_user_id: user.id });
     
     if (!canRecommend) {
+      console.log('[generate-recommendation] User reached daily limit');
       return new Response(
         JSON.stringify({ 
           decision: { 
@@ -194,6 +398,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (settings && !settings.enabled) {
+      console.log('[generate-recommendation] Recommendations disabled for user');
       return new Response(
         JSON.stringify({ 
           decision: { 
@@ -208,8 +413,6 @@ Deno.serve(async (req) => {
     }
 
     // Get group info if group_id provided
-    let groupInfo = null;
-    let groupCity = finalCity;
     let groupMemberCount = member_count;
     let groupType = group_type;
 
@@ -221,21 +424,21 @@ Deno.serve(async (req) => {
         .single();
 
       if (group) {
-        groupInfo = group;
         groupType = group.group_type || 'general';
         
-        // Get member count
         const { count } = await supabase
           .from('group_members')
           .select('*', { count: 'exact', head: true })
           .eq('group_id', group_id);
         
         groupMemberCount = count || member_count;
+        console.log(`[generate-recommendation] Group type: ${groupType}, members: ${groupMemberCount}`);
       }
     }
 
     // Decision engine logic
     const decision = makeRecommendationDecision(trigger, current_time, groupType);
+    console.log(`[generate-recommendation] Decision:`, decision);
 
     if (!decision.should_recommend) {
       return new Response(
@@ -270,7 +473,7 @@ Deno.serve(async (req) => {
 
     // Try Travelpayouts for accommodation/hotel recommendations
     if ((decision.recommendation_type === 'accommodation' || decision.recommendation_type === 'hotel') && destination) {
-      console.log('Trying Travelpayouts for hotel recommendation...');
+      console.log('[generate-recommendation] Trying Travelpayouts for hotel...');
       
       const checkIn = requestBody.check_in || new Date().toISOString().split('T')[0];
       const checkOutDate = new Date();
@@ -280,7 +483,7 @@ Deno.serve(async (req) => {
       const hotels = await fetchTravelpayoutsHotels(destination, checkIn, checkOut, groupMemberCount);
       
       if (hotels.length > 0) {
-        console.log(`Found ${hotels.length} hotels from Travelpayouts`);
+        console.log(`[generate-recommendation] Found ${hotels.length} hotels from Travelpayouts`);
         
         const mainHotel = hotels[0];
         const recommendation = convertHotelToRecommendation(mainHotel, destination);
@@ -317,57 +520,104 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fallback to Google Places for food/activity or if Travelpayouts has no results
-    if (groupCity && decision.recommendation_type) {
-      // Call get-place-recommendations function internally
-      const { data: recommendation, error: recError } = await supabase.functions.invoke(
-        'get-place-recommendations',
-        {
-          body: {
-            city: groupCity,
-            group_type: groupType,
-            member_count: groupMemberCount,
-            context_type: trigger === 'planning' ? 'planning' : 
-                         trigger === 'meal_time' ? 'during' : 'post',
-            budget,
-            recommendation_type: decision.recommendation_type,
-            group_id
-          },
-          headers: {
-            Authorization: authHeader
-          }
-        }
-      );
+    // Try Google Places API directly
+    console.log(`[generate-recommendation] Trying Google Places for ${decision.recommendation_type} in ${finalCity}...`);
+    
+    const googleResult = await fetchGooglePlaces(finalCity, decision.recommendation_type!, budget);
 
-      if (recError) {
-        console.error('Error fetching recommendation:', recError);
-        return new Response(
-          JSON.stringify({ decision, error: recError.message }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+    if (googleResult && googleResult.recommendation) {
+      console.log('[generate-recommendation] Got recommendation from Google Places');
+      
+      // Save recommendation to database
+      try {
+        await supabase.from('recommendations').insert({
+          user_id: user.id,
+          group_id: group_id,
+          name: googleResult.recommendation.name,
+          name_ar: googleResult.recommendation.name_ar,
+          recommendation_type: decision.recommendation_type,
+          category: googleResult.recommendation.category,
+          estimated_price: googleResult.recommendation.estimated_price,
+          currency: 'SAR',
+          price_range: googleResult.recommendation.price_range,
+          rating: googleResult.recommendation.rating,
+          is_partner: false,
+          source: 'google_places',
+          relevance_reason: googleResult.recommendation.relevance_reason,
+          relevance_reason_ar: googleResult.recommendation.relevance_reason_ar,
+          external_id: googleResult.recommendation.id,
+          location: googleResult.recommendation.location,
+          context: { trigger, group_type: groupType, city: finalCity }
+        });
+
+        // Increment user's daily count
+        await supabase.rpc('increment_recommendation_count', { p_user_id: user.id });
+      } catch (dbError) {
+        console.error('[generate-recommendation] Error saving to database:', dbError);
       }
 
       return new Response(
         JSON.stringify({ 
           decision: { ...decision, source: 'google_places' },
-          recommendation: recommendation?.recommendation,
-          alternatives: recommendation?.alternatives
+          recommendation: googleResult.recommendation,
+          alternatives: googleResult.alternatives
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Return decision without actual recommendation (city not provided)
+    // Fallback to static recommendations
+    console.log('[generate-recommendation] Using fallback recommendations');
+    
+    const fallbackRecommendation = getFallbackRecommendation(finalCity, decision.recommendation_type!);
+    
+    if (fallbackRecommendation) {
+      // Save fallback recommendation
+      try {
+        await supabase.from('recommendations').insert({
+          user_id: user.id,
+          group_id: group_id,
+          name: fallbackRecommendation.name,
+          name_ar: fallbackRecommendation.name_ar,
+          recommendation_type: decision.recommendation_type,
+          category: fallbackRecommendation.category,
+          estimated_price: fallbackRecommendation.estimated_price,
+          currency: 'SAR',
+          price_range: fallbackRecommendation.price_range,
+          rating: fallbackRecommendation.rating,
+          is_partner: false,
+          source: 'fallback',
+          relevance_reason_ar: fallbackRecommendation.relevance_reason_ar,
+          context: { trigger, group_type: groupType, city: finalCity }
+        });
+
+        await supabase.rpc('increment_recommendation_count', { p_user_id: user.id });
+      } catch (dbError) {
+        console.error('[generate-recommendation] Error saving fallback to database:', dbError);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          decision: { ...decision, source: 'fallback' },
+          recommendation: fallbackRecommendation,
+          alternatives: []
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // No recommendation available
     return new Response(
       JSON.stringify({ 
         decision,
-        message: 'City or destination required to fetch actual recommendation'
+        error: 'لم نتمكن من إيجاد توصيات مناسبة',
+        message: 'No recommendations available for this location'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in generate-recommendation:', error);
+    console.error('[generate-recommendation] Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -385,11 +635,10 @@ function makeRecommendationDecision(
 
   switch (trigger) {
     case 'planning':
-      // During group planning, suggest based on group type
       if (groupType === 'travel') {
         return {
           should_recommend: true,
-          recommendation_type: 'hotel', // Use hotel for Travelpayouts
+          recommendation_type: 'hotel',
           reason: 'group_planning_travel',
           priority: 2,
           source: 'travelpayouts'
@@ -404,7 +653,6 @@ function makeRecommendationDecision(
       };
 
     case 'meal_time':
-      // Lunch (12-2pm) or Dinner (7-9pm)
       if ((hour >= 12 && hour <= 14) || (hour >= 19 && hour <= 21)) {
         return {
           should_recommend: true,
@@ -422,7 +670,6 @@ function makeRecommendationDecision(
       };
 
     case 'post_expense':
-      // After adding an expense, might suggest related activity
       return {
         should_recommend: true,
         recommendation_type: 'activity',
@@ -432,7 +679,6 @@ function makeRecommendationDecision(
       };
 
     case 'end_of_day':
-      // End of day, suggest accommodation if travel group
       if (groupType === 'travel') {
         return {
           should_recommend: true,
