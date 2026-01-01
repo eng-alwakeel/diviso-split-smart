@@ -1,15 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Gift, Calendar } from "lucide-react";
+import { Gift, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 export const PricingSection = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation('pricing');
+  const { t, i18n } = useTranslation('pricing');
+  const isRTL = i18n.language === 'ar';
 
   return (
-    <section id="pricing" className="py-12 px-4 bg-muted/50">
+    <section id="pricing" className="py-12 px-4 bg-muted/50" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
           {t('title')}
@@ -18,20 +19,20 @@ export const PricingSection = () => {
           {t('subtitle')}
         </p>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* Welcome Credits Card */}
           <Card className="bg-gradient-card border-0 shadow-card hover:shadow-elevated transition-all duration-300">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Gift className="w-8 h-8 text-primary" />
+            <CardContent className="p-6 text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Gift className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="text-lg font-semibold mb-2">
                 {t('welcome_bonus.title')}
               </h3>
-              <div className="text-5xl font-bold text-primary mb-2">
+              <div className="text-4xl font-bold text-primary mb-2">
                 {t('welcome_bonus.amount')}
               </div>
-              <p className="text-lg text-muted-foreground mb-2">
+              <p className="text-md text-muted-foreground mb-2">
                 {t('welcome_bonus.unit')}
               </p>
               <p className="text-sm text-muted-foreground">
@@ -42,21 +43,42 @@ export const PricingSection = () => {
 
           {/* Daily Credits Card */}
           <Card className="bg-gradient-card border-0 shadow-card hover:shadow-elevated transition-all duration-300">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-primary" />
+            <CardContent className="p-6 text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="text-lg font-semibold mb-2">
                 {t('daily_bonus.title')}
               </h3>
-              <div className="text-5xl font-bold text-primary mb-2">
+              <div className="text-4xl font-bold text-primary mb-2">
                 {t('daily_bonus.amount')}
               </div>
-              <p className="text-lg text-muted-foreground mb-2">
+              <p className="text-md text-muted-foreground mb-2">
                 {t('daily_bonus.unit')}
               </p>
               <p className="text-sm text-muted-foreground">
                 {t('daily_bonus.description')}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Referral Credits Card */}
+          <Card className="bg-gradient-card border-0 shadow-card hover:shadow-elevated transition-all duration-300">
+            <CardContent className="p-6 text-center">
+              <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">
+                {t('referral_bonus.title')}
+              </h3>
+              <div className="text-4xl font-bold text-primary mb-2">
+                {t('referral_bonus.amount')}
+              </div>
+              <p className="text-md text-muted-foreground mb-2">
+                {t('referral_bonus.unit')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('referral_bonus.description')}
               </p>
             </CardContent>
           </Card>

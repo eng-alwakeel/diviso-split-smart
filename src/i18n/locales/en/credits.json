@@ -17,67 +17,90 @@
   },
   "insufficient": {
     "title": "Insufficient Credits",
-    "message": "Your current balance is not enough for this action.\nTo add an expense or complete a settlement, choose one of the following options 👇",
+    "message": "Your current balance is not enough for this action",
     "current_balance": "Your balance: {{balance}} credits",
     "required": "Required: {{required}} credits",
-    "shortfall": "Shortfall: {{shortfall}} credits",
-    "subscribe": "Continue Uninterrupted",
-    "subscribe_desc": "Pro subscription – 19 SAR/month",
-    "purchase": "Full Control As Needed",
-    "purchase_desc": "Buy credits",
+    "shortfall": "Shortfall: {{shortfall}} credits"
+  },
+  "paywall": {
+    "title": "Your balance is insufficient",
+    "subtitle": "Choose how to continue:",
+    "current_balance": "Your balance",
+    "upgrade": "Continue Uninterrupted",
+    "credits_per_month": "credits/month",
+    "yearly": "Yearly",
+    "monthly": "Monthly",
+    "save_36": "Save 36%",
+    "purchase": "Buy Credits (Best Value)",
+    "best_value": "Best Value",
+    "for": "for",
     "free": "Get Free Credits",
-    "free_desc": "Invite • Daily use • Engage"
+    "free_desc": "Invite friends and earn 30 credits per successful referral"
+  },
+  "plans": {
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "year": "year",
+    "month": "month",
+    "save": "Save",
+    "save_up_to": "Save up to",
+    "recommended": "Recommended",
+    "credits_per_month": "credits / month",
+    "starter": {
+      "name": "Starter"
+    },
+    "pro": {
+      "name": "Pro"
+    },
+    "max": {
+      "name": "Max"
+    },
+    "features": {
+      "unlimited_groups": "Unlimited groups",
+      "smart_ai": "Smart AI recommendations",
+      "no_ads": "Ad-free experience",
+      "priority_support": "Priority support",
+      "advanced_reports": "Advanced reports"
+    }
   },
   "actions": {
+    "add_expense": "Add Expense",
     "ocr_scan": "Receipt Scan",
     "smart_category": "Smart Category",
     "recommendation": "Smart Recommendation",
     "advanced_report": "Advanced Report",
     "export_pdf": "PDF Export",
     "create_group": "Create Group",
-    "settlement": "Settlement"
+    "settlement": "Settlement",
+    "view_data": "View Data"
   },
   "packages": {
     "title": "Buy Credits",
     "subtitle": "Choose the package that suits you",
-    "starter": {
-      "name": "Starter Pack",
-      "price": "25 SAR",
-      "credits": "100 credits",
-      "validity": "Valid for 30 days"
+    "best_value": "Best Value",
+    "most_popular": "Most Popular",
+    "valid_for": "Valid for {{days}} days",
+    "coming_soon": "Coming Soon!",
+    "coming_soon_desc": "Credit purchasing will be available soon",
+    "buy_now": "Buy Now",
+    "large": {
+      "name": "Best Value"
     },
-    "popular": {
-      "name": "Most Popular",
-      "price": "50 SAR",
-      "credits": "220 credits",
-      "validity": "Valid for 45 days",
-      "bonus": "+20 free credits"
+    "medium": {
+      "name": "Most Popular"
     },
-    "pro": {
-      "name": "Pro Pack",
-      "price": "100 SAR",
-      "credits": "480 credits",
-      "validity": "Valid for 60 days",
-      "bonus": "+80 free credits"
+    "small": {
+      "name": "Flexible"
+    },
+    "features": {
+      "ocr": "Scan {{count}} receipts",
+      "groups": "Create {{count}} groups",
+      "settlements": "{{count}} settlements"
     }
   },
   "rewards": {
     "title": "Reward Points",
-    "balance": "Rewards Balance",
-    "convert": "Convert to Usage Credits",
-    "converting": "Converting...",
-    "rate": "10 reward points = 1 usage credit",
-    "min_convert": "Minimum conversion: 10 points",
-    "next_conversion": "Next conversion available in {{hours}} hours",
-    "sources": {
-      "daily_login": "Daily Login",
-      "streak_3": "3-Day Streak",
-      "streak_7": "7-Day Streak",
-      "streak_30": "30-Day Streak",
-      "referral_signup": "Referral Signup",
-      "referral_active": "Active Referral",
-      "referral_subscribed": "Referral Subscribed"
-    }
+    "balance": "Rewards Balance"
   },
   "store": {
     "title": "Credit Store",
@@ -94,7 +117,6 @@
   "balance_card": {
     "title": "Credit Balance",
     "usage_credits": "Usage Credits",
-    "reward_points": "Reward Points",
     "expiring_warning": "{{count}} credits expiring in {{days}} days",
     "buy_credits": "Buy Credits",
     "invite_friends": "Invite Friends",
@@ -104,13 +126,12 @@
     "title": "Successful Referral Journey",
     "step_signup": "Sign Up",
     "step_first_usage": "First Usage",
-    "step_group_settlement": "Group/Settlement",
+    "step_qualified": "Group/Settlement",
     "successful_referral": "Successful Referral",
     "points": "points",
-    "bonus_rewards": "Bonus Rewards",
-    "active_7_days": "Active 7 Days",
-    "subscribed": "Subscribed",
-    "max_per_referral": "Max per Referral"
+    "total_reward": "Total Reward",
+    "first_usage_bonus": "+10 credits",
+    "qualified_bonus": "+20 credits"
   },
   "invitee_status": {
     "title": "Your Invites Status",
@@ -118,45 +139,14 @@
     "no_invites": "You haven't invited anyone yet",
     "invite_now": "Invite your friends now",
     "stages": {
-      "pending": "Pending",
-      "joined": "Joined",
-      "expired": "Expired",
-      "blocked": "Blocked"
+      "registered": "Registered",
+      "first_usage": "First Usage",
+      "qualified": "Qualified"
     }
   },
-  "how_to_earn": {
-    "title": "How to Earn Reward Points?",
-    "daily_streaks": "Daily Login Streaks",
-    "referral_rewards": "Referral Rewards"
-  },
   "subscriptions": {
-    "title": "Or Subscribe for More",
-    "subtitle": "90 credits monthly with extra features",
-    "monthly": {
-      "name": "Pro Monthly",
-      "price": "19",
-      "period": "SAR/month",
-      "credits": "90 credits/month",
-      "features": {
-        "credits": "90 credits monthly",
-        "smart": "Smart recommendations",
-        "no_ads": "Ad-free experience"
-      }
-    },
-    "yearly": {
-      "name": "Pro Yearly",
-      "price": "182",
-      "period": "SAR/year",
-      "equivalent": "≈ 15 SAR/month",
-      "save": "Save 20%",
-      "credits": "90 credits/month",
-      "features": {
-        "credits": "90 credits monthly",
-        "smart": "Smart recommendations",
-        "no_ads": "Ad-free experience",
-        "discount": "20% discount"
-      }
-    },
+    "title": "Subscriptions",
+    "subtitle": "Choose the plan that fits your needs",
     "subscribe_btn": "Subscribe Now",
     "coming_soon": "Coming Soon"
   }

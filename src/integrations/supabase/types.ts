@@ -2271,6 +2271,8 @@ export type Database = {
           reward_days: number | null
           status: Database["public"]["Enums"]["referral_status"]
           tier_at_time: string | null
+          uc_earned: number | null
+          uc_stage: string | null
         }
         Insert: {
           bonus_applied?: boolean | null
@@ -2289,6 +2291,8 @@ export type Database = {
           reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
           tier_at_time?: string | null
+          uc_earned?: number | null
+          uc_stage?: string | null
         }
         Update: {
           bonus_applied?: boolean | null
@@ -2307,6 +2311,8 @@ export type Database = {
           reward_days?: number | null
           status?: Database["public"]["Enums"]["referral_status"]
           tier_at_time?: string | null
+          uc_earned?: number | null
+          uc_stage?: string | null
         }
         Relationships: [
           {
@@ -3444,6 +3450,10 @@ export type Database = {
           spent_percentage: number
         }[]
       }
+      check_can_perform_gated_action: {
+        Args: { p_action_type: string; p_user_id: string }
+        Returns: Json
+      }
       check_lifetime_offer_availability: {
         Args: never
         Returns: {
@@ -3816,6 +3826,14 @@ export type Database = {
       }
       grant_referral_milestone_bonus: {
         Args: { p_invitee_id: string; p_milestone_type: string }
+        Returns: Json
+      }
+      grant_referral_stage_bonus: {
+        Args: {
+          p_invited_user_id: string
+          p_inviter_id: string
+          p_stage: string
+        }
         Returns: Json
       }
       grant_referral_subscription_bonus: {
