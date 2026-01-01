@@ -132,7 +132,17 @@
   },
   "rewards": {
     "title": "نقاط المكافآت",
-    "balance": "رصيد المكافآت"
+    "balance": "رصيد المكافآت",
+    "convert": "تحويل النقاط",
+    "rate": "10 نقاط مكافآت = 1 نقطة استخدام",
+    "converting": "جاري التحويل...",
+    "next_conversion": "التحويل القادم خلال {{hours}} ساعة",
+    "min_convert": "الحد الأدنى للتحويل 10 نقاط",
+    "sources": {
+      "streak_3": "سلسلة 3 أيام",
+      "streak_7": "سلسلة 7 أيام",
+      "streak_30": "سلسلة 30 يوم"
+    }
   },
   "store": {
     "title": "متجر النقاط",
@@ -149,6 +159,7 @@
   "balance_card": {
     "title": "رصيد النقاط",
     "usage_credits": "نقاط استخدام",
+    "reward_points": "نقاط مكافآت",
     "expiring_warning": "{{count}} نقاط تنتهي خلال {{days}} أيام",
     "buy_credits": "شراء نقاط",
     "invite_friends": "دعوة أصدقاء",
@@ -158,12 +169,17 @@
     "title": "رحلة الدعوة الناجحة",
     "step_signup": "تسجيل",
     "step_first_usage": "أول استخدام",
+    "step_group_settlement": "قروب/تسوية",
     "step_qualified": "قروب/تسوية",
     "successful_referral": "دعوة ناجحة",
     "points": "نقطة",
     "total_reward": "إجمالي المكافأة",
     "first_usage_bonus": "+10 نقطة",
-    "qualified_bonus": "+20 نقطة"
+    "qualified_bonus": "+20 نقطة",
+    "bonus_rewards": "مكافآت إضافية",
+    "active_7_days": "نشط 7 أيام",
+    "subscribed": "مشترك",
+    "max_per_referral": "الحد الأقصى للدعوة"
   },
   "invitee_status": {
     "title": "حالة دعواتك",
@@ -173,12 +189,19 @@
     "stages": {
       "registered": "مسجّل",
       "first_usage": "أول استخدام",
-      "qualified": "مؤهل"
+      "qualified": "مؤهل",
+      "joined": "انضم"
     }
   },
-"subscriptions": {
+  "how_to_earn": {
+    "title": "كيف تكسب النقاط",
+    "daily_streaks": "سلاسل الدخول اليومي",
+    "referral_rewards": "مكافآت الإحالة"
+  },
+  "subscriptions": {
     "title": "خطط الاشتراك",
     "subtitle": "راحة واستمرارية - وفر أكثر",
-    "subscribe_btn": "اشترك الآن"
+    "subscribe_btn": "اشترك الآن",
+    "load_error": "فشل تحميل الخطط"
   }
 }

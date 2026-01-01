@@ -132,7 +132,17 @@
   },
   "rewards": {
     "title": "Reward Points",
-    "balance": "Rewards Balance"
+    "balance": "Rewards Balance",
+    "convert": "Convert Points",
+    "rate": "10 reward points = 1 usage credit",
+    "converting": "Converting...",
+    "next_conversion": "Next conversion in {{hours}} hours",
+    "min_convert": "Minimum 10 points to convert",
+    "sources": {
+      "streak_3": "3-day streak",
+      "streak_7": "7-day streak",
+      "streak_30": "30-day streak"
+    }
   },
   "store": {
     "title": "Credit Store",
@@ -149,6 +159,7 @@
   "balance_card": {
     "title": "Credit Balance",
     "usage_credits": "Usage Credits",
+    "reward_points": "Reward Points",
     "expiring_warning": "{{count}} credits expiring in {{days}} days",
     "buy_credits": "Buy Credits",
     "invite_friends": "Invite Friends",
@@ -158,12 +169,17 @@
     "title": "Successful Referral Journey",
     "step_signup": "Sign Up",
     "step_first_usage": "First Usage",
+    "step_group_settlement": "Group/Settlement",
     "step_qualified": "Group/Settlement",
     "successful_referral": "Successful Referral",
     "points": "points",
     "total_reward": "Total Reward",
     "first_usage_bonus": "+10 credits",
-    "qualified_bonus": "+20 credits"
+    "qualified_bonus": "+20 credits",
+    "bonus_rewards": "Bonus Rewards",
+    "active_7_days": "Active 7 days",
+    "subscribed": "Subscribed",
+    "max_per_referral": "Max per referral"
   },
   "invitee_status": {
     "title": "Your Invites Status",
@@ -173,12 +189,19 @@
     "stages": {
       "registered": "Registered",
       "first_usage": "First Usage",
-      "qualified": "Qualified"
+      "qualified": "Qualified",
+      "joined": "Joined"
     }
   },
-"subscriptions": {
+  "how_to_earn": {
+    "title": "How to Earn Points",
+    "daily_streaks": "Daily Streaks",
+    "referral_rewards": "Referral Rewards"
+  },
+  "subscriptions": {
     "title": "Subscription Plans",
     "subtitle": "Peace of mind - Save more",
-    "subscribe_btn": "Subscribe Now"
+    "subscribe_btn": "Subscribe Now",
+    "load_error": "Failed to load plans"
   }
 }
