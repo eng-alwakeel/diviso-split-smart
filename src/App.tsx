@@ -102,6 +102,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/ad-test" element={<AdTestPage />} />
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
+            <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
         </Routes>
       </ImprovedErrorBoundary>
