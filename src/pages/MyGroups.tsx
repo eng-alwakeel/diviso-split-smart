@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SEO } from "@/components/SEO";
 import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export default function MyGroups() {
   
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('groups:my_groups')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

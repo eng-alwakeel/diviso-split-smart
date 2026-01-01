@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -612,6 +613,7 @@ const AddExpense = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('add_new')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

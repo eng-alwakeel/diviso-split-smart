@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -273,6 +274,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('settings:title')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

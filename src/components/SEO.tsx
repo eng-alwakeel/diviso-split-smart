@@ -14,7 +14,7 @@ interface SEOProps {
 const defaultSEO = {
   title: 'Diviso | قسّم بذكاء، سافر براحة',
   description: 'Diviso - تطبيق تقسيم المصاريف الأول في السعودية. قسّم فواتير السفر والمطاعم بين الأصدقاء والعائلة بذكاء. بديل Splitwise العربي.',
-  ogImage: 'https://diviso.app/favicon.png',
+  ogImage: 'https://diviso.app/og-image.png',
   siteUrl: 'https://diviso.app',
   keywords: 'تقسيم مصاريف, إدارة نفقات, مصاريف مشتركة, expense splitting, split bills, travel expenses',
 };
@@ -89,6 +89,9 @@ export const SEO = ({
     updateMetaTag('meta[name="twitter:title"]', fullTitle);
     updateMetaTag('meta[name="twitter:description"]', metaDescription);
     updateMetaTag('meta[name="twitter:image"]', metaImage);
+    
+    // Update og:image:alt
+    updateMetaTag('meta[property="og:image:alt"]', fullTitle);
 
     // Update canonical link
     updateLinkTag('canonical', canonicalUrl);
