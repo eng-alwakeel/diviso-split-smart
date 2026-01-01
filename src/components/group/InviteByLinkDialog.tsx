@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Copy, Link, RefreshCw, Phone, MessageSquare, Contact } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 import { ContactsPicker } from "@/components/group/ContactsPicker";
 import { ContactInfo } from "@/hooks/useContacts";
 
@@ -78,7 +79,7 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     }
 
     const token = data?.token as string;
-    const url = `${window.location.origin}/i/${token}`;
+    const url = `${BRAND_CONFIG.url}/i/${token}`;
     setLink(url);
     toast({ title: t('groups:invite.invite_created'), description: t('groups:invite.share_with_members') });
   };
