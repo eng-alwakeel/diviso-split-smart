@@ -32,6 +32,7 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 import { LocationPermissionDialog } from "@/components/LocationPermissionDialog";
 import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
 import { toast } from "@/hooks/use-toast";
+import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -283,6 +284,9 @@ const Dashboard = React.memo(() => {
         open={showAchievementPopup}
         onClose={() => setShowAchievementPopup(false)}
       />
+
+      {/* Floating Support Button */}
+      <FloatingSupportButton />
 
       <div className="h-32" />
       <BottomNav />

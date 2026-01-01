@@ -2734,7 +2734,7 @@ export type Database = {
           sla_breach?: boolean | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subject: string
-          ticket_number: string
+          ticket_number?: string
           updated_at?: string
           user_id: string
         }

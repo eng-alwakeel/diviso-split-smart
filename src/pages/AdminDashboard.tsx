@@ -15,7 +15,7 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
@@ -207,6 +207,12 @@ const AdminDashboardContent = () => {
               <Button variant="outline" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 إدارة المديرين
+              </Button>
+            </Link>
+            <Link to="/admin/support">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Headphones className="h-4 w-4" />
+                دعم العملاء
               </Button>
             </Link>
             <Link to="/settings">
