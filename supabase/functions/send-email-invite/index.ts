@@ -1,5 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.54.0';
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,6 +32,15 @@ serve(async (req) => {
   }
 
   try {
+    // Check for Resend API key
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY is not configured');
+      throw new Error('خدمة البريد الإلكتروني غير متوفرة حالياً');
+    }
+
+    const resend = new Resend(resendApiKey);
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -62,11 +72,7 @@ serve(async (req) => {
     const safeCustomMessage = customMessage ? escapeHtml(customMessage) : '';
     const safeInviteLink = escapeHtml(inviteLink);
 
-    // Logging sanitized for security - no PII in production logs
-    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
-    if (isDev) {
-      console.log('Processing email invite for group:', safeGroupName);
-    }
+    console.log('Processing email invite for group:', safeGroupName);
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,7 +84,7 @@ serve(async (req) => {
     const { data: existingProfile } = await supabaseClient
       .from('profiles')
       .select('id, display_name, name')
-      .eq('display_name', email) // Assuming email is stored in display_name
+      .eq('display_name', email)
       .maybeSingle();
 
     if (existingProfile) {
@@ -175,10 +181,22 @@ serve(async (req) => {
       </html>
     `;
 
-    // Email content sanitized for security - no PII logged in production
-    if (isDev) {
-      console.log('Email invite prepared for:', email.substring(0, 3) + '***');
+    // Send the email using Resend
+    console.log('Sending email to:', email.substring(0, 3) + '***');
+    
+    const { data: emailData, error: emailError } = await resend.emails.send({
+      from: 'Diviso <noreply@resend.dev>',
+      to: [email],
+      subject: subject,
+      html: htmlContent,
+    });
+
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      throw new Error(`فشل في إرسال البريد الإلكتروني: ${emailError.message}`);
     }
+
+    console.log('Email sent successfully:', emailData?.id);
 
     // Create invite record in database
     const { error: inviteError } = await supabaseClient
@@ -188,7 +206,8 @@ serve(async (req) => {
         phone_or_email: email,
         created_by: user.id,
         invited_role: 'member',
-        status: 'sent'
+        status: 'sent',
+        invite_source: 'email'
       });
 
     if (inviteError) {
@@ -201,7 +220,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: `تم إرسال دعوة بريد إلكتروني إلى ${email}`,
-        type: 'email_sent'
+        type: 'email_sent',
+        emailId: emailData?.id
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
