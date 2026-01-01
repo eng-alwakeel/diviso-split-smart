@@ -14,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
 import {
   useMyTickets,
@@ -105,11 +104,14 @@ export default function MyTickets() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <AppHeader
-        title={t('my_tickets.title')}
-        showBack
-        onBack={() => navigate(-1)}
-      />
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rtl:rotate-180">
+            <ArrowRight className="h-5 w-5 rotate-180" />
+          </Button>
+          <h1 className="flex-1 text-lg font-semibold text-center mr-10">{t('my_tickets.title')}</h1>
+        </div>
+      </header>
 
       <main className="container max-w-2xl mx-auto p-4 space-y-4">
         {isLoading ? (
