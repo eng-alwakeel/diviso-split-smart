@@ -100,14 +100,12 @@
     "settlement": "تسوية",
     "view_data": "عرض البيانات"
   },
-  "packages": {
+"packages": {
     "title": "شراء نقاط",
     "subtitle": "اختر الباقة المناسبة لك",
     "best_value": "أفضل قيمة",
     "most_popular": "الأكثر شيوعاً",
     "valid_for": "صالحة {{days}} يوم",
-    "coming_soon": "قريباً!",
-    "coming_soon_desc": "سيتم تفعيل خاصية الشراء قريباً",
     "buy_now": "شراء الآن",
     "load_error": "فشل تحميل الباقات",
     "large": {
@@ -171,10 +169,9 @@
       "qualified": "مؤهل"
     }
   },
-  "subscriptions": {
+"subscriptions": {
     "title": "الاشتراكات",
     "subtitle": "اختر الخطة المناسبة لاحتياجاتك",
-    "subscribe_btn": "اشترك الآن",
-    "coming_soon": "قريباً"
+    "subscribe_btn": "اشترك الآن"
   }
 }
