@@ -3804,6 +3804,7 @@ export type Database = {
           groups_count: number
           id: string
           is_admin: boolean
+          is_banned: boolean
           name: string
           phone: string
         }[]
