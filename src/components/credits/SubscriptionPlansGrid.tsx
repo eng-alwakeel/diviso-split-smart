@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, Crown, Sparkles, Zap, Loader2 } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, Loader2, Coins } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -95,8 +95,22 @@ export function SubscriptionPlansGrid() {
     }
   };
 
-  const isPopularPlan = (planName: string) => planName.toLowerCase() === 'pro';
-  const isBestValuePlan = (planName: string) => planName.toLowerCase() === 'max';
+  const getPlanBadge = (planName: string) => {
+    const name = planName.toLowerCase();
+    if (name === 'max') {
+      return { 
+        text: isRTL ? 'أفضل قيمة' : 'Best Value', 
+        className: 'bg-green-500 text-white' 
+      };
+    }
+    if (name === 'pro') {
+      return { 
+        text: isRTL ? 'الأكثر شيوعاً' : 'Popular', 
+        className: 'bg-primary text-primary-foreground' 
+      };
+    }
+    return null;
+  };
 
   if (loading) {
     return (
@@ -141,8 +155,7 @@ export function SubscriptionPlansGrid() {
       <div className="space-y-3">
         {filteredPlans.map((plan) => {
           const name = isRTL ? plan.name_ar : plan.name;
-          const isPopular = isPopularPlan(plan.name);
-          const isBestValue = isBestValuePlan(plan.name);
+          const badge = getPlanBadge(plan.name);
           const styles = getPlanStyles(plan.name);
 
           return (
@@ -151,21 +164,16 @@ export function SubscriptionPlansGrid() {
               className={`relative overflow-hidden transition-all ${styles.border}`}
             >
               {/* Badge */}
-              {isPopular && (
-                <Badge className="absolute top-3 ltr:right-3 rtl:left-3 bg-primary text-primary-foreground text-xs">
-                  {t('plans.recommended')}
-                </Badge>
-              )}
-              {isBestValue && (
-                <Badge className="absolute top-3 ltr:right-3 rtl:left-3 bg-green-500 text-white text-xs">
-                  {t('packages.best_value')}
+              {badge && (
+                <Badge className={`absolute top-3 ltr:right-3 rtl:left-3 text-xs ${badge.className}`}>
+                  {badge.text}
                 </Badge>
               )}
 
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${styles.icon}`}>
+                  {/* Icon - دائرة مثل باقات النقاط */}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${styles.icon}`}>
                     {getPlanIcon(plan.name)}
                   </div>
 
@@ -181,7 +189,9 @@ export function SubscriptionPlansGrid() {
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-1 mt-1">
+                    {/* Credits مع أيقونة Coins */}
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Coins className="h-4 w-4 text-primary" />
                       <span className="text-primary font-semibold">{plan.credits_per_month}</span>
                       <span className="text-sm text-muted-foreground">{t('plans.credits_per_month')}</span>
                     </div>
@@ -203,7 +213,7 @@ export function SubscriptionPlansGrid() {
                 {/* Subscribe Button */}
                 <Button 
                   className="w-full mt-4 h-11"
-                  variant={isPopular ? 'default' : 'outline'}
+                  variant={badge ? 'default' : 'outline'}
                   onClick={() => handleSubscribe(plan)}
                 >
                   {t('subscriptions.subscribe_btn')}
