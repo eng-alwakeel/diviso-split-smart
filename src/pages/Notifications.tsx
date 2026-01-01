@@ -1,3 +1,4 @@
+import { SEO } from "@/components/SEO";
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -112,6 +113,7 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('notifications_page.title')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { SEO } from "@/components/SEO";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminStats, useAdminUsers, useAdminGroups } from "@/hooks/useAdminStats";
@@ -196,6 +197,7 @@ const AdminDashboardContent = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="لوحة تحكم المدير" noIndex={true} />
       <div className="page-container">
         <AdminHeader />
         

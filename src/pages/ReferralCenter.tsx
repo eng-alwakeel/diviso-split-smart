@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,6 +152,7 @@ const ReferralCenter = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <SEO title={t('title')} noIndex={true} />
       <AppHeader />
       
       <div className="page-container space-y-6">

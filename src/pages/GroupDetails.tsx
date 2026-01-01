@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -319,6 +320,7 @@ const GroupDetails = () => {
 
   return (
     <div className="min-h-screen bg-dark-background overflow-x-hidden">
+      <SEO title={group?.name || "تفاصيل المجموعة"} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, RefreshCw, HelpCircle } from "lucide-react";
@@ -192,6 +193,7 @@ const Dashboard = React.memo(() => {
       </div>;
   }
   return <div className="min-h-screen bg-background">
+      <SEO title={t('dashboard:welcome')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

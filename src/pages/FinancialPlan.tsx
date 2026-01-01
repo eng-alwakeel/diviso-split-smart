@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SEO } from "@/components/SEO";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -118,6 +119,7 @@ export default function FinancialPlan() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('page_title', 'الخطة المالية')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 

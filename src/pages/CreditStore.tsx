@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SEO } from "@/components/SEO";
 import { AppHeader } from '@/components/AppHeader';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,6 +97,7 @@ const CreditStore = React.memo(() => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title={t('store.title')} noIndex={true} />
       <AppHeader />
       
       <div className="page-container space-y-6">

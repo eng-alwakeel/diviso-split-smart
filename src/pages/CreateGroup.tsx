@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -494,6 +495,7 @@ const CreateGroup = () => {
 
   return (
     <div className="min-h-screen bg-dark-background">
+      <SEO title={t('groups:create_new')} noIndex={true} />
       <AppHeader />
       
       <UnifiedAdLayout 
