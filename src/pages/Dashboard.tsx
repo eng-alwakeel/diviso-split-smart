@@ -35,6 +35,7 @@ import { RecommendationDialog } from "@/components/recommendations/Recommendatio
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
+import { useDivisoCoins } from "@/hooks/useDivisoCoins";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -115,6 +116,14 @@ const Dashboard = React.memo(() => {
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
+  
+  // Coins hook
+  const { addCoins } = useDivisoCoins();
+  
+  // Handle monthly wrap share
+  const handleWrapShare = useCallback(async () => {
+    await addCoins(1, 'monthly_wrap_share', 'مشاركة الملخص الشهري');
+  }, [addCoins]);
   
   const {
     data: dashboardData,
@@ -249,7 +258,7 @@ const Dashboard = React.memo(() => {
           )}
 
           {/* Monthly Wrap Card */}
-          <MonthlyWrapCard stats={monthlyStats} />
+          <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
 
           {/* Smart Promotion System */}
           <SmartPromotionBanner />
