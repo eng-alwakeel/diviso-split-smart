@@ -41,6 +41,8 @@ const LazyFAQ = withLazyLoading(lazy(() => import("./pages/FAQ")));
 const LazyHowItWorks = withLazyLoading(lazy(() => import("./pages/HowItWorks")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
 const LazyAdminManagement = withLazyLoading(lazy(() => import("./pages/AdminManagement")));
+const LazySupportDashboard = withLazyLoading(lazy(() => import("./pages/SupportDashboard")));
+const LazyMyTickets = withLazyLoading(lazy(() => import("./pages/MyTickets")));
 const AdTestPage = withLazyLoading(lazy(() => import("./components/ads/AdTestPage")));
 const LazyCreditStore = withLazyLoading(lazy(() => import("./pages/CreditStore")));
 const queryClient = new QueryClient({
@@ -99,6 +101,8 @@ const AppRoutes: React.FC = () => {
             <Route path="/pricing-protected" element={<ProtectedRoute><PageErrorBoundary><LazyPricingProtected /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/admin-dashboard" element={<AdminProtectedRoute><LazyAdminDashboard /></AdminProtectedRoute>} />
             <Route path="/admin-management" element={<AdminProtectedRoute><LazyAdminManagement /></AdminProtectedRoute>} />
+            <Route path="/admin/support" element={<AdminProtectedRoute><LazySupportDashboard /></AdminProtectedRoute>} />
+            <Route path="/my-tickets" element={<ProtectedRoute><PageErrorBoundary><LazyMyTickets /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/ad-test" element={<AdTestPage />} />
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
