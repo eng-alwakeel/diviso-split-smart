@@ -1,21 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
-import { Copy, Link, RefreshCw, Users, Clock } from "lucide-react";
+import { Copy, Link, RefreshCw, Users, Clock, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Share } from "@capacitor/share";
+import { Capacitor } from "@capacitor/core";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
+  groupName?: string;
   onLinkGenerated: (link: string) => void;
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) => {
+export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
@@ -89,74 +92,146 @@ export const InviteLinkTab = ({ groupId, onLinkGenerated }: InviteLinkTabProps) 
     toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة إلى الحافظة." });
   };
 
+  const shareLink = async () => {
+    if (!link) return;
+    
+    const shareMessage = `🎉 انضم لمجموعة "${groupName || 'المجموعة'}" على ديفيزو لتقسيم المصاريف!\n\n${link}`;
+    
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: `دعوة للانضمام لـ ${groupName || 'المجموعة'}`,
+          text: shareMessage,
+          url: link,
+          dialogTitle: 'شارك رابط الدعوة'
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: `دعوة للانضمام لـ ${groupName || 'المجموعة'}`,
+          text: shareMessage,
+          url: link
+        });
+      } else {
+        await copyLink();
+        return;
+      }
+      
+      toast({ title: "تمت المشاركة", description: "تم فتح نافذة المشاركة" });
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error("[InviteLinkTab] share error:", error);
+        await copyLink();
+      }
+    }
+  };
+
+  const generateAndShare = async () => {
+    if (!link) {
+      await generateLink();
+    }
+    // سيتم مشاركة الرابط بعد إنشائه عبر useEffect
+  };
+
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>معرف المجموعة</Label>
-        <Input value={groupId || ""} readOnly />
-        {disabledReason && (
-          <p className="text-xs text-destructive mt-1">{disabledReason}</p>
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <Button 
-          className="flex items-center gap-2" 
-          onClick={generateLink} 
-          disabled={!!disabledReason || loading}
-        >
-          {loading ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Link className="w-4 h-4" />
-          )}
-          إنشاء رابط دعوة
-        </Button>
-      </div>
-
-      <div className="space-y-2">
-        <Label>الرابط المُنشأ</Label>
-        <div className="flex gap-2">
-          <Input 
-            value={link} 
-            readOnly 
-            placeholder="سيظهر الرابط هنا بعد الإنشاء" 
-          />
-          <Button 
-            variant="outline" 
-            onClick={copyLink} 
-            disabled={!link} 
-            className="shrink-0"
-          >
-            <Copy className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {link && linkInfo && (
-        <div className="p-3 bg-accent/10 rounded-lg border border-accent/20 space-y-2">
-          <p className="text-sm text-accent font-medium mb-2">✅ الرابط جاهز للمشاركة</p>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              {linkInfo.maxUses === -1 ? "غير محدود" : `${linkInfo.currentUses}/${linkInfo.maxUses}`}
-            </Badge>
-            
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {(() => {
-                const expiresAt = new Date(linkInfo.expiresAt);
-                const hoursLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60));
-                return `${hoursLeft} ساعة متبقية`;
-              })()}
-            </Badge>
+      {!link ? (
+        <div className="text-center space-y-4 py-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <Share2 className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-medium">شارك رابط الدعوة</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              أنشئ رابط دعوة وشاركه عبر أي تطبيق تفضله
+            </p>
           </div>
           
-          <p className="text-xs text-muted-foreground">
-            يمكن للأعضاء الجدد استخدام هذا الرابط أو رمز QR للانضمام للمجموعة
-          </p>
+          {disabledReason && (
+            <p className="text-xs text-destructive">{disabledReason}</p>
+          )}
+          
+          <Button 
+            size="lg"
+            className="w-full"
+            onClick={generateLink} 
+            disabled={!!disabledReason || loading}
+          >
+            {loading ? (
+              <RefreshCw className="w-4 h-4 ml-2 animate-spin" />
+            ) : (
+              <Link className="w-4 h-4 ml-2" />
+            )}
+            إنشاء رابط الدعوة
+          </Button>
         </div>
+      ) : (
+        <>
+          <div className="space-y-2">
+            <Label>رابط الدعوة</Label>
+            <div className="flex gap-2">
+              <Input 
+                value={link} 
+                readOnly 
+                className="text-xs"
+              />
+              <Button 
+                variant="outline" 
+                onClick={copyLink} 
+                className="shrink-0"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          <Button 
+            size="lg"
+            className="w-full bg-primary hover:bg-primary/90"
+            onClick={shareLink}
+          >
+            <Share2 className="w-4 h-4 ml-2" />
+            شارك الرابط
+          </Button>
+
+          <div className="p-3 bg-accent/10 rounded-lg border border-accent/20 space-y-2">
+            <p className="text-sm text-accent font-medium">✅ الرابط جاهز للمشاركة</p>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              {linkInfo && (
+                <>
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    {linkInfo.maxUses === -1 ? "غير محدود" : `${linkInfo.currentUses}/${linkInfo.maxUses}`}
+                  </Badge>
+                  
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {(() => {
+                      const expiresAt = new Date(linkInfo.expiresAt);
+                      const hoursLeft = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60));
+                      return `${hoursLeft} ساعة متبقية`;
+                    })()}
+                  </Badge>
+                </>
+              )}
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              شارك الرابط عبر واتساب، تيليجرام، أو أي تطبيق آخر
+            </p>
+          </div>
+
+          <Button 
+            variant="ghost"
+            size="sm"
+            className="w-full text-muted-foreground"
+            onClick={generateLink}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-3 h-3 ml-1 ${loading ? 'animate-spin' : ''}`} />
+            إنشاء رابط جديد
+          </Button>
+        </>
       )}
     </div>
   );
