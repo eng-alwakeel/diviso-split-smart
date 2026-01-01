@@ -93,8 +93,8 @@ export function PricingPlansSection({
       )}
 
       {/* Billing Toggle */}
-      <div className="flex items-center justify-center gap-4 mb-8">
-        <span className={`text-sm font-medium transition-colors ${
+      <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8 p-3 bg-muted/30 rounded-xl">
+        <span className={`text-sm sm:text-base font-medium transition-colors ${
           !isYearly ? 'text-primary' : 'text-muted-foreground'
         }`}>
           {t('plans.monthly')}
@@ -102,16 +102,16 @@ export function PricingPlansSection({
         <Switch
           checked={isYearly}
           onCheckedChange={setIsYearly}
-          className="data-[state=checked]:bg-primary"
+          className="data-[state=checked]:bg-primary scale-110"
         />
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium transition-colors ${
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className={`text-sm sm:text-base font-medium transition-colors ${
             isYearly ? 'text-primary' : 'text-muted-foreground'
           }`}>
             {t('plans.yearly')}
           </span>
           {isYearly && (
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 sm:px-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
               {t('plans.save_up_to')} 36%
             </Badge>
           )}
@@ -128,7 +128,7 @@ export function PricingPlansSection({
               key={plan.id}
               className={`relative transition-all hover:shadow-lg ${
                 plan.featured 
-                  ? 'border-primary shadow-lg shadow-primary/10 scale-105 z-10' 
+                  ? 'border-primary shadow-lg shadow-primary/10 md:scale-105 z-10' 
                   : 'border-border hover:border-primary/50'
               }`}
             >
@@ -140,48 +140,53 @@ export function PricingPlansSection({
                 </Badge>
               )}
               
-              <CardHeader className="text-center pb-4">
-                <div className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3 ${
+              <CardHeader className="text-center pb-3 sm:pb-4">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-full flex items-center justify-center mb-2 sm:mb-3 ${
                   plan.featured 
                     ? 'bg-primary/20 text-primary' 
                     : 'bg-muted text-muted-foreground'
                 }`}>
                   {getPlanIcon(plan.tier)}
                 </div>
-                <CardTitle className="text-xl">
+                <CardTitle className="text-lg sm:text-xl">
                   {t(`plans.${plan.tier}.name`)}
                 </CardTitle>
                 {isYearly && plan.yearly.discount > 0 && (
-                  <Badge variant="outline" className="mt-2 text-green-600 border-green-300">
+                  <Badge variant="outline" className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-green-600 border-green-300">
                     {t('plans.save')} {plan.yearly.discount}%
                   </Badge>
                 )}
               </CardHeader>
               
-              <CardContent className="text-center space-y-4">
+              <CardContent className="text-center space-y-3 sm:space-y-4">
                 {/* Price */}
                 <div>
-                  <span className="text-4xl font-bold text-foreground">{details.price}</span>
-                  <span className="text-muted-foreground mr-1"> {t('common:sar')}</span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-3xl sm:text-4xl font-bold text-foreground">{details.price}</span>
+                  <span className="text-muted-foreground mr-1 text-sm"> {t('common:sar')}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     / {isYearly ? t('plans.year') : t('plans.month')}
                   </span>
                 </div>
 
                 {/* Credits per month */}
-                <div className="bg-primary/10 rounded-lg py-3 px-4">
-                  <div className="text-2xl font-bold text-primary">
+                <div className="bg-primary/10 rounded-lg py-2.5 sm:py-3 px-3 sm:px-4">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     {details.credits}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     {t('plans.credits_per_month')}
                   </div>
                 </div>
 
+                {/* Renewal note */}
+                <p className="text-[10px] sm:text-xs text-muted-foreground/70">
+                  {t('plans.renews_monthly')}
+                </p>
+
                 {/* Yearly equivalent */}
                 {isYearly && (
-                  <p className="text-sm text-muted-foreground">
-                    ≈ {Math.round(details.price / 12)} {t('common:sar')} / {t('plans.month')}
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    ≈ {Math.round(details.price / 12)} {t('common:sar')} / {t('plans.month')} • {t('plans.annual_note')}
                   </p>
                 )}
 
