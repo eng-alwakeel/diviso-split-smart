@@ -12,8 +12,14 @@ const STATIC_ASSETS = [
 ];
 
 const API_CACHE_PATTERNS = [
-  /\/api\//,
-  /supabase\.co/
+  /\/api\//
+  // REMOVED: supabase.co - Never cache Supabase data to ensure fresh data always
+];
+
+// Patterns that should NEVER be cached (always network-only)
+const NO_CACHE_PATTERNS = [
+  /supabase\.co/,
+  /iwthriddasxzbjddpzzf\.supabase\.co/
 ];
 
 // Install event - cache static assets and skip waiting
@@ -54,12 +60,26 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Listen for skip waiting message from the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message, activating new version');
+    self.skipWaiting();
+  }
+});
+
 // Fetch event - NETWORK-FIRST strategy for fresh content
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Handle API requests with network-first strategy for GET requests
+  // CRITICAL: Never cache Supabase requests - always fetch fresh data
+  if (NO_CACHE_PATTERNS.some(pattern => pattern.test(url.href))) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Handle other API requests with network-first strategy for GET requests
   if (API_CACHE_PATTERNS.some(pattern => pattern.test(url.href))) {
     if (request.method === 'GET') {
       event.respondWith(

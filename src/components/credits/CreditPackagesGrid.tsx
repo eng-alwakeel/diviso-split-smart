@@ -56,6 +56,14 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
           variant: 'destructive',
         });
       } else {
+        // DEBUG: Log packages data to verify correct values from Supabase
+        console.debug('[CreditPackagesGrid] Packages from Supabase:', data?.map(p => ({
+          name: p.name,
+          credits: p.credits,
+          bonus: p.bonus_credits,
+          total: p.credits + (p.bonus_credits || 0)
+        })));
+        
         setPackages(data || []);
         // Select the best value package by default (highest credits = first one = L)
         if (data && data.length > 0) {
