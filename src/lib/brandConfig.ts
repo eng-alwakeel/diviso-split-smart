@@ -12,6 +12,10 @@ export const BRAND_CONFIG = {
     phone: "+966 50 123 4567",
     address: "الرياض، المملكة العربية السعودية"
   },
+  vat: {
+    number: "310137963800003",
+    rate: 0.15
+  },
   description: {
     ar: "إدارة المصاريف المشتركة بذكاء وسهولة. قسّم النفقات واتبع الميزانية مع أصدقائك وعائلتك.",
     en: "Smart shared expense management. Split costs and track budgets with friends and family."
