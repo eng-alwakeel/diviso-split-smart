@@ -1,0 +1,97 @@
+{
+  "help_button": "Help",
+  "ticket_categories": {
+    "payment": "Payment/Credits Issue",
+    "credits": "Credits Issue",
+    "groups": "Group/Expenses Issue",
+    "recommendations": "Recommendations Issue",
+    "account": "Account Issue",
+    "technical": "Technical Issue",
+    "feedback": "Feature Suggestion"
+  },
+  "priority": {
+    "p0": "Critical",
+    "p1": "High",
+    "p2": "Medium",
+    "p3": "Low"
+  },
+  "priority_time": {
+    "p0": "Within 15 minutes",
+    "p1": "Within 1 hour",
+    "p2": "Within 6 hours",
+    "p3": "Within 24 hours"
+  },
+  "status": {
+    "open": "Open",
+    "in_progress": "In Progress",
+    "waiting_customer": "Waiting for Response",
+    "escalated": "Escalated",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "create_ticket": {
+    "title": "Get Help",
+    "category": "Issue Type",
+    "subject": "Subject",
+    "subject_placeholder": "Brief summary of the issue",
+    "description": "Description",
+    "description_placeholder": "Describe the issue in detail...",
+    "screenshot": "Screenshot (optional)",
+    "submit": "Submit",
+    "success": "Your request has been submitted",
+    "error": "An error occurred"
+  },
+  "my_tickets": {
+    "title": "My Tickets",
+    "empty": "No tickets",
+    "empty_desc": "You haven't submitted any support requests yet",
+    "view_details": "View Details",
+    "add_reply": "Add Reply",
+    "reply_placeholder": "Write your reply here...",
+    "send_reply": "Send Reply"
+  },
+  "feedback": {
+    "title": "Suggest a Feature",
+    "idea": "Idea",
+    "idea_placeholder": "Describe your idea in one line",
+    "reason": "Why is this feature important?",
+    "reason_placeholder": "Explain why you need this feature",
+    "would_pay": "Would you pay for this feature?",
+    "would_pay_yes": "Yes",
+    "would_pay_no": "No",
+    "would_pay_maybe": "Maybe",
+    "submit": "Submit Suggestion",
+    "success": "Thank you for your suggestion!",
+    "error": "An error occurred"
+  },
+  "nps": {
+    "title": "How was your experience?",
+    "question": "How satisfied are you with our support?",
+    "comment_placeholder": "Any additional feedback? (optional)",
+    "submit": "Submit Rating",
+    "thanks": "Thank you for your feedback!"
+  },
+  "admin": {
+    "dashboard_title": "Support Dashboard",
+    "overview": "Overview",
+    "tickets": "Tickets",
+    "hot_issues": "Hot Issues",
+    "suggestions": "Suggestions",
+    "total_tickets_today": "Tickets Today",
+    "avg_response_time": "Avg Response Time",
+    "avg_resolution_time": "Avg Resolution Time",
+    "csat_score": "CSAT Score",
+    "sla_breaches": "SLA Breaches",
+    "open_tickets": "Open Tickets",
+    "assign_to": "Assign To",
+    "escalate": "Escalate",
+    "resolve": "Resolve",
+    "close": "Close",
+    "internal_note": "Internal Note",
+    "rice_score": "RICE Score",
+    "votes": "Votes",
+    "mark_planned": "Mark as Planned",
+    "mark_done": "Mark as Done",
+    "mark_rejected": "Reject"
+  }
+}

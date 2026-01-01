@@ -1,0 +1,97 @@
+{
+  "help_button": "مساعدة",
+  "ticket_categories": {
+    "payment": "مشكلة في الدفع/النقاط",
+    "credits": "مشكلة في النقاط",
+    "groups": "مشكلة في القروب/المصاريف",
+    "recommendations": "مشكلة في التوصيات",
+    "account": "مشكلة في الحساب",
+    "technical": "مشكلة تقنية",
+    "feedback": "اقتراح ميزة"
+  },
+  "priority": {
+    "p0": "حرج",
+    "p1": "عالي",
+    "p2": "متوسط",
+    "p3": "منخفض"
+  },
+  "priority_time": {
+    "p0": "خلال 15 دقيقة",
+    "p1": "خلال ساعة",
+    "p2": "خلال 6 ساعات",
+    "p3": "خلال 24 ساعة"
+  },
+  "status": {
+    "open": "مفتوحة",
+    "in_progress": "قيد المعالجة",
+    "waiting_customer": "بانتظار الرد",
+    "escalated": "تم التصعيد",
+    "resolved": "تم الحل",
+    "closed": "مغلقة"
+  },
+  "create_ticket": {
+    "title": "طلب مساعدة",
+    "category": "نوع المشكلة",
+    "subject": "عنوان المشكلة",
+    "subject_placeholder": "اكتب عنواناً مختصراً للمشكلة",
+    "description": "وصف المشكلة",
+    "description_placeholder": "اشرح المشكلة بالتفصيل...",
+    "screenshot": "لقطة شاشة (اختياري)",
+    "submit": "إرسال",
+    "success": "تم إرسال طلبك بنجاح",
+    "error": "حدث خطأ أثناء الإرسال"
+  },
+  "my_tickets": {
+    "title": "تذاكري",
+    "empty": "لا توجد تذاكر",
+    "empty_desc": "لم تقم بإرسال أي طلبات دعم بعد",
+    "view_details": "عرض التفاصيل",
+    "add_reply": "إضافة رد",
+    "reply_placeholder": "اكتب ردك هنا...",
+    "send_reply": "إرسال الرد"
+  },
+  "feedback": {
+    "title": "اقتراح ميزة",
+    "idea": "الفكرة",
+    "idea_placeholder": "اكتب فكرتك في سطر واحد",
+    "reason": "لماذا هذه الميزة مهمة؟",
+    "reason_placeholder": "اشرح لماذا تحتاج هذه الميزة",
+    "would_pay": "هل ستدفع مقابل هذه الميزة؟",
+    "would_pay_yes": "نعم",
+    "would_pay_no": "لا",
+    "would_pay_maybe": "ربما",
+    "submit": "إرسال الاقتراح",
+    "success": "شكراً لاقتراحك!",
+    "error": "حدث خطأ"
+  },
+  "nps": {
+    "title": "كيف كانت تجربتك؟",
+    "question": "ما مدى رضاك عن خدمة الدعم؟",
+    "comment_placeholder": "أي ملاحظات إضافية؟ (اختياري)",
+    "submit": "إرسال التقييم",
+    "thanks": "شكراً لتقييمك!"
+  },
+  "admin": {
+    "dashboard_title": "لوحة تحكم الدعم",
+    "overview": "نظرة عامة",
+    "tickets": "التذاكر",
+    "hot_issues": "المشاكل الشائعة",
+    "suggestions": "الاقتراحات",
+    "total_tickets_today": "تذاكر اليوم",
+    "avg_response_time": "متوسط وقت الرد",
+    "avg_resolution_time": "متوسط وقت الحل",
+    "csat_score": "رضا العملاء",
+    "sla_breaches": "تجاوزات SLA",
+    "open_tickets": "تذاكر مفتوحة",
+    "assign_to": "تعيين إلى",
+    "escalate": "تصعيد",
+    "resolve": "حل",
+    "close": "إغلاق",
+    "internal_note": "ملاحظة داخلية",
+    "rice_score": "RICE Score",
+    "votes": "تصويتات",
+    "mark_planned": "تحديد كمخطط",
+    "mark_done": "تحديد كمكتمل",
+    "mark_rejected": "رفض"
+  }
+}

@@ -679,6 +679,77 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_feedback: {
+        Row: {
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
+          created_at: string
+          id: string
+          idea: string
+          reason: string | null
+          rice_confidence: number | null
+          rice_effort: number | null
+          rice_impact: number | null
+          rice_reach: number | null
+          rice_score: number | null
+          status: Database["public"]["Enums"]["feedback_status"] | null
+          updated_at: string
+          user_id: string
+          votes: number | null
+          would_pay:
+            | Database["public"]["Enums"]["feedback_payment_intent"]
+            | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          id?: string
+          idea: string
+          reason?: string | null
+          rice_confidence?: number | null
+          rice_effort?: number | null
+          rice_impact?: number | null
+          rice_reach?: number | null
+          rice_score?: number | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          updated_at?: string
+          user_id: string
+          votes?: number | null
+          would_pay?:
+            | Database["public"]["Enums"]["feedback_payment_intent"]
+            | null
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          id?: string
+          idea?: string
+          reason?: string | null
+          rice_confidence?: number | null
+          rice_effort?: number | null
+          rice_impact?: number | null
+          rice_reach?: number | null
+          rice_score?: number | null
+          status?: Database["public"]["Enums"]["feedback_status"] | null
+          updated_at?: string
+          user_id?: string
+          votes?: number | null
+          would_pay?:
+            | Database["public"]["Enums"]["feedback_payment_intent"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_checkins: {
         Row: {
           check_in_date: string
@@ -2522,6 +2593,199 @@ export type Database = {
         }
         Relationships: []
       }
+      support_analytics: {
+        Row: {
+          avg_first_response_minutes: number | null
+          avg_resolution_minutes: number | null
+          by_category: Json | null
+          by_priority: Json | null
+          created_at: string
+          csat_score: number | null
+          date: string
+          deflection_rate: number | null
+          id: string
+          sla_breach_count: number | null
+          tickets_closed: number | null
+          tickets_opened: number | null
+          total_tickets: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_first_response_minutes?: number | null
+          avg_resolution_minutes?: number | null
+          by_category?: Json | null
+          by_priority?: Json | null
+          created_at?: string
+          csat_score?: number | null
+          date: string
+          deflection_rate?: number | null
+          id?: string
+          sla_breach_count?: number | null
+          tickets_closed?: number | null
+          tickets_opened?: number | null
+          total_tickets?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_first_response_minutes?: number | null
+          avg_resolution_minutes?: number | null
+          by_category?: Json | null
+          by_priority?: Json | null
+          created_at?: string
+          csat_score?: number | null
+          date?: string
+          deflection_rate?: number | null
+          id?: string
+          sla_breach_count?: number | null
+          tickets_closed?: number | null
+          tickets_opened?: number | null
+          total_tickets?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_runbooks: {
+        Row: {
+          category: Database["public"]["Enums"]["ticket_category"]
+          created_at: string
+          id: string
+          is_active: boolean | null
+          problem_type: string
+          problem_type_ar: string
+          quick_actions: Json | null
+          steps: Json
+          steps_ar: Json
+          symptoms: string[] | null
+          symptoms_ar: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          problem_type: string
+          problem_type_ar: string
+          quick_actions?: Json | null
+          steps?: Json
+          steps_ar?: Json
+          symptoms?: string[] | null
+          symptoms_ar?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["ticket_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          problem_type?: string
+          problem_type_ar?: string
+          quick_actions?: Json | null
+          steps?: Json
+          steps_ar?: Json
+          symptoms?: string[] | null
+          symptoms_ar?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          app_version: string | null
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
+          closed_at: string | null
+          created_at: string
+          csat_comment: string | null
+          csat_score: number | null
+          description: string
+          device_os: string | null
+          escalated_to: string | null
+          first_response_at: string | null
+          id: string
+          last_event_id: string | null
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at: string | null
+          screenshot_url: string | null
+          sla_breach: boolean | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["ticket_category"]
+          closed_at?: string | null
+          created_at?: string
+          csat_comment?: string | null
+          csat_score?: number | null
+          description: string
+          device_os?: string | null
+          escalated_to?: string | null
+          first_response_at?: string | null
+          id?: string
+          last_event_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          sla_breach?: boolean | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["ticket_category"]
+          closed_at?: string | null
+          created_at?: string
+          csat_comment?: string | null
+          csat_score?: number | null
+          description?: string
+          device_os?: string | null
+          escalated_to?: string | null
+          first_response_at?: string | null
+          id?: string
+          last_event_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolved_at?: string | null
+          screenshot_url?: string | null
+          sla_breach?: boolean | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       temporary_unlocks: {
         Row: {
           created_at: string
@@ -2558,6 +2822,78 @@ export type Database = {
           source?: string
           used_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      ticket_replies: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_replies_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_sla_config: {
+        Row: {
+          created_at: string
+          first_response_minutes: number
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_response_minutes: number
+          id?: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_response_minutes?: number
+          id?: string
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_minutes?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3096,6 +3432,7 @@ export type Database = {
         Returns: string
       }
       generate_referral_code: { Args: never; Returns: string }
+      generate_ticket_number: { Args: never; Returns: string }
       get_admin_activity_stats: {
         Args: never
         Returns: {
@@ -3551,6 +3888,14 @@ export type Database = {
         | "emergency"
         | "savings"
       expense_status: "pending" | "approved" | "rejected"
+      feedback_payment_intent: "yes" | "no" | "maybe"
+      feedback_status:
+        | "new"
+        | "reviewing"
+        | "planned"
+        | "in_progress"
+        | "done"
+        | "rejected"
       income_status: "pending" | "approved" | "rejected"
       invite_status: "pending" | "sent" | "accepted" | "revoked"
       member_role: "owner" | "admin" | "member"
@@ -3581,6 +3926,21 @@ export type Database = {
       referral_status: "pending" | "joined" | "blocked" | "expired"
       subscription_plan: "personal" | "family" | "lifetime"
       subscription_status: "trialing" | "active" | "expired" | "canceled"
+      ticket_category:
+        | "payment"
+        | "credits"
+        | "groups"
+        | "recommendations"
+        | "account"
+        | "technical"
+      ticket_priority: "p0" | "p1" | "p2" | "p3"
+      ticket_status:
+        | "open"
+        | "in_progress"
+        | "waiting_customer"
+        | "escalated"
+        | "resolved"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3730,6 +4090,15 @@ export const Constants = {
         "savings",
       ],
       expense_status: ["pending", "approved", "rejected"],
+      feedback_payment_intent: ["yes", "no", "maybe"],
+      feedback_status: [
+        "new",
+        "reviewing",
+        "planned",
+        "in_progress",
+        "done",
+        "rejected",
+      ],
       income_status: ["pending", "approved", "rejected"],
       invite_status: ["pending", "sent", "accepted", "revoked"],
       member_role: ["owner", "admin", "member"],
@@ -3761,6 +4130,23 @@ export const Constants = {
       referral_status: ["pending", "joined", "blocked", "expired"],
       subscription_plan: ["personal", "family", "lifetime"],
       subscription_status: ["trialing", "active", "expired", "canceled"],
+      ticket_category: [
+        "payment",
+        "credits",
+        "groups",
+        "recommendations",
+        "account",
+        "technical",
+      ],
+      ticket_priority: ["p0", "p1", "p2", "p3"],
+      ticket_status: [
+        "open",
+        "in_progress",
+        "waiting_customer",
+        "escalated",
+        "resolved",
+        "closed",
+      ],
     },
   },
 } as const
