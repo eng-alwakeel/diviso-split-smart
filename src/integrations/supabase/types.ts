@@ -3479,6 +3479,10 @@ export type Database = {
         Args: { p_months_old?: number }
         Returns: number
       }
+      complete_credit_purchase: {
+        Args: { p_payment_reference: string; p_purchase_id: string }
+        Returns: boolean
+      }
       complete_onboarding_task: {
         Args: { p_task_name: string; p_user_id: string }
         Returns: Json

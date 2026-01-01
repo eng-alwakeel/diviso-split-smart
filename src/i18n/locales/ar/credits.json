@@ -1,4 +1,26 @@
 {
+  "payment": {
+    "title": "إتمام الدفع",
+    "callback_title": "حالة الدفع",
+    "processing": "جاري معالجة الدفع...",
+    "please_wait": "يرجى الانتظار بينما نتحقق من دفعتك",
+    "success": "تم الدفع بنجاح!",
+    "credits_added": "تم إضافة {{count}} رصيد إلى حسابك",
+    "failed": "فشل الدفع",
+    "failed_description": "لم نتمكن من معالجة دفعتك. يرجى المحاولة مرة أخرى.",
+    "pending": "الدفع قيد المعالجة",
+    "pending_description": "جاري معالجة دفعتك. سيتم إضافة الرصيد قريباً.",
+    "try_again": "حاول مرة أخرى",
+    "back_to_store": "العودة للمتجر",
+    "continue_to_store": "متابعة للمتجر",
+    "loading": "جاري تحميل نموذج الدفع...",
+    "secure": "دفع آمن عبر Moyasar",
+    "config_error": "خطأ في إعدادات الدفع",
+    "init_error": "فشل تحميل نموذج الدفع",
+    "purchase_description": "شراء باقة رصيد",
+    "creating_order": "جاري إنشاء الطلب...",
+    "order_error": "فشل إنشاء الطلب"
+  },
   "balance": {
     "current": "رصيدك الحالي",
     "credits": "نقطة",
@@ -87,6 +109,7 @@
     "coming_soon": "قريباً!",
     "coming_soon_desc": "سيتم تفعيل خاصية الشراء قريباً",
     "buy_now": "شراء الآن",
+    "load_error": "فشل تحميل الباقات",
     "large": {
       "name": "أفضل قيمة"
     },
