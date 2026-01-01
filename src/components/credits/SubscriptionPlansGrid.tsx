@@ -28,7 +28,7 @@ export function SubscriptionPlansGrid() {
   
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -96,6 +96,10 @@ export function SubscriptionPlansGrid() {
     return planName.toLowerCase() === 'pro';
   };
 
+  const isBestValuePlan = (planName: string) => {
+    return planName.toLowerCase() === 'max';
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -139,18 +143,22 @@ export function SubscriptionPlansGrid() {
         )}
       </div>
 
-      {/* Plans Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Plans Grid - Horizontal scroll on mobile */}
+      <div className="overflow-x-auto pb-4 -mx-4 px-4 sm:overflow-visible sm:mx-0 sm:px-0">
+        <div className="flex gap-4 sm:grid sm:grid-cols-3 min-w-max sm:min-w-0">
         {filteredPlans.map((plan) => {
           const name = isRTL ? plan.name_ar : plan.name;
           const isPopular = isPopularPlan(plan.name);
+          const isBestValue = isBestValuePlan(plan.name);
 
           return (
             <Card 
               key={plan.id}
-              className={`relative transition-all ${
+              className={`relative transition-all w-[260px] sm:w-auto flex-shrink-0 sm:flex-shrink ${
                 isPopular 
                   ? 'border-primary shadow-lg shadow-primary/10 ring-2 ring-primary/20' 
+                  : isBestValue
+                  ? 'border-green-500 shadow-lg shadow-green-500/10 ring-2 ring-green-500/20'
                   : 'border-border hover:border-primary/50'
               } hover:shadow-lg`}
             >
@@ -159,6 +167,14 @@ export function SubscriptionPlansGrid() {
                   className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground border-0 text-xs px-3 py-0.5"
                 >
                   {t('plans.recommended')}
+                </Badge>
+              )}
+
+              {isBestValue && (
+                <Badge 
+                  className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-500 text-white border-0 text-xs px-3 py-0.5"
+                >
+                  {t('packages.best_value')}
                 </Badge>
               )}
 
@@ -215,9 +231,17 @@ export function SubscriptionPlansGrid() {
                   {t('plans.auto_renew_note')}
                 </p>
               </CardContent>
-            </Card>
+          </Card>
           );
         })}
+        </div>
+      </div>
+
+      {/* Scroll indicator for mobile */}
+      <div className="flex justify-center gap-1.5 sm:hidden">
+        {filteredPlans.map((_, index) => (
+          <div key={index} className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+        ))}
       </div>
     </div>
   );
