@@ -5,25 +5,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminStats, useAdminUsers, useAdminGroups } from "@/hooks/useAdminStats";
 import { useEnhancedAdminStats } from "@/hooks/useEnhancedAdminStats";
 import { useBusinessMetrics, useRevenueInsights } from "@/hooks/useBusinessMetrics";
-import { RevenueMetricsCards } from "@/components/admin/RevenueMetricsCards";
-import { PlanPerformanceChart } from "@/components/admin/PlanPerformanceChart";
-import { BusinessHealthMetrics } from "@/components/admin/BusinessHealthMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminErrorBoundary } from "@/components/admin/AdminErrorBoundary";
-import { SubscriptionStatsCards } from "@/components/admin/SubscriptionStatsCards";
-import { ActivityChart } from "@/components/admin/ActivityChart";
-import { TopInsightsCards } from "@/components/admin/TopInsightsCards";
 import { AdminManagementTables } from "@/components/admin/AdminManagementTables";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
+import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
+import { RetentionCohorts } from "@/components/admin/RetentionCohorts";
+import { MonetizationDashboard } from "@/components/admin/MonetizationDashboard";
+import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
 
 export const AdminDashboard = () => {
   return (
@@ -230,97 +228,58 @@ const AdminDashboardContent = () => {
           <AdminExport onExport={handleExport} isLoading={isExporting} />
         </div>
 
-        <Tabs defaultValue="revenue" className="space-y-6">
+        <Tabs defaultValue="executive" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="revenue">الإيرادات والنمو</TabsTrigger>
-            <TabsTrigger value="health">صحة الأعمال</TabsTrigger>
-            <TabsTrigger value="plans">تحليل الباقات</TabsTrigger>
-            <TabsTrigger value="activity">النشاط</TabsTrigger>
-            <TabsTrigger value="management">الإدارة</TabsTrigger>
+            <TabsTrigger value="executive" className="flex items-center gap-1">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden md:inline">Executive</span>
+            </TabsTrigger>
+            <TabsTrigger value="funnel" className="flex items-center gap-1">
+              <Target className="h-4 w-4" />
+              <span className="hidden md:inline">Funnel</span>
+            </TabsTrigger>
+            <TabsTrigger value="retention" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span className="hidden md:inline">Retention</span>
+            </TabsTrigger>
+            <TabsTrigger value="monetization" className="flex items-center gap-1">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden md:inline">Monetization</span>
+            </TabsTrigger>
+            <TabsTrigger value="credits" className="flex items-center gap-1">
+              <Coins className="h-4 w-4" />
+              <span className="hidden md:inline">Credits</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="revenue" className="space-y-6">
-            <RevenueMetricsCards 
-              data={businessMetrics || {} as any} 
-              isLoading={businessLoading} 
-            />
-            
-            <PlanPerformanceChart 
-              data={businessMetrics || {} as any} 
-              isLoading={businessLoading} 
-            />
-            
-            {revenueInsights && (
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>أهم مصادر الإيرادات</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {revenueInsights.top_revenue_sources.map((source, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm">{source.source}</span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{source.percentage}%</Badge>
-                            <span className="text-sm font-medium">
-                              {source.revenue.toLocaleString('ar-SA')} ريال
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>فرص النمو</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {revenueInsights.growth_opportunities.map((opportunity, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm">{opportunity.opportunity}</span>
-                          <Badge className="bg-green-100 text-green-800">
-                            {opportunity.potential}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+          <TabsContent value="executive">
+            <ExecutiveSnapshot />
           </TabsContent>
 
-          <TabsContent value="health" className="space-y-6">
-            <BusinessHealthMetrics 
-              data={businessMetrics || {} as any} 
-              isLoading={businessLoading} 
-            />
+          <TabsContent value="funnel">
+            <FunnelAnalytics />
           </TabsContent>
 
-          <TabsContent value="plans" className="space-y-6">
-            <PlanPerformanceChart 
-              data={businessMetrics || {} as any} 
-              isLoading={businessLoading} 
-            />
+          <TabsContent value="retention">
+            <RetentionCohorts />
           </TabsContent>
 
-
-          <TabsContent value="activity" className="space-y-6">
-            {enhancedStats?.activity && (
-              <ActivityChart data={enhancedStats.activity} />
-            )}
+          <TabsContent value="monetization">
+            <MonetizationDashboard />
           </TabsContent>
 
-          <TabsContent value="management" className="space-y-6">
-            {filteredUsers && filteredGroups && (
-              <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
-            )}
+          <TabsContent value="credits">
+            <CreditsEconomyHealth />
           </TabsContent>
         </Tabs>
+
+        {/* Management Section */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">إدارة المستخدمين والمجموعات</h2>
+          {filteredUsers && filteredGroups && (
+            <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
+          )}
+        </div>
       </div>
     </div>
   );

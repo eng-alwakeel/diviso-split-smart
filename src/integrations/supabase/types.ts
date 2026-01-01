@@ -245,6 +245,47 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          device_type: string | null
+          event_category: string
+          event_data: Json | null
+          event_name: string
+          id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: string | null
+          event_category: string
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: string | null
+          event_category?: string
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_categories: {
         Row: {
           allocated_amount: number
@@ -3101,6 +3142,20 @@ export type Database = {
           warning_type: string
         }[]
       }
+      get_credits_economy_health: {
+        Args: never
+        Returns: {
+          burn_rate: number
+          earned_vs_purchased_ratio: number
+          expiry_rate: number
+          paywall_conversion_rate: number
+          paywall_hit_count: number
+          total_consumed: number
+          total_earned: number
+          total_expired: number
+          total_purchased: number
+        }[]
+      }
       get_family_quota_limits: {
         Args: { p_user_id: string }
         Returns: {
@@ -3110,6 +3165,19 @@ export type Database = {
           members_limit: number
           ocr_limit: number
           plan_type: string
+        }[]
+      }
+      get_funnel_metrics: {
+        Args: { p_days?: number }
+        Returns: {
+          activated_users: number
+          activation_rate: number
+          avg_time_to_first_value: unknown
+          conversion_rate: number
+          converted_to_paid: number
+          retention_to_7d: number
+          seven_day_active: number
+          total_signups: number
         }[]
       }
       get_group_balance: {
@@ -3173,6 +3241,19 @@ export type Database = {
           total_amount: number
         }[]
       }
+      get_growth_loop_metrics: {
+        Args: never
+        Returns: {
+          active_referrers: number
+          invite_conversion_rate: number
+          invites_accepted: number
+          invites_this_week: number
+          k_factor: number
+          referral_signup_rate: number
+          referral_signups: number
+          total_invites_sent: number
+        }[]
+      }
       get_monthly_stats:
         | { Args: { p_month?: number; p_year?: number }; Returns: Json }
         | {
@@ -3211,6 +3292,53 @@ export type Database = {
         }[]
       }
       get_remaining_trial_days: { Args: { p_user_id: string }; Returns: number }
+      get_retention_cohorts: {
+        Args: { p_weeks?: number }
+        Returns: {
+          cohort_date: string
+          cohort_size: number
+          d1_rate: number
+          d1_retained: number
+          d30_rate: number
+          d30_retained: number
+          d7_rate: number
+          d7_retained: number
+        }[]
+      }
+      get_revenue_metrics: {
+        Args: { p_month?: string }
+        Returns: {
+          arppu: number
+          churn_rate: number
+          churned_subscribers: number
+          credits_revenue: number
+          new_subscribers: number
+          subscriber_count: number
+          subscription_revenue: number
+          total_monthly_revenue: number
+        }[]
+      }
+      get_top_credit_actions: {
+        Args: { p_limit?: number }
+        Returns: {
+          action_type: string
+          avg_per_use: number
+          total_consumed: number
+          usage_count: number
+        }[]
+      }
+      get_user_activity_metrics: {
+        Args: { p_date?: string }
+        Returns: {
+          dau: number
+          mau: number
+          new_users_month: number
+          new_users_today: number
+          new_users_week: number
+          stickiness: number
+          wau: number
+        }[]
+      }
       get_user_dashboard: {
         Args: { p_user_id: string }
         Returns: {
