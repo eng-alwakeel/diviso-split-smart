@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, ArrowLeft, User, Coins, Globe, Bell, Shield, Save, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Coins, Globe, Bell, Shield, Save, RefreshCw, Sparkles, Receipt } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -23,6 +23,7 @@ import { ProfileTab } from "@/components/settings/ProfileTab";
 import CreditsTab from "@/components/settings/CreditsTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
 import { RolesTab } from "@/components/settings/RolesTab";
+import { BillingTab } from "@/components/settings/BillingTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
@@ -328,6 +329,10 @@ const Settings = () => {
               <Sparkles className="w-4 h-4" />
               <span className="hidden sm:inline">{t('recommendations:settings.title', 'توصيات')}</span>
             </TabsTrigger>
+            <TabsTrigger value="billing" className="flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              <span className="hidden sm:inline">{t('settings:tabs.billing')}</span>
+            </TabsTrigger>
             <TabsTrigger value="privacy" className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.privacy')}</span>
@@ -509,6 +514,11 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Billing Tab */}
+          <TabsContent value="billing" className="space-y-6">
+            <BillingTab />
           </TabsContent>
 
           {/* Privacy/Security Tab */}
