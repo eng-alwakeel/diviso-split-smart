@@ -3487,7 +3487,17 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "owner"
+        | "finance_admin"
+        | "growth_admin"
+        | "ads_admin"
+        | "support_agent"
+        | "analyst"
+        | "developer"
       budget_period: "weekly" | "monthly" | "quarterly" | "yearly" | "custom"
       budget_type:
         | "monthly"
@@ -3630,7 +3640,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "owner",
+        "finance_admin",
+        "growth_admin",
+        "ads_admin",
+        "support_agent",
+        "analyst",
+        "developer",
+      ],
       budget_period: ["weekly", "monthly", "quarterly", "yearly", "custom"],
       budget_type: [
         "monthly",
