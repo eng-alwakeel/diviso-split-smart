@@ -21,17 +21,16 @@ interface CreditPackage {
 
 interface CreditPackagesGridProps {
   onPurchase?: (packageId: string) => void;
-  preselectedPackage?: string;
 }
 
-export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPackagesGridProps) {
+export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
   const { t, i18n } = useTranslation('credits');
   const { toast } = useToast();
   const isRTL = i18n.language === 'ar';
   
   const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(preselectedPackage || null);
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [processingPurchase, setProcessingPurchase] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [currentPurchase, setCurrentPurchase] = useState<{
@@ -40,14 +39,14 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
     userId: string | null;
   }>({ packageDetails: null, purchaseId: null, userId: null });
 
-  // Fetch packages from database
+  // Fetch packages from database - ordered: L first (best value), then M, then S
   useEffect(() => {
     const fetchPackages = async () => {
       const { data, error } = await supabase
         .from('credit_packages')
         .select('*')
         .eq('is_active', true)
-        .order('sort_order', { ascending: true });
+        .order('credits', { ascending: false }); // L (450) first, then M (200), then S (90)
 
       if (error) {
         console.error('Error fetching packages:', error);
@@ -58,19 +57,16 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
         });
       } else {
         setPackages(data || []);
-        if (data && data.length > 0 && !preselectedPackage) {
-          // Select the best value package by default (first one with highest credits/price ratio)
-          const bestValue = data.reduce((best, pkg) => 
-            (pkg.credits / pkg.price_sar) > (best.credits / best.price_sar) ? pkg : best
-          , data[0]);
-          setSelectedPackage(bestValue.id);
+        // Select the best value package by default (highest credits = first one = L)
+        if (data && data.length > 0) {
+          setSelectedPackage(data[0].id);
         }
       }
       setLoading(false);
     };
 
     fetchPackages();
-  }, [t, toast, preselectedPackage]);
+  }, [t, toast]);
 
   const handlePurchase = async (pkg: CreditPackage) => {
     setSelectedPackage(pkg.id);
@@ -155,16 +151,12 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
   };
 
   const getBadgeInfo = (pkg: CreditPackage, index: number, allPackages: CreditPackage[]) => {
-    // Calculate value ratio for each package
-    const ratios = allPackages.map(p => p.credits / p.price_sar);
-    const maxRatio = Math.max(...ratios);
-    const pkgRatio = pkg.credits / pkg.price_sar;
-
-    if (pkgRatio === maxRatio) {
-      return { text: t('packages.best_value'), color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
+    // L = first (index 0) = Best Value, M = second (index 1) = Most Popular
+    if (index === 0) {
+      return { text: t('packages.best_value'), color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', isBest: true };
     }
     if (index === 1) {
-      return { text: t('packages.most_popular'), color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' };
+      return { text: t('packages.most_popular'), color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', isBest: false };
     }
     return null;
   };
@@ -186,11 +178,12 @@ export function CreditPackagesGrid({ onPurchase, preselectedPackage }: CreditPac
           <p className="text-[10px] sm:text-xs text-primary/70 mt-1">{t('packages.section_subtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        {/* Vertical layout on mobile for better UX */}
+        <div className="flex flex-col gap-4 sm:grid sm:grid-cols-3 sm:gap-4">
           {packages.map((pkg, index) => {
             const isSelected = selectedPackage === pkg.id;
             const badgeInfo = getBadgeInfo(pkg, index, packages);
-            const isBestValue = badgeInfo?.text === t('packages.best_value');
+            const isBestValue = badgeInfo?.isBest || false;
             const totalCredits = pkg.credits + (pkg.bonus_credits || 0);
             
             return (
