@@ -157,8 +157,8 @@ export function SubscriptionPlansGrid() {
         </button>
       </div>
 
-      {/* Plans Grid */}
-      <div className="space-y-3">
+      {/* Plans Grid - Horizontal on desktop, vertical on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {filteredPlans.map((plan) => {
           const name = isRTL ? plan.name_ar : plan.name;
           const badge = getPlanBadge(plan.name);
@@ -167,7 +167,7 @@ export function SubscriptionPlansGrid() {
           return (
             <Card
               key={plan.id}
-              className={`relative overflow-hidden rounded-2xl transition-all ${styles.border}`}
+              className={`relative overflow-hidden rounded-2xl transition-all flex flex-col ${styles.border}`}
             >
               {/* Badge */}
               {badge && (
@@ -176,49 +176,45 @@ export function SubscriptionPlansGrid() {
                 </Badge>
               )}
 
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  {/* Icon - Circle style matching credit packages */}
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${styles.icon}`}>
+              <CardContent className="p-4 flex flex-col flex-1">
+                {/* Icon & Name */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${styles.icon}`}>
                     {getPlanIcon(plan.name)}
                   </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-base">{name}</h4>
-                    
-                    {/* Price */}
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-2xl font-bold text-foreground">{plan.price_sar}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {getCurrencyText()}{getPeriodText()}
-                      </span>
-                    </div>
-                    
-                    {/* Credits with Coins icon */}
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <Coins className="h-4 w-4 text-primary" />
-                      <span className="text-primary font-semibold">{plan.credits_per_month}</span>
-                      <span className="text-sm text-muted-foreground">{t('plans.credits_per_month')}</span>
-                    </div>
-
-                    {/* Key Features - Max 3 */}
-                    {plan.features && plan.features.length > 0 && (
-                      <div className="mt-3 space-y-1.5">
-                        {plan.features.slice(0, 3).map((feature: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                            <span className="truncate">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <h4 className="font-semibold text-base">{name}</h4>
+                </div>
+                
+                {/* Price */}
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-foreground">{plan.price_sar}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {getCurrencyText()}{getPeriodText()}
+                  </span>
+                </div>
+                
+                {/* Credits with Coins icon */}
+                <div className="flex items-center gap-1.5 mt-2">
+                  <Coins className="h-4 w-4 text-primary" />
+                  <span className="text-primary font-semibold">{plan.credits_per_month}</span>
+                  <span className="text-sm text-muted-foreground">{t('plans.credits_per_month')}</span>
                 </div>
 
-                {/* Subscribe Button */}
+                {/* Key Features - Max 2 on desktop for compact cards */}
+                {plan.features && plan.features.length > 0 && (
+                  <div className="mt-3 space-y-1.5 flex-1">
+                    {plan.features.slice(0, 2).map((feature: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                        <span className="truncate">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Subscribe Button - pushed to bottom */}
                 <Button 
-                  className="w-full mt-4 h-11 rounded-xl"
+                  className="w-full mt-4 h-10 rounded-xl"
                   variant={badge ? 'default' : 'outline'}
                   onClick={() => handleSubscribe(plan)}
                 >

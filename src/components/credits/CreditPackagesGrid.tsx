@@ -130,7 +130,7 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {packages.map((pkg, index) => {
         const Icon = getPackageIcon(index);
         const badge = getPackageBadge(index);
@@ -140,7 +140,7 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
         return (
           <Card
             key={pkg.id}
-            className={`relative overflow-hidden transition-all duration-200 ${
+            className={`relative overflow-hidden transition-all duration-200 flex flex-col ${
               isSelected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'
             }`}
           >
@@ -153,51 +153,52 @@ export function CreditPackagesGrid({ onPurchase }: CreditPackagesGridProps) {
               </Badge>
             )}
 
-            <div className="p-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Icon className="h-6 w-6 text-primary" />
+            <div className="p-4 flex flex-col flex-1">
+              {/* Icon & Name */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg">
-                    {isRTL ? pkg.name_ar : pkg.name}
-                  </h3>
-
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-bold text-primary">
-                      {pkg.price_sar}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {isRTL ? 'ر.س' : 'SAR'}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Coins className="h-4 w-4" />
-                      <span className="font-medium text-foreground">{totalCredits}</span>
-                      <span>{isRTL ? 'نقطة' : 'credits'}</span>
-                    </div>
-                    
-                    {pkg.bonus_credits && pkg.bonus_credits > 0 && (
-                      <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
-                        +{pkg.bonus_credits} {isRTL ? 'مجاناً' : 'bonus'}
-                      </Badge>
-                    )}
-
-                    <span className="text-xs">
-                      {isRTL ? `صالح ${pkg.validity_days} يوم` : `Valid ${pkg.validity_days} days`}
-                    </span>
-                  </div>
-                </div>
+                <h3 className="font-semibold text-base">
+                  {isRTL ? pkg.name_ar : pkg.name}
+                </h3>
               </div>
 
+              {/* Price */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-primary">
+                  {pkg.price_sar}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {isRTL ? 'ر.س' : 'SAR'}
+                </span>
+              </div>
+
+              {/* Credits & Bonus */}
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-1">
+                  <Coins className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-foreground">{totalCredits}</span>
+                  <span className="text-sm text-muted-foreground">{isRTL ? 'نقطة' : 'credits'}</span>
+                </div>
+                
+                {pkg.bonus_credits && pkg.bonus_credits > 0 && (
+                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                    +{pkg.bonus_credits} {isRTL ? 'مجاناً' : 'bonus'}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Validity */}
+              <span className="text-xs text-muted-foreground mt-2 flex-1">
+                {isRTL ? `صالح ${pkg.validity_days} يوم` : `Valid ${pkg.validity_days} days`}
+              </span>
+
+              {/* Buy Button - pushed to bottom */}
               <Button
                 onClick={() => handlePurchase(pkg)}
                 disabled={processing && isSelected}
                 className="w-full mt-4"
-                size="lg"
               >
                 {processing && isSelected ? (
                   <span className="flex items-center gap-2">

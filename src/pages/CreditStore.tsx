@@ -68,7 +68,7 @@ const CreditStore = React.memo(() => {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="px-4 pt-4 pb-28 max-w-4xl mx-auto space-y-4">
+        <div className="px-4 pt-4 pb-28 max-w-7xl mx-auto space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Skeleton className="h-28 rounded-2xl" />
             <Skeleton className="h-28 rounded-2xl" />
@@ -86,7 +86,7 @@ const CreditStore = React.memo(() => {
       <SEO title={t('store.title')} noIndex={true} />
       <AppHeader />
       
-      <main className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-4xl mx-auto space-y-5">
+      <main className="px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-7xl mx-auto space-y-5">
         {/* Header */}
         <div className="pt-2">
           <h1 className="text-xl font-bold text-foreground">{t('store.title')}</h1>
@@ -147,56 +147,53 @@ const CreditStore = React.memo(() => {
               className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
             >
               <Coins className="h-4 w-4" />
-              <span className="hidden xs:inline">{isRTL ? 'شراء' : 'Buy'}</span>
+              <span className="hidden sm:inline">{isRTL ? 'شراء' : 'Buy'}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="rewards" 
               className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
             >
               <Gift className="h-4 w-4" />
-              <span className="hidden xs:inline">{isRTL ? 'مكافآت' : 'Rewards'}</span>
+              <span className="hidden sm:inline">{isRTL ? 'مكافآت' : 'Rewards'}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="history" 
               className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex items-center gap-1.5 text-sm h-full"
             >
               <History className="h-4 w-4" />
-              <span className="hidden xs:inline">{isRTL ? 'سجل' : 'History'}</span>
+              <span className="hidden sm:inline">{isRTL ? 'سجل' : 'History'}</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Buy Credits Tab */}
-          <TabsContent value="buy" className="mt-4 space-y-6">
-            {/* Desktop: Two columns / Mobile: Stacked */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Subscriptions Section */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-base">{t('subscriptions.title')}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">{t('subscriptions.subtitle')}</p>
-                <SubscriptionPlansGrid />
+          <TabsContent value="buy" className="mt-4 space-y-8">
+            {/* Subscriptions Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">{t('subscriptions.title')}</h3>
               </div>
+              <p className="text-sm text-muted-foreground">{t('subscriptions.subtitle')}</p>
+              <SubscriptionPlansGrid />
+            </div>
 
-              {/* Divider - Mobile only */}
-              <div className="flex items-center gap-4 lg:hidden">
-                <Separator className="flex-1" />
-                <span className="text-sm text-muted-foreground font-medium px-2">
-                  {isRTL ? 'أو' : 'OR'}
-                </span>
-                <Separator className="flex-1" />
-              </div>
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <Separator className="flex-1" />
+              <span className="text-sm text-muted-foreground font-medium px-2">
+                {isRTL ? 'أو اشترِ باقة نقاط' : 'Or buy credit packages'}
+              </span>
+              <Separator className="flex-1" />
+            </div>
 
-              {/* Credit Packages Section */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Coins className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-base">{t('packages.title')}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">{t('packages.section_subtitle')}</p>
-                <CreditPackagesGrid />
+            {/* Credit Packages Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">{t('packages.title')}</h3>
               </div>
+              <p className="text-sm text-muted-foreground">{t('packages.section_subtitle')}</p>
+              <CreditPackagesGrid />
             </div>
           </TabsContent>
 
