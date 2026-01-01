@@ -7,6 +7,10 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('=== Moyasar Webhook Called ===');
+  console.log('Method:', req.method);
+  console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2));
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

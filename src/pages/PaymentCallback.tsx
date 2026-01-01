@@ -32,13 +32,43 @@ const PaymentCallback: React.FC = () => {
 
       // If Moyasar indicates failed payment
       if (paymentStatus === 'failed') {
-        // Update purchase status to failed
         await supabase
           .from('credit_purchases')
           .update({ status: 'failed' })
           .eq('id', purchaseId);
         setStatus('failed');
         return;
+      }
+
+      // First, try to verify payment directly via edge function (fallback for webhook)
+      if (paymentId) {
+        console.log('Attempting direct payment verification...');
+        try {
+          const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-payment', {
+            body: { purchaseId, paymentId }
+          });
+
+          console.log('Verify payment result:', verifyResult, verifyError);
+
+          if (verifyResult?.success && verifyResult?.status === 'completed') {
+            // Get the credits from the purchase
+            const { data: purchase } = await supabase
+              .from('credit_purchases')
+              .select('credits_purchased')
+              .eq('id', purchaseId)
+              .single();
+            
+            setCreditsAdded(purchase?.credits_purchased || 0);
+            setStatus('success');
+            return;
+          } else if (verifyResult?.status === 'failed') {
+            setStatus('failed');
+            return;
+          }
+        } catch (err) {
+          console.error('Error calling verify-payment:', err);
+          // Continue to polling as fallback
+        }
       }
 
       // Poll for purchase completion (webhook might take a moment)
