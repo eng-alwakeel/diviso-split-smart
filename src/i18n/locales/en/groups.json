@@ -125,6 +125,11 @@
 
   "invite": {
     "title": "Invite Members",
+    "page_title": "Invite New Members",
+    "from": "Invited by",
+    "join_message": "Join group",
+    "download_app": "Download Diviso app for smart expense splitting",
+    "back_to_group": "Back to Group",
     "by_link": "Invite by Link",
     "by_phone": "Invite by Phone",
     "by_email": "Invite by Email",

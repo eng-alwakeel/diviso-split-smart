@@ -95,7 +95,14 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
   const shareLink = async () => {
     if (!link) return;
     
-    const shareMessage = `🎉 انضم لمجموعة "${groupName || 'المجموعة'}" على ديفيزو لتقسيم المصاريف!\n\n${link}`;
+    const shareMessage = `👋 مرحباً!
+
+انضم إلى مجموعة "${groupName || 'المجموعة'}"
+
+🔗 رابط الانضمام:
+${link}
+
+📱 حمّل تطبيق ديفيسو لتقسيم المصاريف بذكاء بين الأصدقاء والعائلة`;
     
     try {
       if (Capacitor.isNativePlatform()) {

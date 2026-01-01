@@ -47,13 +47,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { phone, groupName, inviteLink, senderName }: SMSRequest = await req.json();
 
-    // تكوين رسالة SMS بالعربية
-    const message = `مرحباً! دعاك ${senderName} للانضمام إلى مجموعة "${groupName}" في تطبيق ديفيسو لتقسيم المصاريف. 
+    // تكوين رسالة SMS بالعربية - محسّنة
+    const message = `👋 مرحباً!
 
-انقر على الرابط للانضمام:
+انضم إلى مجموعة "${groupName}"
+الدعوة من: ${senderName}
+
+🔗 رابط الانضمام:
 ${inviteLink}
 
-أو قم بتحميل التطبيق من متجر التطبيقات واستخدم الرابط أعلاه.`;
+📱 حمّل تطبيق ديفيسو لتقسيم المصاريف بذكاء بين الأصدقاء والعائلة`;
 
     // Logging sanitized for security - no PII in production logs
     const isDev = Deno.env.get('ENVIRONMENT') === 'development';

@@ -28,6 +28,7 @@ const LazyCreateGroup = withLazyLoading(lazy(() => import("./pages/CreateGroup")
 const LazyAddExpense = withLazyLoading(lazy(() => import("./pages/AddExpense")));
 const LazyReferralCenter = withLazyLoading(lazy(() => import("./pages/ReferralCenter")));
 const LazyGroupDetails = withLazyLoading(lazy(() => import("./pages/GroupDetails")));
+const LazyGroupInvite = withLazyLoading(lazy(() => import("./pages/GroupInvite")));
 const LazyFinancialPlan = withLazyLoading(lazy(() => import("./pages/FinancialPlan")));
 const LazyCreateUnifiedBudget = withLazyLoading(lazy(() => import("./pages/CreateUnifiedBudget")));
 const LazyMyExpenses = withLazyLoading(lazy(() => import("./pages/MyExpenses")));
@@ -92,6 +93,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/group/:id/invite" element={<ProtectedRoute><PageErrorBoundary><LazyGroupInvite /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
