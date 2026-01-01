@@ -2560,6 +2560,47 @@ export type Database = {
           },
         ]
       }
+      renewal_reminders: {
+        Row: {
+          billing_cycle: string
+          channel: string
+          created_at: string
+          id: string
+          reminder_type: string
+          sent_at: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          billing_cycle: string
+          channel: string
+          created_at?: string
+          id?: string
+          reminder_type: string
+          sent_at?: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          reminder_type?: string
+          sent_at?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "renewal_reminders_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reward_points: {
         Row: {
           amount: number
@@ -3496,12 +3537,19 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          auto_renew: boolean | null
+          billing_cycle: string | null
           canceled_at: string | null
           created_at: string
           expires_at: string
           first_trial_started_at: string | null
+          grace_period_ends_at: string | null
           id: string
+          last_payment_failed_at: string | null
+          last_payment_status: string | null
+          next_renewal_date: string | null
           plan: Database["public"]["Enums"]["subscription_plan"]
+          renewal_reminder_sent_at: string | null
           started_at: string
           status: Database["public"]["Enums"]["subscription_status"]
           total_trial_days_used: number | null
@@ -3509,12 +3557,19 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
           canceled_at?: string | null
           created_at?: string
           expires_at?: string
           first_trial_started_at?: string | null
+          grace_period_ends_at?: string | null
           id?: string
+          last_payment_failed_at?: string | null
+          last_payment_status?: string | null
+          next_renewal_date?: string | null
           plan: Database["public"]["Enums"]["subscription_plan"]
+          renewal_reminder_sent_at?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           total_trial_days_used?: number | null
@@ -3522,12 +3577,19 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_renew?: boolean | null
+          billing_cycle?: string | null
           canceled_at?: string | null
           created_at?: string
           expires_at?: string
           first_trial_started_at?: string | null
+          grace_period_ends_at?: string | null
           id?: string
+          last_payment_failed_at?: string | null
+          last_payment_status?: string | null
+          next_renewal_date?: string | null
           plan?: Database["public"]["Enums"]["subscription_plan"]
+          renewal_reminder_sent_at?: string | null
           started_at?: string
           status?: Database["public"]["Enums"]["subscription_status"]
           total_trial_days_used?: number | null

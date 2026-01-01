@@ -176,5 +176,24 @@
     "rotate_right": "تدوير يمين",
     "confirm": "تأكيد",
     "cancel": "إلغاء"
+  },
+  "renewal": {
+    "title": "إدارة التجديد",
+    "billing_cycle": "دورة الفوترة",
+    "monthly": "شهري",
+    "yearly": "سنوي",
+    "auto_renew": "التجديد التلقائي",
+    "auto_renew_on": "مفعّل",
+    "auto_renew_off": "متوقف",
+    "next_renewal": "تاريخ التجديد القادم",
+    "payment_status": "حالة الدفع",
+    "payment_succeeded": "تم بنجاح",
+    "payment_failed": "فشل الدفع",
+    "payment_pending": "قيد المعالجة",
+    "payment_unknown": "غير معروف",
+    "grace_period_warning": "يرجى تحديث طريقة الدفع خلال {{days}} أيام",
+    "manage_renewal": "إدارة التجديد",
+    "yearly_reminder_note": "سنذكّرك قبل التجديد السنوي بـ 7 أيام",
+    "monthly_reminder_note": "سنذكّرك قبل التجديد الشهري"
   }
 }

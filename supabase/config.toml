@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.moyasar-webhook]
 verify_jwt = false
+
+[functions.send-renewal-reminders]
+verify_jwt = false

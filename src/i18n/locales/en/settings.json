@@ -241,5 +241,24 @@
     "rotate_right": "Rotate Right",
     "confirm": "Confirm",
     "cancel": "Cancel"
+  },
+  "renewal": {
+    "title": "Renewal Management",
+    "billing_cycle": "Billing Cycle",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "auto_renew": "Auto-Renewal",
+    "auto_renew_on": "Enabled",
+    "auto_renew_off": "Disabled",
+    "next_renewal": "Next Renewal Date",
+    "payment_status": "Payment Status",
+    "payment_succeeded": "Succeeded",
+    "payment_failed": "Failed",
+    "payment_pending": "Pending",
+    "payment_unknown": "Unknown",
+    "grace_period_warning": "Please update your payment method within {{days}} days",
+    "manage_renewal": "Manage Renewal",
+    "yearly_reminder_note": "We'll remind you 7 days before annual renewal",
+    "monthly_reminder_note": "We'll remind you before monthly renewal"
   }
 }
