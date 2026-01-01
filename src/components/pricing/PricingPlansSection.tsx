@@ -178,10 +178,16 @@ export function PricingPlansSection({
                   </div>
                 </div>
 
-                {/* Renewal note */}
-                <p className="text-[10px] sm:text-xs text-muted-foreground/70">
-                  {t('plans.renews_monthly')}
-                </p>
+                {/* Auto-renewal transparency note */}
+                <div className="text-[10px] sm:text-xs text-muted-foreground/70 space-y-0.5">
+                  <p>{t('plans.auto_renew_note')}</p>
+                  <p>{t('plans.credits_monthly_note')}</p>
+                  {isYearly && (
+                    <p className="text-green-600 dark:text-green-400">
+                      {t('plans.reminder_promise')}
+                    </p>
+                  )}
+                </div>
 
                 {/* Yearly equivalent */}
                 {isYearly && (

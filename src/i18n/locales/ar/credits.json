@@ -73,6 +73,10 @@
     "recommended": "موصى به",
     "credits_per_month": "نقطة / شهر",
     "renews_monthly": "يتجدد شهرياً (لا يتراكم)",
+    "auto_renew_note": "يتجدد تلقائياً. يمكنك الإلغاء في أي وقت.",
+    "credits_monthly_note": "النقاط تمنح شهرياً ولا تتراكم",
+    "reminder_promise": "سنذكّرك قبل التجديد",
+    "yearly_renewal_note": "تجديد سنوي — نوفر عليك عناء المتابعة",
     "annual_note": "12 شهر",
     "starter": {
       "name": "Starter"

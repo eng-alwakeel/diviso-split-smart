@@ -73,6 +73,10 @@
     "recommended": "Recommended",
     "credits_per_month": "credits / month",
     "renews_monthly": "Renews monthly (no accumulation)",
+    "auto_renew_note": "Renews automatically. Cancel anytime.",
+    "credits_monthly_note": "Credits granted monthly, no accumulation",
+    "reminder_promise": "We'll remind you before renewal",
+    "yearly_renewal_note": "Annual renewal — hassle-free for you",
     "annual_note": "12 months",
     "starter": {
       "name": "Starter"

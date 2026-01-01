@@ -187,6 +187,33 @@ Deno.serve(async (req) => {
 
     const status = mapTypeToStatus(type);
 
+    // Determine billing cycle from product ID
+    const billingCycle = (productId || "").toLowerCase().includes("year") ? "yearly" : "monthly";
+
+    // Calculate next renewal date
+    const calculateNextRenewal = (expiresAt: string, cycle: string): string => {
+      const expDate = new Date(expiresAt);
+      if (cycle === "yearly") {
+        expDate.setFullYear(expDate.getFullYear() + 1);
+      } else {
+        expDate.setMonth(expDate.getMonth() + 1);
+      }
+      return expDate.toISOString();
+    };
+
+    // Handle grace period for billing issues (3 days)
+    const GRACE_PERIOD_DAYS = 3;
+    let gracePeriodEndsAt: string | null = null;
+    let lastPaymentStatus = "succeeded";
+    let lastPaymentFailedAt: string | null = null;
+
+    if (type.includes("BILLING_ISSUE")) {
+      gracePeriodEndsAt = new Date(Date.now() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      lastPaymentStatus = "failed";
+      lastPaymentFailedAt = new Date().toISOString();
+      console.log(`Billing issue detected for user ${appUserId}, grace period until ${gracePeriodEndsAt}`);
+    }
+
     if (!appUserId || !plan) {
       return new Response(JSON.stringify({ error: "Missing app_user_id or plan mapping", received: { appUserId, productId, type } }), {
         status: 400,
@@ -205,20 +232,59 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRole);
 
+    // Build update object
+    const subscriptionData: Record<string, any> = {
+      user_id: appUserId,
+      plan,
+      status,
+      started_at,
+      expires_at,
+      canceled_at,
+      billing_cycle: billingCycle,
+      auto_renew: true, // Default to true for new subscriptions
+    };
+
+    // Set next renewal date for active/renewed subscriptions
+    if (type.includes("INITIAL_PURCHASE") || type.includes("RENEWAL")) {
+      subscriptionData.next_renewal_date = calculateNextRenewal(expires_at, billingCycle);
+      subscriptionData.last_payment_status = "succeeded";
+      subscriptionData.grace_period_ends_at = null;
+      subscriptionData.last_payment_failed_at = null;
+      subscriptionData.renewal_reminder_sent_at = null;
+      console.log(`Subscription ${type} for user ${appUserId}, next renewal: ${subscriptionData.next_renewal_date}`);
+    }
+
+    // Handle billing issue - set grace period
+    if (type.includes("BILLING_ISSUE")) {
+      subscriptionData.grace_period_ends_at = gracePeriodEndsAt;
+      subscriptionData.last_payment_status = lastPaymentStatus;
+      subscriptionData.last_payment_failed_at = lastPaymentFailedAt;
+      
+      // Create notification for the user about billing issue
+      await supabase.from("notifications").insert({
+        user_id: appUserId,
+        type: "billing_issue",
+        payload: {
+          title_ar: "مشكلة في الدفع",
+          title_en: "Billing Issue",
+          message_ar: `يرجى تحديث طريقة الدفع خلال ${GRACE_PERIOD_DAYS} أيام للحفاظ على اشتراكك.`,
+          message_en: `Please update your payment method within ${GRACE_PERIOD_DAYS} days to keep your subscription.`,
+          grace_period_ends_at: gracePeriodEndsAt,
+        },
+      });
+    }
+
+    // Handle expiration - stop granting credits
+    if (type.includes("EXPIRATION") || type.includes("EXPIRE")) {
+      subscriptionData.auto_renew = false;
+      subscriptionData.next_renewal_date = null;
+      console.log(`Subscription expired for user ${appUserId}`);
+    }
+
     // Upsert into user_subscriptions
     const { error: upsertErr } = await supabase
       .from("user_subscriptions")
-      .upsert(
-        {
-          user_id: appUserId,
-          plan,
-          status,
-          started_at,
-          expires_at,
-          canceled_at,
-        },
-        { onConflict: "user_id" }
-      );
+      .upsert(subscriptionData, { onConflict: "user_id" });
 
     if (upsertErr) {
       console.error("RevenueCat webhook upsert error:", upsertErr);
@@ -228,7 +294,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    console.log(`Successfully processed ${type} event for user ${appUserId}`);
+
+    return new Response(JSON.stringify({ ok: true, event_type: type }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
