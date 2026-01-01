@@ -248,7 +248,7 @@ const AdminDashboardContent = () => {
         </div>
 
         <Tabs defaultValue="executive" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 h-auto">
             <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline text-xs lg:text-sm">Executive</span>
@@ -276,6 +276,10 @@ const AdminDashboardContent = () => {
             <TabsTrigger value="permissions" className="flex items-center gap-1 py-2">
               <Lock className="h-4 w-4" />
               <span className="hidden sm:inline text-xs lg:text-sm">الصلاحيات</span>
+            </TabsTrigger>
+            <TabsTrigger value="management" className="flex items-center gap-1 py-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs lg:text-sm">الإدارة</span>
             </TabsTrigger>
           </TabsList>
 
@@ -306,15 +310,16 @@ const AdminDashboardContent = () => {
           <TabsContent value="permissions">
             <RolesPermissionsSection />
           </TabsContent>
-        </Tabs>
 
-        {/* Management Section */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">إدارة المستخدمين والمجموعات</h2>
-          {filteredUsers && filteredGroups && (
-            <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
-          )}
-        </div>
+          <TabsContent value="management">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">إدارة المستخدمين والمجموعات</h2>
+              {filteredUsers && filteredGroups && (
+                <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
