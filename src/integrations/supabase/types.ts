@@ -146,6 +146,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       affiliate_products: {
         Row: {
           active: boolean | null
@@ -1733,10 +1760,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_by: string | null
+          banned_until: string | null
           created_at: string
           display_name: string | null
           id: string
           is_admin: boolean
+          is_banned: boolean | null
+          last_admin_action_at: string | null
           name: string | null
           phone: string | null
           privacy_policy_accepted_at: string | null
@@ -1744,10 +1776,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_by?: string | null
+          banned_until?: string | null
           created_at?: string
           display_name?: string | null
           id: string
           is_admin?: boolean
+          is_banned?: boolean | null
+          last_admin_action_at?: string | null
           name?: string | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
@@ -1755,10 +1792,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_by?: string | null
+          banned_until?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           is_admin?: boolean
+          is_banned?: boolean | null
+          last_admin_action_at?: string | null
           name?: string | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
@@ -3342,10 +3384,36 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_ban_user: {
+        Args: {
+          p_ban_until?: string
+          p_is_banned: boolean
+          p_reason?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_delete_group: { Args: { p_group_id: string }; Returns: boolean }
+      admin_delete_user: {
+        Args: { p_reason?: string; p_user_id: string }
+        Returns: Json
+      }
+      admin_manage_credits: {
+        Args: {
+          p_amount: number
+          p_operation: string
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_toggle_user_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
         Returns: boolean
+      }
+      admin_update_user_profile: {
+        Args: { p_display_name?: string; p_phone?: string; p_user_id: string }
+        Returns: Json
       }
       archive_group: { Args: { p_group_id: string }; Returns: boolean }
       archive_old_notifications: {
