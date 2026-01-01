@@ -26,7 +26,7 @@ import { RolesTab } from "@/components/settings/RolesTab";
 import { BillingTab } from "@/components/settings/BillingTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
-import { DevSubscriptionTester } from "@/components/settings/DevSubscriptionTester";
+
 import { RecommendationSettings } from "@/components/recommendations/RecommendationSettings";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -301,10 +301,6 @@ const Settings = () => {
             <p className="text-muted-foreground">{t('settings:description')}</p>
           </div>
 
-          {/* Dev Tools - Only in Development */}
-          {import.meta.env.DEV && (
-            <DevSubscriptionTester />
-          )}
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
