@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Settings2 } from "lucide-react";
-import { useAdminUserActions } from "@/hooks/useEnhancedAdminStats";
+import { Trash2 } from "lucide-react";
+import { useAdminUserActions as useAdminGroupActions } from "@/hooks/useEnhancedAdminStats";
 import { useUsersWithRoles, ROLE_LABELS } from "@/hooks/useRBAC";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRolesDialog } from "./UserRolesDialog";
+import { UserActionsDropdown } from "./UserActionsDropdown";
 import { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -38,6 +39,7 @@ interface User {
   phone: string | null;
   created_at: string;
   is_admin: boolean;
+  is_banned?: boolean;
   current_plan: string;
   groups_count: number;
   expenses_count: number;
@@ -68,7 +70,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
   const [selectedUserName, setSelectedUserName] = useState<string>("");
   const [rolesDialogOpen, setRolesDialogOpen] = useState(false);
   
-  const { deleteGroup } = useAdminUserActions();
+  const { deleteGroup } = useAdminGroupActions();
   const { data: usersWithRoles } = useUsersWithRoles();
   const queryClient = useQueryClient();
 
@@ -164,6 +166,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
               <TableHeader>
                 <TableRow>
                   <TableHead>المستخدم</TableHead>
+                  <TableHead>الحالة</TableHead>
                   <TableHead>الهاتف</TableHead>
                   <TableHead>الباقة</TableHead>
                   <TableHead>الأدوار</TableHead>
@@ -184,6 +187,13 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                           {user.is_admin && <Badge variant="destructive" className="text-xs">مدير</Badge>}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        {user.is_banned ? (
+                          <Badge variant="destructive" className="text-xs">محظور</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-600">نشط</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{user.phone || "-"}</TableCell>
                       <TableCell>{getPlanBadge(user.current_plan)}</TableCell>
                       <TableCell>
@@ -198,9 +208,10 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                       <TableCell>{user.expenses_count}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatDistanceToNow(new Date(user.created_at), { addSuffix: true, locale: ar })}</TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm" onClick={() => handleOpenRolesDialog(user.id, user.display_name || user.name || "مستخدم")} className="gap-1">
-                          <Settings2 className="w-4 h-4" />الأدوار
-                        </Button>
+                        <UserActionsDropdown 
+                          user={user} 
+                          onOpenRolesDialog={handleOpenRolesDialog}
+                        />
                       </TableCell>
                     </TableRow>
                   );
