@@ -65,9 +65,20 @@ export function MoyasarPaymentDialog({
     setLoading(true);
     setError(null);
 
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+
     // Wait for Moyasar script to load
     const initMoyasar = () => {
+      attempts++;
+      
       if (typeof window.Moyasar === 'undefined') {
+        if (attempts >= maxAttempts) {
+          console.error('Moyasar script failed to load after timeout');
+          setError(t('payment.init_error'));
+          setLoading(false);
+          return;
+        }
         setTimeout(initMoyasar, 100);
         return;
       }
@@ -81,6 +92,8 @@ export function MoyasarPaymentDialog({
         // Get publishable key from environment variable
         const publishableKey = import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY;
 
+        console.log('Moyasar init - publishable key exists:', !!publishableKey);
+
         if (!publishableKey) {
           console.error('Moyasar publishable key not configured');
           setError(t('payment.config_error'));
@@ -89,6 +102,7 @@ export function MoyasarPaymentDialog({
         }
 
         const callbackUrl = `${window.location.origin}/payment-callback?purchase_id=${purchaseId}`;
+        console.log('Moyasar callback URL:', callbackUrl);
 
         window.Moyasar.init({
           element: '.moyasar-form',
@@ -102,14 +116,10 @@ export function MoyasarPaymentDialog({
             user_id: userId,
             package_id: packageDetails.id,
           },
-          methods: ['creditcard', 'applepay', 'stcpay'],
-          apple_pay: {
-            country: 'SA',
-            label: 'Diviso',
-            validate_merchant_url: 'https://api.moyasar.com/v1/applepay/initiate',
-          },
+          methods: ['creditcard', 'stcpay'],
         });
 
+        console.log('Moyasar initialized successfully');
         setLoading(false);
       } catch (err) {
         console.error('Error initializing Moyasar:', err);
@@ -118,7 +128,8 @@ export function MoyasarPaymentDialog({
       }
     };
 
-    initMoyasar();
+    // Small delay to ensure DOM is ready
+    setTimeout(initMoyasar, 200);
   }, [open, packageDetails, purchaseId, userId, t]);
 
   if (!packageDetails) return null;
