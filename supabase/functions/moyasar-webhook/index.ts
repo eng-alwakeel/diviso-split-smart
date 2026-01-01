@@ -18,9 +18,10 @@ serve(async (req) => {
     const moyasarSecretKey = Deno.env.get('MOYASAR_SECRET_KEY');
     const webhookSecret = Deno.env.get('MOYASAR_WEBHOOK_SECRET');
 
-    // Verify webhook secret token
-    const authHeader = req.headers.get('Authorization');
-    const providedToken = authHeader?.replace('Bearer ', '') || req.headers.get('X-Webhook-Secret');
+    // Verify webhook secret token (Moyasar sends it in X-Secret-Token header)
+    const providedToken = req.headers.get('X-Secret-Token') || 
+                          req.headers.get('X-Webhook-Secret') || 
+                          req.headers.get('Authorization')?.replace('Bearer ', '');
     
     if (webhookSecret && providedToken !== webhookSecret) {
       console.error('Invalid webhook secret token');
