@@ -7,30 +7,31 @@ export const AdminHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-6 rounded-lg mb-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-gradient-to-r from-primary to-primary/80 text-white p-4 sm:p-6 rounded-lg mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-            <Shield className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">لوحة التحكم الإدارية</h1>
-            <p className="text-white/80">إدارة شاملة للتطبيق والمستخدمين</p>
+            <h1 className="text-xl sm:text-2xl font-bold">لوحة التحكم الإدارية</h1>
+            <p className="text-white/80 text-sm hidden sm:block">إدارة شاملة للتطبيق والمستخدمين</p>
           </div>
         </div>
 
         <Button
           onClick={() => navigate('/dashboard')}
           variant="secondary"
+          size="sm"
           className="bg-white/20 hover:bg-white/30 text-white border-white/20 gap-2"
         >
           <Home className="w-4 h-4" />
-          العودة للداشبورد
+          <span className="hidden xs:inline">العودة للداشبورد</span>
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
 
-      <Breadcrumb className="text-white/80">
+      <Breadcrumb className="text-white/80 hidden sm:block">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink 

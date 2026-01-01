@@ -15,14 +15,15 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
 import { RetentionCohorts } from "@/components/admin/RetentionCohorts";
 import { MonetizationDashboard } from "@/components/admin/MonetizationDashboard";
 import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
 import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSection";
+import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
 
 export const AdminDashboard = () => {
   return (
@@ -33,6 +34,7 @@ export const AdminDashboard = () => {
 };
 
 const AdminDashboardContent = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     search: '',
     plan: 'all',
@@ -197,31 +199,41 @@ const AdminDashboardContent = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO title="لوحة تحكم المدير" noIndex={true} />
-      <div className="page-container">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <AdminHeader />
         
-        {/* Admin Management Link */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex gap-3">
+        {/* Admin Management Links - Responsive */}
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <Link to="/admin-management">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                إدارة المديرين
+                <span className="hidden sm:inline">إدارة المديرين</span>
               </Button>
             </Link>
             <Link to="/admin/support">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Headphones className="h-4 w-4" />
-                دعم العملاء
+                <span className="hidden sm:inline">دعم العملاء</span>
               </Button>
             </Link>
             <Link to="/settings">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                الإعدادات
+                <span className="hidden sm:inline">الإعدادات</span>
               </Button>
             </Link>
           </div>
+          
+          {/* TV Mode Button */}
+          <Button 
+            onClick={() => navigate('/admin-tv')}
+            className="gap-2 bg-gradient-to-r from-primary to-primary/80"
+          >
+            <Tv2 className="h-4 w-4" />
+            <span className="hidden sm:inline">وضع العرض الكبير</span>
+            <span className="sm:hidden">TV</span>
+          </Button>
         </div>
         
         <AdminFilters 
@@ -236,30 +248,34 @@ const AdminDashboardContent = () => {
         </div>
 
         <Tabs defaultValue="executive" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="executive" className="flex items-center gap-1">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto">
+            <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden md:inline">Executive</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">Executive</span>
             </TabsTrigger>
-            <TabsTrigger value="funnel" className="flex items-center gap-1">
+            <TabsTrigger value="funnel" className="flex items-center gap-1 py-2">
               <Target className="h-4 w-4" />
-              <span className="hidden md:inline">Funnel</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">Funnel</span>
             </TabsTrigger>
-            <TabsTrigger value="retention" className="flex items-center gap-1">
+            <TabsTrigger value="retention" className="flex items-center gap-1 py-2">
               <Users className="h-4 w-4" />
-              <span className="hidden md:inline">Retention</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">Retention</span>
             </TabsTrigger>
-            <TabsTrigger value="monetization" className="flex items-center gap-1">
+            <TabsTrigger value="monetization" className="flex items-center gap-1 py-2">
               <DollarSign className="h-4 w-4" />
-              <span className="hidden md:inline">Monetization</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">Monetization</span>
             </TabsTrigger>
-            <TabsTrigger value="credits" className="flex items-center gap-1">
+            <TabsTrigger value="credits" className="flex items-center gap-1 py-2">
               <Coins className="h-4 w-4" />
-              <span className="hidden md:inline">Credits</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">Credits</span>
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-1">
+            <TabsTrigger value="targets" className="flex items-center gap-1 py-2">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs lg:text-sm">الأهداف</span>
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="flex items-center gap-1 py-2">
               <Lock className="h-4 w-4" />
-              <span className="hidden md:inline">الصلاحيات</span>
+              <span className="hidden sm:inline text-xs lg:text-sm">الصلاحيات</span>
             </TabsTrigger>
           </TabsList>
 
@@ -281,6 +297,10 @@ const AdminDashboardContent = () => {
 
           <TabsContent value="credits">
             <CreditsEconomyHealth />
+          </TabsContent>
+
+          <TabsContent value="targets">
+            <KPITargetsManager />
           </TabsContent>
 
           <TabsContent value="permissions">

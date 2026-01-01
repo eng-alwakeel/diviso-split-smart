@@ -173,6 +173,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_kpi_targets: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          kpi_name: string
+          period: string
+          target_type: string
+          target_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          kpi_name: string
+          period?: string
+          target_type?: string
+          target_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          kpi_name?: string
+          period?: string
+          target_type?: string
+          target_value?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       affiliate_products: {
         Row: {
           active: boolean | null
