@@ -56,6 +56,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_events: {
+        Row: {
+          ad_type: string
+          created_at: string | null
+          event_type: string
+          group_id: string | null
+          id: string
+          metadata: Json | null
+          offer_id: string | null
+          partner_id: string | null
+          placement: string
+          revenue_amount: number | null
+          uc_granted: number | null
+          user_id: string | null
+        }
+        Insert: {
+          ad_type: string
+          created_at?: string | null
+          event_type: string
+          group_id?: string | null
+          id?: string
+          metadata?: Json | null
+          offer_id?: string | null
+          partner_id?: string | null
+          placement: string
+          revenue_amount?: number | null
+          uc_granted?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          ad_type?: string
+          created_at?: string | null
+          event_type?: string
+          group_id?: string | null
+          id?: string
+          metadata?: Json | null
+          offer_id?: string | null
+          partner_id?: string | null
+          placement?: string
+          revenue_amount?: number | null
+          uc_granted?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_events_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_impressions: {
         Row: {
           ad_category: string | null
@@ -143,6 +196,87 @@ export type Database = {
           interaction_type?: string
           success_score?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      ad_placements: {
+        Row: {
+          allowed_ad_types: string[] | null
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          max_impressions_per_user_day: number | null
+          min_interval_seconds: number | null
+          name: string
+          name_ar: string
+          placement_key: string
+          targeting: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_ad_types?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          max_impressions_per_user_day?: number | null
+          min_interval_seconds?: number | null
+          name: string
+          name_ar: string
+          placement_key: string
+          targeting?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_ad_types?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          max_impressions_per_user_day?: number | null
+          min_interval_seconds?: number | null
+          name?: string
+          name_ar?: string
+          placement_key?: string
+          targeting?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ad_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          is_enabled: boolean | null
+          name: string
+          name_ar: string
+          settings: Json | null
+          type_key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          name_ar: string
+          settings?: Json | null
+          type_key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          name_ar?: string
+          settings?: Json | null
+          type_key?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -249,12 +383,17 @@ export type Database = {
           commission_rate: number | null
           config: Json | null
           created_at: string | null
+          error_count: number | null
           id: string
           is_active: boolean | null
+          last_error: string | null
           logo_url: string | null
           name: string
           name_ar: string | null
+          partner_category: string | null
           partner_type: string
+          status: string | null
+          supported_categories: string[] | null
           updated_at: string | null
         }
         Insert: {
@@ -263,12 +402,17 @@ export type Database = {
           commission_rate?: number | null
           config?: Json | null
           created_at?: string | null
+          error_count?: number | null
           id?: string
           is_active?: boolean | null
+          last_error?: string | null
           logo_url?: string | null
           name: string
           name_ar?: string | null
+          partner_category?: string | null
           partner_type: string
+          status?: string | null
+          supported_categories?: string[] | null
           updated_at?: string | null
         }
         Update: {
@@ -277,12 +421,17 @@ export type Database = {
           commission_rate?: number | null
           config?: Json | null
           created_at?: string | null
+          error_count?: number | null
           id?: string
           is_active?: boolean | null
+          last_error?: string | null
           logo_url?: string | null
           name?: string
           name_ar?: string | null
+          partner_category?: string | null
           partner_type?: string
+          status?: string | null
+          supported_categories?: string[] | null
           updated_at?: string | null
         }
         Relationships: []
@@ -650,6 +799,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      conversions: {
+        Row: {
+          amount: number
+          commission: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          occurred_at: string
+          partner_id: string
+          raw_payload: Json | null
+          status: string | null
+          sub_id: string | null
+        }
+        Insert: {
+          amount: number
+          commission: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          occurred_at: string
+          partner_id: string
+          raw_payload?: Json | null
+          status?: string | null
+          sub_id?: string | null
+        }
+        Update: {
+          amount?: number
+          commission?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          occurred_at?: string
+          partner_id?: string
+          raw_payload?: Json | null
+          status?: string | null
+          sub_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       credit_consumption_log: {
         Row: {
@@ -1984,6 +2180,54 @@ export type Database = {
           },
         ]
       }
+      metrics_daily: {
+        Row: {
+          ad_type: string | null
+          clicks: number | null
+          conversions: number | null
+          created_at: string | null
+          date: string
+          errors: number | null
+          id: string
+          impressions: number | null
+          no_fill: number | null
+          partner_id: string | null
+          placement: string | null
+          revenue: number | null
+          uc_granted: number | null
+        }
+        Insert: {
+          ad_type?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string | null
+          date: string
+          errors?: number | null
+          id?: string
+          impressions?: number | null
+          no_fill?: number | null
+          partner_id?: string | null
+          placement?: string | null
+          revenue?: number | null
+          uc_granted?: number | null
+        }
+        Update: {
+          ad_type?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string | null
+          date?: string
+          errors?: number | null
+          id?: string
+          impressions?: number | null
+          no_fill?: number | null
+          partner_id?: string | null
+          placement?: string | null
+          revenue?: number | null
+          uc_granted?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           archived_at: string | null
@@ -2021,6 +2265,80 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          category: string | null
+          city: string | null
+          coupon_code: string | null
+          created_at: string | null
+          deeplink: string | null
+          description: string | null
+          description_ar: string | null
+          ends_at: string | null
+          external_id: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          partner_id: string | null
+          source: string | null
+          status: string | null
+          tags: Json | null
+          title: string
+          title_ar: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          city?: string | null
+          coupon_code?: string | null
+          created_at?: string | null
+          deeplink?: string | null
+          description?: string | null
+          description_ar?: string | null
+          ends_at?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          partner_id?: string | null
+          source?: string | null
+          status?: string | null
+          tags?: Json | null
+          title: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          city?: string | null
+          coupon_code?: string | null
+          created_at?: string | null
+          deeplink?: string | null
+          description?: string | null
+          description_ar?: string | null
+          ends_at?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          partner_id?: string | null
+          source?: string | null
+          status?: string | null
+          tags?: Json | null
+          title?: string
+          title_ar?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_partners"
             referencedColumns: ["id"]
           },
         ]
@@ -2069,6 +2387,135 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      outbound_clicks: {
+        Row: {
+          created_at: string | null
+          destination_url: string | null
+          group_id: string | null
+          id: string
+          offer_id: string | null
+          partner_id: string | null
+          sub_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          destination_url?: string | null
+          group_id?: string | null
+          id?: string
+          offer_id?: string | null
+          partner_id?: string | null
+          sub_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          destination_url?: string | null
+          group_id?: string | null
+          id?: string
+          offer_id?: string | null
+          partner_id?: string | null
+          sub_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbound_clicks_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_credentials: {
+        Row: {
+          auth_type: string
+          created_at: string | null
+          encrypted_secrets: Json
+          id: string
+          last_rotated_at: string | null
+          partner_id: string | null
+          rate_limit_config: Json | null
+        }
+        Insert: {
+          auth_type: string
+          created_at?: string | null
+          encrypted_secrets?: Json
+          id?: string
+          last_rotated_at?: string | null
+          partner_id?: string | null
+          rate_limit_config?: Json | null
+        }
+        Update: {
+          auth_type?: string
+          created_at?: string | null
+          encrypted_secrets?: Json
+          id?: string
+          last_rotated_at?: string | null
+          partner_id?: string | null
+          rate_limit_config?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_credentials_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "affiliate_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_endpoints: {
+        Row: {
+          base_url: string
+          created_at: string | null
+          field_mapping: Json
+          id: string
+          is_enabled: boolean | null
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
+          partner_id: string | null
+          sync_endpoint: string | null
+          sync_schedule: string | null
+        }
+        Insert: {
+          base_url: string
+          created_at?: string | null
+          field_mapping?: Json
+          id?: string
+          is_enabled?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          partner_id?: string | null
+          sync_endpoint?: string | null
+          sync_schedule?: string | null
+        }
+        Update: {
+          base_url?: string
+          created_at?: string | null
+          field_mapping?: Json
+          id?: string
+          is_enabled?: boolean | null
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          partner_id?: string | null
+          sync_endpoint?: string | null
+          sync_schedule?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_endpoints_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       places_cache: {
         Row: {
