@@ -92,7 +92,7 @@ export function RecommendationDialog({
             />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              {t("errors.fetch_failed")}
+              {t("errors.no_recommendation_now")}
             </div>
           )}
         </div>

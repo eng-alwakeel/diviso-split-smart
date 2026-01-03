@@ -153,15 +153,25 @@ const Dashboard = React.memo(() => {
   const handleViewRecommendation = useCallback(async () => {
     if (!recommendationsEnabled) return;
     
-    // Open dialog first
+    // Open dialog with loading state
     setShowRecommendationDialog(true);
     
     // Generate a recommendation based on current context
-    await generateRecommendation({
+    const result = await generateRecommendation({
       trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
       city,
     });
-  }, [recommendationsEnabled, generateRecommendation, triggerType, city]);
+    
+    // If no recommendation returned, close dialog and show toast
+    if (!result) {
+      setShowRecommendationDialog(false);
+      dismissTrigger();
+      toast({
+        title: t("recommendations:errors.no_recommendation_now"),
+        description: t("recommendations:errors.try_again_later"),
+      });
+    }
+  }, [recommendationsEnabled, generateRecommendation, triggerType, city, dismissTrigger, t]);
 
   // Handle location permission
   const handleLocationAllow = useCallback(async () => {

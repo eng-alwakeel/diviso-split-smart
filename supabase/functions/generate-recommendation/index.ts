@@ -13,6 +13,7 @@ interface RecommendationRequest {
   longitude?: number;
   trigger: 'planning' | 'meal_time' | 'post_expense' | 'end_of_day';
   current_time?: string;
+  tz_offset_minutes?: number;
   group_type?: string;
   member_count?: number;
   check_in?: string;
@@ -347,7 +348,7 @@ Deno.serve(async (req) => {
     }
 
     const requestBody: RecommendationRequest = await req.json();
-    const { group_id, city, destination, latitude, longitude, trigger, current_time, group_type, member_count = 4 } = requestBody;
+    const { group_id, city, destination, latitude, longitude, trigger, current_time, tz_offset_minutes, group_type, member_count = 4 } = requestBody;
 
     console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}`);
 
@@ -437,7 +438,7 @@ Deno.serve(async (req) => {
     }
 
     // Decision engine logic
-    const decision = makeRecommendationDecision(trigger, current_time, groupType);
+    const decision = makeRecommendationDecision(trigger, current_time, tz_offset_minutes, groupType);
     console.log(`[generate-recommendation] Decision:`, decision);
 
     if (!decision.should_recommend) {
@@ -628,10 +629,26 @@ Deno.serve(async (req) => {
 function makeRecommendationDecision(
   trigger: string, 
   currentTime?: string,
+  tzOffsetMinutes?: number,
   groupType?: string
 ): RecommendationDecision {
-  const now = currentTime ? new Date(currentTime) : new Date();
-  const hour = now.getHours();
+  // Calculate user's local hour
+  let hour: number;
+  
+  if (currentTime && tzOffsetMinutes !== undefined) {
+    // Use provided UTC time and offset to calculate local hour
+    const utcDate = new Date(currentTime);
+    // tzOffsetMinutes is from getTimezoneOffset() which is negative for positive UTC offsets
+    // e.g., UTC+3 (Saudi) returns -180
+    const localTimeMs = utcDate.getTime() - (tzOffsetMinutes * 60 * 1000);
+    const localDate = new Date(localTimeMs);
+    hour = localDate.getUTCHours();
+    console.log(`[generate-recommendation] Local hour calculated: ${hour} (offset: ${tzOffsetMinutes})`);
+  } else {
+    // Fallback to server time (less accurate)
+    hour = new Date().getHours();
+    console.log(`[generate-recommendation] Using server hour: ${hour} (no offset provided)`);
+  }
 
   switch (trigger) {
     case 'planning':
@@ -653,11 +670,12 @@ function makeRecommendationDecision(
       };
 
     case 'meal_time':
-      if ((hour >= 12 && hour <= 14) || (hour >= 19 && hour <= 21)) {
+      // Expanded meal time ranges to match frontend (11-15 lunch, 18-23 dinner)
+      if ((hour >= 11 && hour <= 15) || (hour >= 18 && hour <= 23)) {
         return {
           should_recommend: true,
           recommendation_type: 'food',
-          reason: hour >= 19 ? 'dinner_time' : 'lunch_time',
+          reason: hour >= 18 ? 'dinner_time' : 'lunch_time',
           priority: 3,
           source: 'google_places'
         };
