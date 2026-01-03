@@ -471,7 +471,7 @@ const Auth = () => {
         description={t('auth:slogan')}
         canonical="https://diviso.app/auth"
       />
-      <AppHeader />
+      <AppHeader minimal />
       <div className="auth-container">
         <Card className="bg-card border border-border rounded-2xl">
           <CardHeader>
