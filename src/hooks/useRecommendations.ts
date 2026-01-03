@@ -55,6 +55,8 @@ export function useRecommendations(groupId?: string) {
           group_id: params.groupId || groupId,
           city: params.city,
           categories: params.categories,
+          current_time: new Date().toISOString(),
+          tz_offset_minutes: new Date().getTimezoneOffset(),
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,

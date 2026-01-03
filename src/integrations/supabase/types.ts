@@ -4180,9 +4180,13 @@ export type Database = {
         Row: {
           blocked_categories: string[] | null
           created_at: string | null
+          default_city: string | null
           enabled: boolean | null
           id: string
+          last_location_lat: number | null
+          last_location_lng: number | null
           last_notification_at: string | null
+          location_updated_at: string | null
           max_per_day: number | null
           notifications_today: number | null
           preferred_categories: string[] | null
@@ -4192,9 +4196,13 @@ export type Database = {
         Insert: {
           blocked_categories?: string[] | null
           created_at?: string | null
+          default_city?: string | null
           enabled?: boolean | null
           id?: string
+          last_location_lat?: number | null
+          last_location_lng?: number | null
           last_notification_at?: string | null
+          location_updated_at?: string | null
           max_per_day?: number | null
           notifications_today?: number | null
           preferred_categories?: string[] | null
@@ -4204,9 +4212,13 @@ export type Database = {
         Update: {
           blocked_categories?: string[] | null
           created_at?: string | null
+          default_city?: string | null
           enabled?: boolean | null
           id?: string
+          last_location_lat?: number | null
+          last_location_lng?: number | null
           last_notification_at?: string | null
+          location_updated_at?: string | null
           max_per_day?: number | null
           notifications_today?: number | null
           preferred_categories?: string[] | null

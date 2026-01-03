@@ -66,6 +66,8 @@
   "errors": {
     "no_group": "Please select a group first",
     "fetch_failed": "Failed to fetch recommendations",
+    "no_recommendation_now": "No recommendation available now",
+    "try_again_later": "Try again later or at meal time",
     "generic": "An error occurred. Please try again."
   }
 }
