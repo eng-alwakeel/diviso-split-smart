@@ -15,6 +15,9 @@ import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Zap, CreditCard, Gift, Users, Crown, Sparkles, PlayCircle, Ticket } from 'lucide-react';
 import { useRewardedAds } from '@/hooks/useRewardedAds';
+import { useAdSettings } from '@/hooks/useAdSettings';
+import { useAdEventLogger } from '@/hooks/useAdEventLogger';
+import { AD_PLACEMENTS, AD_TYPES } from '@/lib/adPolicies';
 import { toast } from 'sonner';
 
 interface ZeroCreditsPaywallProps {
@@ -48,12 +51,19 @@ export function ZeroCreditsPaywall({
     formatCooldown
   } = useRewardedAds();
 
+  const { isAdTypeEnabled, isPlacementEnabled, getRewardedSettings } = useAdSettings();
+  const { logRewardedStart, logRewardedComplete, logRewardedClaim } = useAdEventLogger();
+
+  // Check if rewarded ads are enabled
+  const rewardedEnabled = isAdTypeEnabled(AD_TYPES.REWARDED) && isPlacementEnabled(AD_PLACEMENTS.PAYWALL_REWARDED);
+  const rewardedSettings = getRewardedSettings();
+
   // Check ad eligibility when dialog opens
   useEffect(() => {
-    if (open && actionName) {
+    if (open && actionName && rewardedEnabled) {
       checkEligibility(actionName, requiredCredits);
     }
-  }, [open, actionName, requiredCredits, checkEligibility]);
+  }, [open, actionName, requiredCredits, checkEligibility, rewardedEnabled]);
 
   const maxPlan = isYearly 
     ? { price: 299, period: t('paywall.yearly'), credits: 260 }
@@ -77,6 +87,9 @@ export function ZeroCreditsPaywall({
   const handleWatchAd = async () => {
     if (!actionName) return;
     
+    // Log ad start
+    await logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
+    
     const session = await createSession(actionName, requiredCredits);
     if (!session) {
       toast.error(isRTL ? 'غير مؤهل لمشاهدة الإعلان' : 'Not eligible to watch ad');
@@ -88,8 +101,14 @@ export function ZeroCreditsPaywall({
     
     // Simulate ad completion after 3 seconds
     setTimeout(async () => {
+      // Log completion
+      await logRewardedComplete(AD_PLACEMENTS.PAYWALL_REWARDED, rewardedSettings.rewardUC);
+      
       const result = await claimReward(session.sessionId);
       if (result.success) {
+        // Log claim
+        await logRewardedClaim(AD_PLACEMENTS.PAYWALL_REWARDED, result.rewardUC || rewardedSettings.rewardUC);
+        
         setWatchedAds(prev => prev + 1);
         toast.success(
           isRTL 
@@ -233,7 +252,7 @@ export function ZeroCreditsPaywall({
           </Card>
 
           {/* Option 4: Watch Rewarded Ad */}
-          {eligibility?.adsEnabled && (
+          {rewardedEnabled && eligibility?.adsEnabled && (
             <Card 
               className={`p-4 transition-all ${
                 eligibility?.canWatch 

@@ -16,7 +16,9 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { useSmartAffiliateRecommendations } from '@/hooks/useSmartAffiliateRecommendations';
-import { useAdTracking } from '@/hooks/useAdTracking';
+import { useOptimizedAdTracking } from '@/hooks/useOptimizedAdTracking';
+import { useAdEventLogger } from '@/hooks/useAdEventLogger';
+import { AD_TYPES, AD_LABELS } from '@/lib/adPolicies';
 
 interface SmartProductRecommendationsProps {
   context: {
@@ -49,14 +51,18 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
     refreshRecommendations 
   } = useSmartAffiliateRecommendations();
   
-  const { shouldShowAds, trackAdImpression, trackAdClick } = useAdTracking();
+  const { shouldShowAds, trackAdImpression, trackAdClick, isAdTypeEnabled } = useOptimizedAdTracking();
+  const { logImpression, logOutboundClick } = useAdEventLogger();
+
+  // Check if sponsored ads are enabled
+  const sponsoredEnabled = isAdTypeEnabled(AD_TYPES.SPONSORED);
 
   // Load recommendations on mount and context change
   useEffect(() => {
-    if (shouldShowAds()) {
+    if (sponsoredEnabled && shouldShowAds(AD_TYPES.SPONSORED)) {
       loadRecommendations();
     }
-  }, [context, shouldShowAds]);
+  }, [context, shouldShowAds, sponsoredEnabled]);
 
   const loadRecommendations = async () => {
     try {
@@ -64,11 +70,15 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
       
       // Track impression
       if (recommendations.length > 0) {
+        const placement = `${context.type}_context`;
         await trackAdImpression({
-          ad_type: 'smart_recommendations',
-          placement: `${context.type}_context`,
+          ad_type: AD_TYPES.SPONSORED,
+          placement,
           ad_category: context.expenseCategory || context.groupType || 'general'
         });
+        
+        // Also log to ad_events
+        await logImpression(AD_TYPES.SPONSORED, placement);
       }
     } catch (error) {
       console.error('Error loading recommendations:', error);
@@ -85,15 +95,26 @@ export const SmartProductRecommendations: React.FC<SmartProductRecommendationsPr
   };
 
   const handleProductClick = async (product: any) => {
-    // Track click
+    const placement = `${context.type}_context`;
+    
+    // Track click (legacy)
     await trackAdClick('', product.product_id, product.commission_rate);
+    
+    // Log outbound click for analytics
+    await logOutboundClick(
+      AD_TYPES.SPONSORED, 
+      placement, 
+      product.affiliate_partner, 
+      product.product_id, 
+      product.affiliate_url
+    );
     
     // Open affiliate link
     window.open(product.affiliate_url, '_blank', 'noopener,noreferrer');
   };
 
   // Don't show if ads are disabled or no recommendations
-  if (!shouldShowAds() || (!loading && recommendations.length === 0)) {
+  if (!sponsoredEnabled || !shouldShowAds(AD_TYPES.SPONSORED) || (!loading && recommendations.length === 0)) {
     return null;
   }
 

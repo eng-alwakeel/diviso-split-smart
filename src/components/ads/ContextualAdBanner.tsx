@@ -3,9 +3,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, X, Tag, Star } from 'lucide-react';
-import { useAdTracking } from '@/hooks/useAdTracking';
+import { useOptimizedAdTracking } from '@/hooks/useOptimizedAdTracking';
 import { useAffiliateProducts } from '@/hooks/useAffiliateProducts';
 import { useSmartAdLearning } from '@/hooks/useSmartAdLearning';
+import { useAdEventLogger } from '@/hooks/useAdEventLogger';
+import { AD_TYPES, AD_LABELS } from '@/lib/adPolicies';
 
 interface ContextualAdBannerProps {
   context: {
@@ -31,15 +33,19 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
   const [impressionId, setImpressionId] = useState<string>('');
   const [isVisible, setIsVisible] = useState(true);
   
-  const { shouldShowAds, trackAdImpression, trackAdClick, getTargetedCategories } = useAdTracking();
+  const { shouldShowAds, trackAdImpression, trackAdClick, getTargetedCategories, isAdTypeEnabled, isPlacementEnabled } = useOptimizedAdTracking();
   const { getProductsForExpenseCategory, getProductsForGroupType, getAmazonProducts } = useAffiliateProducts();
   const { recordAdInteraction, getSmartAdRecommendations } = useSmartAdLearning();
+  const { logImpression, logClick, logDismiss, logOutboundClick } = useAdEventLogger();
+
+  // Check if sponsored ads are enabled for this placement
+  const sponsoredEnabled = isAdTypeEnabled(AD_TYPES.SPONSORED) && isPlacementEnabled(placement);
 
   useEffect(() => {
-    if (shouldShowAds() && isVisible) {
+    if (sponsoredEnabled && shouldShowAds(AD_TYPES.SPONSORED, placement) && isVisible) {
       loadSmartContextualAds();
     }
-  }, [context, shouldShowAds, isVisible]);
+  }, [context, shouldShowAds, isVisible, sponsoredEnabled]);
 
   useEffect(() => {
     if (products.length > 0) {
@@ -90,15 +96,21 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
         const limitedProducts = fetchedProducts.slice(0, maxAds);
         setProducts(limitedProducts);
         
-        // Track smart impression
+        // Track smart impression (legacy)
         const firstProduct = limitedProducts[0];
         await trackAdImpression({
-          ad_type: 'smart_affiliate_banner',
+          ad_type: AD_TYPES.SPONSORED,
           ad_category: firstProduct.category,
           placement,
           product_id: firstProduct.product_id,
           affiliate_partner: firstProduct.affiliate_partner,
           expense_category: context.category
+        });
+
+        // Log to ad_events for new analytics
+        await logImpression(AD_TYPES.SPONSORED, placement, firstProduct.affiliate_partner, {
+          product_id: firstProduct.product_id,
+          category: firstProduct.category
         });
 
         // Record learning interaction
@@ -121,7 +133,16 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
       await trackAdClick(impressionId, product.product_id, product.commission_rate);
     }
 
-    // Record smart click
+    // Log outbound click for analytics
+    await logOutboundClick(
+      AD_TYPES.SPONSORED,
+      placement,
+      product.affiliate_partner,
+      product.product_id,
+      product.affiliate_url
+    );
+
+    // Record smart click for learning
     recordAdInteraction({
       ad_type: 'smart_banner',
       ad_category: product.category,
@@ -133,8 +154,13 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
     window.open(product.affiliate_url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleSmartDismiss = () => {
+  const handleSmartDismiss = async () => {
     setIsVisible(false);
+    
+    // Log dismissal for analytics
+    await logDismiss(AD_TYPES.SPONSORED, placement, {
+      product_id: products[currentAdIndex]?.product_id
+    });
     
     // Record dismissal for learning
     if (products[currentAdIndex]) {
@@ -158,7 +184,7 @@ export const ContextualAdBanner: React.FC<ContextualAdBannerProps> = ({
     }
   }, [placement]);
 
-  if (!shouldShowAds() || !isVisible || products.length === 0) {
+  if (!sponsoredEnabled || !shouldShowAds(AD_TYPES.SPONSORED, placement) || !isVisible || products.length === 0) {
     return null;
   }
 
