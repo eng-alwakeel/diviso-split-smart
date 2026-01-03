@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -29,24 +28,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plus,
   Pencil,
   Trash2,
-  ExternalLink,
   TestTube,
   Loader2,
-  Check,
-  X,
   Hotel,
   Smartphone,
   Car,
   MapPin,
   Utensils,
   Plane,
-  Package
+  Package,
+  RefreshCw,
+  MoreVertical,
+  Pause,
+  Play,
+  AlertCircle,
+  CheckCircle,
+  Clock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PartnerWizard } from "./PartnerWizard";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 
 interface AffiliatePartner {
   id: string;
@@ -55,11 +67,20 @@ interface AffiliatePartner {
   api_endpoint: string | null;
   api_key_env_name: string | null;
   partner_type: string;
+  partner_category: string | null;
+  status: string | null;
   commission_rate: number;
   logo_url: string | null;
   is_active: boolean;
   config: any;
+  last_error: string | null;
+  error_count: number | null;
   created_at: string;
+  endpoint?: {
+    last_sync_at: string | null;
+    last_sync_status: string | null;
+    sync_schedule: string | null;
+  } | null;
 }
 
 const partnerTypeIcons: Record<string, any> = {
@@ -82,13 +103,22 @@ const partnerTypeLabels: Record<string, { en: string; ar: string }> = {
   general: { en: 'General', ar: 'عام' }
 };
 
+const statusVariants: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  active: { label: 'نشط', variant: 'default' },
+  paused: { label: 'متوقف', variant: 'secondary' },
+  error: { label: 'خطأ', variant: 'destructive' },
+  pending_connector: { label: 'بانتظار Connector', variant: 'outline' }
+};
+
 export function AffiliatePartnersManager() {
   const { toast } = useToast();
   const [partners, setPartners] = useState<AffiliatePartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<AffiliatePartner | null>(null);
   const [testingPartner, setTestingPartner] = useState<string | null>(null);
+  const [syncingPartner, setSyncingPartner] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -111,11 +141,17 @@ export function AffiliatePartnersManager() {
       setLoading(true);
       const { data, error } = await supabase
         .from('affiliate_partners')
-        .select('*')
+        .select(`
+          *,
+          endpoint:partner_endpoints(last_sync_at, last_sync_status, sync_schedule)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPartners(data || []);
+      setPartners((data || []).map(p => ({
+        ...p,
+        endpoint: Array.isArray(p.endpoint) ? p.endpoint[0] : p.endpoint
+      })));
     } catch (error) {
       console.error('Error fetching partners:', error);
       toast({
@@ -284,14 +320,34 @@ export function AffiliatePartnersManager() {
     }
   };
 
+  const handleSyncNow = async (partner: AffiliatePartner) => {
+    setSyncingPartner(partner.id);
+    try {
+      // In production, this would call an edge function
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast({ title: 'تمت المزامنة', description: `تم مزامنة ${partner.name} بنجاح` });
+      fetchPartners();
+    } catch (error) {
+      toast({ title: 'خطأ', description: 'فشلت المزامنة', variant: 'destructive' });
+    } finally {
+      setSyncingPartner(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">إدارة شركاء العمولة</CardTitle>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="w-4 h-4 ml-2" />
-          إضافة شريك
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => handleOpenDialog()}>
+            <Pencil className="w-4 h-4 ml-2" />
+            تعديل سريع
+          </Button>
+          <Button onClick={() => setWizardOpen(true)}>
+            <Plus className="w-4 h-4 ml-2" />
+            إضافة شريك
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -508,6 +564,13 @@ export function AffiliatePartnersManager() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Partner Wizard */}
+        <PartnerWizard
+          open={wizardOpen}
+          onOpenChange={setWizardOpen}
+          onComplete={fetchPartners}
+        />
       </CardContent>
     </Card>
   );

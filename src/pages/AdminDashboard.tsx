@@ -20,7 +20,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
 import { RetentionCohorts } from "@/components/admin/RetentionCohorts";
-import { MonetizationDashboard } from "@/components/admin/MonetizationDashboard";
+import { MonetizationCenter } from "@/components/admin/MonetizationCenter";
 import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
 import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSection";
 import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
@@ -296,7 +296,7 @@ const AdminDashboardContent = () => {
           </TabsContent>
 
           <TabsContent value="monetization">
-            <MonetizationDashboard />
+            <MonetizationCenter />
           </TabsContent>
 
           <TabsContent value="credits">
