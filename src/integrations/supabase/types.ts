@@ -173,6 +173,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_feature_flags: {
+        Row: {
+          description: string | null
+          description_ar: string | null
+          flag_name: string
+          flag_value: Json
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          description_ar?: string | null
+          flag_name: string
+          flag_value: Json
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          description_ar?: string | null
+          flag_name?: string
+          flag_value?: Json
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       admin_kpi_targets: {
         Row: {
           created_at: string | null
@@ -2616,61 +2646,82 @@ export type Database = {
       }
       referrals: {
         Row: {
+          activated_at: string | null
           bonus_applied: boolean | null
           created_at: string
           expires_at: string
           group_id: string | null
           group_name: string | null
           id: string
+          invited_user_id: string | null
           invitee_name: string | null
           invitee_phone: string
           inviter_id: string
           joined_at: string | null
           original_reward_days: number | null
+          qualified_at: string | null
           referral_code: string | null
           referral_source: string | null
+          reward_activation_issued: boolean | null
           reward_days: number | null
+          reward_qualification_issued: boolean | null
+          reward_subscribe_bonus_issued: boolean | null
           status: Database["public"]["Enums"]["referral_status"]
+          subscribed_at: string | null
           tier_at_time: string | null
           uc_earned: number | null
           uc_stage: string | null
         }
         Insert: {
+          activated_at?: string | null
           bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
           group_id?: string | null
           group_name?: string | null
           id?: string
+          invited_user_id?: string | null
           invitee_name?: string | null
           invitee_phone: string
           inviter_id: string
           joined_at?: string | null
           original_reward_days?: number | null
+          qualified_at?: string | null
           referral_code?: string | null
           referral_source?: string | null
+          reward_activation_issued?: boolean | null
           reward_days?: number | null
+          reward_qualification_issued?: boolean | null
+          reward_subscribe_bonus_issued?: boolean | null
           status?: Database["public"]["Enums"]["referral_status"]
+          subscribed_at?: string | null
           tier_at_time?: string | null
           uc_earned?: number | null
           uc_stage?: string | null
         }
         Update: {
+          activated_at?: string | null
           bonus_applied?: boolean | null
           created_at?: string
           expires_at?: string
           group_id?: string | null
           group_name?: string | null
           id?: string
+          invited_user_id?: string | null
           invitee_name?: string | null
           invitee_phone?: string
           inviter_id?: string
           joined_at?: string | null
           original_reward_days?: number | null
+          qualified_at?: string | null
           referral_code?: string | null
           referral_source?: string | null
+          reward_activation_issued?: boolean | null
           reward_days?: number | null
+          reward_qualification_issued?: boolean | null
+          reward_subscribe_bonus_issued?: boolean | null
           status?: Database["public"]["Enums"]["referral_status"]
+          subscribed_at?: string | null
           tier_at_time?: string | null
           uc_earned?: number | null
           uc_stage?: string | null
@@ -2828,6 +2879,59 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      rewarded_ad_sessions: {
+        Row: {
+          blocked_action: string
+          created_at: string | null
+          expires_at: string | null
+          group_id: string | null
+          id: string
+          needed_uc: number
+          provider: string | null
+          required_uc: number
+          reward_uc: number | null
+          ssv_nonce: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          blocked_action: string
+          created_at?: string | null
+          expires_at?: string | null
+          group_id?: string | null
+          id?: string
+          needed_uc: number
+          provider?: string | null
+          required_uc: number
+          reward_uc?: number | null
+          ssv_nonce?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          blocked_action?: string
+          created_at?: string | null
+          expires_at?: string | null
+          group_id?: string | null
+          id?: string
+          needed_uc?: number
+          provider?: string | null
+          required_uc?: number
+          reward_uc?: number | null
+          ssv_nonce?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rewarded_ad_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -3571,6 +3675,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_daily_limits: {
+        Row: {
+          date: string
+          id: string
+          last_ad_at: string | null
+          rewarded_ads_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          id?: string
+          last_ad_at?: string | null
+          rewarded_ads_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          date?: string
+          id?: string
+          last_ad_at?: string | null
+          rewarded_ads_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_push_tokens: {
         Row: {
           created_at: string | null
@@ -4005,7 +4136,15 @@ export type Database = {
         Args: { p_phone: string; p_user_id: string }
         Returns: Json
       }
+      check_rewarded_ad_eligibility: {
+        Args: { p_action: string; p_required_uc: number; p_user_id: string }
+        Returns: Json
+      }
       claim_onboarding_reward: { Args: { p_user_id: string }; Returns: Json }
+      claim_rewarded_ad: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
       cleanup_expired_places_cache: { Args: never; Returns: number }
       cleanup_old_archived_notifications: {
         Args: { p_months_old?: number }
@@ -4048,6 +4187,15 @@ export type Database = {
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
         Returns: string
+      }
+      create_rewarded_ad_session: {
+        Args: {
+          p_action: string
+          p_group_id?: string
+          p_required_uc: number
+          p_user_id: string
+        }
+        Returns: Json
       }
       generate_credit_note_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
@@ -4448,6 +4596,10 @@ export type Database = {
       }
       process_daily_checkin: {
         Args: { p_reward_type: string; p_reward_value: Json; p_user_id: string }
+        Returns: Json
+      }
+      process_referral_milestone: {
+        Args: { p_invited_user_id: string; p_milestone: string }
         Returns: Json
       }
       seed_demo_for_user: { Args: never; Returns: string }
