@@ -2,22 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 
-// تكاليف العمليات بالنقاط مع نظام الـ gating الجديد
+// تكاليف العمليات بالنقاط - Updated per Final Spec
 export const CREDIT_COSTS = {
-  // العمليات المجانية لكن مقفلة عند UC = 0
-  add_expense: { type: 'add_expense', cost: 0, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: true },
+  // العمليات المجانية دائماً (لا gating)
+  add_expense: { type: 'add_expense', cost: 0, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: false },
+  split_expense: { type: 'split_expense', cost: 0, nameAr: 'تقسيم مصاريف', nameEn: 'Split Expense', gated: false },
+  view_data: { type: 'view_data', cost: 0, nameAr: 'عرض البيانات', nameEn: 'View Data', gated: false },
   
-  // العمليات المدفوعة والمقفلة
-  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true },
-  settlement: { type: 'settlement', cost: 3, nameAr: 'تسوية', nameEn: 'Settlement', gated: true },
+  // العمليات المدفوعة والمقفلة عند UC = 0
   ocr_scan: { type: 'ocr_scan', cost: 1, nameAr: 'مسح إيصال', nameEn: 'Receipt Scan', gated: true },
   smart_category: { type: 'smart_category', cost: 1, nameAr: 'تصنيف ذكي', nameEn: 'Smart Category', gated: true },
   recommendation: { type: 'recommendation', cost: 1, nameAr: 'توصية ذكية', nameEn: 'Smart Recommendation', gated: true },
-  advanced_report: { type: 'advanced_report', cost: 2, nameAr: 'تقرير متقدم', nameEn: 'Advanced Report', gated: true },
   export_pdf: { type: 'export_pdf', cost: 1, nameAr: 'تصدير PDF', nameEn: 'PDF Export', gated: true },
-  
-  // العمليات المسموحة دائماً
-  view_data: { type: 'view_data', cost: 0, nameAr: 'عرض البيانات', nameEn: 'View Data', gated: false }
+  export_excel: { type: 'export_excel', cost: 1, nameAr: 'تصدير Excel', nameEn: 'Excel Export', gated: true },
+  advanced_report: { type: 'advanced_report', cost: 2, nameAr: 'تقرير متقدم', nameEn: 'Advanced Report', gated: true },
+  settlement: { type: 'settlement', cost: 3, nameAr: 'تسوية', nameEn: 'Settlement', gated: true },
+  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true }
 } as const;
 
 export type CreditActionType = keyof typeof CREDIT_COSTS;
