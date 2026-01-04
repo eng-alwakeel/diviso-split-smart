@@ -263,6 +263,34 @@ const Auth = () => {
       setLoading(false);
       console.error('❌ Signup error:', error);
       
+      // Handle weak/known password error - may also indicate existing account
+      if (error.message.includes('weak') || error.message.includes('Password is known') || error.message.includes('known to be weak')) {
+        toast({
+          title: t('auth:toast.weak_password'),
+          description: t('auth:toast.weak_password_desc'),
+          variant: "destructive",
+          action: (
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setMode("login")}
+              >
+                {t('auth:buttons.login')}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setMode("forgot-password")}
+              >
+                {t('auth:buttons.forgot_password')}
+              </Button>
+            </div>
+          )
+        });
+        return;
+      }
+      
       let errorMessage = error.message;
       
       if (error.message.includes('SMS provider')) {
