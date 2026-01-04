@@ -39,6 +39,7 @@ export function useRecommendations(groupId?: string) {
   const navigate = useNavigate();
   const [currentRecommendation, setCurrentRecommendation] = useState<Recommendation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingExpenseRecommendation, setPendingExpenseRecommendation] = useState<Recommendation | null>(null);
 
   // Generate a new recommendation
   const generateRecommendation = useCallback(async (params: GenerateRecommendationParams) => {
@@ -139,11 +140,9 @@ export function useRecommendations(groupId?: string) {
   const addAsExpense = useCallback(async (recommendation: Recommendation, targetGroupId?: string) => {
     const gId = targetGroupId || groupId;
     if (!gId) {
-      toast({
-        title: t("errors.no_group"),
-        variant: "destructive",
-      });
-      return;
+      // Store the recommendation and signal that group selection is needed
+      setPendingExpenseRecommendation(recommendation);
+      return { needsGroupSelection: true };
     }
 
     // Track conversion
@@ -167,12 +166,23 @@ export function useRecommendations(groupId?: string) {
     });
 
     setCurrentRecommendation(null);
+    setPendingExpenseRecommendation(null);
 
     toast({
       title: t("expense_prefilled"),
       description: t("expense_prefilled_description"),
     });
+    
+    return { needsGroupSelection: false };
   }, [groupId, navigate, t, trackEvent]);
+
+  // Complete expense addition with selected group
+  const completeAddAsExpense = useCallback(async (targetGroupId: string) => {
+    if (!pendingExpenseRecommendation) return;
+    
+    await addAsExpense(pendingExpenseRecommendation, targetGroupId);
+    setPendingExpenseRecommendation(null);
+  }, [pendingExpenseRecommendation, addAsExpense]);
 
   // Open external location (Google Maps or affiliate URL)
   const openExternalLink = useCallback(async (recommendation: Recommendation) => {
@@ -186,6 +196,9 @@ export function useRecommendations(groupId?: string) {
     acceptRecommendation,
     dismissRecommendation,
     addAsExpense,
+    completeAddAsExpense,
+    pendingExpenseRecommendation,
+    clearPendingExpense: () => setPendingExpenseRecommendation(null),
     openExternalLink,
     trackEvent: trackEvent.mutate,
   };
