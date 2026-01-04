@@ -55,7 +55,8 @@ const Dashboard = React.memo(() => {
     city, 
     requestLocation, 
     dismissLocationRequest, 
-    shouldShowLocationPrompt 
+    shouldShowLocationPrompt,
+    getFreshLocation 
   } = useUserLocation();
 
   // Recommendation triggers
@@ -169,10 +170,15 @@ const Dashboard = React.memo(() => {
     // Open dialog with loading state
     setShowRecommendationDialog(true);
     
-    // Generate a recommendation based on current context
+    // Get fresh location before generating recommendation
+    const { city: freshCity, coords } = await getFreshLocation();
+    
+    // Generate a recommendation based on current context with fresh location
     const result = await generateRecommendation({
       trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
-      city,
+      city: freshCity,
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
     });
     
     // If no recommendation returned, close dialog and show toast
@@ -184,7 +190,7 @@ const Dashboard = React.memo(() => {
         description: t("recommendations:errors.try_again_later"),
       });
     }
-  }, [recommendationsEnabled, generateRecommendation, triggerType, city, dismissTrigger, t]);
+  }, [recommendationsEnabled, generateRecommendation, triggerType, getFreshLocation, dismissTrigger, t]);
 
   // Handle location permission
   const handleLocationAllow = useCallback(async () => {

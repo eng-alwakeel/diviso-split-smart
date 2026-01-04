@@ -8,10 +8,12 @@ interface UserLocationState {
   loading: boolean;
   hasPermission: boolean | null;
   error: string | null;
+  timestamp: number | null;
 }
 
 const LOCATION_STORAGE_KEY = "diviso_user_location";
 const LOCATION_ASKED_KEY = "diviso_location_asked";
+const LOCATION_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours - auto-refresh after this
 
 // Fallback city based on Saudi Arabia (most users)
 const DEFAULT_CITY = "Riyadh";
@@ -48,6 +50,7 @@ export function useUserLocation() {
     loading: false,
     hasPermission: null,
     error: null,
+    timestamp: null,
   });
 
   // Load saved location on mount
@@ -63,6 +66,7 @@ export function useUserLocation() {
           city: parsed.city,
           coords: parsed.coords,
           hasPermission: true,
+          timestamp: parsed.timestamp || null,
         }));
       } catch {
         // Invalid saved data
@@ -120,12 +124,13 @@ export function useUserLocation() {
       // Got coordinates, now reverse geocode
       const city = await reverseGeocode(coords.latitude, coords.longitude);
       const finalCity = city || DEFAULT_CITY;
+      const now = Date.now();
 
       // Save to localStorage
       localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({
         city: finalCity,
         coords,
-        timestamp: Date.now(),
+        timestamp: now,
       }));
       localStorage.setItem(LOCATION_ASKED_KEY, "granted");
 
@@ -138,6 +143,7 @@ export function useUserLocation() {
         loading: false,
         hasPermission: true,
         error: null,
+        timestamp: now,
       });
 
       return true;
@@ -154,6 +160,61 @@ export function useUserLocation() {
       return false;
     }
   }, [saveLocationToDb]);
+
+  // Get fresh location with current coordinates (for recommendations)
+  const getFreshLocation = useCallback(async (): Promise<{
+    city: string;
+    coords: LocationCoords | null;
+  }> => {
+    // If user denied permission, return cached/default
+    if (state.hasPermission === false) {
+      return { city: state.city || DEFAULT_CITY, coords: null };
+    }
+
+    try {
+      const coords = await getCurrentLocation();
+      
+      if (!coords) {
+        // Can't get location, return cached
+        return { city: state.city || DEFAULT_CITY, coords: state.coords };
+      }
+
+      // Got coordinates, reverse geocode to get fresh city
+      const newCity = await reverseGeocode(coords.latitude, coords.longitude);
+      const finalCity = newCity || state.city || DEFAULT_CITY;
+      const now = Date.now();
+
+      // Update state and storage if city changed
+      if (newCity && newCity !== state.city) {
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({
+          city: finalCity,
+          coords,
+          timestamp: now,
+        }));
+
+        setState(prev => ({
+          ...prev,
+          city: finalCity,
+          coords,
+          timestamp: now,
+        }));
+
+        // Save to database
+        await saveLocationToDb(finalCity, coords);
+      }
+
+      return { city: finalCity, coords };
+    } catch (error) {
+      console.error("getFreshLocation error:", error);
+      return { city: state.city || DEFAULT_CITY, coords: state.coords };
+    }
+  }, [state.city, state.coords, state.hasPermission, saveLocationToDb]);
+
+  // Check if location is stale
+  const isLocationStale = useCallback((): boolean => {
+    if (!state.timestamp) return true;
+    return Date.now() - state.timestamp > LOCATION_MAX_AGE;
+  }, [state.timestamp]);
 
   // Dismiss location request (user declined)
   const dismissLocationRequest = useCallback(() => {
@@ -173,7 +234,7 @@ export function useUserLocation() {
 
   // Refresh location
   const refreshLocation = useCallback(async () => {
-    if (state.hasPermission) {
+    if (state.hasPermission !== false) {
       await requestLocation();
     }
   }, [state.hasPermission, requestLocation]);
@@ -188,6 +249,8 @@ export function useUserLocation() {
     dismissLocationRequest,
     shouldShowLocationPrompt,
     refreshLocation,
+    getFreshLocation,
+    isLocationStale,
     defaultCity: DEFAULT_CITY,
   };
 }
