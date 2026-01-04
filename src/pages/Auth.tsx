@@ -279,6 +279,26 @@ const Auth = () => {
       return;
     }
     
+    // Detect existing account (Supabase returns user with empty identities)
+    if (data?.user?.identities?.length === 0) {
+      setLoading(false);
+      toast({
+        title: t('auth:toast.account_exists'),
+        description: t('auth:toast.account_exists_desc'),
+        variant: "destructive",
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setMode("forgot-password")}
+          >
+            {t('auth:buttons.forgot_password')}
+          </Button>
+        )
+      });
+      return;
+    }
+    
     // If referral code is valid, process it
     if (referralValid && referralCode && data?.user) {
       try {
