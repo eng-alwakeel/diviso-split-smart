@@ -69,5 +69,10 @@
     "no_recommendation_now": "No recommendation available now",
     "try_again_later": "Try again later or at meal time",
     "generic": "An error occurred. Please try again."
+  },
+  
+  "select_group": {
+    "title": "Select Group",
+    "description": "Choose the group to add the expense to"
   }
 }

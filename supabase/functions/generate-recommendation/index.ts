@@ -52,26 +52,26 @@ interface GooglePlace {
   photos?: { name: string }[];
 }
 
-// Fallback recommendations for Saudi cities
+// Fallback recommendations for Saudi cities with GPS coordinates
 const FALLBACK_RECOMMENDATIONS: Record<string, Record<string, any[]>> = {
   'Riyadh': {
     food: [
-      { name: 'مطعم نجد', name_ar: 'مطعم نجد', category: 'restaurant', rating: 4.5, estimated_price: 80, price_range: '$$', relevance_reason_ar: 'مطعم شعبي سعودي مميز' },
-      { name: 'مطعم القرية النجدية', name_ar: 'مطعم القرية النجدية', category: 'restaurant', rating: 4.6, estimated_price: 100, price_range: '$$', relevance_reason_ar: 'أجواء تراثية وأكل سعودي أصيل' },
+      { name: 'مطعم نجد', name_ar: 'مطعم نجد', category: 'restaurant', rating: 4.5, estimated_price: 80, price_range: '$$', relevance_reason_ar: 'مطعم شعبي سعودي مميز', location: { lat: 24.7136, lng: 46.6753, address: 'الرياض' } },
+      { name: 'مطعم القرية النجدية', name_ar: 'مطعم القرية النجدية', category: 'restaurant', rating: 4.6, estimated_price: 100, price_range: '$$', relevance_reason_ar: 'أجواء تراثية وأكل سعودي أصيل', location: { lat: 24.6877, lng: 46.6989, address: 'طريق الملك فهد، الرياض' } },
     ],
     activity: [
-      { name: 'بوليفارد رياض سيتي', name_ar: 'بوليفارد رياض سيتي', category: 'entertainment', rating: 4.7, estimated_price: 50, price_range: '$', relevance_reason_ar: 'منطقة ترفيهية متكاملة' },
-      { name: 'حديقة الملك عبدالله', name_ar: 'حديقة الملك عبدالله', category: 'park', rating: 4.5, estimated_price: 0, price_range: '$', relevance_reason_ar: 'حديقة عائلية جميلة' },
+      { name: 'بوليفارد رياض سيتي', name_ar: 'بوليفارد رياض سيتي', category: 'entertainment', rating: 4.7, estimated_price: 50, price_range: '$', relevance_reason_ar: 'منطقة ترفيهية متكاملة', location: { lat: 24.7501, lng: 46.7099, address: 'حي حطين، الرياض' } },
+      { name: 'حديقة الملك عبدالله', name_ar: 'حديقة الملك عبدالله', category: 'park', rating: 4.5, estimated_price: 0, price_range: '$', relevance_reason_ar: 'حديقة عائلية جميلة', location: { lat: 24.7267, lng: 46.6356, address: 'حي الملز، الرياض' } },
     ],
   },
   'Jeddah': {
     food: [
-      { name: 'مطعم البيك', name_ar: 'مطعم البيك', category: 'restaurant', rating: 4.4, estimated_price: 40, price_range: '$', relevance_reason_ar: 'أشهر مطاعم الوجبات السريعة في السعودية' },
-      { name: 'مطعم تواصي', name_ar: 'مطعم تواصي', category: 'restaurant', rating: 4.5, estimated_price: 60, price_range: '$$', relevance_reason_ar: 'مأكولات بحرية طازجة' },
+      { name: 'مطعم البيك', name_ar: 'مطعم البيك', category: 'restaurant', rating: 4.4, estimated_price: 40, price_range: '$', relevance_reason_ar: 'أشهر مطاعم الوجبات السريعة في السعودية', location: { lat: 21.5433, lng: 39.1728, address: 'جدة' } },
+      { name: 'مطعم تواصي', name_ar: 'مطعم تواصي', category: 'restaurant', rating: 4.5, estimated_price: 60, price_range: '$$', relevance_reason_ar: 'مأكولات بحرية طازجة', location: { lat: 21.5169, lng: 39.2192, address: 'الشاطئ، جدة' } },
     ],
     activity: [
-      { name: 'كورنيش جدة', name_ar: 'كورنيش جدة', category: 'attraction', rating: 4.6, estimated_price: 0, price_range: '$', relevance_reason_ar: 'إطلالة رائعة على البحر الأحمر' },
-      { name: 'نافورة الملك فهد', name_ar: 'نافورة الملك فهد', category: 'landmark', rating: 4.7, estimated_price: 0, price_range: '$', relevance_reason_ar: 'أطول نافورة في العالم' },
+      { name: 'كورنيش جدة', name_ar: 'كورنيش جدة', category: 'attraction', rating: 4.6, estimated_price: 0, price_range: '$', relevance_reason_ar: 'إطلالة رائعة على البحر الأحمر', location: { lat: 21.5447, lng: 39.1027, address: 'كورنيش جدة' } },
+      { name: 'نافورة الملك فهد', name_ar: 'نافورة الملك فهد', category: 'landmark', rating: 4.7, estimated_price: 0, price_range: '$', relevance_reason_ar: 'أطول نافورة في العالم', location: { lat: 21.5169, lng: 39.1456, address: 'الكورنيش، جدة' } },
     ],
   },
   'default': {

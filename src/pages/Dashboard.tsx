@@ -32,6 +32,7 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 import { LocationPermissionDialog } from "@/components/LocationPermissionDialog";
 import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
 import { RecommendationDialog } from "@/components/recommendations/RecommendationDialog";
+import { SelectGroupDialog } from "@/components/recommendations/SelectGroupDialog";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
@@ -46,6 +47,7 @@ const Dashboard = React.memo(() => {
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
+  const [showSelectGroupDialog, setShowSelectGroupDialog] = useState(false);
   const [userId, setUserId] = useState<string>();
   
   // Location hook
@@ -97,8 +99,19 @@ const Dashboard = React.memo(() => {
     acceptRecommendation, 
     dismissRecommendation,
     addAsExpense,
+    completeAddAsExpense,
+    pendingExpenseRecommendation,
+    clearPendingExpense,
     isLoading: recommendationLoading 
   } = useRecommendations();
+
+  // Handle add as expense - open group selector if needed
+  const handleAddAsExpense = useCallback(async (recommendation: any) => {
+    const result = await addAsExpense(recommendation);
+    if (result?.needsGroupSelection) {
+      setShowSelectGroupDialog(true);
+    }
+  }, [addAsExpense]);
   
   // Get user ID on mount
   useEffect(() => {
@@ -312,12 +325,15 @@ const Dashboard = React.memo(() => {
         open={showRecommendationDialog}
         onOpenChange={setShowRecommendationDialog}
         recommendation={currentRecommendation}
-        onAddAsExpense={addAsExpense}
+        onAddAsExpense={handleAddAsExpense}
         onOpenLocation={(rec) => {
           if (rec.location?.lat && rec.location?.lng) {
             window.open(`https://www.google.com/maps?q=${rec.location.lat},${rec.location.lng}`, "_blank");
           } else if (rec.affiliate_url) {
             window.open(rec.affiliate_url, "_blank");
+          } else {
+            // Fallback: search by name on Google Maps
+            window.open(`https://www.google.com/maps/search/${encodeURIComponent(rec.name)}`, "_blank");
           }
         }}
         onDismiss={(id) => {
@@ -325,6 +341,19 @@ const Dashboard = React.memo(() => {
           setShowRecommendationDialog(false);
         }}
         isLoading={recommendationLoading}
+      />
+
+      {/* Select Group Dialog for adding expense */}
+      <SelectGroupDialog
+        open={showSelectGroupDialog}
+        onOpenChange={(open) => {
+          setShowSelectGroupDialog(open);
+          if (!open) clearPendingExpense();
+        }}
+        onSelect={(groupId) => {
+          completeAddAsExpense(groupId);
+          setShowRecommendationDialog(false);
+        }}
       />
 
       {/* Achievement Popup */}
