@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppHeader } from "@/components/AppHeader";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -17,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 
 const Auth = () => {
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
   const { t } = useTranslation(['auth', 'common']);
@@ -265,26 +266,24 @@ const Auth = () => {
       
       // Handle weak/known password error - may also indicate existing account
       if (error.message.includes('weak') || error.message.includes('Password is known') || error.message.includes('known to be weak')) {
-        toast({
+        const toastResult = toast({
           title: t('auth:toast.weak_password'),
           description: t('auth:toast.weak_password_desc'),
           variant: "destructive",
           action: (
             <div className="flex gap-2 flex-wrap">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setMode("login")}
+              <ToastAction 
+                altText={t('auth:buttons.login')}
+                onClick={() => { dismiss(toastResult.id); setMode("login"); }}
               >
                 {t('auth:buttons.login')}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setMode("forgot-password")}
+              </ToastAction>
+              <ToastAction 
+                altText={t('auth:buttons.forgot_password')}
+                onClick={() => { dismiss(toastResult.id); setMode("forgot-password"); }}
               >
                 {t('auth:buttons.forgot_password')}
-              </Button>
+              </ToastAction>
             </div>
           )
         });
@@ -310,26 +309,24 @@ const Auth = () => {
     // Detect existing account (Supabase returns user with empty identities)
     if (data?.user?.identities?.length === 0) {
       setLoading(false);
-      toast({
+      const toastResult = toast({
         title: t('auth:toast.account_exists'),
         description: t('auth:toast.account_exists_desc'),
         variant: "destructive",
         action: (
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setMode("login")}
+            <ToastAction 
+              altText={t('auth:buttons.login')}
+              onClick={() => { dismiss(toastResult.id); setMode("login"); }}
             >
               {t('auth:buttons.login')}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setMode("forgot-password")}
+            </ToastAction>
+            <ToastAction 
+              altText={t('auth:buttons.forgot_password')}
+              onClick={() => { dismiss(toastResult.id); setMode("forgot-password"); }}
             >
               {t('auth:buttons.forgot_password')}
-            </Button>
+            </ToastAction>
           </div>
         )
       });
