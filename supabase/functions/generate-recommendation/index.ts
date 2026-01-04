@@ -350,11 +350,13 @@ Deno.serve(async (req) => {
     const requestBody: RecommendationRequest = await req.json();
     const { group_id, city, destination, latitude, longitude, trigger, current_time, tz_offset_minutes, group_type, member_count = 4 } = requestBody;
 
-    console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}`);
+    console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}, coords: ${latitude},${longitude}`);
 
-    // Determine city from coordinates or use fallback
-    let resolvedCity = city;
-    if (!resolvedCity && latitude && longitude) {
+    // Determine city - PRIORITIZE coordinates over cached city name
+    let resolvedCity = null;
+    
+    // First, try to resolve city from fresh coordinates (most accurate)
+    if (latitude && longitude) {
       try {
         const geoResponse = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=en`
@@ -369,8 +371,15 @@ Deno.serve(async (req) => {
       }
     }
     
+    // Fallback to provided city name if geocoding failed
+    if (!resolvedCity && city) {
+      resolvedCity = city;
+      console.log(`[generate-recommendation] Using provided city: ${resolvedCity}`);
+    }
+    
     const DEFAULT_CITY = 'Riyadh';
     const finalCity = resolvedCity || DEFAULT_CITY;
+    console.log(`[generate-recommendation] Final city for recommendations: ${finalCity}`);
 
     // Check user's recommendation limit
     const { data: canRecommend } = await supabase.rpc('check_recommendation_limit', { p_user_id: user.id });

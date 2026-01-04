@@ -30,6 +30,8 @@ interface GenerateRecommendationParams {
   trigger: "planning" | "meal_time" | "post_expense" | "end_of_day";
   groupId?: string;
   city?: string;
+  latitude?: number;
+  longitude?: number;
   categories?: string[];
 }
 
@@ -55,6 +57,8 @@ export function useRecommendations(groupId?: string) {
           trigger: params.trigger,
           group_id: params.groupId || groupId,
           city: params.city,
+          latitude: params.latitude,
+          longitude: params.longitude,
           categories: params.categories,
           current_time: new Date().toISOString(),
           tz_offset_minutes: new Date().getTimezoneOffset(),
