@@ -132,21 +132,13 @@ export function ProfileTab({
   };
 
   const sendVerificationEmail = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    const response = await supabase.functions.invoke("send-email-verification", {
-      body: { email: profile.email, userName: profile.name },
-      headers: {
-        Authorization: `Bearer ${session?.access_token}`,
-      },
+    // استخدام Supabase المدمج لتغيير البريد الإلكتروني
+    const { error } = await supabase.auth.updateUser({
+      email: profile.email,
     });
 
-    if (response.error) {
-      throw new Error(response.error.message || "Failed to send verification email");
-    }
-
-    if (response.data?.error) {
-      throw new Error(response.data.error);
+    if (error) {
+      throw new Error(error.message);
     }
   };
 
