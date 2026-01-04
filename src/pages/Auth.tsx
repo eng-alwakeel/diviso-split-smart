@@ -270,17 +270,19 @@ const Auth = () => {
           title: t('auth:toast.weak_password'),
           description: t('auth:toast.weak_password_desc'),
           variant: "destructive",
-          action: (
-            <div className="flex gap-2 flex-wrap">
+        action: (
+            <div className="flex flex-col gap-2 mt-2">
               <ToastAction 
                 altText={t('auth:buttons.login')}
                 onClick={() => { dismiss(toastResult.id); setMode("login"); }}
+                className="w-full justify-center"
               >
                 {t('auth:buttons.login')}
               </ToastAction>
               <ToastAction 
                 altText={t('auth:buttons.forgot_password')}
                 onClick={() => { dismiss(toastResult.id); setMode("forgot-password"); }}
+                className="w-full justify-center"
               >
                 {t('auth:buttons.forgot_password')}
               </ToastAction>
@@ -314,16 +316,18 @@ const Auth = () => {
         description: t('auth:toast.account_exists_desc'),
         variant: "destructive",
         action: (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 mt-2">
             <ToastAction 
               altText={t('auth:buttons.login')}
               onClick={() => { dismiss(toastResult.id); setMode("login"); }}
+              className="w-full justify-center"
             >
               {t('auth:buttons.login')}
             </ToastAction>
             <ToastAction 
               altText={t('auth:buttons.forgot_password')}
               onClick={() => { dismiss(toastResult.id); setMode("forgot-password"); }}
+              className="w-full justify-center"
             >
               {t('auth:buttons.forgot_password')}
             </ToastAction>
