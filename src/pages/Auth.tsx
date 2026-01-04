@@ -287,13 +287,22 @@ const Auth = () => {
         description: t('auth:toast.account_exists_desc'),
         variant: "destructive",
         action: (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setMode("forgot-password")}
-          >
-            {t('auth:buttons.forgot_password')}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setMode("login")}
+            >
+              {t('auth:buttons.login')}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setMode("forgot-password")}
+            >
+              {t('auth:buttons.forgot_password')}
+            </Button>
+          </div>
         )
       });
       return;
