@@ -4,11 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UserLocationState {
   city: string | null;
+  district: string | null;
   coords: LocationCoords | null;
   loading: boolean;
   hasPermission: boolean | null;
   error: string | null;
   timestamp: number | null;
+}
+
+interface ReverseGeocodeResult {
+  city: string | null;
+  district: string | null;
 }
 
 const LOCATION_STORAGE_KEY = "diviso_user_location";
@@ -18,14 +24,14 @@ const LOCATION_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours - auto-refresh after thi
 // Fallback city based on Saudi Arabia (most users)
 const DEFAULT_CITY = "Riyadh";
 
-// Reverse geocoding using a free API
-async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+// Reverse geocoding using a free API - returns city AND district
+async function reverseGeocode(lat: number, lng: number): Promise<ReverseGeocodeResult> {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&accept-language=en`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&accept-language=en`
     );
     
-    if (!response.ok) return null;
+    if (!response.ok) return { city: null, district: null };
     
     const data = await response.json();
     
@@ -36,16 +42,23 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
                  data.address?.state ||
                  data.address?.county;
     
-    return city || null;
+    // Extract district/neighborhood from response
+    const district = data.address?.suburb || 
+                     data.address?.neighbourhood || 
+                     data.address?.quarter ||
+                     data.address?.district;
+    
+    return { city: city || null, district: district || null };
   } catch (error) {
     console.error("Reverse geocoding error:", error);
-    return null;
+    return { city: null, district: null };
   }
 }
 
 export function useUserLocation() {
   const [state, setState] = useState<UserLocationState>({
     city: null,
+    district: null,
     coords: null,
     loading: false,
     hasPermission: null,
@@ -64,6 +77,7 @@ export function useUserLocation() {
         setState(prev => ({
           ...prev,
           city: parsed.city,
+          district: parsed.district || null,
           coords: parsed.coords,
           hasPermission: true,
           timestamp: parsed.timestamp || null,
@@ -122,13 +136,14 @@ export function useUserLocation() {
       }
 
       // Got coordinates, now reverse geocode
-      const city = await reverseGeocode(coords.latitude, coords.longitude);
+      const { city, district } = await reverseGeocode(coords.latitude, coords.longitude);
       const finalCity = city || DEFAULT_CITY;
       const now = Date.now();
 
       // Save to localStorage
       localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({
         city: finalCity,
+        district,
         coords,
         timestamp: now,
       }));
@@ -139,6 +154,7 @@ export function useUserLocation() {
 
       setState({
         city: finalCity,
+        district,
         coords,
         loading: false,
         hasPermission: true,
@@ -164,11 +180,12 @@ export function useUserLocation() {
   // Get fresh location with current coordinates (for recommendations)
   const getFreshLocation = useCallback(async (): Promise<{
     city: string;
+    district: string | null;
     coords: LocationCoords | null;
   }> => {
     // If user denied permission, return cached/default
     if (state.hasPermission === false) {
-      return { city: state.city || DEFAULT_CITY, coords: null };
+      return { city: state.city || DEFAULT_CITY, district: state.district, coords: null };
     }
 
     try {
@@ -176,18 +193,20 @@ export function useUserLocation() {
       
       if (!coords) {
         // Can't get location, return cached
-        return { city: state.city || DEFAULT_CITY, coords: state.coords };
+        return { city: state.city || DEFAULT_CITY, district: state.district, coords: state.coords };
       }
 
-      // Got coordinates, reverse geocode to get fresh city
-      const newCity = await reverseGeocode(coords.latitude, coords.longitude);
+      // Got coordinates, reverse geocode to get fresh city and district
+      const { city: newCity, district: newDistrict } = await reverseGeocode(coords.latitude, coords.longitude);
       const finalCity = newCity || state.city || DEFAULT_CITY;
+      const finalDistrict = newDistrict || state.district;
       const now = Date.now();
 
-      // Update state and storage if city changed
-      if (newCity && newCity !== state.city) {
+      // Update state and storage if location changed
+      if (newCity && (newCity !== state.city || newDistrict !== state.district)) {
         localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({
           city: finalCity,
+          district: finalDistrict,
           coords,
           timestamp: now,
         }));
@@ -195,6 +214,7 @@ export function useUserLocation() {
         setState(prev => ({
           ...prev,
           city: finalCity,
+          district: finalDistrict,
           coords,
           timestamp: now,
         }));
@@ -203,12 +223,12 @@ export function useUserLocation() {
         await saveLocationToDb(finalCity, coords);
       }
 
-      return { city: finalCity, coords };
+      return { city: finalCity, district: finalDistrict, coords };
     } catch (error) {
       console.error("getFreshLocation error:", error);
-      return { city: state.city || DEFAULT_CITY, coords: state.coords };
+      return { city: state.city || DEFAULT_CITY, district: state.district, coords: state.coords };
     }
-  }, [state.city, state.coords, state.hasPermission, saveLocationToDb]);
+  }, [state.city, state.district, state.coords, state.hasPermission, saveLocationToDb]);
 
   // Check if location is stale
   const isLocationStale = useCallback((): boolean => {
@@ -241,6 +261,7 @@ export function useUserLocation() {
 
   return {
     city: state.city || DEFAULT_CITY,
+    district: state.district,
     coords: state.coords,
     loading: state.loading,
     hasPermission: state.hasPermission,
