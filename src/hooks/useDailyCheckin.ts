@@ -25,15 +25,15 @@ interface WeekProgress {
   };
 }
 
-// Weekly rewards config
+// Weekly rewards config - 5 coins per day, extra rewards are badges/features only
 const WEEKLY_REWARDS = [
-  { type: 'coins' as const, value: 'عملات البداية', coins: 5, icon: 'Star' },
-  { type: 'coins' as const, value: '+10 عملات', coins: 10, icon: 'Coins' },
-  { type: 'badge' as const, value: 'شارة متحمس 🔥', coins: 15, icon: 'Flame' },
-  { type: 'coins' as const, value: '+20 عملات', coins: 20, icon: 'Coins' },
-  { type: 'soft_unlock' as const, value: 'تحليل AI مجاني', coins: 15, feature: 'ai_insight', icon: 'Sparkles' },
-  { type: 'boost' as const, value: 'رفع حد OCR', coins: 25, feature: 'ocr_boost', icon: 'Camera' },
-  { type: 'soft_unlock' as const, value: 'تحليلات متقدمة 🏆', coins: 30, feature: 'advanced_analytics', icon: 'Trophy' },
+  { type: 'coins' as const, value: '+5 عملات', coins: 5, icon: 'Star' },
+  { type: 'coins' as const, value: '+5 عملات', coins: 5, icon: 'Coins' },
+  { type: 'badge' as const, value: 'شارة متحمس 🔥', coins: 5, icon: 'Flame' },
+  { type: 'coins' as const, value: '+5 عملات', coins: 5, icon: 'Coins' },
+  { type: 'soft_unlock' as const, value: 'تحليل AI مجاني', coins: 5, feature: 'ai_insight', icon: 'Sparkles' },
+  { type: 'boost' as const, value: 'رفع حد OCR', coins: 5, feature: 'ocr_boost', icon: 'Camera' },
+  { type: 'soft_unlock' as const, value: 'تحليلات متقدمة 🏆', coins: 5, feature: 'advanced_analytics', icon: 'Trophy' },
 ];
 
 // Fetch streak data with both queries combined
