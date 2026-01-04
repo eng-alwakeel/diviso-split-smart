@@ -14,13 +14,14 @@ import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
+import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
   const { t } = useTranslation(['auth', 'common']);
-  const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password" | "email-sent">("login");
   const [authType, setAuthType] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -39,6 +40,10 @@ const Auth = () => {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [canResend, setCanResend] = useState(true);
   
+  // Email resend countdown states
+  const [emailResendCountdown, setEmailResendCountdown] = useState(0);
+  const [canResendEmail, setCanResendEmail] = useState(true);
+  
   // Referral code states
   const [referralCode, setReferralCode] = useState("");
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
@@ -55,6 +60,18 @@ const Auth = () => {
       setCanResend(true);
     }
   }, [resendCountdown, mode]);
+
+  // Countdown timer for resend email
+  useEffect(() => {
+    if (emailResendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setEmailResendCountdown(emailResendCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (emailResendCountdown === 0 && mode === "email-sent") {
+      setCanResendEmail(true);
+    }
+  }, [emailResendCountdown, mode]);
 
   // Validate referral code
   const validateReferralCode = useCallback(async (code: string) => {
@@ -202,6 +219,16 @@ const Auth = () => {
       return;
     }
 
+    // Validate password requirements
+    if (!isPasswordValid(password)) {
+      toast({
+        title: t('auth:toast.signup_error'),
+        description: t('auth:toast.password_requirements_not_met'),
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     console.log('🔵 Starting signup...', { authType, phone, email });
     
@@ -279,12 +306,13 @@ const Auth = () => {
     
     if (authType === "email") {
       console.log('✅ Email signup complete');
-      const successMessage = referralValid 
-        ? t('auth:toast.verify_email_referral')
-        : t('auth:toast.verify_email_desc');
+      // Switch to email-sent mode with resend functionality
+      setMode("email-sent");
+      setEmailResendCountdown(60);
+      setCanResendEmail(false);
       toast({ 
         title: t('auth:toast.verify_email'), 
-        description: successMessage
+        description: referralValid ? t('auth:toast.verify_email_referral') : t('auth:toast.verify_email_desc')
       });
     } else {
       console.log('✅ Phone signup complete - sending OTP...');
@@ -309,6 +337,36 @@ const Auth = () => {
       toast({ 
         title: t('auth:toast.otp_sent'), 
         description: successMessage
+      });
+    }
+  };
+
+  // Handle resend email verification
+  const handleResendEmail = async () => {
+    if (!email || !canResendEmail) return;
+    
+    setLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/verify`
+      }
+    });
+    setLoading(false);
+    
+    if (error) {
+      toast({
+        title: t('common:error'),
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      setEmailResendCountdown(60);
+      setCanResendEmail(false);
+      toast({
+        title: t('auth:toast.email_resent'),
+        description: t('auth:toast.email_resent_desc')
       });
     }
   };
@@ -460,6 +518,7 @@ const Auth = () => {
       case "forgot-password": return t('auth:title.forgot_password');
       case "reset-password": return t('auth:title.reset_password');
       case "verify": return authType === "phone" ? t('auth:title.verify_phone') : t('auth:title.verify_email');
+      case "email-sent": return t('auth:title.verify_email');
       default: return t('auth:title.login');
     }
   };
@@ -492,7 +551,7 @@ const Auth = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mode !== "verify" && mode !== "forgot-password" && mode !== "reset-password" && (
+            {mode !== "verify" && mode !== "forgot-password" && mode !== "reset-password" && mode !== "email-sent" && (
               <div className="space-y-3 mb-6">
                 <Button
                   variant="outline"
@@ -517,6 +576,42 @@ const Auth = () => {
                     <span className="bg-background px-2 text-muted-foreground">{t('auth:messages.or')}</span>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Email Sent Mode */}
+            {mode === "email-sent" && (
+              <div className="space-y-4">
+                <div className="text-center space-y-3 py-4">
+                  <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                    <Mail className="h-8 w-8 text-primary" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {t('auth:messages.email_sent')}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium" dir="ltr">
+                    {email}
+                  </p>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={handleResendEmail}
+                  disabled={loading || !canResendEmail}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : emailResendCountdown > 0 ? (
+                    t('auth:messages.email_resend_countdown', { seconds: emailResendCountdown })
+                  ) : (
+                    t('auth:buttons.resend')
+                  )}
+                </Button>
+                
+                <Button variant="ghost" className="w-full" onClick={() => setMode("signup")}>
+                  {t('auth:buttons.back')}
+                </Button>
               </div>
             )}
             
@@ -764,6 +859,9 @@ const Auth = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
                       </div>
+                      {mode === "signup" && (
+                        <PasswordRequirements password={password} />
+                      )}
                     </div>
                     {mode === "login" && (
                       <Button 
@@ -813,6 +911,9 @@ const Auth = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
                       </div>
+                      {mode === "signup" && (
+                        <PasswordRequirements password={password} />
+                      )}
                     </div>
                     {mode === "login" && (
                       <Button 
