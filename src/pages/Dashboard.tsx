@@ -170,13 +170,14 @@ const Dashboard = React.memo(() => {
     // Open dialog with loading state
     setShowRecommendationDialog(true);
     
-    // Get fresh location before generating recommendation
-    const { city: freshCity, coords } = await getFreshLocation();
+    // Get fresh location before generating recommendation (includes district for restaurants)
+    const { city: freshCity, district: freshDistrict, coords } = await getFreshLocation();
     
     // Generate a recommendation based on current context with fresh location
     const result = await generateRecommendation({
       trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
       city: freshCity,
+      district: freshDistrict || undefined,
       latitude: coords?.latitude,
       longitude: coords?.longitude,
     });

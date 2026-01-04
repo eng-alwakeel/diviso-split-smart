@@ -8,6 +8,7 @@ const corsHeaders = {
 interface RecommendationRequest {
   group_id?: string;
   city?: string;
+  district?: string;
   destination?: string;
   latitude?: number;
   longitude?: number;
@@ -178,7 +179,10 @@ function convertHotelToRecommendation(hotel: TravelpayoutsHotel, destination: st
 async function fetchGooglePlaces(
   city: string,
   recommendationType: string,
-  budget: string
+  budget: string,
+  district?: string,
+  latitude?: number,
+  longitude?: number
 ): Promise<{ recommendation: any; alternatives: any[] } | null> {
   const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
   
@@ -189,16 +193,30 @@ async function fetchGooglePlaces(
 
   try {
     // Build search query based on recommendation type
+    // Restaurants use city + district for more accurate results
+    // Hotels use city only (wider search)
     let searchQuery = '';
     switch (recommendationType) {
       case 'food':
-        searchQuery = `best restaurants for groups in ${city}`;
+        // Use district for more precise restaurant recommendations
+        if (district) {
+          searchQuery = `best restaurants in ${district}, ${city}`;
+          console.log(`[generate-recommendation] Using district for food search: ${district}`);
+        } else {
+          searchQuery = `best restaurants for groups in ${city}`;
+        }
         break;
       case 'activity':
-        searchQuery = `popular activities and attractions in ${city}`;
+        // Activities can use district if available
+        if (district) {
+          searchQuery = `activities and attractions in ${district}, ${city}`;
+        } else {
+          searchQuery = `popular activities and attractions in ${city}`;
+        }
         break;
       case 'accommodation':
       case 'hotel':
+        // Hotels always use city only (wider search)
         searchQuery = `hotels in ${city}`;
         break;
       default:
@@ -214,6 +232,24 @@ async function fetchGooglePlaces(
 
     console.log(`[generate-recommendation] Searching Google Places: "${searchQuery}"`);
 
+    // Build request body with optional location bias for food
+    const requestBody: any = {
+      textQuery: searchQuery,
+      languageCode: 'ar',
+      maxResultCount: 10
+    };
+
+    // Add location bias for food recommendations (3km radius around user)
+    if (recommendationType === 'food' && latitude && longitude) {
+      requestBody.locationBias = {
+        circle: {
+          center: { latitude, longitude },
+          radius: 3000 // 3km radius for restaurants
+        }
+      };
+      console.log(`[generate-recommendation] Adding location bias: ${latitude}, ${longitude} (3km radius)`);
+    }
+
     const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
@@ -221,11 +257,7 @@ async function fetchGooglePlaces(
         'X-Goog-Api-Key': googleApiKey,
         'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.types,places.location,places.photos'
       },
-      body: JSON.stringify({
-        textQuery: searchQuery,
-        languageCode: 'ar',
-        maxResultCount: 10
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
@@ -348,23 +380,29 @@ Deno.serve(async (req) => {
     }
 
     const requestBody: RecommendationRequest = await req.json();
-    const { group_id, city, destination, latitude, longitude, trigger, current_time, tz_offset_minutes, group_type, member_count = 4 } = requestBody;
+    const { group_id, city, district, destination, latitude, longitude, trigger, current_time, tz_offset_minutes, group_type, member_count = 4 } = requestBody;
 
-    console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}, coords: ${latitude},${longitude}`);
+    console.log(`[generate-recommendation] Starting for trigger: ${trigger}, group: ${group_id}, city: ${city}, district: ${district}, coords: ${latitude},${longitude}`);
 
-    // Determine city - PRIORITIZE coordinates over cached city name
+    // Determine city and district - PRIORITIZE coordinates over cached values
     let resolvedCity = null;
+    let resolvedDistrict = district || null;
     
-    // First, try to resolve city from fresh coordinates (most accurate)
+    // First, try to resolve city and district from fresh coordinates (most accurate)
     if (latitude && longitude) {
       try {
         const geoResponse = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&accept-language=en`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&accept-language=en`
         );
         if (geoResponse.ok) {
           const geoData = await geoResponse.json();
           resolvedCity = geoData.address?.city || geoData.address?.town || geoData.address?.state;
-          console.log(`[generate-recommendation] Resolved city from coordinates: ${resolvedCity}`);
+          // Extract district/neighborhood for restaurants
+          const geoDistrict = geoData.address?.suburb || geoData.address?.neighbourhood || geoData.address?.quarter || geoData.address?.district;
+          if (geoDistrict) {
+            resolvedDistrict = geoDistrict;
+          }
+          console.log(`[generate-recommendation] Resolved from coordinates - city: ${resolvedCity}, district: ${resolvedDistrict}`);
         }
       } catch (e) {
         console.log('[generate-recommendation] Reverse geocoding failed:', e);
@@ -379,7 +417,8 @@ Deno.serve(async (req) => {
     
     const DEFAULT_CITY = 'Riyadh';
     const finalCity = resolvedCity || DEFAULT_CITY;
-    console.log(`[generate-recommendation] Final city for recommendations: ${finalCity}`);
+    const finalDistrict = resolvedDistrict;
+    console.log(`[generate-recommendation] Final location - city: ${finalCity}, district: ${finalDistrict}`);
 
     // Check user's recommendation limit
     const { data: canRecommend } = await supabase.rpc('check_recommendation_limit', { p_user_id: user.id });
@@ -531,9 +570,17 @@ Deno.serve(async (req) => {
     }
 
     // Try Google Places API directly
-    console.log(`[generate-recommendation] Trying Google Places for ${decision.recommendation_type} in ${finalCity}...`);
+    // Pass district for food/activity recommendations, coordinates for location bias
+    console.log(`[generate-recommendation] Trying Google Places for ${decision.recommendation_type} in ${finalCity} (district: ${finalDistrict})...`);
     
-    const googleResult = await fetchGooglePlaces(finalCity, decision.recommendation_type!, budget);
+    const googleResult = await fetchGooglePlaces(
+      finalCity, 
+      decision.recommendation_type!, 
+      budget,
+      decision.recommendation_type === 'food' || decision.recommendation_type === 'activity' ? finalDistrict : undefined,
+      latitude,
+      longitude
+    );
 
     if (googleResult && googleResult.recommendation) {
       console.log('[generate-recommendation] Got recommendation from Google Places');
