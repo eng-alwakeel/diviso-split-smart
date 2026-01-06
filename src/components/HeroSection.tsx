@@ -35,7 +35,7 @@ export const HeroSection = () => {
           <div className={`text-center ${isRTL ? 'lg:text-right lg:order-last' : 'lg:text-left lg:order-first'}`}>
             {/* Main Title */}
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-              {t('hero.mainTitle')}
+              <span className="text-primary">Diviso</span> {t('hero.mainTitle')}
             </h1>
             
             {/* Use Cases Line */}
@@ -72,23 +72,23 @@ export const HeroSection = () => {
 
           {/* Abstract Brand Art */}
           <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
-            <div className="relative w-full max-w-md mx-auto h-80 lg:h-96">
+            <div className="relative w-full max-w-md mx-auto h-80 lg:h-96 overflow-hidden">
               {/* Large gradient orb - primary */}
-              <div className="absolute top-1/4 right-1/4 w-48 h-48 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl animate-pulse" />
+              <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl animate-pulse" />
               
               {/* Medium gradient orb */}
-              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-gradient-to-tr from-primary/40 to-transparent rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute bottom-1/4 right-1/3 w-28 h-28 bg-gradient-to-tr from-primary/40 to-transparent rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
               
               {/* Small accent orb */}
-              <div className="absolute top-1/3 left-1/3 w-20 h-20 bg-primary/50 rounded-full blur-lg animate-pulse" style={{ animationDelay: '2s' }} />
+              <div className="absolute top-1/3 right-1/2 w-16 h-16 bg-primary/50 rounded-full blur-lg animate-pulse" style={{ animationDelay: '2s' }} />
 
               {/* Geometric shapes */}
               <div className="absolute top-10 right-10 w-16 h-16 border-2 border-primary/30 rounded-2xl rotate-12" />
-              <div className="absolute bottom-20 right-20 w-12 h-12 border border-primary/20 rounded-xl -rotate-12" />
-              <div className="absolute top-1/2 left-10 w-8 h-8 bg-primary/30 rounded-lg rotate-45" />
+              <div className="absolute bottom-20 right-16 w-12 h-12 border border-primary/20 rounded-xl -rotate-12" />
+              <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-primary/30 rounded-lg rotate-45" />
               
               {/* Glowing dots */}
-              <div className="absolute top-16 left-1/4 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
+              <div className="absolute top-16 right-1/4 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
               <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-primary rounded-full shadow-lg shadow-primary/50" />
               <div className="absolute top-1/2 right-16 w-4 h-4 bg-primary/80 rounded-full shadow-lg shadow-primary/50" />
               
