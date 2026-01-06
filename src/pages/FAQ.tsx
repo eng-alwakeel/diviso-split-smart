@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
   Accordion, 
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { SEO } from '@/components/SEO';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { BrandedDiviso } from '@/components/ui/branded-diviso';
 import { 
   Search, 
   HelpCircle, 
@@ -180,7 +181,11 @@ const FAQ = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="text-muted-foreground pb-5 ps-12">
-                      {t(`questions.${id}.answer`)}
+                      <Trans
+                        i18nKey={`questions.${id}.answer`}
+                        ns="faq"
+                        components={{ brand: <BrandedDiviso /> }}
+                      />
                     </AccordionContent>
                   </AccordionItem>
                 );

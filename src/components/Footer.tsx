@@ -9,6 +9,7 @@ import {
   Youtube
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { BrandedDiviso } from "@/components/ui/branded-diviso";
 
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -85,7 +86,7 @@ export const Footer = () => {
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <p>© 2025 Diviso. {t('footer.allRights')}</p>
+            <p>© 2025 <BrandedDiviso />. {t('footer.allRights')}</p>
             <span className="px-2 py-1 bg-muted/50 rounded text-xs font-mono">
               v{new Date().toISOString().slice(0, 16).replace('T', '-')}
             </span>

@@ -1,6 +1,6 @@
 {
   "pageTitle": "Frequently Asked Questions",
-  "pageDescription": "Answers to the most common questions about Diviso app",
+  "pageDescription": "Answers to the most common questions about <brand>Diviso</brand> app",
   "searchPlaceholder": "Search questions...",
   "categories": {
     "general": "General",
@@ -10,12 +10,12 @@
   },
   "questions": {
     "what_is_diviso": {
-      "question": "What is Diviso?",
-      "answer": "Diviso is a shared expense management app that helps you split costs with friends and family easily. You can track who owes whom and settle accounts with a single tap."
+      "question": "What is <brand>Diviso</brand>?",
+      "answer": "<brand>Diviso</brand> is a shared expense management app that helps you split costs with friends and family easily. You can track who owes whom and settle accounts with a single tap."
     },
     "is_free": {
       "question": "Is the app free?",
-      "answer": "Yes! You can use Diviso for free with basic features. We also offer paid plans for advanced features like unlimited groups and advanced reports."
+      "answer": "Yes! You can use <brand>Diviso</brand> for free with basic features. We also offer paid plans for advanced features like unlimited groups and advanced reports."
     },
     "plan_difference": {
       "question": "What's the difference between plans?",
@@ -59,7 +59,7 @@
     },
     "currencies": {
       "question": "Does the app support different currencies?",
-      "answer": "Yes! Diviso supports all major currencies including SAR, USD, EUR, AED, and more. Exchange rates are updated automatically."
+      "answer": "Yes! <brand>Diviso</brand> supports all major currencies including SAR, USD, EUR, AED, and more. Exchange rates are updated automatically."
     },
     "offline_access": {
       "question": "Can I use the app offline?",
