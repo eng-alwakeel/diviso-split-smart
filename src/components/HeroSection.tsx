@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Users, Receipt, CheckCircle, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import heroImage from "@/assets/hero-illustration.png";
+import heroImage from "@/assets/hero-image.jpg";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
