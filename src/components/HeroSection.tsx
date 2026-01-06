@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Users, Receipt, CheckCircle, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import heroImage from "@/assets/hero-image.jpg";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
@@ -71,13 +70,34 @@ export const HeroSection = () => {
             </div>
           </div>
 
-          {/* Hero Image */}
+          {/* Visual Design - Glass Cards */}
           <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
-            <img 
-              src={heroImage} 
-              alt="Diviso App" 
-              className="w-full max-w-lg mx-auto rounded-2xl shadow-2xl"
-            />
+            {/* Decorative circles */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+            
+            {/* Glass cards grid */}
+            <div className="relative grid grid-cols-2 gap-4 p-4 max-w-md mx-auto">
+              <div className="bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Users className="w-7 h-7 text-primary" />
+                </div>
+                <span className="text-white/90 text-sm font-medium">{t('hero.cards.createGroup', 'أنشئ قروب')}</span>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Receipt className="w-7 h-7 text-primary" />
+                </div>
+                <span className="text-white/90 text-sm font-medium">{t('hero.cards.addExpenses', 'أضف المصاريف')}</span>
+              </div>
+              <div className="col-span-2 bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
+                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="w-7 h-7 text-primary" />
+                </div>
+                <span className="text-white/90 text-sm font-medium">{t('hero.cards.everyoneKnows', 'كل شخص يعرف عليه كم')}</span>
+              </div>
+            </div>
           </div>
         </div>
 
