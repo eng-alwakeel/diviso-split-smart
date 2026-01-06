@@ -70,32 +70,60 @@ export const HeroSection = () => {
             </div>
           </div>
 
-          {/* Visual Design - Glass Cards */}
+          {/* Abstract Brand Art */}
           <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
-            {/* Decorative circles */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-            
-            {/* Glass cards grid */}
-            <div className="relative grid grid-cols-2 gap-4 p-4 max-w-md mx-auto">
-              <div className="bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
-                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Users className="w-7 h-7 text-primary" />
+            <div className="relative w-full max-w-md mx-auto h-80 lg:h-96">
+              {/* Large gradient orb - primary */}
+              <div className="absolute top-1/4 right-1/4 w-48 h-48 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl animate-pulse" />
+              
+              {/* Medium gradient orb */}
+              <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-gradient-to-tr from-primary/40 to-transparent rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+              
+              {/* Small accent orb */}
+              <div className="absolute top-1/3 left-1/3 w-20 h-20 bg-primary/50 rounded-full blur-lg animate-pulse" style={{ animationDelay: '2s' }} />
+
+              {/* Geometric shapes */}
+              <div className="absolute top-10 right-10 w-16 h-16 border-2 border-primary/30 rounded-2xl rotate-12" />
+              <div className="absolute bottom-20 right-20 w-12 h-12 border border-primary/20 rounded-xl -rotate-12" />
+              <div className="absolute top-1/2 left-10 w-8 h-8 bg-primary/30 rounded-lg rotate-45" />
+              
+              {/* Glowing dots */}
+              <div className="absolute top-16 left-1/4 w-3 h-3 bg-primary rounded-full shadow-lg shadow-primary/50" />
+              <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-primary rounded-full shadow-lg shadow-primary/50" />
+              <div className="absolute top-1/2 right-16 w-4 h-4 bg-primary/80 rounded-full shadow-lg shadow-primary/50" />
+              
+              {/* Curved lines - SVG */}
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
+                <path 
+                  d="M50,200 Q150,100 200,200 T350,200" 
+                  fill="none" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth="2" 
+                  strokeOpacity="0.3"
+                  className="animate-pulse"
+                />
+                <path 
+                  d="M100,300 Q200,200 250,300 T400,300" 
+                  fill="none" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth="1.5" 
+                  strokeOpacity="0.2"
+                />
+              </svg>
+
+              {/* Center icon cluster */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-br from-primary/40 to-primary/10 rounded-3xl backdrop-blur-sm border border-primary/20 flex items-center justify-center">
+                    <Users className="w-10 h-10 text-primary" />
+                  </div>
+                  <div className="absolute -top-4 -right-4 w-12 h-12 bg-primary/20 backdrop-blur-sm rounded-xl border border-primary/30 flex items-center justify-center">
+                    <Receipt className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-primary/20 backdrop-blur-sm rounded-xl border border-primary/30 flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 text-primary" />
+                  </div>
                 </div>
-                <span className="text-white/90 text-sm font-medium">{t('hero.cards.createGroup', 'أنشئ قروب')}</span>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
-                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Receipt className="w-7 h-7 text-primary" />
-                </div>
-                <span className="text-white/90 text-sm font-medium">{t('hero.cards.addExpenses', 'أضف المصاريف')}</span>
-              </div>
-              <div className="col-span-2 bg-white/5 backdrop-blur-sm border border-primary/20 rounded-2xl p-6 text-center hover:bg-white/10 transition-colors">
-                <div className="w-14 h-14 bg-primary/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle className="w-7 h-7 text-primary" />
-                </div>
-                <span className="text-white/90 text-sm font-medium">{t('hero.cards.everyoneKnows', 'كل شخص يعرف عليه كم')}</span>
               </div>
             </div>
           </div>
