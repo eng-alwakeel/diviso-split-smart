@@ -33,7 +33,7 @@ export const HeroSection = () => {
       <div className="container mx-auto px-4 relative py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-12">
           {/* Text Content */}
-          <div className={`text-center lg:${isRTL ? 'text-right' : 'text-left'}`}>
+          <div className={`text-center ${isRTL ? 'lg:text-right lg:order-last' : 'lg:text-left lg:order-first'}`}>
             {/* Main Title */}
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
               {t('hero.mainTitle')}
@@ -72,7 +72,7 @@ export const HeroSection = () => {
           </div>
 
           {/* Hero Image */}
-          <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'} order-first`}>
+          <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
             <img 
               src={heroImage} 
               alt="Diviso App" 
