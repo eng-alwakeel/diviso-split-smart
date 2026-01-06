@@ -1,106 +1,102 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, Users, Calculator, TrendingUp, Shield } from "lucide-react";
-import heroImage from "@/assets/hero-illustration.png";
+import { Users, Receipt, CheckCircle, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export const HeroSection = () => {
-  const { t } = useTranslation('landing');
+  const { t, i18n } = useTranslation('landing');
+  const isRTL = i18n.language === 'ar';
+
+  const steps = [
+    {
+      number: 1,
+      icon: Users,
+      title: t('hero.steps.step1'),
+    },
+    {
+      number: 2,
+      icon: Receipt,
+      title: t('hero.steps.step2'),
+    },
+    {
+      number: 3,
+      icon: CheckCircle,
+      title: t('hero.steps.step3'),
+    },
+  ];
 
   return (
-    <section className="relative py-20 bg-gradient-hero overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center bg-gradient-hero overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
-      <div className="container mx-auto px-4 relative">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Content */}
-          <div className="text-center lg:text-right">
-            {/* Slogan Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 border border-white/20">
-              <span className="text-sm font-medium text-white">
-                {t('hero.sloganAr')}
+      <div className="container mx-auto px-4 relative py-12">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Main Title */}
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            {t('hero.mainTitle')}
+          </h1>
+          
+          {/* Use Cases Line */}
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-6">
+            {['travel', 'housing', 'friends', 'activities', 'camping'].map((useCase, index) => (
+              <span key={useCase} className="flex items-center">
+                <span className="text-base md:text-lg text-white/90 font-medium">
+                  {t(`hero.useCases.${useCase}`)}
+                </span>
+                {index < 4 && (
+                  <span className="text-white/50 mx-2 md:mx-3">•</span>
+                )}
               </span>
-              <span className="text-xs text-white/70">|</span>
-              <span className="text-xs font-medium text-white/80">
-                {t('hero.sloganEn')}
-              </span>
-            </div>
-
-            <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-6">
-              {t('hero.title')}
-              <br />
-              <span className="bg-gradient-to-r from-white to-primary bg-clip-text text-transparent">
-                {t('hero.titleHighlight')}
-              </span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              {t('hero.description')}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end mb-8">
-              <Button 
-                variant="secondary" 
-                size="lg" 
-                className="text-lg"
-                onClick={() => window.location.href = '/dashboard'}
-              >
-                {t('hero.startFree')}
-                <ArrowLeft className="w-5 h-5 mr-2" />
-              </Button>
-              <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                {t('hero.watchDemo')}
-              </Button>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="flex items-center justify-center lg:justify-end gap-6 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                <span className="text-sm">{t('hero.secure')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                <span className="text-sm">{t('hero.users')}</span>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Hero Image */}
-          <div className="relative">
-            <div className="relative z-10">
-              <img 
-                src={heroImage} 
-                alt={t('hero.imageAlt')}
-                className="rounded-2xl shadow-elevated w-full max-w-lg mx-auto"
-              />
-            </div>
-            
-            {/* Floating cards */}
-            <Card className="absolute -top-4 -right-4 p-4 bg-gradient-card shadow-card max-w-48">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{t('hero.tripExpense')}</p>
-                  <p className="text-xs text-muted-foreground">{t('hero.tripAmount')}</p>
-                </div>
-              </div>
-            </Card>
+          {/* Value Description */}
+          <p className="text-lg md:text-xl text-white/80 mb-8 leading-relaxed max-w-2xl mx-auto">
+            {t('hero.valueDesc')}
+          </p>
 
-            <Card className="absolute -bottom-4 -left-4 p-4 bg-gradient-card shadow-card max-w-48">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-secondary rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
+          {/* CTA Button */}
+          <div className="mb-12">
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              className="text-lg px-8 py-6 h-auto"
+              onClick={() => window.location.href = '/dashboard'}
+            >
+              {t('hero.startFree')}
+            </Button>
+          </div>
+
+          {/* 3 Steps - How it works */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
+            {steps.map((step) => (
+              <div 
+                key={step.number}
+                className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20"
+              >
+                <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-lg font-bold text-white">{step.number}</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{t('hero.savings')}</p>
-                  <p className="text-xs text-muted-foreground">{t('hero.thisMonth')}</p>
+                <div className={`flex items-center gap-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <step.icon className="w-5 h-5 text-white/80 flex-shrink-0" />
+                  <span className="text-sm md:text-base text-white font-medium leading-tight">
+                    {step.title}
+                  </span>
                 </div>
               </div>
-            </Card>
+            ))}
+          </div>
+
+          {/* Trust indicators */}
+          <div className="flex items-center justify-center gap-6 text-white/70">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              <span className="text-sm">{t('hero.secure')}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              <span className="text-sm">{t('hero.users')}</span>
+            </div>
           </div>
         </div>
       </div>

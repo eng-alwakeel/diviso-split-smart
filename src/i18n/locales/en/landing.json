@@ -15,20 +15,24 @@
     "description": "Split expenses among friends, family, and colleagues fairly and smartly. Track expenses, calculate debts, and receive AI-powered financial insights."
   },
   "hero": {
-    "sloganAr": "قسّم بذكاء، سافر براحة",
-    "sloganEn": "Split Smart, Travel Easy",
-    "title": "Expense Management",
-    "titleHighlight": "Smart & Easy",
-    "description": "Split expenses among friends, family, and colleagues fairly and smartly. Track expenses, calculate debts, and receive AI-powered financial insights.",
+    "mainTitle": "Diviso organizes any shared activity between people",
+    "useCases": {
+      "travel": "Travel",
+      "housing": "Shared Housing",
+      "friends": "Friends Outing",
+      "activities": "Activities",
+      "camping": "Camping"
+    },
+    "valueDesc": "Any shared experience with multiple people, Diviso organizes expenses and makes everything clear without confusion or awkwardness.",
+    "steps": {
+      "step1": "Create a group",
+      "step2": "Add expenses & participants",
+      "step3": "Everyone knows their share — no debates"
+    },
     "startFree": "Start Free",
-    "watchDemo": "Watch Demo",
     "secure": "Safe & Encrypted",
     "users": "+10,000 Users",
-    "imageAlt": "Illustration of expense management and bill splitting",
-    "tripExpense": "Trip Expense",
-    "tripAmount": "1,200 SAR",
-    "savings": "30% Savings",
-    "thisMonth": "This Month"
+    "imageAlt": "Illustration of expense management and bill splitting"
   },
   "features": {
     "title": "Features that make expense management",
