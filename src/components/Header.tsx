@@ -79,6 +79,9 @@ export const Header = () => {
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.pricing')}
               </a>
+              <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                {t('header.blog')}
+              </Link>
             </nav>
             {/* Mobile menu button */}
             <Button variant="ghost" size="sm" className="md:hidden">
