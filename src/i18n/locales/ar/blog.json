@@ -1,0 +1,16 @@
+{
+  "pageTitle": "المدونة",
+  "pageDescription": "مقالات ونصائح عن إدارة المصاريف المشتركة وتقسيم الفواتير",
+  "readMore": "اقرأ المزيد",
+  "readTime": "{{minutes}} دقائق قراءة",
+  "share": "شارك",
+  "linkCopied": "تم نسخ الرابط",
+  "copyFailed": "فشل نسخ الرابط",
+  "relatedPosts": "مقالات ذات صلة",
+  "categories": {
+    "guides": "أدلة",
+    "tips": "نصائح",
+    "news": "أخبار",
+    "comparisons": "مقارنات"
+  }
+}
