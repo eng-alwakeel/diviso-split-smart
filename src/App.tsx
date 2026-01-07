@@ -13,9 +13,10 @@ import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { RoleAssignmentNotification } from "@/components/RoleAssignmentNotification";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth";
+// Lazy load critical pages for faster initial load
+const LazyIndex = withLazyLoading(lazy(() => import("./pages/Index")));
+const LazyDashboard = withLazyLoading(lazy(() => import("./pages/Dashboard")));
+const LazyAuth = withLazyLoading(lazy(() => import("./pages/Auth")));
 import EmailVerify from "./pages/EmailVerify";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
@@ -82,16 +83,16 @@ const AppRoutes: React.FC = () => {
       <RoleAssignmentNotification />
       <ImprovedErrorBoundary>
         <Routes>
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<LazyAuth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<LazyIndex />} />
             <Route path="/i/:code" element={<InviteRoute />} />
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
             <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
             <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
             <Route path="/faq" element={<LazyFAQ />} />
             <Route path="/how-it-works" element={<LazyHowItWorks />} />
-            <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id/invite" element={<ProtectedRoute><PageErrorBoundary><LazyGroupInvite /></PageErrorBoundary></ProtectedRoute>} />
