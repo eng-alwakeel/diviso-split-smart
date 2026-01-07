@@ -96,11 +96,15 @@ export const SEO = ({
     // Update canonical link
     updateLinkTag('canonical', canonicalUrl);
 
-    // Update hreflang tags
+    // Update author meta tag
+    updateMetaTag('meta[name="author"]', 'Diviso');
+
+    // Update hreflang tags dynamically based on current path
     const baseUrl = defaultSEO.siteUrl;
-    updateLinkTag('alternate', baseUrl, 'ar');
-    updateLinkTag('alternate', `${baseUrl}?lang=en`, 'en');
-    updateLinkTag('alternate', baseUrl, 'x-default');
+    const currentPath = window.location.pathname === '/' ? '' : window.location.pathname;
+    updateLinkTag('alternate', `${baseUrl}${currentPath}`, 'ar');
+    updateLinkTag('alternate', `${baseUrl}${currentPath}?lang=en`, 'en');
+    updateLinkTag('alternate', `${baseUrl}${currentPath}`, 'x-default');
 
     // Handle noIndex
     let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;

@@ -8,7 +8,7 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/?lang=en" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://diviso.app/" />
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -18,7 +18,7 @@
     <loc>https://diviso.app/pricing</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/pricing" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/pricing?lang=en" />
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -26,7 +26,7 @@
   <!-- صفحة سياسة الخصوصية -->
   <url>
     <loc>https://diviso.app/privacy-policy</loc>
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -34,7 +34,7 @@
   <!-- صفحة تسجيل الدخول -->
   <url>
     <loc>https://diviso.app/auth</loc>
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -44,7 +44,7 @@
     <loc>https://diviso.app/referral-signup</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/referral-signup" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/referral-signup?lang=en" />
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -54,7 +54,7 @@
     <loc>https://diviso.app/faq</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/faq" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/faq?lang=en" />
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -64,7 +64,7 @@
     <loc>https://diviso.app/how-it-works</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/how-it-works" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/how-it-works?lang=en" />
-    <lastmod>2026-01-01</lastmod>
+    <lastmod>2026-01-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
