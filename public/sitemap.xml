@@ -119,4 +119,44 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- مقالة إتيكيت المطعم -->
+  <url>
+    <loc>https://diviso.app/blog/restaurant-bill-etiquette</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/restaurant-bill-etiquette" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/restaurant-bill-etiquette?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة تكاليف الزواج -->
+  <url>
+    <loc>https://diviso.app/blog/wedding-costs-splitting</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/wedding-costs-splitting" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/wedding-costs-splitting?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة ميزانية العمرة -->
+  <url>
+    <loc>https://diviso.app/blog/umrah-trip-budget</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/umrah-trip-budget" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/umrah-trip-budget?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة مصاريف الطلعات -->
+  <url>
+    <loc>https://diviso.app/blog/weekly-hangouts-expenses</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/weekly-hangouts-expenses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/weekly-hangouts-expenses?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>

@@ -566,6 +566,716 @@ Good financial planning = enjoyable trip. Use Diviso and enjoy your camping with
 
 **Download Diviso now** and plan your next trip!
     `
+  },
+  {
+    slug: "restaurant-bill-etiquette",
+    title: "إتيكيت تقسيم فاتورة المطعم مع الأصدقاء",
+    titleEn: "Restaurant Bill Splitting Etiquette with Friends",
+    description: "كيف تتجنب الإحراج عند تقسيم فاتورة المطعم مع الأصدقاء - قواعد الإتيكيت والنصائح العملية",
+    descriptionEn: "How to avoid awkwardness when splitting restaurant bills with friends - etiquette rules and practical tips",
+    keywords: ["تقسيم فاتورة المطعم", "إتيكيت الدفع", "الحساب في المطعم", "تقسيم الحساب"],
+    keywordsEn: ["split restaurant bill", "payment etiquette", "restaurant check", "bill splitting"],
+    category: "tips",
+    readTime: 5,
+    publishDate: "2026-01-06",
+    content: `
+## مقدمة
+
+لحظة وصول الفاتورة في المطعم قد تكون من أكثر اللحظات إحراجاً مع الأصدقاء. من يدفع؟ كيف نقسم؟ هل ندفع بالتساوي أم كل واحد يدفع طلبه؟
+
+## المشكلة الشائعة
+
+كم مرة حصلت معك هذه المواقف؟
+- صمت محرج عند وصول الفاتورة
+- شخص طلب أغلى طبق والباقي يدفعون معه بالتساوي
+- أحدهم "نسي" محفظته
+- خلافات حول من يدفع البقشيش
+
+## 5 قواعد ذهبية للإتيكيت
+
+### 1. اتفق مسبقاً
+قبل الطلب، حدد طريقة الدفع:
+- "كل واحد يدفع طلبه"
+- "نقسم بالتساوي"
+- "أنا عازمكم اليوم"
+
+### 2. لا تطلب الأغلى إذا التقسيم بالتساوي
+إذا اتفقتم على التقسيم المتساوي، راعِ الآخرين في اختياراتك.
+
+### 3. الداعي يدفع
+إذا دعوت أصدقاءك، توقع أن تدفع الفاتورة كاملة.
+
+### 4. لا تحسب بالهللة
+لا تكن الشخص الذي يحسب "أنا طلبي ب47 ريال وأنت ب52"، هذا يفسد الجو.
+
+### 5. البقشيش من الجميع
+البقشيش يُضاف قبل التقسيم، ليس بعده.
+
+## متى تدفع الفاتورة كاملة؟
+
+- 🎂 عيد ميلاد أحد الأصدقاء
+- 🎉 مناسبة خاصة (ترقية، نجاح)
+- 👋 وداع أو استقبال
+- 🙏 شخص ساعدك بشيء كبير
+
+## كيف يحل Diviso هذه المشكلة؟
+
+- ✅ سجل الفاتورة بضغطة زر
+- ✅ قسّم بالتساوي أو حسب الطلب
+- ✅ احسب البقشيش تلقائياً
+- ✅ أرسل طلب الدفع للأصدقاء
+- ✅ تتبع من دفع ومن لم يدفع
+
+## نصيحة أخيرة
+
+لا تخلي المال يفسد صداقاتك. استخدم Diviso وخلي الحساب شفاف وواضح للجميع.
+
+**جرب Diviso الآن** وقل وداعاً للإحراج!
+    `,
+    contentEn: `
+## Introduction
+
+The moment the bill arrives at a restaurant can be one of the most awkward moments with friends. Who pays? How do we split? Do we pay equally or each pays for their order?
+
+## The Common Problem
+
+How many times have these situations happened to you?
+- Awkward silence when the bill arrives
+- Someone ordered the most expensive dish and everyone pays equally
+- Someone "forgot" their wallet
+- Arguments about who pays the tip
+
+## 5 Golden Etiquette Rules
+
+### 1. Agree in Advance
+Before ordering, decide the payment method:
+- "Everyone pays for their order"
+- "We split equally"
+- "I'm treating today"
+
+### 2. Don't Order the Most Expensive if Splitting Equally
+If you agreed to split equally, consider others in your choices.
+
+### 3. The Inviter Pays
+If you invited your friends, expect to pay the full bill.
+
+### 4. Don't Count Every Cent
+Don't be the person who calculates "my order was 47 SAR and yours was 52", this ruins the mood.
+
+### 5. Tip from Everyone
+The tip is added before splitting, not after.
+
+## When to Pay the Full Bill?
+
+- 🎂 Friend's birthday
+- 🎉 Special occasion (promotion, success)
+- 👋 Farewell or welcome
+- 🙏 Someone helped you with something big
+
+## How Diviso Solves This Problem
+
+- ✅ Record the bill with one click
+- ✅ Split equally or by order
+- ✅ Calculate tip automatically
+- ✅ Send payment requests to friends
+- ✅ Track who paid and who didn't
+
+## Final Tip
+
+Don't let money ruin your friendships. Use Diviso and keep the bill transparent and clear for everyone.
+
+**Try Diviso now** and say goodbye to awkwardness!
+    `
+  },
+  {
+    slug: "wedding-costs-splitting",
+    title: "تكاليف العرس والزواج - كيف تقسم المصاريف؟",
+    titleEn: "Wedding Costs - How to Split Expenses?",
+    description: "دليل شامل لتقسيم تكاليف الزواج بين العائلتين وتتبع مصاريف العرس في السعودية",
+    descriptionEn: "Comprehensive guide to splitting wedding costs between families and tracking wedding expenses in Saudi Arabia",
+    keywords: ["تكاليف الزواج", "مصاريف العرس", "ميزانية الزواج السعودية", "تخطيط العرس"],
+    keywordsEn: ["wedding costs", "wedding expenses", "Saudi wedding budget", "wedding planning"],
+    category: "guides",
+    readTime: 10,
+    publishDate: "2026-01-04",
+    content: `
+## مقدمة
+
+الزواج من أهم المناسبات في حياتنا، لكنه أيضاً من أكثرها تكلفة. التخطيط المالي الجيد يضمن بداية حياة زوجية مريحة.
+
+## تكاليف الزواج في السعودية 2026
+
+### قبل العرس
+| البند | التكلفة التقديرية |
+|-------|-------------------|
+| المهر | 30,000 - 100,000 ريال |
+| الشبكة (الذهب) | 15,000 - 50,000 ريال |
+| أثاث المنزل | 50,000 - 150,000 ريال |
+| الأجهزة الكهربائية | 20,000 - 40,000 ريال |
+
+### حفل الزفاف
+| البند | التكلفة التقديرية |
+|-------|-------------------|
+| قاعة الأفراح | 30,000 - 100,000 ريال |
+| الضيافة | 50,000 - 150,000 ريال |
+| التصوير والفيديو | 5,000 - 20,000 ريال |
+| الزهور والديكور | 10,000 - 30,000 ريال |
+| فرقة موسيقية/دي جي | 5,000 - 15,000 ريال |
+
+### ملابس ومستلزمات
+| البند | التكلفة التقديرية |
+|-------|-------------------|
+| فستان العروس | 5,000 - 30,000 ريال |
+| بدلة العريس | 2,000 - 10,000 ريال |
+| المكياج والشعر | 2,000 - 8,000 ريال |
+
+## كيف تقسم التكاليف؟
+
+### الطريقة التقليدية
+- **أهل العريس**: المهر، الشبكة، قاعة الرجال، شهر العسل
+- **أهل العروس**: قاعة النساء، فستان العروس، جهاز العروس
+
+### الطريقة الحديثة
+- تقسيم بالتساوي بين العائلتين
+- أو حسب القدرة المالية لكل عائلة
+- أو الزوجان يتحملان جزءاً من التكاليف
+
+## نصائح للتوفير
+
+1. **حدد ميزانية واضحة** من البداية
+2. **قارن الأسعار** بين عدة موردين
+3. **احجز مبكراً** للحصول على خصومات
+4. **تجنب الموسم الذروة** (الإجازات والأعياد)
+5. **ركز على الأساسيات** وتجنب الكماليات
+
+## كيف يساعدك Diviso؟
+
+- 📋 إنشاء ميزانية شاملة للعرس
+- 👨‍👩‍👧‍👦 مجموعة خاصة لكل عائلة
+- 💰 تتبع المصاريف الفعلية
+- 📊 مقارنة الميزانية بالمصاريف
+- 🎁 تسجيل الهدايا والمساهمات
+- 📱 مشاركة التقارير مع العائلة
+
+## خطوات عملية
+
+### الشهر الأول
+1. حدد الميزانية الإجمالية
+2. قسّمها على البنود الرئيسية
+3. أنشئ مجموعة Diviso للعرس
+
+### الأشهر 2-6
+1. سجل كل دفعة ومصروف
+2. تابع الميزانية المتبقية
+3. عدّل الخطة إذا لزم الأمر
+
+### الشهر الأخير
+1. راجع كل المصاريف
+2. سوِّ الحسابات بين العائلتين
+3. احتفظ بسجل للذكريات
+
+## الخلاصة
+
+التخطيط المالي الجيد للعرس = بداية مريحة للحياة الزوجية. لا تبدأ حياتك بديون!
+
+**استخدم Diviso الآن** وخطط لعرسك بذكاء!
+    `,
+    contentEn: `
+## Introduction
+
+Marriage is one of the most important occasions in our lives, but it's also one of the most expensive. Good financial planning ensures a comfortable start to married life.
+
+## Wedding Costs in Saudi Arabia 2026
+
+### Before the Wedding
+| Item | Estimated Cost |
+|------|----------------|
+| Mahr (Dowry) | 30,000 - 100,000 SAR |
+| Shabka (Gold) | 15,000 - 50,000 SAR |
+| Home Furniture | 50,000 - 150,000 SAR |
+| Appliances | 20,000 - 40,000 SAR |
+
+### Wedding Ceremony
+| Item | Estimated Cost |
+|------|----------------|
+| Wedding Venue | 30,000 - 100,000 SAR |
+| Catering | 50,000 - 150,000 SAR |
+| Photography & Video | 5,000 - 20,000 SAR |
+| Flowers & Decor | 10,000 - 30,000 SAR |
+| Band/DJ | 5,000 - 15,000 SAR |
+
+### Clothing & Accessories
+| Item | Estimated Cost |
+|------|----------------|
+| Wedding Dress | 5,000 - 30,000 SAR |
+| Groom's Suit | 2,000 - 10,000 SAR |
+| Makeup & Hair | 2,000 - 8,000 SAR |
+
+## How to Split Costs?
+
+### Traditional Method
+- **Groom's Family**: Mahr, Shabka, men's venue, honeymoon
+- **Bride's Family**: Women's venue, wedding dress, trousseau
+
+### Modern Method
+- Split equally between families
+- Or according to each family's financial ability
+- Or the couple bears part of the costs
+
+## Money-Saving Tips
+
+1. **Set a clear budget** from the start
+2. **Compare prices** from multiple vendors
+3. **Book early** for discounts
+4. **Avoid peak season** (holidays and Eids)
+5. **Focus on essentials** and avoid luxuries
+
+## How Diviso Helps
+
+- 📋 Create a comprehensive wedding budget
+- 👨‍👩‍👧‍👦 Separate group for each family
+- 💰 Track actual expenses
+- 📊 Compare budget vs expenses
+- 🎁 Record gifts and contributions
+- 📱 Share reports with family
+
+## Practical Steps
+
+### Month 1
+1. Set the total budget
+2. Divide it into main categories
+3. Create a Diviso group for the wedding
+
+### Months 2-6
+1. Record every payment and expense
+2. Track remaining budget
+3. Adjust the plan if needed
+
+### Final Month
+1. Review all expenses
+2. Settle accounts between families
+3. Keep a record for memories
+
+## Conclusion
+
+Good financial planning for the wedding = comfortable start to married life. Don't start your life in debt!
+
+**Use Diviso now** and plan your wedding smartly!
+    `
+  },
+  {
+    slug: "umrah-trip-budget",
+    title: "كيف تدير ميزانية رحلة العمرة مع العائلة؟",
+    titleEn: "How to Manage Your Family Umrah Trip Budget?",
+    description: "دليل شامل لتخطيط ميزانية رحلة العمرة وتقسيم المصاريف بين أفراد العائلة",
+    descriptionEn: "Comprehensive guide to planning Umrah trip budget and splitting expenses among family members",
+    keywords: ["ميزانية العمرة", "تكاليف العمرة", "رحلة العمرة العائلية", "مصاريف العمرة"],
+    keywordsEn: ["Umrah budget", "Umrah costs", "family Umrah trip", "Umrah expenses"],
+    category: "guides",
+    readTime: 8,
+    publishDate: "2026-01-02",
+    content: `
+## مقدمة
+
+رحلة العمرة من أجمل الرحلات الروحانية، والتخطيط المالي الجيد يضمن لك التركيز على العبادة بدون قلق.
+
+## تكاليف رحلة العمرة المتوقعة
+
+### السفر
+| البند | التكلفة التقديرية |
+|-------|-------------------|
+| تذاكر الطيران (من الرياض) | 800 - 1,500 ريال/شخص |
+| السفر بالسيارة | 300 - 500 ريال (بنزين ذهاب وإياب) |
+| باص أو حافلة | 200 - 400 ريال/شخص |
+
+### الإقامة (لليلة الواحدة)
+| الفئة | مكة | المدينة |
+|-------|------|---------|
+| اقتصادي | 200 - 400 ريال | 150 - 300 ريال |
+| متوسط | 400 - 800 ريال | 300 - 600 ريال |
+| فاخر | 800 - 2,000 ريال | 600 - 1,500 ريال |
+
+### المصاريف اليومية
+| البند | التكلفة |
+|-------|---------|
+| الطعام | 100 - 200 ريال/شخص/يوم |
+| المواصلات الداخلية | 50 - 100 ريال/يوم |
+| الهدايا والتسوق | 500 - 2,000 ريال |
+| متفرقات | 50 - 100 ريال/يوم |
+
+## مثال: ميزانية رحلة 5 أيام (عائلة 4 أشخاص)
+
+| البند | التكلفة |
+|-------|---------|
+| السفر (سيارة) | 400 ريال |
+| الفندق (4 ليالي × 500) | 2,000 ريال |
+| الطعام (5 أيام × 400) | 2,000 ريال |
+| المواصلات الداخلية | 300 ريال |
+| الهدايا والتسوق | 1,000 ريال |
+| متفرقات | 300 ريال |
+| **المجموع** | **6,000 ريال** |
+| **للشخص** | **1,500 ريال** |
+
+## كيف تقسم المصاريف بين العائلة؟
+
+### إذا كانت عائلة واحدة
+- الأب والأم يتحملان التكاليف
+- أو يساهم الأبناء العاملون
+
+### إذا كانت عائلات متعددة
+- **الطريقة 1**: كل عائلة تدفع مصاريفها
+- **الطريقة 2**: تقسيم بالتساوي على عدد الأشخاص
+- **الطريقة 3**: حسب القدرة المالية
+
+## نصائح للتوفير
+
+1. 📅 **احجز مبكراً** - الأسعار ترتفع في المواسم
+2. 🏨 **اختر فندق بعيد قليلاً** - أرخص وتمشي للحرم
+3. 🍽️ **كل في المطاعم الشعبية** - ألذ وأرخص
+4. 🚗 **اذهب بالسيارة** - أوفر للعائلات الكبيرة
+5. 🛍️ **حدد ميزانية الهدايا** - لا تفرط في التسوق
+
+## كيف يساعدك Diviso؟
+
+- 👨‍👩‍👧‍👦 إنشاء مجموعة للعائلة
+- 💵 تسجيل كل مصروف فوراً
+- 📊 تصنيف المصاريف (سكن، طعام، تسوق)
+- 📱 مشاركة التقارير مع الجميع
+- ⚖️ حساب نصيب كل شخص بدقة
+- 💳 تسوية سهلة بعد الرحلة
+
+## خطة عملية
+
+### قبل الرحلة
+1. حدد الميزانية الكاملة
+2. اجمع المبلغ من المشاركين
+3. احجز الفندق والسفر
+
+### أثناء الرحلة
+1. سجل كل مصروف في Diviso
+2. تابع الميزانية المتبقية
+3. التقط صور الفواتير
+
+### بعد الرحلة
+1. راجع كل المصاريف
+2. احسب نصيب كل شخص
+3. سوِّ الحسابات
+
+## الخلاصة
+
+رحلة العمرة يجب أن تكون تجربة روحانية، لا قلق مالي. خطط جيداً واستمتع بعبادتك.
+
+**حمّل Diviso الآن** وخطط لعمرتك بسلام!
+    `,
+    contentEn: `
+## Introduction
+
+The Umrah trip is one of the most beautiful spiritual journeys, and good financial planning ensures you focus on worship without worry.
+
+## Expected Umrah Trip Costs
+
+### Travel
+| Item | Estimated Cost |
+|------|----------------|
+| Flights (from Riyadh) | 800 - 1,500 SAR/person |
+| By Car | 300 - 500 SAR (fuel round trip) |
+| Bus | 200 - 400 SAR/person |
+
+### Accommodation (per night)
+| Category | Makkah | Madinah |
+|----------|--------|---------|
+| Budget | 200 - 400 SAR | 150 - 300 SAR |
+| Mid-range | 400 - 800 SAR | 300 - 600 SAR |
+| Luxury | 800 - 2,000 SAR | 600 - 1,500 SAR |
+
+### Daily Expenses
+| Item | Cost |
+|------|------|
+| Food | 100 - 200 SAR/person/day |
+| Local Transport | 50 - 100 SAR/day |
+| Gifts & Shopping | 500 - 2,000 SAR |
+| Miscellaneous | 50 - 100 SAR/day |
+
+## Example: 5-Day Trip Budget (Family of 4)
+
+| Item | Cost |
+|------|------|
+| Travel (car) | 400 SAR |
+| Hotel (4 nights × 500) | 2,000 SAR |
+| Food (5 days × 400) | 2,000 SAR |
+| Local Transport | 300 SAR |
+| Gifts & Shopping | 1,000 SAR |
+| Miscellaneous | 300 SAR |
+| **Total** | **6,000 SAR** |
+| **Per Person** | **1,500 SAR** |
+
+## How to Split Expenses Among Family?
+
+### If One Family
+- Parents cover the costs
+- Or working children contribute
+
+### If Multiple Families
+- **Method 1**: Each family pays their expenses
+- **Method 2**: Split equally by number of people
+- **Method 3**: According to financial ability
+
+## Money-Saving Tips
+
+1. 📅 **Book early** - prices rise in seasons
+2. 🏨 **Choose a hotel slightly farther** - cheaper and you walk to Haram
+3. 🍽️ **Eat at local restaurants** - tastier and cheaper
+4. 🚗 **Go by car** - cheaper for large families
+5. 🛍️ **Set a gift budget** - don't overspend shopping
+
+## How Diviso Helps
+
+- 👨‍👩‍👧‍👦 Create a family group
+- 💵 Record every expense instantly
+- 📊 Categorize expenses (accommodation, food, shopping)
+- 📱 Share reports with everyone
+- ⚖️ Calculate each person's share accurately
+- 💳 Easy settlement after the trip
+
+## Practical Plan
+
+### Before the Trip
+1. Set the total budget
+2. Collect the amount from participants
+3. Book hotel and travel
+
+### During the Trip
+1. Record every expense in Diviso
+2. Track remaining budget
+3. Take photos of receipts
+
+### After the Trip
+1. Review all expenses
+2. Calculate each person's share
+3. Settle accounts
+
+## Conclusion
+
+The Umrah trip should be a spiritual experience, not financial stress. Plan well and enjoy your worship.
+
+**Download Diviso now** and plan your Umrah peacefully!
+    `
+  },
+  {
+    slug: "weekly-hangouts-expenses",
+    title: "دليل مصاريف الطلعات والتجمعات الأسبوعية",
+    titleEn: "Weekly Hangouts and Gatherings Expense Guide",
+    description: "كيف تدير مصاريف طلعات الشلة الأسبوعية وتتجنب مشاكل 'من يدفع اليوم؟'",
+    descriptionEn: "How to manage weekly friend hangout expenses and avoid 'who pays today?' problems",
+    keywords: ["مصاريف الطلعات", "تقسيم حساب الشلة", "مصاريف التجمعات", "طلعات الأصدقاء"],
+    keywordsEn: ["hangout expenses", "friend group bills", "gathering costs", "friend outings"],
+    category: "tips",
+    readTime: 6,
+    publishDate: "2025-12-28",
+    content: `
+## مقدمة
+
+الطلعات الأسبوعية مع الشلة من أجمل الأوقات، لكن سؤال "من يدفع اليوم؟" قد يفسد المتعة. خلنا نحل هذه المشكلة!
+
+## المشاكل الشائعة
+
+- 😬 "أنا دفعت المرة الماضية!"
+- 🤔 "مين اللي ما دفع أبداً؟"
+- 😤 "فلان دايماً يطلب الأغلى"
+- 💸 "الحساب راح ضخم ومحد يبي يدفع"
+
+## أنظمة تقسيم الطلعات
+
+### 1. نظام التناوب
+كل أسبوع شخص مختلف يدفع الحساب كامل.
+
+**المميزات:**
+- ✅ بسيط وواضح
+- ✅ لا حسابات معقدة
+
+**العيوب:**
+- ❌ غير عادل إذا اختلفت الطلبات
+- ❌ مشكلة إذا غاب أحدهم
+
+### 2. كل واحد يدفع طلبه
+الأكثر عدالة، كل شخص يدفع ما طلبه.
+
+**المميزات:**
+- ✅ عادل 100%
+- ✅ لا خلافات
+
+**العيوب:**
+- ❌ يحتاج حساب كل مرة
+- ❌ قد يكون بخيل شوي
+
+### 3. التقسيم بالتساوي
+المجموع ÷ عدد الأشخاص = نصيب كل واحد.
+
+**المميزات:**
+- ✅ سريع وسهل
+- ✅ يعزز روح الجماعة
+
+**العيوب:**
+- ❌ غير عادل إذا اختلفت الطلبات كثيراً
+
+### 4. الصندوق المشترك (الأفضل!)
+كل شخص يحول مبلغ ثابت شهرياً، والطلعات تُصرف منه.
+
+**المميزات:**
+- ✅ لا حسابات كل مرة
+- ✅ ميزانية محددة
+- ✅ يشجع على طلعات أكثر
+
+## كيف يساعدك Diviso؟
+
+### إنشاء مجموعة الشلة
+1. أنشئ مجموعة باسم الشلة
+2. أضف جميع الأصدقاء
+3. حدد العملة (ريال سعودي)
+
+### تسجيل المصاريف
+1. بعد كل طلعة، سجل المصروف
+2. حدد من دفع
+3. اختر طريقة التقسيم
+
+### تتبع الأرصدة
+- شوف من عليه فلوس
+- شوف من له فلوس
+- سوِّ الحسابات بضغطة
+
+## نصائح ذهبية
+
+1. 🗓️ **حدد يوم ثابت** للطلعة (مثلاً: كل خميس)
+2. 📍 **اختر أماكن متنوعة** بأسعار مختلفة
+3. 📱 **سجل فوراً** لا تأجل
+4. 💬 **تواصل بشفافية** إذا كان المبلغ كبير
+5. ⚖️ **سوِّ شهرياً** لا تخلي الحسابات تتراكم
+
+## مثال عملي
+
+### الشلة: 5 أصدقاء
+### الطلعة: مطعم + قهوة
+
+| البند | المبلغ | من دفع |
+|-------|--------|--------|
+| عشاء المطعم | 350 ريال | أحمد |
+| القهوة | 120 ريال | خالد |
+| **المجموع** | **470 ريال** | - |
+| **نصيب كل واحد** | **94 ريال** | - |
+
+### التسوية:
+- أحمد يستحق: 350 - 94 = 256 ريال
+- خالد يستحق: 120 - 94 = 26 ريال
+- الباقين يدفعون: 94 ريال لكل واحد
+
+## الخلاصة
+
+الصداقة أهم من المال. استخدم Diviso وخل طلعاتكم ممتعة بدون هموم مالية!
+
+**جرب Diviso الآن** وسهّل حياتك مع الشلة!
+    `,
+    contentEn: `
+## Introduction
+
+Weekly hangouts with friends are some of the best times, but the question "who pays today?" can ruin the fun. Let's solve this problem!
+
+## Common Problems
+
+- 😬 "I paid last time!"
+- 🤔 "Who never pays?"
+- 😤 "That guy always orders the most expensive"
+- 💸 "The bill got huge and no one wants to pay"
+
+## Hangout Splitting Systems
+
+### 1. Rotation System
+Each week a different person pays the full bill.
+
+**Pros:**
+- ✅ Simple and clear
+- ✅ No complex calculations
+
+**Cons:**
+- ❌ Unfair if orders differ
+- ❌ Problem if someone is absent
+
+### 2. Everyone Pays Their Own
+The most fair, each person pays what they ordered.
+
+**Pros:**
+- ✅ 100% fair
+- ✅ No disputes
+
+**Cons:**
+- ❌ Needs calculation every time
+- ❌ Can seem stingy
+
+### 3. Equal Split
+Total ÷ number of people = each person's share.
+
+**Pros:**
+- ✅ Quick and easy
+- ✅ Promotes group spirit
+
+**Cons:**
+- ❌ Unfair if orders differ significantly
+
+### 4. Shared Fund (Best!)
+Everyone transfers a fixed amount monthly, hangouts are paid from it.
+
+**Pros:**
+- ✅ No calculations each time
+- ✅ Fixed budget
+- ✅ Encourages more hangouts
+
+## How Diviso Helps
+
+### Creating the Friend Group
+1. Create a group with your crew's name
+2. Add all friends
+3. Set currency (Saudi Riyal)
+
+### Recording Expenses
+1. After each hangout, record the expense
+2. Specify who paid
+3. Choose splitting method
+
+### Tracking Balances
+- See who owes money
+- See who is owed money
+- Settle with one click
+
+## Golden Tips
+
+1. 🗓️ **Set a fixed day** for hangouts (e.g., every Thursday)
+2. 📍 **Choose varied places** with different prices
+3. 📱 **Record immediately** don't delay
+4. 💬 **Communicate transparently** if the amount is large
+5. ⚖️ **Settle monthly** don't let accounts pile up
+
+## Practical Example
+
+### The Crew: 5 friends
+### The Hangout: Restaurant + Coffee
+
+| Item | Amount | Who Paid |
+|------|--------|----------|
+| Restaurant dinner | 350 SAR | Ahmed |
+| Coffee | 120 SAR | Khaled |
+| **Total** | **470 SAR** | - |
+| **Each person's share** | **94 SAR** | - |
+
+### Settlement:
+- Ahmed is owed: 350 - 94 = 256 SAR
+- Khaled is owed: 120 - 94 = 26 SAR
+- Others pay: 94 SAR each
+
+## Conclusion
+
+Friendship is more important than money. Use Diviso and make your hangouts enjoyable without financial worries!
+
+**Try Diviso now** and simplify your life with friends!
+    `
   }
 ];
 
