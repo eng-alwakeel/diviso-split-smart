@@ -69,4 +69,54 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- صفحة المدونة الرئيسية -->
+  <url>
+    <loc>https://diviso.app/blog</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- مقالة تقسيم مصاريف السفر -->
+  <url>
+    <loc>https://diviso.app/blog/travel-expenses-guide</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/travel-expenses-guide" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/travel-expenses-guide?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة أفضل تطبيقات التقسيم -->
+  <url>
+    <loc>https://diviso.app/blog/best-splitting-apps-saudi</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/best-splitting-apps-saudi" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/best-splitting-apps-saudi?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة السكن المشترك -->
+  <url>
+    <loc>https://diviso.app/blog/shared-housing-expenses</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/shared-housing-expenses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/shared-housing-expenses?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- مقالة ميزانية الكشتة -->
+  <url>
+    <loc>https://diviso.app/blog/camping-budget-guide</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog/camping-budget-guide" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/camping-budget-guide?lang=en" />
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
