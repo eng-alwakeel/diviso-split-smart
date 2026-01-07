@@ -16,7 +16,7 @@ const defaultSEO = {
   description: 'Diviso - تطبيق تقسيم المصاريف الأول في السعودية. قسّم فواتير السفر والمطاعم بين الأصدقاء والعائلة بذكاء. بديل Splitwise العربي.',
   ogImage: 'https://diviso.app/og-image.png',
   siteUrl: 'https://diviso.app',
-  keywords: 'تقسيم مصاريف, إدارة نفقات, مصاريف مشتركة, expense splitting, split bills, travel expenses',
+  keywords: 'تقسيم مصاريف, إدارة نفقات, مصاريف مشتركة, حساب مصاريف, تطبيق تقسيم الفاتورة, تسوية الديون, إدارة ميزانية, مصاريف السفر, مصاريف الرحلات, تطبيق مصاريف سعودي, تطبيق مالي عربي, تتبع النفقات, مصاريف المجموعات, تقسيم فاتورة المطعم, حساب الديون, expense splitting, split bills, travel expenses, expense tracker, bill splitting app, group expense manager, shared expenses, travel budget app, splitwise alternative, money management, budget tracker, Saudi finance app',
 };
 
 export const SEO = ({
@@ -86,9 +86,14 @@ export const SEO = ({
     updateMetaTag('meta[property="og:locale"]', lang === 'ar' ? 'ar_SA' : 'en_US');
 
     // Update Twitter tags
+    updateMetaTag('meta[name="twitter:card"]', 'summary_large_image');
+    updateMetaTag('meta[name="twitter:site"]', '@diviso_app');
     updateMetaTag('meta[name="twitter:title"]', fullTitle);
     updateMetaTag('meta[name="twitter:description"]', metaDescription);
     updateMetaTag('meta[name="twitter:image"]', metaImage);
+    
+    // Update theme-color
+    updateMetaTag('meta[name="theme-color"]', '#1A1C1E');
     
     // Update og:image:alt
     updateMetaTag('meta[property="og:image:alt"]', fullTitle);
