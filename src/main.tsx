@@ -4,23 +4,7 @@ import './i18n' // Initialize i18next before App
 import App from './App.tsx'
 import './index.css'
 
-// Preload critical fonts immediately
-const preloadFonts = () => {
-  const fonts = [
-    '/fonts/ReadexPro-Regular.woff2',
-    '/fonts/ReadexPro-SemiBold.woff2'
-  ];
-  
-  fonts.forEach(font => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'font';
-    link.type = 'font/woff2';
-    link.crossOrigin = 'anonymous';
-    link.href = font;
-    document.head.appendChild(link);
-  });
-};
+// Note: Font preloading moved to index.html for faster loading
 
 // Preconnect to external services
 const preconnectServices = () => {
@@ -39,7 +23,6 @@ const preconnectServices = () => {
 };
 
 // Run optimizations immediately
-preloadFonts();
 preconnectServices();
 
 createRoot(document.getElementById("root")!).render(

@@ -3,9 +3,15 @@ const CACHE_VERSION = Date.now().toString();
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `static-cache-${CACHE_VERSION}`;
 
-const STATIC_ASSETS = [
+// Critical assets to precache for fast first load
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
+  '/favicon.png',
+  '/manifest.json'
+];
+
+const STATIC_ASSETS = [
   '/src/main.tsx',
   '/src/index.css',
   '/placeholder.svg'
@@ -27,7 +33,7 @@ self.addEventListener('install', (event) => {
   console.log('[SW] Installing new service worker version:', CACHE_VERSION);
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then((cache) => cache.addAll([...PRECACHE_ASSETS, ...STATIC_ASSETS]))
       .then(() => {
         console.log('[SW] Static assets cached, skipping waiting');
         return self.skipWaiting();
