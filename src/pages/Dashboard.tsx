@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,30 +9,34 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
 import { useOptimizedDashboardData } from "@/hooks/useOptimizedQueries";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { Card } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
-import DailyCheckInCard from "@/components/dashboard/DailyCheckInCard";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
-
-import { CreditBalanceCard } from "@/components/credits/CreditBalanceCard";
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
-import { ShareableAchievementCard } from "@/components/achievements/ShareableAchievementCard";
-import { AchievementPopup } from "@/components/achievements/AchievementPopup";
-import { MonthlyWrapCard } from "@/components/achievements/MonthlyWrapCard";
+
+// Lazy load heavy components for better initial load
+const DailyCheckInCard = lazy(() => import("@/components/dashboard/DailyCheckInCard"));
+const CreditBalanceCard = lazy(() => import("@/components/credits/CreditBalanceCard").then(m => ({ default: m.CreditBalanceCard })));
+const ShareableAchievementCard = lazy(() => import("@/components/achievements/ShareableAchievementCard").then(m => ({ default: m.ShareableAchievementCard })));
+const AchievementPopup = lazy(() => import("@/components/achievements/AchievementPopup").then(m => ({ default: m.AchievementPopup })));
+const MonthlyWrapCard = lazy(() => import("@/components/achievements/MonthlyWrapCard").then(m => ({ default: m.MonthlyWrapCard })));
+const SmartPromotionBanner = lazy(() => import("@/components/promotions/SmartPromotionBanner").then(m => ({ default: m.SmartPromotionBanner })));
+const RecommendationDialog = lazy(() => import("@/components/recommendations/RecommendationDialog").then(m => ({ default: m.RecommendationDialog })));
+const SelectGroupDialog = lazy(() => import("@/components/recommendations/SelectGroupDialog").then(m => ({ default: m.SelectGroupDialog })));
+const LocationPermissionDialog = lazy(() => import("@/components/LocationPermissionDialog").then(m => ({ default: m.LocationPermissionDialog })));
+const RecommendationNotification = lazy(() => import("@/components/recommendations/RecommendationNotification").then(m => ({ default: m.RecommendationNotification })));
+
+// Fallback for lazy components
+const CardSkeleton = () => <Skeleton className="h-24 w-full rounded-lg" />;
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardRealtimeListener } from "@/hooks/useUnifiedRealtimeListener";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
-import { LocationPermissionDialog } from "@/components/LocationPermissionDialog";
-import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
-import { RecommendationDialog } from "@/components/recommendations/RecommendationDialog";
-import { SelectGroupDialog } from "@/components/recommendations/SelectGroupDialog";
 import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
@@ -273,25 +277,34 @@ const Dashboard = React.memo(() => {
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
 
           {/* Daily Check-in Card */}
-          <DailyCheckInCard />
-
+          <Suspense fallback={<CardSkeleton />}>
+            <DailyCheckInCard />
+          </Suspense>
 
           {/* Credit Balance Card */}
-          <CreditBalanceCard />
+          <Suspense fallback={<CardSkeleton />}>
+            <CreditBalanceCard />
+          </Suspense>
 
           {/* Fixed Ad Banner Below Stats */}
           <FixedStatsAdBanner placement="dashboard_stats" />
 
           {/* Latest Unshared Achievement */}
           {latestUnshared && (
-            <ShareableAchievementCard achievement={latestUnshared} compact />
+            <Suspense fallback={<CardSkeleton />}>
+              <ShareableAchievementCard achievement={latestUnshared} compact />
+            </Suspense>
           )}
 
           {/* Monthly Wrap Card */}
-          <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
+          <Suspense fallback={<CardSkeleton />}>
+            <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
+          </Suspense>
 
           {/* Smart Promotion System */}
-          <SmartPromotionBanner />
+          <Suspense fallback={<CardSkeleton />}>
+            <SmartPromotionBanner />
+          </Suspense>
 
           {/* Admin Dashboard Card - Only for Admins */}
           {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
@@ -311,64 +324,73 @@ const Dashboard = React.memo(() => {
       {showGuide && <AppGuide onClose={handleCloseGuide} />}
 
       {/* Location Permission Dialog */}
-      <LocationPermissionDialog
-        open={showLocationDialog}
-        onAllow={handleLocationAllow}
-        onDismiss={handleLocationDismiss}
-      />
+      <Suspense fallback={null}>
+        <LocationPermissionDialog
+          open={showLocationDialog}
+          onAllow={handleLocationAllow}
+          onDismiss={handleLocationDismiss}
+        />
+      </Suspense>
 
       {/* Recommendation Notification */}
       {showRecommendation && recommendationsEnabled && (
-        <RecommendationNotification
-          type={mealType === "lunch" ? "lunch" : mealType === "dinner" ? "dinner" : "post_expense"}
-          placeName={currentRecommendation?.name}
-          onViewRecommendation={handleViewRecommendation}
-          onDismiss={dismissTrigger}
-        />
+        <Suspense fallback={null}>
+          <RecommendationNotification
+            type={mealType === "lunch" ? "lunch" : mealType === "dinner" ? "dinner" : "post_expense"}
+            placeName={currentRecommendation?.name}
+            onViewRecommendation={handleViewRecommendation}
+            onDismiss={dismissTrigger}
+          />
+        </Suspense>
       )}
 
       {/* Recommendation Dialog */}
-      <RecommendationDialog
-        open={showRecommendationDialog}
-        onOpenChange={setShowRecommendationDialog}
-        recommendation={currentRecommendation}
-        onAddAsExpense={handleAddAsExpense}
-        onOpenLocation={(rec) => {
-          if (rec.location?.lat && rec.location?.lng) {
-            window.open(`https://www.google.com/maps?q=${rec.location.lat},${rec.location.lng}`, "_blank");
-          } else if (rec.affiliate_url) {
-            window.open(rec.affiliate_url, "_blank");
-          } else {
-            // Fallback: search by name on Google Maps
-            window.open(`https://www.google.com/maps/search/${encodeURIComponent(rec.name)}`, "_blank");
-          }
-        }}
-        onDismiss={(id) => {
-          dismissRecommendation(id);
-          setShowRecommendationDialog(false);
-        }}
-        isLoading={recommendationLoading}
-      />
+      <Suspense fallback={null}>
+        <RecommendationDialog
+          open={showRecommendationDialog}
+          onOpenChange={setShowRecommendationDialog}
+          recommendation={currentRecommendation}
+          onAddAsExpense={handleAddAsExpense}
+          onOpenLocation={(rec) => {
+            if (rec.location?.lat && rec.location?.lng) {
+              window.open(`https://www.google.com/maps?q=${rec.location.lat},${rec.location.lng}`, "_blank");
+            } else if (rec.affiliate_url) {
+              window.open(rec.affiliate_url, "_blank");
+            } else {
+              window.open(`https://www.google.com/maps/search/${encodeURIComponent(rec.name)}`, "_blank");
+            }
+          }}
+          onDismiss={(id) => {
+            dismissRecommendation(id);
+            setShowRecommendationDialog(false);
+          }}
+          isLoading={recommendationLoading}
+        />
+      </Suspense>
 
       {/* Select Group Dialog for adding expense */}
-      <SelectGroupDialog
-        open={showSelectGroupDialog}
-        onOpenChange={(open) => {
-          setShowSelectGroupDialog(open);
-          if (!open) clearPendingExpense();
-        }}
-        onSelect={(groupId) => {
-          completeAddAsExpense(groupId);
-          setShowRecommendationDialog(false);
-        }}
-      />
+      <Suspense fallback={null}>
+        <SelectGroupDialog
+          open={showSelectGroupDialog}
+          onOpenChange={(open) => {
+            setShowSelectGroupDialog(open);
+            if (!open) clearPendingExpense();
+          }}
+          onSelect={(groupId) => {
+            completeAddAsExpense(groupId);
+            setShowRecommendationDialog(false);
+          }}
+        />
+      </Suspense>
 
       {/* Achievement Popup */}
-      <AchievementPopup
-        achievement={latestUnshared}
-        open={showAchievementPopup}
-        onClose={() => setShowAchievementPopup(false)}
-      />
+      <Suspense fallback={null}>
+        <AchievementPopup
+          achievement={latestUnshared}
+          open={showAchievementPopup}
+          onClose={() => setShowAchievementPopup(false)}
+        />
+      </Suspense>
 
       {/* Floating Support Button */}
       <FloatingSupportButton />

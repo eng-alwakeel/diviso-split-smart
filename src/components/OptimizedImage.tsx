@@ -10,6 +10,8 @@ interface OptimizedImageProps {
   priority?: boolean;
   onError?: () => void;
   onLoad?: () => void;
+  webpSrc?: string;
+  sizes?: string;
 }
 
 export const OptimizedImage = ({
@@ -21,7 +23,9 @@ export const OptimizedImage = ({
   loading = 'lazy',
   priority = false,
   onError,
-  onLoad
+  onLoad,
+  webpSrc,
+  sizes
 }: OptimizedImageProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -66,21 +70,25 @@ export const OptimizedImage = ({
           style={{ width, height }}
         />
       )}
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={loading}
-        className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{
-          width: width ? `${width}px` : 'auto',
-          height: height ? `${height}px` : 'auto'
-        }}
-      />
+      <picture>
+        {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
+        <img
+          ref={imgRef}
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          loading={loading}
+          sizes={sizes}
+          className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+          onLoad={handleLoad}
+          onError={handleError}
+          style={{
+            width: width ? `${width}px` : 'auto',
+            height: height ? `${height}px` : 'auto'
+          }}
+        />
+      </picture>
     </div>
   );
 };

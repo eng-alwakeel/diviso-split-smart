@@ -199,11 +199,13 @@
     <!-- Readex Pro font for Arabic-friendly iOS-like look -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.gstatic.com/s/readexpro/v21/SLXnc1bJ7HE5YDoGPuzj_dh8nv6L.woff2" as="font" type="font/woff2" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Moyasar Payment Gateway -->
-    <script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js"></script>
-    <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" />
+    <!-- Moyasar Payment Gateway - Deferred for performance -->
+    <link rel="preconnect" href="https://cdn.moyasar.com" />
+    <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" /></noscript>
 
     <!-- Travelpayouts Affiliate Tracking -->
     <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
@@ -219,6 +221,8 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Moyasar Payment Script - Deferred -->
+    <script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js" defer></script>
     <script>
       // Register service worker for caching
       if ('serviceWorker' in navigator) {
