@@ -1,0 +1,16 @@
+{
+  "pageTitle": "Blog",
+  "pageDescription": "Articles and tips about managing shared expenses and splitting bills",
+  "readMore": "Read More",
+  "readTime": "{{minutes}} min read",
+  "share": "Share",
+  "linkCopied": "Link copied",
+  "copyFailed": "Failed to copy link",
+  "relatedPosts": "Related Posts",
+  "categories": {
+    "guides": "Guides",
+    "tips": "Tips",
+    "news": "News",
+    "comparisons": "Comparisons"
+  }
+}
