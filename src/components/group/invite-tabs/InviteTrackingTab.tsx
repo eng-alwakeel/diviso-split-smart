@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GroupInvite } from "@/hooks/useGroupInvites";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 import { 
   Clock, 
   CheckCircle, 
@@ -110,13 +111,26 @@ export const InviteTrackingTab = ({
       // Determine if it's phone or email
       const isPhone = /^[\+]?[\d\s\-\(\)]+$/.test(invite.phone_or_email);
       
+      // إنشاء group_join_token للدعوة
+      const { data: tokenData, error: tokenError } = await supabase.rpc('create_group_join_token', {
+        p_group_id: invite.group_id,
+        p_role: 'member',
+        p_link_type: 'contact_invite'
+      });
+
+      if (tokenError) throw tokenError;
+
+      const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
+      const token = typeof tokenObj === 'object' && tokenObj !== null ? (tokenObj as { token?: string }).token : String(tokenObj);
+      const inviteLink = `${BRAND_CONFIG.url}/i/${token}`;
+
       if (isPhone) {
         // Send SMS invite
         const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
           body: {
             phone: invite.phone_or_email,
-            groupName: "المجموعة", // You might want to pass this as a prop
-            inviteLink: `${window.location.origin}/invite/${invite.id}`,
+            groupName: "المجموعة",
+            inviteLink,
             senderName: "المستخدم"
           }
         });
@@ -128,7 +142,7 @@ export const InviteTrackingTab = ({
           body: {
             email: invite.phone_or_email,
             groupName: "المجموعة",
-            inviteLink: `${window.location.origin}/invite/${invite.id}`,
+            inviteLink,
             groupId: invite.group_id
           }
         });
