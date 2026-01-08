@@ -820,6 +820,7 @@ const GroupDetails = () => {
                   setPrefillAmount(amount);
                   setSettleOpen(true);
                 }}
+                onSettlementConfirmed={refetch}
               />
             )}
 

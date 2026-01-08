@@ -3437,32 +3437,41 @@ export type Database = {
       settlements: {
         Row: {
           amount: number
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
           created_by: string
           from_user_id: string
           group_id: string
           id: string
           note: string | null
+          status: string | null
           to_user_id: string
         }
         Insert: {
           amount: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by: string
           from_user_id: string
           group_id: string
           id?: string
           note?: string | null
+          status?: string | null
           to_user_id: string
         }
         Update: {
           amount?: number
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by?: string
           from_user_id?: string
           group_id?: string
           id?: string
           note?: string | null
+          status?: string | null
           to_user_id?: string
         }
         Relationships: [

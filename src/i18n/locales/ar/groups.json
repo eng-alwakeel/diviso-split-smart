@@ -102,8 +102,27 @@
     "no_settlements": "لا توجد تسويات بعد.",
     "paid": "دفع",
     "to": "إلى",
+    "from": "من",
+    "amount": "المبلغ",
+    "date": "التاريخ",
+    "note": "ملاحظة",
     "delete_failed": "تعذر حذف التسوية",
-    "deleted": "تم حذف التسوية"
+    "deleted": "تم حذف التسوية",
+    "status_pending": "في انتظار التأكيد",
+    "status_confirmed": "مؤكد",
+    "status_disputed": "متنازع عليه",
+    "confirm_receipt": "تأكيد استلام التسوية",
+    "confirm_receipt_desc": "هل استلمت هذا المبلغ بالفعل؟",
+    "confirm": "تأكيد الاستلام",
+    "dispute": "لم أستلم",
+    "confirm_dispute": "تأكيد عدم الاستلام",
+    "dispute_warning": "سيتم إبلاغ المرسل بأنك لم تستلم المبلغ.",
+    "confirmed": "تم تأكيد التسوية",
+    "confirmed_desc": "تم تحديث حالة التسوية بنجاح",
+    "confirm_failed": "تعذر تأكيد التسوية",
+    "disputed": "تم الإبلاغ عن التسوية",
+    "disputed_desc": "تم تسجيل عدم استلامك للمبلغ",
+    "dispute_failed": "تعذر الإبلاغ عن التسوية"
   },
 
   "budget_tab": {

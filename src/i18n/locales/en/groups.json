@@ -102,8 +102,27 @@
     "no_settlements": "No settlements yet.",
     "paid": "paid",
     "to": "to",
+    "from": "From",
+    "amount": "Amount",
+    "date": "Date",
+    "note": "Note",
     "delete_failed": "Failed to delete settlement",
-    "deleted": "Settlement deleted"
+    "deleted": "Settlement deleted",
+    "status_pending": "Pending confirmation",
+    "status_confirmed": "Confirmed",
+    "status_disputed": "Disputed",
+    "confirm_receipt": "Confirm Settlement Receipt",
+    "confirm_receipt_desc": "Did you receive this amount?",
+    "confirm": "Confirm Receipt",
+    "dispute": "Not Received",
+    "confirm_dispute": "Confirm Not Received",
+    "dispute_warning": "The sender will be notified that you did not receive the amount.",
+    "confirmed": "Settlement Confirmed",
+    "confirmed_desc": "Settlement status updated successfully",
+    "confirm_failed": "Failed to confirm settlement",
+    "disputed": "Settlement Disputed",
+    "disputed_desc": "Your non-receipt has been recorded",
+    "dispute_failed": "Failed to dispute settlement"
   },
 
   "budget_tab": {
