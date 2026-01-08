@@ -56,11 +56,32 @@ serve(async (req) => {
     // Create a new client instance for password verification
     const verificationClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
     
-    // Attempt to sign in with current password (without creating a session)
-    const { error: signInError } = await verificationClient.auth.signInWithPassword({
-      email: user.email!,
-      password: currentPassword
-    });
+    // Determine sign-in method based on user's auth identity (email or phone)
+    let signInError;
+    
+    if (user.email) {
+      // User has email - verify with email
+      const result = await verificationClient.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+      signInError = result.error;
+    } else if (user.phone) {
+      // User has phone only - verify with phone
+      const result = await verificationClient.auth.signInWithPassword({
+        phone: user.phone,
+        password: currentPassword
+      });
+      signInError = result.error;
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'User has no email or phone configured' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Immediately sign out to not create any session artifacts
     await verificationClient.auth.signOut();

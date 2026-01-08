@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Receipt, Calendar, User, FileText, CheckCircle, XCircle, Users, CreditCard } from "lucide-react";
+import { RejectExpenseDialog } from "./RejectExpenseDialog";
 
 interface ExpenseRow {
   id: string;
@@ -53,6 +54,7 @@ export const ExpenseDetailsDialog = ({
   const { toast } = useToast();
   const [splits, setSplits] = useState<ExpenseSplit[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
 
   useEffect(() => {
     if (open && expense) {
@@ -241,7 +243,7 @@ export const ExpenseDetailsDialog = ({
                 اعتماد المصروف
               </Button>
               <Button
-                onClick={() => handleAction("reject")}
+                onClick={() => setShowRejectDialog(true)}
                 variant="destructive"
                 className="flex-1"
                 size="lg"
@@ -253,6 +255,19 @@ export const ExpenseDetailsDialog = ({
           )}
         </div>
       </DialogContent>
+      
+      {/* Reject Expense Dialog */}
+      <RejectExpenseDialog
+        open={showRejectDialog}
+        onOpenChange={setShowRejectDialog}
+        expenseId={expense?.id || null}
+        expenseDescription={expense?.description || "مصروف"}
+        onRejected={() => {
+          onOpenChange(false);
+          // Trigger parent refresh by calling onApprove with a refresh signal
+          onApprove(expense.id, "reject");
+        }}
+      />
     </Dialog>
   );
 };

@@ -535,11 +535,23 @@ const Auth = () => {
     }
   };
 
-  // Handle password reset from email link
+  // Handle password reset from email link (including Supabase email links with access_token)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    
+    // Check for access_token in URL hash (from Supabase email link)
+    // Supabase auto-recovers the session when hash contains access_token
+    if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
+      setMode("reset-password");
+      setAuthType("email"); // Email reset flow
+      return;
+    }
+    
+    // Check for mode=reset in query params (our custom redirect)
     if (params.get("mode") === "reset") {
       setMode("reset-password");
+      setAuthType("email");
     }
   }, []);
 
