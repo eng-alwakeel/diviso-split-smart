@@ -32,7 +32,7 @@ import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
 import { useUsageCredits, CreditActionType } from '@/hooks/useUsageCredits';
-import { InsufficientCreditsDialog } from '@/components/credits/InsufficientCreditsDialog';
+import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 const CreateGroup = () => {
@@ -818,13 +818,11 @@ const CreateGroup = () => {
       <div className="h-32 lg:hidden" />
       <BottomNav />
       
-      {/* Insufficient Credits Dialog */}
-      <InsufficientCreditsDialog
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
         open={showInsufficientDialog}
         onOpenChange={setShowInsufficientDialog}
-        actionType="create_group"
-        currentBalance={creditCheckResult.currentBalance}
-        requiredCredits={creditCheckResult.requiredCredits}
+        actionName="create_group"
       />
     </div>
   );

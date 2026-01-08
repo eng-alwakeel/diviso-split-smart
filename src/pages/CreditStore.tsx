@@ -297,7 +297,7 @@ const CreditStore = React.memo(() => {
                   <div className="text-center py-4 space-y-3">
                     <UserPlus className="h-10 w-10 mx-auto text-muted-foreground/50" />
                     <p className="text-sm text-muted-foreground">{t('invitee_status.no_invites')}</p>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/referral-center')}>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/referral')}>
                       {t('invitee_status.invite_now')}
                     </Button>
                   </div>
@@ -324,7 +324,7 @@ const CreditStore = React.memo(() => {
                       <Button 
                         variant="ghost" 
                         className="w-full text-sm"
-                        onClick={() => navigate('/referral-center')}
+                        onClick={() => navigate('/referral')}
                       >
                         {t('common:view_all')} ({inviteesProgress.length})
                       </Button>
@@ -338,7 +338,7 @@ const CreditStore = React.memo(() => {
             <Button 
               className="w-full h-11" 
               variant="outline"
-              onClick={() => navigate('/referral-center')}
+              onClick={() => navigate('/referral')}
             >
               <UserPlus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
               {t('invitee_status.invite_now')}

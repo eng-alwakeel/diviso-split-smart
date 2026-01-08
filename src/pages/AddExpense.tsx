@@ -38,7 +38,7 @@ import { QuickRecommendation } from "@/components/recommendations/QuickRecommend
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useReferralProgress } from "@/hooks/useReferralProgress";
 import { useUsageCredits, CreditActionType } from "@/hooks/useUsageCredits";
-import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
+import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 
 interface UserGroup {
   id: string;
@@ -1235,13 +1235,11 @@ const AddExpense = () => {
       <div className="h-32 lg:hidden" />
       <BottomNav />
       
-      {/* Insufficient Credits Dialog */}
-      <InsufficientCreditsDialog
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
         open={showInsufficientDialog}
         onOpenChange={setShowInsufficientDialog}
-        actionType={insufficientAction}
-        currentBalance={creditCheckResult.currentBalance}
-        requiredCredits={creditCheckResult.requiredCredits}
+        actionName={insufficientAction}
       />
     </div>
   );

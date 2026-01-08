@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
 import { useCategories } from "@/hooks/useCategories";
 import { useUsageCredits } from "@/hooks/useUsageCredits";
-import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
+import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 import { useToast } from "@/hooks/use-toast";
 
 type Profile = { id: string; display_name: string | null; name: string | null };
@@ -365,13 +365,11 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
         </div>
       </DialogContent>
       
-      {/* Insufficient Credits Dialog */}
-      <InsufficientCreditsDialog
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
         open={showInsufficientDialog}
         onOpenChange={setShowInsufficientDialog}
-        actionType="advanced_report"
-        currentBalance={creditCheckResult.currentBalance}
-        requiredCredits={creditCheckResult.requiredCredits}
+        actionName="advanced_report"
       />
     </Dialog>
   );

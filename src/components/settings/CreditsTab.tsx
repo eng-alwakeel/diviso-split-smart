@@ -212,7 +212,7 @@ const CreditsTab = memo(() => {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => navigate("/referral-center")}
+              onClick={() => navigate("/referral")}
               className="flex-1 gap-2"
             >
               <Users className="h-4 w-4" />

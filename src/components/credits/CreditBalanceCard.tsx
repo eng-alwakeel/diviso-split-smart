@@ -90,7 +90,7 @@ export const CreditBalanceCard = React.memo(() => {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => navigate('/referral-center')}
+            onClick={() => navigate('/referral')}
           >
             <UserPlus className="h-4 w-4" />
             {t('balance_card.invite_friends')}
