@@ -194,9 +194,14 @@
     }
   },
   "how_to_earn": {
-    "title": "كيف تكسب النقاط",
-    "daily_streaks": "سلاسل الدخول اليومي",
-    "referral_rewards": "مكافآت الإحالة"
+    "title": "طرق كسب النقاط",
+    "welcome": "مكافأة الترحيب: +50 نقطة (مرة واحدة)",
+    "daily": "نقاط يومية: +5 نقاط",
+    "referral": "إحالة صديق: +30 نقطة",
+    "referral_conditions": {
+      "first_usage": "+10 عند أول استخدام",
+      "group_settlement": "+20 عند إنشاء قروب أو تسوية"
+    }
   },
   "subscriptions": {
     "title": "خطط الاشتراك",
