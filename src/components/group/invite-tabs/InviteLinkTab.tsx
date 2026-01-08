@@ -9,6 +9,7 @@ import { Copy, Link, RefreshCw, Users, Clock, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Share } from "@capacitor/share";
 import { Capacitor } from "@capacitor/core";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
@@ -54,7 +55,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
       if (error) throw error;
 
       const tokenData = data[0];
-      const url = `${window.location.origin}/i/${tokenData.token}`;
+      const url = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
       setLink(url);
       setLinkInfo({
         maxUses: tokenData.max_uses,

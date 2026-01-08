@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 export interface GroupInvite {
   id: string;
@@ -172,11 +173,21 @@ export function useGroupInvites(groupId?: string) {
           console.error("Smart invite error:", smartError);
         }
       } else if (method === "sms" && isPhone) {
+        // إنشاء group_join_token للرابط الصحيح
+        const { data: tokenData } = await supabase.rpc('create_group_join_token', {
+          p_group_id: groupId,
+          p_role: role,
+          p_link_type: 'sms_invite'
+        });
+        const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
+        const token = typeof tokenObj === 'object' && tokenObj !== null ? (tokenObj as { token?: string }).token : String(tokenObj);
+        const inviteLink = token ? `${BRAND_CONFIG.url}/i/${token}` : `${BRAND_CONFIG.url}/i/${inviteData.id}`;
+
         const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
           body: {
             phone: phoneOrEmail,
             groupName: groupName || "المجموعة",
-            inviteLink: `${window.location.origin}/invite/${inviteData.id}`,
+            inviteLink,
             senderName: user.user_metadata?.name || "صديقك"
           }
         });
@@ -185,11 +196,21 @@ export function useGroupInvites(groupId?: string) {
           console.error("SMS error:", smsError);
         }
       } else if (method === "email" && isEmail) {
+        // إنشاء group_join_token للرابط الصحيح
+        const { data: tokenData } = await supabase.rpc('create_group_join_token', {
+          p_group_id: groupId,
+          p_role: role,
+          p_link_type: 'email_invite'
+        });
+        const tokenObj2 = Array.isArray(tokenData) ? tokenData[0] : tokenData;
+        const token = typeof tokenObj2 === 'object' && tokenObj2 !== null ? (tokenObj2 as { token?: string }).token : String(tokenObj2);
+        const inviteLink = token ? `${BRAND_CONFIG.url}/i/${token}` : `${BRAND_CONFIG.url}/i/${inviteData.id}`;
+
         const { error: emailError } = await supabase.functions.invoke('send-email-invite', {
           body: {
             email: phoneOrEmail,
             groupName: groupName || "المجموعة",
-            inviteLink: `${window.location.origin}/invite/${inviteData.id}`,
+            inviteLink,
             groupId
           }
         });
