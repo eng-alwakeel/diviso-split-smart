@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, ExternalLink, LogOut, Pencil, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, LogOut, Pencil, Trash2, Archive } from "lucide-react";
+import { useGroupArchive } from "@/hooks/useGroupArchive";
+import { ArchiveGroupDialog } from "./ArchiveGroupDialog";
+import { DeleteGroupDialog } from "./DeleteGroupDialog";
+import { useTranslation } from "react-i18next";
 
 interface GroupSettingsDialogProps {
   open: boolean;
@@ -32,11 +36,16 @@ export const GroupSettingsDialog = ({
   onLeftGroup,
   onGroupDeleted,
 }: GroupSettingsDialogProps) => {
+  const { t } = useTranslation(["groups", "common"]);
   const { toast } = useToast();
   const [name, setName] = useState<string>(groupName ?? "");
   const [saving, setSaving] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const { archiveGroup, isArchiving } = useGroupArchive();
 
   useEffect(() => {
     if (open) setName(groupName ?? "");
@@ -45,13 +54,13 @@ export const GroupSettingsDialog = ({
   const handleCopyId = async () => {
     if (!groupId) return;
     await navigator.clipboard.writeText(groupId);
-    toast({ title: "تم النسخ", description: "تم نسخ معرف المجموعة." });
+    toast({ title: t("messages.copied", "تم النسخ"), description: t("common:copied_to_clipboard", "تم نسخ معرف المجموعة.") });
   };
 
   const handleRename = async () => {
     if (!groupId) return;
     if (!canAdmin) {
-      toast({ title: "صلاحيات غير كافية", description: "فقط المالك/المدير يمكنه تغيير الاسم.", variant: "destructive" });
+      toast({ title: t("common:insufficient_permissions", "صلاحيات غير كافية"), description: t("settings.only_admin_rename", "فقط المالك/المدير يمكنه تغيير الاسم."), variant: "destructive" });
       return;
     }
     const newName = name.trim();
@@ -66,11 +75,11 @@ export const GroupSettingsDialog = ({
 
     if (error) {
       console.error("[GroupSettingsDialog] rename error", error);
-      toast({ title: "تعذر حفظ الاسم", description: error.message, variant: "destructive" });
+      toast({ title: t("settings.rename_failed", "تعذر حفظ الاسم"), description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "تم تحديث اسم المجموعة" });
+    toast({ title: t("settings.renamed", "تم تحديث اسم المجموعة") });
     onRenamed?.(newName);
     onOpenChange(false);
   };
@@ -78,16 +87,16 @@ export const GroupSettingsDialog = ({
   const handleLeave = async () => {
     if (!groupId) return;
     if (isOwner) {
-      toast({ title: "لا يمكن للمالك مغادرة المجموعة", description: "عيّن مالكاً آخر أولاً.", variant: "destructive" });
+      toast({ title: t("settings.owner_cannot_leave", "لا يمكن للمالك مغادرة المجموعة"), description: t("settings.assign_owner_first", "عيّن مالكاً آخر أولاً."), variant: "destructive" });
       return;
     }
-    const confirm = window.confirm("هل ترغب حقاً في مغادرة هذه المجموعة؟");
+    const confirm = window.confirm(t("settings.leave_confirm", "هل ترغب حقاً في مغادرة هذه المجموعة؟"));
     if (!confirm) return;
 
     const { data: userRes } = await supabase.auth.getUser();
     const uid = userRes.user?.id;
     if (!uid) {
-      toast({ title: "تسجيل الدخول مطلوب", variant: "destructive" });
+      toast({ title: t("common:login_required", "تسجيل الدخول مطلوب"), variant: "destructive" });
       return;
     }
 
@@ -101,54 +110,24 @@ export const GroupSettingsDialog = ({
 
     if (error) {
       console.error("[GroupSettingsDialog] leave error", error);
-      toast({ title: "تعذر مغادرة المجموعة", description: error.message, variant: "destructive" });
+      toast({ title: t("settings.leave_failed", "تعذر مغادرة المجموعة"), description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "تمت مغادرة المجموعة" });
+    toast({ title: t("settings.left", "تمت مغادرة المجموعة") });
     onOpenChange(false);
     onLeftGroup?.();
   };
 
+  const handleArchive = () => {
+    if (!groupId) return;
+    archiveGroup(groupId);
+    setArchiveDialogOpen(false);
+    onOpenChange(false);
+  };
+
   const handleDeleteGroup = async () => {
     if (!groupId || !isOwner) return;
-
-    // التحقق من عدم وجود مصاريف
-    const { count: expenseCount } = await supabase
-      .from("expenses")
-      .select("*", { count: "exact", head: true })
-      .eq("group_id", groupId);
-
-    if (expenseCount && expenseCount > 0) {
-      toast({ 
-        title: "لا يمكن حذف المجموعة", 
-        description: "يجب حذف جميع المصاريف أولاً", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    // التحقق من عدم وجود أعضاء آخرين (المالك فقط)
-    const { count: memberCount } = await supabase
-      .from("group_members")
-      .select("*", { count: "exact", head: true })
-      .eq("group_id", groupId);
-
-    if (memberCount && memberCount > 1) {
-      toast({ 
-        title: "لا يمكن حذف المجموعة", 
-        description: "يجب إزالة جميع الأعضاء أولاً", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    // تأكيد مزدوج
-    const firstConfirm = window.confirm("هل أنت متأكد من حذف هذه المجموعة؟ هذا الإجراء لا يمكن التراجع عنه.");
-    if (!firstConfirm) return;
-
-    const secondConfirm = window.confirm("تأكيد أخير: سيتم حذف المجموعة نهائياً. هل تريد المتابعة؟");
-    if (!secondConfirm) return;
 
     setDeleting(true);
 
@@ -168,21 +147,22 @@ export const GroupSettingsDialog = ({
       if (error) {
         console.error("[GroupSettingsDialog] delete error", error);
         toast({ 
-          title: "تعذر حذف المجموعة", 
+          title: t("delete.failed", "تعذر حذف المجموعة"), 
           description: error.message, 
           variant: "destructive" 
         });
         return;
       }
 
-      toast({ title: "تم حذف المجموعة بنجاح" });
+      toast({ title: t("delete.success", "تم حذف المجموعة بنجاح") });
+      setDeleteDialogOpen(false);
       onOpenChange(false);
       onGroupDeleted?.();
     } catch (error) {
       console.error("[GroupSettingsDialog] unexpected error", error);
       toast({ 
-        title: "حدث خطأ غير متوقع", 
-        description: "حاول مرة أخرى", 
+        title: t("common:unexpected_error", "حدث خطأ غير متوقع"), 
+        description: t("common:try_again", "حاول مرة أخرى"), 
         variant: "destructive" 
       });
     } finally {
@@ -191,79 +171,114 @@ export const GroupSettingsDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>إعدادات المجموعة</DialogTitle>
-          <DialogDescription>تعديل الاسم، إرسال دعوات أو مغادرة المجموعة.</DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t("settings.title", "إعدادات المجموعة")}</DialogTitle>
+            <DialogDescription>{t("settings.description", "تعديل الاسم، إرسال دعوات أو مغادرة المجموعة.")}</DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="groupName">اسم المجموعة</Label>
-            <div className="flex gap-2">
-              <Input
-                id="groupName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="اسم المجموعة"
-                disabled={!canAdmin}
-              />
-              <Button onClick={handleRename} disabled={!canAdmin || saving || name.trim() === (groupName ?? "") }>
-                <Pencil className="w-4 h-4 ml-2" /> حفظ
-              </Button>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="groupName">{t("group_name", "اسم المجموعة")}</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="groupName"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("group_name_placeholder", "اسم المجموعة")}
+                  disabled={!canAdmin}
+                />
+                <Button onClick={handleRename} disabled={!canAdmin || saving || name.trim() === (groupName ?? "") }>
+                  <Pencil className="w-4 h-4 ml-2" /> {t("common:save", "حفظ")}
+                </Button>
+              </div>
+              {!canAdmin && (
+                <p className="text-xs text-muted-foreground">{t("settings.only_admin_rename", "فقط المالك/المدير يمكنه تعديل الاسم.")}</p>
+              )}
             </div>
-            {!canAdmin && (
-              <p className="text-xs text-muted-foreground">فقط المالك/المدير يمكنه تعديل الاسم.</p>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <Label>دعوات الأعضاء</Label>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => { onOpenInvite(); onOpenChange(false); }}>
-                <ExternalLink className="w-4 h-4 ml-2" /> إنشاء رابط دعوة
-              </Button>
+            <div className="space-y-2">
+              <Label>{t("invite.title", "دعوات الأعضاء")}</Label>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => { onOpenInvite(); onOpenChange(false); }}>
+                  <ExternalLink className="w-4 h-4 ml-2" /> {t("invite.by_link", "إنشاء رابط دعوة")}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("settings.group_id", "معرّف المجموعة")}</Label>
+              <div className="flex gap-2">
+                <Input value={groupId ?? ""} readOnly />
+                <Button variant="outline" onClick={handleCopyId}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="pt-2 space-y-3 border-t">
+              {/* Archive Button - for owner and admin */}
+              {canAdmin && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setArchiveDialogOpen(true)} 
+                  className="w-full"
+                >
+                  <Archive className="w-4 h-4 ml-2" /> 
+                  {t("settings.archive", "أرشفة المجموعة")}
+                </Button>
+              )}
+
+              {isOwner ? (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setDeleteDialogOpen(true)} 
+                  className="w-full"
+                >
+                  <Trash2 className="w-4 h-4 ml-2" /> 
+                  {t("settings.delete", "حذف المجموعة")}
+                </Button>
+              ) : (
+                <Button variant="destructive" onClick={handleLeave} disabled={leaving} className="w-full">
+                  <LogOut className="w-4 h-4 ml-2" /> {t("settings.leave", "مغادرة المجموعة")}
+                </Button>
+              )}
+              
+              {isOwner && (
+                <p className="text-xs text-muted-foreground">
+                  {t("delete.info", "يمكن حذف المجموعة فقط إذا كانت فارغة (بدون أعضاء أو مصاريف)")}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>معرّف المجموعة</Label>
-            <div className="flex gap-2">
-              <Input value={groupId ?? ""} readOnly />
-              <Button variant="outline" onClick={handleCopyId}>
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          <DialogFooter />
+        </DialogContent>
+      </Dialog>
 
-          <div className="pt-2 space-y-3">
-            {isOwner ? (
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteGroup} 
-                disabled={deleting} 
-                className="w-full"
-              >
-                <Trash2 className="w-4 h-4 ml-2" /> 
-                {deleting ? "جاري الحذف..." : "حذف المجموعة"}
-              </Button>
-            ) : (
-              <Button variant="destructive" onClick={handleLeave} disabled={leaving} className="w-full">
-                <LogOut className="w-4 h-4 ml-2" /> مغادرة المجموعة
-              </Button>
-            )}
-            
-            {isOwner && (
-              <p className="text-xs text-muted-foreground">
-                يمكن حذف المجموعة فقط إذا كانت فارغة (بدون أعضاء أو مصاريف)
-              </p>
-            )}
-          </div>
-        </div>
+      {/* Archive Confirmation Dialog */}
+      <ArchiveGroupDialog
+        open={archiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        groupName={groupName || ""}
+        isArchived={false}
+        isLoading={isArchiving}
+        onConfirm={handleArchive}
+      />
 
-        <DialogFooter />
-      </DialogContent>
-    </Dialog>
+      {/* Delete Confirmation Dialog */}
+      {groupId && (
+        <DeleteGroupDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          groupId={groupId}
+          groupName={groupName || ""}
+          onConfirm={handleDeleteGroup}
+          isDeleting={deleting}
+        />
+      )}
+    </>
   );
 };

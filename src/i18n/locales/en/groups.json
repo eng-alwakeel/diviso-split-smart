@@ -170,10 +170,61 @@
 
   "settings": {
     "title": "Group Settings",
+    "description": "Edit name, send invites, or leave the group.",
     "edit": "Edit Group",
     "archive": "Archive Group",
     "delete": "Delete Group",
-    "leave": "Leave Group"
+    "leave": "Leave Group",
+    "group_id": "Group ID",
+    "only_admin_rename": "Only owner/admin can edit the name.",
+    "rename_failed": "Failed to save name",
+    "renamed": "Group name updated",
+    "owner_cannot_leave": "Owner cannot leave the group",
+    "assign_owner_first": "Assign another owner first.",
+    "leave_confirm": "Are you sure you want to leave this group?",
+    "leave_failed": "Failed to leave group",
+    "left": "Left the group"
+  },
+  
+  "archive": {
+    "confirm_title": "Archive Group?",
+    "confirm_description": "Group",
+    "confirm_description_cont": "will be moved to archive. You can restore it later from the archived groups tab.",
+    "confirm": "Archive",
+    "restore_title": "Restore Group?",
+    "restore_description": "Group",
+    "restore_description_cont": "will be restored to active groups.",
+    "restore": "Restore"
+  },
+
+  "delete": {
+    "title": "Delete Group",
+    "description": "Are you sure you want to delete group",
+    "warning": "This action cannot be undone.",
+    "cannot_delete": "Cannot delete group for the following reasons:",
+    "has_expenses": "There are {{count}} expenses that must be deleted first",
+    "has_members": "There are {{count}} members that must be removed first",
+    "final_warning": "The group will be permanently deleted including all associated data.",
+    "confirm": "Delete Permanently",
+    "deleting": "Deleting...",
+    "failed": "Failed to delete group",
+    "success": "Group deleted successfully",
+    "info": "Group can only be deleted if empty (no members or expenses)"
+  },
+
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "dialog_title": "Change {{name}}'s Permissions",
+    "dialog_description": "Edit member's role and permissions in the group",
+    "role_label": "Role",
+    "member_desc": "Can add expenses and participate in the group",
+    "admin_desc": "Can manage members, settings, and approve expenses",
+    "permissions_label": "Additional Permissions",
+    "can_approve": "Can approve expenses",
+    "can_approve_desc": "Allow member to approve other members' expenses",
+    "save": "Save Changes"
   },
 
   "types": {
