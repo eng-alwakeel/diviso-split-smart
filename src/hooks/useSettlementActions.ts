@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import { useReferralProgress } from '@/hooks/useReferralProgress';
 
 export const useSettlementActions = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('groups');
+  const { notifyMilestone } = useReferralProgress();
 
   const confirmSettlement = async (settlementId: string) => {
     setLoading(true);
@@ -24,6 +26,9 @@ export const useSettlementActions = () => {
         .eq('id', settlementId);
 
       if (error) throw error;
+
+      // منح 20 نقطة للمُحيل عند أول تسوية
+      await notifyMilestone('settlement');
 
       toast({
         title: t('settlements_tab.confirmed'),

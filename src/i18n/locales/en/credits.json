@@ -194,9 +194,14 @@
     }
   },
   "how_to_earn": {
-    "title": "How to Earn Points",
-    "daily_streaks": "Daily Streaks",
-    "referral_rewards": "Referral Rewards"
+    "title": "Ways to Earn Points",
+    "welcome": "Welcome Bonus: +50 points (once)",
+    "daily": "Daily Points: +5 points",
+    "referral": "Refer a Friend: +30 points",
+    "referral_conditions": {
+      "first_usage": "+10 on first usage",
+      "group_settlement": "+20 on group or settlement"
+    }
   },
   "subscriptions": {
     "title": "Subscription Plans",
