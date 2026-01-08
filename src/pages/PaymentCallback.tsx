@@ -136,6 +136,41 @@ const PaymentCallback: React.FC = () => {
 
     const handleSubscriptionPayment = async (purchaseId: string, paymentId: string | null) => {
       try {
+        // Use the complete_subscription_purchase function for consistent handling
+        if (paymentId) {
+          const { data: result, error: rpcError } = await supabase.rpc('complete_subscription_purchase', {
+            p_purchase_id: purchaseId,
+            p_payment_reference: paymentId
+          });
+
+          console.log('complete_subscription_purchase result:', result, rpcError);
+
+          if (rpcError) {
+            console.error('Error completing subscription purchase:', rpcError);
+            // Fallback to manual handling if function doesn't exist
+            await handleSubscriptionPaymentManual(purchaseId, paymentId);
+            return;
+          }
+
+          // Type-safe access to result
+          const resultObj = result as { success?: boolean; credits_granted?: { credits_granted?: number } } | null;
+          if (resultObj?.success) {
+            setCreditsAdded(resultObj.credits_granted?.credits_granted || 0);
+            setStatus('success');
+            return;
+          }
+        }
+
+        // Fallback for pending verification
+        await handleSubscriptionPaymentManual(purchaseId, paymentId);
+      } catch (err) {
+        console.error('Error handling subscription payment:', err);
+        setStatus('failed');
+      }
+    };
+
+    const handleSubscriptionPaymentManual = async (purchaseId: string, paymentId: string | null) => {
+      try {
         // Update subscription purchase with payment ID
         if (paymentId) {
           await supabase
@@ -192,6 +227,7 @@ const PaymentCallback: React.FC = () => {
               status: 'active' as const,
               started_at: now.toISOString(),
               expires_at: expiresAt.toISOString(),
+              last_credits_granted_at: now.toISOString(),
               updated_at: now.toISOString()
             })
             .eq('user_id', purchase.user_id);
@@ -210,7 +246,8 @@ const PaymentCallback: React.FC = () => {
               plan: planName,
               status: 'active' as const,
               started_at: now.toISOString(),
-              expires_at: expiresAt.toISOString()
+              expires_at: expiresAt.toISOString(),
+              last_credits_granted_at: now.toISOString()
             }]);
 
           if (insertError) {
@@ -220,10 +257,23 @@ const PaymentCallback: React.FC = () => {
           }
         }
 
+        // Grant subscription credits
+        const originalPlanName = purchase.subscription_plans?.name || 'Pro';
+        const { data: grantResult, error: grantError } = await supabase.rpc('grant_subscription_credits', {
+          p_user_id: purchase.user_id,
+          p_plan_name: originalPlanName
+        });
+
+        if (grantError) {
+          console.error('Error granting subscription credits:', grantError);
+        } else {
+          console.log('Granted subscription credits:', grantResult);
+        }
+
         setCreditsAdded(purchase.subscription_plans?.credits_per_month || 0);
         setStatus('success');
       } catch (err) {
-        console.error('Error handling subscription payment:', err);
+        console.error('Error handling subscription payment manually:', err);
         setStatus('failed');
       }
     };

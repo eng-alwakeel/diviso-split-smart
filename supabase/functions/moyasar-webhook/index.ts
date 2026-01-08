@@ -83,8 +83,9 @@ serve(async (req) => {
       );
     }
 
-    // Get purchase_id from metadata
+    // Get purchase_id and type from metadata
     const purchaseId = paymentData.metadata?.purchase_id || metadata?.purchase_id;
+    const purchaseType = paymentData.metadata?.type || metadata?.type || 'credits';
     
     if (!purchaseId) {
       console.error('No purchase_id in payment metadata');
@@ -97,11 +98,32 @@ serve(async (req) => {
     // Create Supabase client with service role
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Complete the purchase using the SQL function
-    const { data: result, error: rpcError } = await supabase.rpc('complete_credit_purchase', {
-      p_purchase_id: purchaseId,
-      p_payment_reference: paymentId
-    });
+    let result;
+    let rpcError;
+
+    if (purchaseType === 'subscription') {
+      // Handle subscription purchase
+      console.log('Processing subscription purchase:', purchaseId);
+      
+      const response = await supabase.rpc('complete_subscription_purchase', {
+        p_purchase_id: purchaseId,
+        p_payment_reference: paymentId
+      });
+      
+      result = response.data;
+      rpcError = response.error;
+    } else {
+      // Handle credit purchase (existing logic)
+      console.log('Processing credit purchase:', purchaseId);
+      
+      const response = await supabase.rpc('complete_credit_purchase', {
+        p_purchase_id: purchaseId,
+        p_payment_reference: paymentId
+      });
+      
+      result = response.data;
+      rpcError = response.error;
+    }
 
     if (rpcError) {
       console.error('Error completing purchase:', rpcError);
@@ -111,18 +133,18 @@ serve(async (req) => {
       );
     }
 
-    if (!result) {
+    if (!result || result.success === false) {
       console.log('Purchase already completed or not found:', purchaseId);
       return new Response(
-        JSON.stringify({ message: 'Purchase already processed or not found' }),
+        JSON.stringify({ message: 'Purchase already processed or not found', result }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Purchase completed successfully:', purchaseId);
+    console.log('Purchase completed successfully:', purchaseId, result);
 
     return new Response(
-      JSON.stringify({ success: true, purchase_id: purchaseId }),
+      JSON.stringify({ success: true, purchase_id: purchaseId, type: purchaseType, result }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
