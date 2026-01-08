@@ -14,7 +14,7 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { settlementSchema, safeValidateInput } from "@/lib/validation";
 import { useReferralProgress } from "@/hooks/useReferralProgress";
 import { useUsageCredits } from "@/hooks/useUsageCredits";
-import { InsufficientCreditsDialog } from "@/components/credits/InsufficientCreditsDialog";
+import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 
 export interface MemberRow {
   user_id: string;
@@ -307,13 +307,11 @@ export const GroupSettlementDialog = ({
         </div>
       </DialogContent>
       
-      {/* Insufficient Credits Dialog */}
-      <InsufficientCreditsDialog
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
         open={showInsufficientDialog}
         onOpenChange={setShowInsufficientDialog}
-        actionType="settlement"
-        currentBalance={creditCheckResult.currentBalance}
-        requiredCredits={creditCheckResult.requiredCredits}
+        actionName="settlement"
       />
     </Dialog>
   );
