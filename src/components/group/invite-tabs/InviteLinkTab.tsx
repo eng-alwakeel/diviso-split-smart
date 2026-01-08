@@ -96,35 +96,33 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
   const shareLink = async () => {
     if (!link) return;
     
-    const shareMessage = `👋 مرحباً!
-
-انضم إلى مجموعة "${groupName || 'المجموعة'}"
-
-🔗 رابط الانضمام:
-${link}
-
-📱 حمّل تطبيق ديفيسو لتقسيم المصاريف بذكاء بين الأصدقاء والعائلة`;
+    const shareTitle = `انضم لـ ${groupName || 'المجموعة'}`;
     
     try {
+      // Native platform (Capacitor)
       if (Capacitor.isNativePlatform()) {
         await Share.share({
-          title: `دعوة للانضمام لـ ${groupName || 'المجموعة'}`,
-          text: shareMessage,
+          title: shareTitle,
+          text: `انضم إلى "${groupName || 'المجموعة'}" على ديفيسو`,
           url: link,
           dialogTitle: 'شارك رابط الدعوة'
         });
-      } else if (navigator.share) {
-        await navigator.share({
-          title: `دعوة للانضمام لـ ${groupName || 'المجموعة'}`,
-          text: shareMessage,
-          url: link
-        });
-      } else {
-        await copyLink();
+        toast({ title: "تمت المشاركة" });
         return;
       }
       
-      toast({ title: "تمت المشاركة", description: "تم فتح نافذة المشاركة" });
+      // Web Share API - بدون text للتوافقية الأفضل
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          url: link
+        });
+        toast({ title: "تمت المشاركة" });
+        return;
+      }
+      
+      // Fallback
+      await copyLink();
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("[InviteLinkTab] share error:", error);
