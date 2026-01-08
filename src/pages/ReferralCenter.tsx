@@ -195,6 +195,31 @@ const ReferralCenter = () => {
           </CardContent>
         </Card>
 
+        {/* Points Info Card - How to earn 30 points */}
+        <Card className="shadow-card border-accent/30 bg-accent/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center shrink-0">
+                <Gift className="w-5 h-5 text-accent-foreground" />
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-foreground">{t('points_info.title')}</p>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    {t('points_info.first_usage')}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    {t('points_info.group_settlement')}
+                  </p>
+                </div>
+                <p className="text-sm font-medium text-primary">{t('points_info.total')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* QR Code and Referral Link */}
         <Card className="shadow-card">
           <CardHeader className="pb-3">

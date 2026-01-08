@@ -7,6 +7,12 @@
     "successful": "Successful",
     "earned": "Earned"
   },
+  "points_info": {
+    "title": "How to Earn Referral Points",
+    "first_usage": "+10 points on invitee's first usage",
+    "group_settlement": "+20 points on group or settlement",
+    "total": "Total: 30 points per successful referral"
+  },
   "share": {
     "title": "Share Referral Link",
     "link_label": "Referral Link",

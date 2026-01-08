@@ -93,27 +93,8 @@ export function useGroupInvites(groupId?: string) {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      // Get user's current tier for bonus calculation
-      const { data: tierData } = await supabase.rpc('get_user_referral_tier', {
-        p_user_id: user.id
-      });
-
-      const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
-      
-      // Get bonus multiplier from tier
-      let bonusMultiplier = 1;
-      if (currentTier?.tier_name) {
-        const { data: tierDetails } = await supabase
-          .from('referral_tiers')
-          .select('bonus_multiplier')
-          .eq('tier_name', currentTier.tier_name)
-          .single();
-        
-        bonusMultiplier = tierDetails?.bonus_multiplier || 1;
-      }
-      
-      const baseRewardDays = 7;
-      const finalRewardDays = Math.floor(baseRewardDays * bonusMultiplier);
+      // مكافأة ثابتة 7 أيام - بدون نظام المستويات
+      const rewardDays = 7;
 
       // Create referral record for group invite (to track and reward)
       let referralId: string | null = null;
@@ -138,11 +119,8 @@ export function useGroupInvites(groupId?: string) {
               invitee_name: null,
               referral_code: referralCodeData.referral_code,
               status: "pending",
-              reward_days: finalRewardDays,
-              original_reward_days: baseRewardDays,
+              reward_days: rewardDays,
               referral_source: "group_invite",
-              tier_at_time: currentTier?.tier_name || "المبتدئ",
-              bonus_applied: bonusMultiplier > 1,
               group_id: groupId,
               group_name: groupName || "المجموعة",
               expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
@@ -228,7 +206,7 @@ export function useGroupInvites(groupId?: string) {
         .eq("id", inviteData.id);
 
       const rewardMessage = referralId 
-        ? ` (ستحصل على ${finalRewardDays} أيام مجانية عند انضمامه!)`
+        ? ` (ستحصل على ${rewardDays} أيام مجانية + 30 نقطة عند استخدامه!)`
         : "";
       
       toast.success(`تم إرسال الدعوة بنجاح!${rewardMessage}`);

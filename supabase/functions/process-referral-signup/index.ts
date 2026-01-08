@@ -61,6 +61,9 @@ const handler = async (req: Request): Promise<Response> => {
     const inviterId = referralCodeData.user_id;
     console.log(`Found inviter: ${inviterId}`);
 
+    // Fixed reward days - no tier system
+    const rewardDays = 7;
+
     // Check for existing pending referral (personal or group invite)
     const { data: existingReferral, error: referralError } = await supabaseClient
       .from("referrals")
@@ -116,7 +119,8 @@ const handler = async (req: Request): Promise<Response> => {
         .update({
           status: "joined",
           joined_at: new Date().toISOString(),
-          invitee_name: userName
+          invitee_name: userName,
+          reward_days: rewardDays
         })
         .eq("id", existingReferral.id)
         .select()
@@ -151,7 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
         .update({
           status: "joined",
           joined_at: new Date().toISOString(),
-          invitee_name: userName
+          invitee_name: userName,
+          reward_days: rewardDays
         })
         .eq("id", pendingGroupInvite.referral_id)
         .select()
@@ -176,20 +181,8 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("id", pendingGroupInvite.id);
 
     } else {
-      // Create new referral record
-      console.log("Creating new referral record");
-      
-      // Get inviter's current tier to apply bonus multiplier
-      const { data: tierData } = await supabaseClient.rpc('get_user_referral_tier', {
-        p_user_id: inviterId
-      });
-      
-      const currentTier = tierData && tierData.length > 0 ? tierData[0] : null;
-      const baseRewardDays = 7;
-      const bonusMultiplier = currentTier?.bonus_multiplier || 1;
-      const finalRewardDays = Math.floor(baseRewardDays * bonusMultiplier);
-
-      console.log(`Applying tier bonus: ${currentTier?.tier_name || 'المبتدئ'} with multiplier ${bonusMultiplier}x = ${finalRewardDays} days`);
+      // Create new referral record - simplified without tier system
+      console.log("Creating new referral record with fixed 7-day reward");
 
       const { data: newReferral, error: insertError } = await supabaseClient
         .from("referrals")
@@ -200,10 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
           referral_code: referralCode,
           status: "joined",
           joined_at: new Date().toISOString(),
-          reward_days: finalRewardDays,
-          original_reward_days: baseRewardDays,
-          tier_at_time: currentTier?.tier_name || "المبتدئ",
-          bonus_applied: bonusMultiplier > 1,
+          reward_days: rewardDays,
           referral_source: "direct",
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         })
@@ -218,29 +208,27 @@ const handler = async (req: Request): Promise<Response> => {
       referralId = newReferral.id;
     }
 
-    // Get the final reward days from the referral record (with bonus applied)
+    // Get referral record for group info
     const { data: referralRecord } = await supabaseClient
       .from("referrals")
       .select("reward_days, group_id, group_name")
       .eq("id", referralId)
       .single();
 
-    const rewardDays = referralRecord?.reward_days || 7;
-
     // =============================================
-    // NEW: Create referral_progress record (0 points on signup)
-    // Points are granted when milestones are completed
+    // Create referral_progress record with invitee_id
+    // Points: 0 on signup, 10 on first usage, 20 on group/settlement
     // =============================================
-    console.log("Creating referral_progress record (0 RP on signup - quality-based system)");
+    console.log("Creating referral_progress record for quality-based points system");
     
     const { error: progressError } = await supabaseClient
       .from("referral_progress")
       .insert({
         referral_id: referralId,
         inviter_id: inviterId,
-        invitee_id: userId,
+        invitee_id: userId, // Critical: this enables milestone tracking
         signup_completed: true,
-        points_for_signup: 0, // No points on signup
+        points_for_signup: 0,
         total_points: 0
       });
 
@@ -248,13 +236,13 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error creating referral_progress:", progressError);
       // Non-critical, continue
     } else {
-      console.log("✅ Created referral_progress - waiting for invitee milestones");
+      console.log("✅ Created referral_progress - invitee can now trigger milestone points");
     }
 
     // =============================================
-    // Create referral reward for the inviter (days only, no immediate RP)
+    // Create referral reward for the inviter (7 days)
     // =============================================
-    console.log(`Creating referral reward for inviter: ${rewardDays} days (no immediate RP)`);
+    console.log(`Creating referral reward for inviter: ${rewardDays} days`);
     
     const { error: rewardError } = await supabaseClient
       .from("referral_rewards")
@@ -289,23 +277,14 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error creating trial subscription:", subscriptionError);
     }
 
-    // Get tier info for notification payload
-    const { data: notifTierData } = await supabaseClient.rpc('get_user_referral_tier', {
-      p_user_id: inviterId
-    });
-    const notifTier = notifTierData && notifTierData.length > 0 ? notifTierData[0] : null;
-
-    // Send notification to the inviter - updated message for quality-based system
+    // Send notification to the inviter
     const notificationPayload: Record<string, unknown> = {
       invitee_name: userName || "صديق جديد",
       reward_days: rewardDays,
       referral_code: referralCode,
-      tier_applied: notifTier?.tier_name || "المبتدئ",
-      bonus_multiplier: notifTier?.bonus_multiplier || 1,
       source: isGroupReferral ? "group_invite" : "personal",
-      // New: indicate that points come from milestones
       points_pending: true,
-      message_ar: `${userName || 'صديق جديد'} سجّل! ستحصل على نقاط عند استخدامه للتطبيق`
+      message_ar: `${userName || 'صديق جديد'} سجّل! ستحصل على نقاط عند استخدامه للتطبيق (10 نقاط أول استخدام + 20 نقاط عند إنشاء قروب/تسوية)`
     };
 
     if (referralRecord?.group_name) {
@@ -324,18 +303,22 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error creating notification:", notificationError);
     }
 
-    console.log(`📨 Notification sent to inviter: referral_joined (source: ${isGroupReferral ? 'group' : 'personal'})`);
-    console.log("✅ Referral signup processed successfully (quality-based rewards active)");
+    console.log(`📨 Notification sent to inviter (source: ${isGroupReferral ? 'group' : 'personal'})`);
+    console.log("✅ Referral signup processed successfully");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "تم معالجة الإحالة بنجاح - ستحصل على نقاط عند استخدام المدعو للتطبيق",
+        message: "تم معالجة الإحالة بنجاح - ستحصل على 30 نقطة: 10 عند أول استخدام + 20 عند إنشاء قروب/تسوية",
         referralId,
         trialDays: 7,
         isGroupReferral,
         groupId,
-        qualityBased: true // New field to indicate quality-based system
+        pointsSystem: {
+          firstUsage: 10,
+          groupOrSettlement: 20,
+          total: 30
+        }
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
