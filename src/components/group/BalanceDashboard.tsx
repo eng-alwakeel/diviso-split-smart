@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -10,10 +11,14 @@ import {
   DollarSign, 
   ArrowRightLeft,
   AlertCircle,
-  Clock
+  Clock,
+  Check,
+  AlertTriangle
 } from "lucide-react";
 import { BalanceBreakdown } from "./BalanceBreakdown";
 import { AllMembersBalances } from "./AllMembersBalances";
+import { ConfirmSettlementDialog } from "./ConfirmSettlementDialog";
+import { useTranslation } from "react-i18next";
 
 interface BalanceDashboardProps {
   currentUserId: string;
@@ -38,7 +43,11 @@ interface BalanceDashboardProps {
     amount: number;
     created_at: string;
     note?: string;
+    status?: string;
+    confirmed_at?: string;
+    confirmed_by?: string;
   }>;
+  onSettlementConfirmed?: () => void;
   profiles: Record<string, { display_name?: string | null; name?: string | null }>;
   currency?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
@@ -51,8 +60,13 @@ export const BalanceDashboard = ({
   settlements,
   profiles,
   currency = "ر.س",
-  onSettleClick
+  onSettleClick,
+  onSettlementConfirmed
 }: BalanceDashboardProps) => {
+  const { t } = useTranslation('groups');
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedSettlement, setSelectedSettlement] = useState<typeof settlements[0] | null>(null);
+
   const formatAmount = (amount: number) => {
     const sign = amount >= 0 ? "+" : "";
     return `${sign}${amount.toLocaleString()} ${currency}`;
@@ -61,6 +75,37 @@ export const BalanceDashboard = ({
   const formatName = (userId: string) => {
     const profile = profiles[userId];
     return profile?.display_name || profile?.name || `${userId.slice(0, 4)}...`;
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'confirmed':
+        return (
+          <Badge variant="secondary" className="bg-accent/20 text-accent text-xs">
+            <Check className="w-3 h-3 mr-1" />
+            {t('settlements_tab.status_confirmed')}
+          </Badge>
+        );
+      case 'disputed':
+        return (
+          <Badge variant="destructive" className="text-xs">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            {t('settlements_tab.status_disputed')}
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="border-amber-500/30 text-amber-600 text-xs">
+            <Clock className="w-3 h-3 mr-1" />
+            {t('settlements_tab.status_pending')}
+          </Badge>
+        );
+    }
+  };
+
+  const handleConfirmClick = (settlement: typeof settlements[0]) => {
+    setSelectedSettlement(settlement);
+    setConfirmDialogOpen(true);
   };
 
   // Group statistics
@@ -244,41 +289,65 @@ export const BalanceDashboard = ({
             </CardHeader>
             <CardContent className="space-y-3">
               {mySettlements.length > 0 ? (
-                mySettlements.map(settlement => (
-                  <div key={settlement.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        settlement.from_user_id === currentUserId 
-                          ? 'bg-destructive/20 text-destructive' 
-                          : 'bg-accent/20 text-accent'
-                      }`}>
-                        {settlement.from_user_id === currentUserId ? (
-                          <TrendingDown className="w-4 h-4" />
-                        ) : (
-                          <TrendingUp className="w-4 h-4" />
+                mySettlements.map(settlement => {
+                  const isRecipient = settlement.to_user_id === currentUserId;
+                  const canConfirm = isRecipient && (!settlement.status || settlement.status === 'pending');
+                  
+                  return (
+                    <div key={settlement.id} className="p-3 rounded-lg bg-muted/20 border border-border/30 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            settlement.from_user_id === currentUserId 
+                              ? 'bg-destructive/20 text-destructive' 
+                              : 'bg-accent/20 text-accent'
+                          }`}>
+                            {settlement.from_user_id === currentUserId ? (
+                              <TrendingDown className="w-4 h-4" />
+                            ) : (
+                              <TrendingUp className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">
+                              {settlement.from_user_id === currentUserId 
+                                ? `دفعت إلى ${formatName(settlement.to_user_id)}`
+                                : `استلمت من ${formatName(settlement.from_user_id)}`
+                              }
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(settlement.created_at).toLocaleDateString('ar-SA')}
+                              {settlement.note && ` • ${settlement.note}`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          settlement.from_user_id === currentUserId ? 'text-destructive' : 'text-accent'
+                        }`}>
+                          {settlement.from_user_id === currentUserId ? '-' : '+'}
+                          {settlement.amount.toLocaleString()} {currency}
+                        </div>
+                      </div>
+                      
+                      {/* Status and confirm button */}
+                      <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                        {getStatusBadge(settlement.status)}
+                        
+                        {canConfirm && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs h-7"
+                            onClick={() => handleConfirmClick(settlement)}
+                          >
+                            <Check className="w-3 h-3 mr-1" />
+                            {t('settlements_tab.confirm')}
+                          </Button>
                         )}
                       </div>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {settlement.from_user_id === currentUserId 
-                            ? `دفعت إلى ${formatName(settlement.to_user_id)}`
-                            : `استلمت من ${formatName(settlement.from_user_id)}`
-                          }
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(settlement.created_at).toLocaleDateString('ar-SA')}
-                          {settlement.note && ` • ${settlement.note}`}
-                        </div>
-                      </div>
                     </div>
-                    <div className={`text-sm font-medium ${
-                      settlement.from_user_id === currentUserId ? 'text-destructive' : 'text-accent'
-                    }`}>
-                      {settlement.from_user_id === currentUserId ? '-' : '+'}
-                      {settlement.amount.toLocaleString()} {currency}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -374,6 +443,18 @@ export const BalanceDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Confirm Settlement Dialog */}
+      <ConfirmSettlementDialog
+        open={confirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        settlement={selectedSettlement}
+        fromUserName={selectedSettlement ? formatName(selectedSettlement.from_user_id) : ''}
+        currency={currency}
+        onConfirmed={() => {
+          onSettlementConfirmed?.();
+        }}
+      />
     </div>
   );
 };
