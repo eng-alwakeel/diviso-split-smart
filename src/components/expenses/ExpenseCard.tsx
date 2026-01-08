@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2 } from "lucide-react";
+import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
+import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 
 interface ExpenseCardProps {
   expense: MyExpense;
@@ -22,6 +24,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const { deleteExpense, deleting } = useExpenseActions();
   const isArabic = i18n.language === 'ar';
   const dateLocale = isArabic ? ar : enUS;
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,8 +47,9 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const isPayer = expense.payer_id === currentUserId;
   const userSplit = expense.splits.find(split => split.member_id === currentUserId);
   const shareAmount = userSplit?.share_amount || 0;
-  const canDelete = (expense.created_by === currentUserId || isPayer) && 
-                   (expense.status === 'pending' || expense.status === 'rejected');
+  const canEdit = (expense.created_by === currentUserId || isPayer) && 
+                  (expense.status === 'pending' || expense.status === 'rejected');
+  const canDelete = canEdit;
 
   const handleDelete = async () => {
     const success = await deleteExpense(expense.id);
@@ -161,6 +165,17 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
               {t('card.view_details')}
             </Button>
             
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditDialogOpen(true)}
+                className="text-primary hover:bg-primary/10"
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            )}
+            
             {canDelete && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -200,6 +215,25 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
           </div>
         </div>
       </CardContent>
+      
+      {/* Edit Expense Dialog */}
+      <EditExpenseDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        expense={{
+          id: expense.id,
+          description: expense.description,
+          amount: expense.amount,
+          spent_at: expense.spent_at,
+          payer_id: expense.payer_id,
+          status: expense.status as "pending" | "approved" | "rejected",
+          currency: expense.currency,
+          note_ar: expense.note_ar
+        }}
+        onUpdated={() => {
+          if (onExpenseDeleted) onExpenseDeleted(); // Refresh the list
+        }}
+      />
     </Card>
   );
 };
