@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,11 +24,28 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [senderName, setSenderName] = useState("");
   const [linkInfo, setLinkInfo] = useState<{
     maxUses: number;
     currentUses: number;
     expiresAt: string;
   } | null>(null);
+
+  // جلب اسم المرسل
+  useEffect(() => {
+    const fetchSenderName = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+        setSenderName(data?.name || '');
+      }
+    };
+    fetchSenderName();
+  }, []);
 
   const disabledReason = useMemo(() => {
     if (!groupId) return "لا يوجد معرف مجموعة.";
@@ -96,37 +113,50 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
   const shareLink = async () => {
     if (!link) return;
     
-    const shareTitle = `انضم لـ ${groupName || 'المجموعة'}`;
+    // حساب المدة المتبقية
+    const hoursLeft = linkInfo 
+      ? Math.ceil((new Date(linkInfo.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60))
+      : 24;
+    
+    const shareTitle = `دعوة من ${senderName || 'صديقك'} للانضمام لـ "${groupName || 'المجموعة'}"`;
+    const shareText = `👋 ${senderName || 'صديقك'} يدعوك للانضمام لمجموعة "${groupName || 'المجموعة'}" على ديفيسو
+
+⏰ الرابط صالح لمدة ${hoursLeft} ساعة
+
+🔗 ${link}
+
+📱 حمّل ديفيسو لتقسيم المصاريف بذكاء`;
     
     try {
       // Native platform (Capacitor)
       if (Capacitor.isNativePlatform()) {
         await Share.share({
           title: shareTitle,
-          text: `انضم إلى "${groupName || 'المجموعة'}" على ديفيسو`,
-          url: link,
+          text: shareText,
           dialogTitle: 'شارك رابط الدعوة'
         });
         toast({ title: "تمت المشاركة" });
         return;
       }
       
-      // Web Share API - بدون text للتوافقية الأفضل
+      // Web Share API
       if (navigator.share) {
         await navigator.share({
           title: shareTitle,
-          url: link
+          text: shareText
         });
         toast({ title: "تمت المشاركة" });
         return;
       }
       
-      // Fallback
-      await copyLink();
+      // Fallback - copy full message
+      await navigator.clipboard.writeText(shareText);
+      toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("[InviteLinkTab] share error:", error);
-        await copyLink();
+        await navigator.clipboard.writeText(shareText);
+        toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
       }
     }
   };
