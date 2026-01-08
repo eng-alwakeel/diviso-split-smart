@@ -123,9 +123,9 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
 
 ⏰ الرابط صالح لمدة ${hoursLeft} ساعة
 
-🔗 ${link}
-
 📱 حمّل ديفيسو لتقسيم المصاريف بذكاء`;
+
+    const fullMessage = `${shareText}\n\n🔗 ${link}`;
     
     try {
       // Native platform (Capacitor)
@@ -133,30 +133,39 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
         await Share.share({
           title: shareTitle,
           text: shareText,
+          url: link,
           dialogTitle: 'شارك رابط الدعوة'
         });
         toast({ title: "تمت المشاركة" });
         return;
       }
       
-      // Web Share API
+      // Web Share API - مع url منفصل لتوافقية أفضل
       if (navigator.share) {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText
-        });
+        const shareData = { title: shareTitle, text: shareText, url: link };
+        
+        // التحقق من canShare إذا متوفر
+        if (typeof navigator.canShare === 'function' && !navigator.canShare(shareData)) {
+          await navigator.share({ title: shareTitle, url: link });
+        } else {
+          await navigator.share(shareData);
+        }
         toast({ title: "تمت المشاركة" });
         return;
       }
       
       // Fallback - copy full message
-      await navigator.clipboard.writeText(shareText);
+      await navigator.clipboard.writeText(fullMessage);
       toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("[InviteLinkTab] share error:", error);
-        await navigator.clipboard.writeText(shareText);
-        toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
+        try {
+          await navigator.clipboard.writeText(fullMessage);
+          toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
+        } catch {
+          toast({ title: "تعذر المشاركة", variant: "destructive" });
+        }
       }
     }
   };
