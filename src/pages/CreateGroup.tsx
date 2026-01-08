@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
 import { useUsageCredits, CreditActionType } from '@/hooks/useUsageCredits';
 import { InsufficientCreditsDialog } from '@/components/credits/InsufficientCreditsDialog';
+import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ const CreateGroup = () => {
       if (error) throw error;
 
       const token = data?.token as string;
-      const link = `https://diviso.app/i/${token}`;
+      const link = `${BRAND_CONFIG.url}/i/${token}`;
       setInviteLink(link);
       
       toast({
