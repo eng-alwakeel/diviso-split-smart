@@ -33,7 +33,6 @@ verify_jwt = true
 [functions.track-recommendation-event]
 verify_jwt = true
 
-
 [functions.moyasar-webhook]
 verify_jwt = false
 
@@ -51,3 +50,6 @@ verify_jwt = true
 
 [functions.generate-trip-plan]
 verify_jwt = true
+
+[functions.grant-monthly-credits]
+verify_jwt = false

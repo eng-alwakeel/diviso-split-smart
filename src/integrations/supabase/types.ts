@@ -4389,6 +4389,7 @@ export type Database = {
           first_trial_started_at: string | null
           grace_period_ends_at: string | null
           id: string
+          last_credits_granted_at: string | null
           last_payment_failed_at: string | null
           last_payment_status: string | null
           next_renewal_date: string | null
@@ -4409,6 +4410,7 @@ export type Database = {
           first_trial_started_at?: string | null
           grace_period_ends_at?: string | null
           id?: string
+          last_credits_granted_at?: string | null
           last_payment_failed_at?: string | null
           last_payment_status?: string | null
           next_renewal_date?: string | null
@@ -4429,6 +4431,7 @@ export type Database = {
           first_trial_started_at?: string | null
           grace_period_ends_at?: string | null
           id?: string
+          last_credits_granted_at?: string | null
           last_payment_failed_at?: string | null
           last_payment_status?: string | null
           next_renewal_date?: string | null
@@ -4628,6 +4631,10 @@ export type Database = {
       }
       complete_onboarding_task: {
         Args: { p_task_name: string; p_user_id: string }
+        Returns: Json
+      }
+      complete_subscription_purchase: {
+        Args: { p_payment_reference: string; p_purchase_id: string }
         Returns: Json
       }
       consume_credits: {
