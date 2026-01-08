@@ -2388,6 +2388,42 @@ export type Database = {
         }
         Relationships: []
       }
+      one_time_action_tokens: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          is_used: boolean | null
+          source: string
+          source_session_id: string | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          source: string
+          source_session_id?: string | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          is_used?: boolean | null
+          source?: string
+          source_session_id?: string | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       outbound_clicks: {
         Row: {
           created_at: string | null
@@ -2873,6 +2909,33 @@ export type Database = {
           invites_sent?: number | null
           rewards_earned?: number | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_cycle_limits: {
+        Row: {
+          billing_cycle_start: string
+          created_at: string | null
+          id: string
+          max_referral_credits: number | null
+          referral_credits_granted: number | null
+          user_id: string
+        }
+        Insert: {
+          billing_cycle_start: string
+          created_at?: string | null
+          id?: string
+          max_referral_credits?: number | null
+          referral_credits_granted?: number | null
+          user_id: string
+        }
+        Update: {
+          billing_cycle_start?: string
+          created_at?: string | null
+          id?: string
+          max_referral_credits?: number | null
+          referral_credits_granted?: number | null
           user_id?: string
         }
         Relationships: []
@@ -3951,6 +4014,33 @@ export type Database = {
         }
         Relationships: []
       }
+      topup_cycle_limits: {
+        Row: {
+          billing_cycle_start: string
+          created_at: string | null
+          id: string
+          max_topup_per_cycle: number | null
+          topup_count: number | null
+          user_id: string
+        }
+        Insert: {
+          billing_cycle_start: string
+          created_at?: string | null
+          id?: string
+          max_topup_per_cycle?: number | null
+          topup_count?: number | null
+          user_id: string
+        }
+        Update: {
+          billing_cycle_start?: string
+          created_at?: string | null
+          id?: string
+          max_topup_per_cycle?: number | null
+          topup_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       trip_plans: {
         Row: {
           budget: string | null
@@ -4611,6 +4701,10 @@ export type Database = {
         Args: { p_action: string; p_required_uc: number; p_user_id: string }
         Returns: Json
       }
+      check_valid_ad_token: {
+        Args: { p_action_type: string; p_user_id: string }
+        Returns: Json
+      }
       claim_onboarding_reward: { Args: { p_user_id: string }; Returns: Json }
       claim_rewarded_ad: {
         Args: { p_session_id: string; p_user_id: string }
@@ -4647,6 +4741,14 @@ export type Database = {
         Returns: Json
       }
       convert_rewards_to_credits: { Args: { p_user_id: string }; Returns: Json }
+      create_ad_action_token: {
+        Args: {
+          p_action_type: string
+          p_session_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_group_join_token: {
         Args: {
           p_group_id: string
@@ -4670,6 +4772,10 @@ export type Database = {
           p_required_uc: number
           p_user_id: string
         }
+        Returns: Json
+      }
+      deduct_credits_fefo: {
+        Args: { p_action_type: string; p_amount: number; p_user_id: string }
         Returns: Json
       }
       generate_credit_note_number: { Args: never; Returns: string }
@@ -4879,6 +4985,7 @@ export type Database = {
           total_income: number
         }[]
       }
+      get_referral_limits: { Args: { p_user_id: string }; Returns: Json }
       get_referral_stats: {
         Args: { p_user_id: string }
         Returns: {
@@ -4985,6 +5092,10 @@ export type Database = {
         }[]
       }
       grant_daily_credits: { Args: { p_user_id: string }; Returns: Json }
+      grant_referral_credit_limited: {
+        Args: { p_amount?: number; p_user_id: string }
+        Returns: Json
+      }
       grant_referral_first_usage_bonus: {
         Args: { p_invitee_id: string }
         Returns: Json

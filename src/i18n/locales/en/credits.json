@@ -49,19 +49,24 @@
     "shortfall": "Shortfall: {{shortfall}} credits"
   },
   "paywall": {
-    "title": "Your balance is insufficient",
-    "subtitle": "Choose how to continue:",
+    "title": "Your monthly credits are depleted",
+    "subtitle": "Choose how to continue",
     "current_balance": "Your balance",
-    "upgrade": "Continue Uninterrupted",
+    "upgrade": "Upgrade Plan",
+    "upgrade_desc": "Instant increase in this month's credits",
     "credits_per_month": "credits/month",
     "yearly": "Yearly",
     "monthly": "Monthly",
     "save_36": "Save 36%",
-    "purchase": "Buy Credits (Best Value)",
+    "purchase": "Buy Credits",
+    "purchase_desc": "Expires at end of your current cycle",
     "best_value": "Best Value",
     "for": "for",
-    "free": "Get Free Credits",
-    "free_desc": "Invite friends and earn 30 credits per successful referral"
+    "watch_ad": "Watch Ad & Unlock One Action",
+    "watch_ad_desc": "No credits — One action only (30 min)",
+    "remaining_today": "Remaining today",
+    "free": "Get Free Credits via Referral",
+    "free_desc": "Invite friend & get free action (limited 5/month)"
   },
   "plans": {
     "monthly": "Monthly",
