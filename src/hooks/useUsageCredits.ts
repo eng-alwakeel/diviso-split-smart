@@ -34,6 +34,20 @@ interface CreditCheckResult {
   requiredCredits: number;
   shortfall: number;
   blocked: boolean;
+  hasAdToken?: boolean;
+}
+
+interface DeductResult {
+  success: boolean;
+  method: 'ad_token' | 'credits_deducted' | 'failed';
+  tokenId?: string;
+  error?: string;
+}
+
+interface ReferralLimits {
+  used: number;
+  max: number;
+  remaining: number;
 }
 
 export function useUsageCredits() {
@@ -75,7 +89,31 @@ export function useUsageCredits() {
     }
   }, []);
 
-  // التحقق من إمكانية تنفيذ عملية مع الـ gating الجديد
+  // التحقق من وجود Ad Token صالح
+  const checkAdToken = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data, error } = await supabase.rpc('check_valid_ad_token', {
+        p_user_id: user.id,
+        p_action_type: actionType
+      });
+
+      if (error) {
+        console.error('Error checking ad token:', error);
+        return false;
+      }
+
+      const result = data as { has_token?: boolean };
+      return result?.has_token ?? false;
+    } catch (error) {
+      console.error('Error in checkAdToken:', error);
+      return false;
+    }
+  }, []);
+
+  // التحقق من إمكانية تنفيذ عملية مع الـ gating الجديد + Ad Token
   const checkCredits = useCallback(async (actionType: CreditActionType): Promise<CreditCheckResult> => {
     const action = CREDIT_COSTS[actionType];
     const requiredCredits = action.cost;
@@ -84,6 +122,19 @@ export function useUsageCredits() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
+      }
+
+      // Check for Ad Token first
+      const hasAdToken = await checkAdToken(actionType);
+      if (hasAdToken) {
+        return {
+          canPerform: true,
+          remainingCredits: balance.totalAvailable,
+          requiredCredits,
+          shortfall: 0,
+          blocked: false,
+          hasAdToken: true
+        };
       }
 
       const { data, error } = await supabase.rpc('get_available_credits', {
@@ -104,23 +155,28 @@ export function useUsageCredits() {
         remainingCredits: availableCredits,
         requiredCredits,
         shortfall: canPerform ? 0 : Math.max(0, requiredCredits - availableCredits),
-        blocked: isBlocked
+        blocked: isBlocked,
+        hasAdToken: false
       };
     } catch (error) {
       console.error('Error checking credits:', error);
       return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
     }
-  }, []);
+  }, [checkAdToken, balance.totalAvailable]);
 
   // التحقق السريع إذا كان المستخدم محجوب (UC = 0)
   const isBlocked = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
     const action = CREDIT_COSTS[actionType];
     if (!action.gated) return false;
     
+    // Check for Ad Token
+    const hasToken = await checkAdToken(actionType);
+    if (hasToken) return false;
+    
     return balance.totalAvailable === 0;
-  }, [balance.totalAvailable]);
+  }, [balance.totalAvailable, checkAdToken]);
 
-  // استهلاك النقاط
+  // استهلاك النقاط باستخدام FEFO + Ad Token
   const consumeCredits = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
     const action = CREDIT_COSTS[actionType];
     
@@ -133,7 +189,8 @@ export function useUsageCredits() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      const { data, error } = await supabase.rpc('consume_credits', {
+      // Use the new FEFO function that checks Ad Token first
+      const { data, error } = await supabase.rpc('deduct_credits_fefo', {
         p_user_id: user.id,
         p_amount: action.cost,
         p_action_type: actionType
@@ -144,8 +201,9 @@ export function useUsageCredits() {
         return false;
       }
 
-      const result = data as { success?: boolean } | null;
+      const result = data as unknown as DeductResult | null;
       const success = result?.success === true;
+      
       if (success) {
         await fetchBalance();
         queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
@@ -160,11 +218,59 @@ export function useUsageCredits() {
     }
   }, [fetchBalance, queryClient]);
 
+  // استهلاك مع معلومات تفصيلية عن الطريقة
+  const consumeCreditsDetailed = useCallback(async (actionType: CreditActionType): Promise<DeductResult> => {
+    const action = CREDIT_COSTS[actionType];
+    
+    // لا تستهلك نقاط للعمليات المجانية
+    if (action.cost === 0) {
+      return { success: true, method: 'credits_deducted' };
+    }
+    
+    setConsuming(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { success: false, method: 'failed', error: 'not_authenticated' };
+      }
+
+      const { data, error } = await supabase.rpc('deduct_credits_fefo', {
+        p_user_id: user.id,
+        p_amount: action.cost,
+        p_action_type: actionType
+      });
+
+      if (error) {
+        console.error('Error consuming credits:', error);
+        return { success: false, method: 'failed', error: error.message };
+      }
+
+      const result = data as unknown as DeductResult | null;
+      
+      if (result?.success) {
+        await fetchBalance();
+        queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
+      }
+
+      return result || { success: false, method: 'failed', error: 'unknown_error' };
+    } catch (error) {
+      console.error('Error in consumeCreditsDetailed:', error);
+      return { success: false, method: 'failed', error: 'exception' };
+    } finally {
+      setConsuming(false);
+    }
+  }, [fetchBalance, queryClient]);
+
   // التحقق عبر can_perform_action
   const canPerformAction = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
+
+      // Check for Ad Token first
+      const hasToken = await checkAdToken(actionType);
+      if (hasToken) return true;
 
       const { data, error } = await supabase.rpc('can_perform_action', {
         p_user_id: user.id,
@@ -176,6 +282,30 @@ export function useUsageCredits() {
     } catch (error) {
       console.error('Error checking can_perform_action:', error);
       return false;
+    }
+  }, [checkAdToken]);
+
+  // جلب حدود الإحالة للدورة الحالية
+  const getReferralLimits = useCallback(async (): Promise<ReferralLimits> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { used: 0, max: 5, remaining: 5 };
+
+      const { data, error } = await supabase.rpc('get_referral_limits', {
+        p_user_id: user.id
+      });
+
+      if (error) throw error;
+
+      const result = data as unknown as ReferralLimits;
+      return {
+        used: result?.used ?? 0,
+        max: result?.max ?? 5,
+        remaining: result?.remaining ?? 5
+      };
+    } catch (error) {
+      console.error('Error fetching referral limits:', error);
+      return { used: 0, max: 5, remaining: 5 };
     }
   }, []);
 
@@ -216,10 +346,13 @@ export function useUsageCredits() {
     fetchBalance,
     checkCredits,
     consumeCredits,
+    consumeCreditsDetailed,
     canPerformAction,
     getConsumptionHistory,
     getActionCost,
     isBlocked,
+    checkAdToken,
+    getReferralLimits,
     CREDIT_COSTS
   };
 }
