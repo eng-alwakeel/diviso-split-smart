@@ -114,7 +114,13 @@ export const InviteContactsTab = ({
       
       if (error) throw error;
       
-      return `${BRAND_CONFIG.url}/i/${data}`;
+      // RPC يُرجع مصفوفة، نستخرج أول عنصر
+      const tokenData = Array.isArray(data) ? data[0] : data;
+      const token = typeof tokenData === 'object' ? tokenData?.token : tokenData;
+      
+      if (!token) throw new Error('No token returned');
+      
+      return `${BRAND_CONFIG.url}/i/${token}`;
     } catch (error) {
       console.error('Error creating invite token:', error);
       // Fallback: استخدام رابط الدعوة العام إذا فشل إنشاء التوكن
