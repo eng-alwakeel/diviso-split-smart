@@ -74,9 +74,13 @@ export const FeaturesSection = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <Card key={index} className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0">
+              <Card 
+                key={index} 
+                className="bg-gradient-card shadow-card hover:shadow-elevated transition-all duration-300 border-0 group hover:scale-[1.02] hover:-translate-y-1"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>

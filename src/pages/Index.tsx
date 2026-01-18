@@ -5,6 +5,10 @@ import { PricingSection } from "@/components/PricingSection";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
+import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { AnimatedHowItWorks } from "@/components/landing/AnimatedHowItWorks";
+import { QuickStartSection } from "@/components/landing/QuickStartSection";
 
 const Index = () => {
   const { t } = useTranslation('landing');
@@ -18,7 +22,11 @@ const Index = () => {
       />
       <Header />
       <HeroSection />
+      <InteractiveSplitDemo />
+      <AnimatedHowItWorks />
       <FeaturesSection />
+      <TestimonialsSection />
+      <QuickStartSection />
       <PricingSection />
       <Footer />
     </div>

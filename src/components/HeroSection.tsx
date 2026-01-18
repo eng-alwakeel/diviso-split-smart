@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Users, Receipt, CheckCircle, Shield } from "lucide-react";
+import { Users, Receipt, CheckCircle, Shield, TrendingUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AnimatedCounter } from "./landing/AnimatedCounter";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
@@ -149,15 +150,29 @@ export const HeroSection = () => {
           ))}
         </div>
 
-        {/* Trust indicators */}
-        <div className="flex items-center justify-center gap-6 text-white/70">
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            <span className="text-sm">{t('hero.secure')}</span>
+        {/* Trust indicators with animated counters */}
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+            <Users className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">
+              +<AnimatedCounter end={10247} duration={2000} /> {t('hero.usersLabel')}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            <span className="text-sm">{t('hero.users')}</span>
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+            <Receipt className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">
+              +<AnimatedCounter end={45000} duration={2500} /> {t('hero.expensesLabel')}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">
+              +<AnimatedCounter end={8500} duration={2200} /> {t('hero.groupsLabel')}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">{t('hero.secure')}</span>
           </div>
         </div>
       </div>

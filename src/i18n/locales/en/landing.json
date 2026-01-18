@@ -33,7 +33,59 @@
     "startFree": "Start Free",
     "secure": "Safe & Encrypted",
     "users": "+10,000 Users",
+    "usersLabel": "Users",
+    "expensesLabel": "Expenses",
+    "groupsLabel": "Groups",
     "imageAlt": "Illustration of expense management and bill splitting"
+  },
+  "interactiveDemo": {
+    "badge": "Try it now",
+    "title": "Try Expense Splitting!",
+    "subtitle": "See how Diviso calculates each person's share",
+    "totalAmount": "Total Amount",
+    "numberOfPeople": "Number of People",
+    "perPerson": "Per Person",
+    "currency": "SAR",
+    "cta": "Start Free Now"
+  },
+  "animatedHowItWorks": {
+    "title": "How does Diviso work?",
+    "subtitle": "Three simple steps and you're done",
+    "stepLabel": "Step",
+    "step1": {
+      "title": "Create a Group",
+      "description": "Add your friends or colleagues in seconds"
+    },
+    "step2": {
+      "title": "Record Expenses",
+      "description": "Add any expense with who paid and who shares"
+    },
+    "step3": {
+      "title": "See the Balance",
+      "description": "Everyone knows exactly what they owe"
+    }
+  },
+  "testimonials": {
+    "title": "What our users say",
+    "subtitle": "Thousands of users trust Diviso"
+  },
+  "quickStart": {
+    "badge": "Easy & Fast",
+    "title": "Start in 30 Seconds",
+    "subtitle": "No complexity, no credit card required",
+    "step1": {
+      "title": "Sign up free",
+      "description": "With email or Google"
+    },
+    "step2": {
+      "title": "Create your first group",
+      "description": "And invite your friends"
+    },
+    "step3": {
+      "title": "Add your first expense",
+      "description": "And watch the magic!"
+    },
+    "cta": "Start Free Now"
   },
   "features": {
     "title": "Features that make expense management",
