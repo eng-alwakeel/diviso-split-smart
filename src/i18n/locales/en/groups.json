@@ -29,6 +29,11 @@
   "continue_to_invite": "Continue to Invite Members",
   "continue_to_balances": "Continue to Initial Balances",
   "join_group": "Join group",
+  "create_first": "Create Group",
+  "credits_warning": {
+    "title": "Insufficient Credits",
+    "description": "You need {{required}} credits to create a group. Your current balance: {{current}}"
+  },
 
   "create_page": {
     "title": "Create New Group",

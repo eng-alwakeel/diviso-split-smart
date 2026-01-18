@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
   ArrowRight, 
   Users, 
   Plus, 
@@ -15,7 +16,8 @@ import {
   Copy,
   Phone,
   Link as LinkIcon,
-  Calculator
+  Calculator,
+  AlertTriangle
 } from "lucide-react";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { AppHeader } from "@/components/AppHeader";
@@ -45,6 +47,7 @@ const CreateGroup = () => {
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [hasEnoughCredits, setHasEnoughCredits] = useState<boolean | null>(null);
   const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 5 });
   const [currentStep, setCurrentStep] = useState(1);
   const [groupData, setGroupData] = useState({
@@ -63,6 +66,26 @@ const CreateGroup = () => {
   const categories = [
     "trip", "home", "work", "party", "project", "general"
   ];
+
+  // Early credit check on mount
+  useEffect(() => {
+    const checkGroupCredits = async () => {
+      try {
+        const creditCheck = await checkCredits('create_group');
+        setHasEnoughCredits(creditCheck.canPerform);
+        if (!creditCheck.canPerform) {
+          setCreditCheckResult({ 
+            currentBalance: creditCheck.remainingCredits, 
+            requiredCredits: creditCheck.requiredCredits 
+          });
+        }
+      } catch (error) {
+        console.error('Error checking credits:', error);
+        setHasEnoughCredits(true); // Assume true on error
+      }
+    };
+    checkGroupCredits();
+  }, [checkCredits]);
 
   const getCategoryLabel = (category: string) => {
     return t(`groups:types.${category}`, category);
@@ -518,6 +541,20 @@ const CreateGroup = () => {
           <h1 className="text-3xl font-bold mb-2">{t('groups:create_page.title')}</h1>
           <p className="text-muted-foreground">{t('groups:create_page.subtitle')}</p>
         </div>
+
+        {/* Early Credit Warning */}
+        {hasEnoughCredits === false && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>{t('groups:credits_warning.title')}</AlertTitle>
+            <AlertDescription>
+              {t('groups:credits_warning.description', {
+                required: creditCheckResult.requiredCredits,
+                current: creditCheckResult.currentBalance
+              })}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-between mb-8">

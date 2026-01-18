@@ -288,6 +288,14 @@ export const useGroupData = (groupId?: string) => {
     
     console.log("[useGroupData] Setting up realtime listeners for group:", groupId);
     
+    // Handler for channel errors with auto-reconnect
+    const handleChannelError = (channelName: string) => {
+      console.warn(`[useGroupData] ${channelName} channel error, will retry in 5s`);
+      setTimeout(() => {
+        setRealtimeInitialized(false);
+      }, 5000);
+    };
+
     const expensesChannel = supabase
       .channel(`expenses_${groupId}`)
       .on(
@@ -300,7 +308,12 @@ export const useGroupData = (groupId?: string) => {
           debouncedLoad();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[useGroupData] Expenses channel status:", status);
+        if (status === 'CHANNEL_ERROR') {
+          handleChannelError('expenses');
+        }
+      });
 
     const settlementsChannel = supabase
       .channel(`settlements_${groupId}`)
@@ -313,7 +326,12 @@ export const useGroupData = (groupId?: string) => {
           debouncedLoad();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[useGroupData] Settlements channel status:", status);
+        if (status === 'CHANNEL_ERROR') {
+          handleChannelError('settlements');
+        }
+      });
 
     const splitsChannel = supabase
       .channel(`expense_splits_${groupId}`)
@@ -332,7 +350,12 @@ export const useGroupData = (groupId?: string) => {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[useGroupData] Expense splits channel status:", status);
+        if (status === 'CHANNEL_ERROR') {
+          handleChannelError('expense_splits');
+        }
+      });
 
     setRealtimeInitialized(true);
 
