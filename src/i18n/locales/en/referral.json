@@ -2,10 +2,9 @@
   "title": "Referral Center",
   "back": "Back",
   "balance_card": {
-    "free_days_remaining": "Free days remaining",
     "referrals": "Referrals",
     "successful": "Successful",
-    "earned": "Earned"
+    "earned": "Points Earned"
   },
   "points_info": {
     "title": "How to Earn Referral Points",
@@ -37,7 +36,7 @@
   },
   "invite": {
     "title": "Diviso App Invitation",
-    "message": "Join Diviso and get 7 free days!\n\nUse referral code: {{code}}"
+    "message": "Join Diviso and get a free trial!\n\nUse referral code: {{code}}"
   },
   "qr": {
     "invalid_link": "Invalid link value",
