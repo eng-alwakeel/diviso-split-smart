@@ -52,6 +52,7 @@ const LazyCreditStore = withLazyLoading(lazy(() => import("./pages/CreditStore")
 const LazyPaymentCallback = withLazyLoading(lazy(() => import("./pages/PaymentCallback")));
 const LazyBlog = withLazyLoading(lazy(() => import("./pages/Blog")));
 const LazyBlogPost = withLazyLoading(lazy(() => import("./pages/BlogPost")));
+const LazyOfferwall = withLazyLoading(lazy(() => import("./pages/Offerwall")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -96,6 +97,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/how-it-works" element={<LazyHowItWorks />} />
             <Route path="/blog" element={<LazyBlog />} />
             <Route path="/blog/:slug" element={<LazyBlogPost />} />
+            <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
