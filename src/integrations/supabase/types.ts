@@ -3504,6 +3504,7 @@ export type Database = {
           confirmed_by: string | null
           created_at: string
           created_by: string
+          dispute_reason: string | null
           from_user_id: string
           group_id: string
           id: string
@@ -3517,6 +3518,7 @@ export type Database = {
           confirmed_by?: string | null
           created_at?: string
           created_by: string
+          dispute_reason?: string | null
           from_user_id: string
           group_id: string
           id?: string
@@ -3530,6 +3532,7 @@ export type Database = {
           confirmed_by?: string | null
           created_at?: string
           created_by?: string
+          dispute_reason?: string | null
           from_user_id?: string
           group_id?: string
           id?: string

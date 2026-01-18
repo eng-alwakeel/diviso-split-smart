@@ -124,7 +124,8 @@
     "confirm_failed": "Failed to confirm settlement",
     "disputed": "Settlement Disputed",
     "disputed_desc": "Your non-receipt has been recorded",
-    "dispute_failed": "Failed to dispute settlement"
+    "dispute_failed": "Failed to dispute settlement",
+    "dispute_reason": "Dispute Reason"
   },
 
   "budget_tab": {
