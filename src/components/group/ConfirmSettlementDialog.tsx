@@ -9,7 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Check, X, AlertCircle } from "lucide-react";
 import { useSettlementActions } from "@/hooks/useSettlementActions";
 
@@ -43,6 +44,7 @@ export const ConfirmSettlementDialog = ({
   const { t } = useTranslation('groups');
   const { confirmSettlement, disputeSettlement, loading } = useSettlementActions();
   const [showDispute, setShowDispute] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
 
   if (!settlement) return null;
 
@@ -55,8 +57,10 @@ export const ConfirmSettlementDialog = ({
   };
 
   const handleDispute = async () => {
-    const success = await disputeSettlement(settlement.id);
+    const success = await disputeSettlement(settlement.id, disputeReason.trim() || undefined);
     if (success) {
+      setDisputeReason("");
+      setShowDispute(false);
       onConfirmed();
       onOpenChange(false);
     }
@@ -114,12 +118,24 @@ export const ConfirmSettlementDialog = ({
           </div>
 
           {showDispute && (
-            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <div className="space-y-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
                 <p className="text-sm text-destructive">
                   {t('settlements_tab.dispute_warning')}
                 </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dispute-reason" className="text-sm">
+                  {t('settlements_tab.dispute_reason_label')}
+                </Label>
+                <Textarea
+                  id="dispute-reason"
+                  placeholder={t('settlements_tab.dispute_reason_placeholder')}
+                  value={disputeReason}
+                  onChange={(e) => setDisputeReason(e.target.value)}
+                  className="min-h-[80px] bg-background"
+                />
               </div>
             </div>
           )}

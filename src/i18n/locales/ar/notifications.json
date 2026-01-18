@@ -20,6 +20,9 @@
     "group_invite": "دعوة انضمام لمجموعة",
     "referral_joined": "إحالة ناجحة 🎉",
     "referral_completed": "إحالة ناجحة 🎉",
+    "settlement_received": "تسوية جديدة 💰",
+    "settlement_confirmed": "تم تأكيد التسوية ✅",
+    "settlement_disputed": "تم رفض التسوية ❌",
     "default": "إشعار جديد"
   },
   "descriptions": {
@@ -29,6 +32,9 @@
     "new_message": "{{name}}: {{content}} في {{group}}",
     "group_invite": "{{inviter}} دعاك للانضمام إلى مجموعة \"{{group}}\"",
     "referral_joined": "{{name}} انضم عبر إحالتك! حصلت على {{days}} أيام مجانية",
+    "settlement_received": "{{name}} أرسل لك {{amount}} {{currency}} في {{group}}",
+    "settlement_confirmed": "{{name}} أكد استلام {{amount}} {{currency}} في {{group}}",
+    "settlement_disputed": "{{name}} رفض التسوية بقيمة {{amount}} {{currency}}: {{reason}}",
     "default": "إشعار جديد"
   },
   "toasts": {

@@ -4892,7 +4892,10 @@ export type Database = {
         Returns: {
           amount_owed: number
           amount_paid: number
+          avatar_url: string
+          display_name: string
           net_balance: number
+          phone: string
           settlements_in: number
           settlements_out: number
           user_id: string

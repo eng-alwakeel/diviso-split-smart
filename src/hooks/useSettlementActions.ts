@@ -59,6 +59,7 @@ export const useSettlementActions = () => {
         .from('settlements')
         .update({
           status: 'disputed',
+          dispute_reason: reason || null,
           confirmed_at: new Date().toISOString(),
           confirmed_by: user.id
         })

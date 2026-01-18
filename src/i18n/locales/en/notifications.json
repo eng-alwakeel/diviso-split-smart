@@ -20,6 +20,9 @@
     "group_invite": "Group Invitation",
     "referral_joined": "Successful Referral 🎉",
     "referral_completed": "Successful Referral 🎉",
+    "settlement_received": "New Settlement 💰",
+    "settlement_confirmed": "Settlement Confirmed ✅",
+    "settlement_disputed": "Settlement Disputed ❌",
     "default": "New Notification"
   },
   "descriptions": {
@@ -29,6 +32,9 @@
     "new_message": "{{name}}: {{content}} in {{group}}",
     "group_invite": "{{inviter}} invited you to join group \"{{group}}\"",
     "referral_joined": "{{name}} joined via your referral! You earned {{days}} free days",
+    "settlement_received": "{{name}} sent you {{amount}} {{currency}} in {{group}}",
+    "settlement_confirmed": "{{name}} confirmed receipt of {{amount}} {{currency}} in {{group}}",
+    "settlement_disputed": "{{name}} disputed settlement of {{amount}} {{currency}}: {{reason}}",
     "default": "New notification"
   },
   "toasts": {

@@ -67,6 +67,29 @@ export const useNotifications = (includeArchived = false) => {
           name: payload.invitee_name, 
           days: payload.reward_days 
         });
+      // إشعارات التسويات
+      case 'settlement_received':
+        return t('descriptions.settlement_received', {
+          name: payload.sender_name,
+          amount: payload.amount,
+          currency: payload.currency,
+          group: payload.group_name
+        });
+      case 'settlement_confirmed':
+        return t('descriptions.settlement_confirmed', {
+          name: payload.receiver_name,
+          amount: payload.amount,
+          currency: payload.currency,
+          group: payload.group_name
+        });
+      case 'settlement_disputed':
+        return t('descriptions.settlement_disputed', {
+          name: payload.receiver_name,
+          amount: payload.amount,
+          currency: payload.currency,
+          group: payload.group_name,
+          reason: payload.reason
+        });
       default:
         return t('descriptions.default');
     }
