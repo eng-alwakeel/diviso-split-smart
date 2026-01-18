@@ -33,7 +33,59 @@
     "startFree": "ابدأ مجاناً",
     "secure": "آمن ومشفر",
     "users": "+10,000 مستخدم",
+    "usersLabel": "مستخدم",
+    "expensesLabel": "مصروف",
+    "groupsLabel": "قروب",
     "imageAlt": "صورة توضيحية لإدارة المصاريف وتقسيم الفواتير"
+  },
+  "interactiveDemo": {
+    "badge": "جرب الآن",
+    "title": "جرب تقسيم المصاريف!",
+    "subtitle": "شوف كيف Diviso يحسب نصيب كل شخص",
+    "totalAmount": "المبلغ الإجمالي",
+    "numberOfPeople": "عدد الأشخاص",
+    "perPerson": "على كل شخص",
+    "currency": "ر.س",
+    "cta": "ابدأ مجاناً الآن"
+  },
+  "animatedHowItWorks": {
+    "title": "كيف يعمل Diviso؟",
+    "subtitle": "ثلاث خطوات بسيطة وتنتهي",
+    "stepLabel": "خطوة",
+    "step1": {
+      "title": "أنشئ قروب",
+      "description": "أضف أصدقاءك أو زملاءك في ثواني"
+    },
+    "step2": {
+      "title": "سجّل المصاريف",
+      "description": "أضف أي مصروف مع من دفع ومن يشارك"
+    },
+    "step3": {
+      "title": "شوف الحسابات",
+      "description": "كل واحد يعرف عليه كم بالضبط"
+    }
+  },
+  "testimonials": {
+    "title": "ماذا يقول مستخدمونا؟",
+    "subtitle": "آلاف المستخدمين يثقون في Diviso"
+  },
+  "quickStart": {
+    "badge": "سهل وسريع",
+    "title": "ابدأ في 30 ثانية",
+    "subtitle": "بدون تعقيد، بدون بطاقة ائتمان",
+    "step1": {
+      "title": "سجّل مجاناً",
+      "description": "بالإيميل أو Google"
+    },
+    "step2": {
+      "title": "أنشئ أول قروب",
+      "description": "وادع أصدقاءك"
+    },
+    "step3": {
+      "title": "أضف أول مصروف",
+      "description": "وشاهد السحر!"
+    },
+    "cta": "ابدأ الآن مجاناً"
   },
   "features": {
     "title": "مزايا تجعل إدارة المصاريف",

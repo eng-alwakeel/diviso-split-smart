@@ -1,17 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 const appLogo = "/lovable-uploads/e7669fe3-f50f-4cdc-95ba-1e72e597c9c2.png";
 
 export const Header = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { t } = useTranslation('landing');
+  const [isOpen, setIsOpen] = useState(false);
+  const { t, i18n } = useTranslation('landing');
+  const isRTL = i18n.language === 'ar';
 
   useEffect(() => {
     // Check auth state
@@ -83,10 +86,85 @@ export const Header = () => {
                 {t('header.blog')}
               </Link>
             </nav>
-            {/* Mobile menu button */}
-            <Button variant="ghost" size="sm" className="md:hidden">
-              <Menu className="w-4 h-4" />
-            </Button>
+            {/* Mobile menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side={isRTL ? "left" : "right"} className="w-[280px] bg-background/95 backdrop-blur-lg">
+                <div className="flex flex-col h-full py-6">
+                  {/* Logo */}
+                  <div className="flex items-center justify-between mb-8 px-2">
+                    <img src={appLogo} alt="Diviso" className="h-8 w-auto" />
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon">
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </SheetClose>
+                  </div>
+
+                  {/* Navigation Links */}
+                  <nav className="flex flex-col gap-2 flex-1">
+                    <SheetClose asChild>
+                      <Link 
+                        to="/how-it-works" 
+                        className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        {t('header.howItWorks')}
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <a 
+                        href="#features" 
+                        className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        {t('header.features')}
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link 
+                        to="/faq" 
+                        className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        {t('header.faq')}
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <a 
+                        href="#pricing" 
+                        className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        {t('header.pricing')}
+                      </a>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link 
+                        to="/blog" 
+                        className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
+                      >
+                        {t('header.blog')}
+                      </Link>
+                    </SheetClose>
+                  </nav>
+
+                  {/* Bottom Actions */}
+                  <div className="border-t border-border pt-4 space-y-3">
+                    <LanguageSwitcher />
+                    <SheetClose asChild>
+                      <Button 
+                        variant="default" 
+                        className="w-full"
+                        onClick={handleLoginClick}
+                      >
+                        {isLoggedIn ? t('header.dashboard') : t('header.login')}
+                      </Button>
+                    </SheetClose>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
