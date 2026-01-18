@@ -201,20 +201,28 @@
     <meta name="revisit-after" content="7 days" />
     <meta name="generator" content="Lovable" />
 
-    <!-- DNS Prefetch for external resources -->
+    <!-- DNS Prefetch & Preconnect for external resources -->
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+    <link rel="preconnect" href="https://sentry.avs.io" />
+    <link rel="preconnect" href="https://emrld.ltd" />
     
-    <!-- Readex Pro font for Arabic-friendly iOS-like look -->
+    <!-- Readex Pro font - Async loading for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="https://fonts.gstatic.com/s/readexpro/v21/SLXnc1bJ7HE5YDoGPuzj_dh8nv6L.woff2" as="font" type="font/woff2" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
 
-    <!-- Moyasar Payment Gateway - Deferred for performance -->
+    <!-- Moyasar Payment Gateway - Lazy load only when needed -->
     <link rel="preconnect" href="https://cdn.moyasar.com" />
     <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" /></noscript>
+    
+    <!-- Critical CSS Inline - Minimal styles for FCP -->
+    <style>
+      #root{min-height:100vh;background:#0a0a0b}
+      body{margin:0;font-family:'Readex Pro',system-ui,-apple-system,sans-serif}
+    </style>
 
   </head>
 
