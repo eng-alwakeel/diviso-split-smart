@@ -65,6 +65,15 @@ export const AnimatedCounter = ({
     return num.toLocaleString('en-US');
   };
 
+  // Show skeleton before visible
+  if (!isVisible) {
+    return (
+      <span ref={ref} className={`inline-block ${className}`}>
+        <span className="inline-block w-12 h-4 bg-white/20 rounded animate-pulse align-middle" />
+      </span>
+    );
+  }
+
   return (
     <span ref={ref} className={className}>
       {prefix}{formatNumber(count)}{suffix}
