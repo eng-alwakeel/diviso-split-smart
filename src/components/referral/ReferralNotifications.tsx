@@ -114,11 +114,11 @@ export function ReferralNotifications() {
       case 'referral_joined':
         return `${payload?.invitee_name || 'شخص ما'} انضم عبر إحالتك!`;
       case 'reward_earned':
-        return `حصلت على ${payload?.days_earned || 0} أيام مجانية!`;
+        return `حصلت على ${payload?.points || 0} نقطة!`;
       case 'tier_upgraded':
         return `تم ترقيتك إلى مستوى ${payload?.new_tier || 'جديد'}!`;
       case 'referral_milestone':
-        return `تهانينا! وصلت إلى ${payload?.milestone || 0} إحالة ناجحة!`;
+        return `تهانينا! حصلت على ${payload?.points || 0} نقطة!`;
       default:
         return 'إشعار جديد';
     }
@@ -127,13 +127,13 @@ export function ReferralNotifications() {
   const getNotificationMessage = (type: string, payload: any) => {
     switch (type) {
       case 'referral_joined':
-        return `تم إضافة ${payload?.reward_days || 7} أيام مجانية لحسابك`;
+        return `ستحصل على 10 نقاط عند أول استخدام + 20 نقاط عند إنشاء قروب/تسوية`;
       case 'reward_earned':
-        return 'يمكنك الآن تطبيق المكافأة على اشتراكك';
+        return 'تمت إضافة النقاط إلى رصيدك';
       case 'tier_upgraded':
         return `الآن تحصل على ${payload?.bonus_multiplier || 1}× مضاعف المكافآت`;
       case 'referral_milestone':
-        return `استمر في دعوة المزيد من الأصدقاء للحصول على مكافآت أكبر`;
+        return payload?.message_ar || `استمر في دعوة المزيد من الأصدقاء للحصول على نقاط أكثر`;
       default:
         return '';
     }

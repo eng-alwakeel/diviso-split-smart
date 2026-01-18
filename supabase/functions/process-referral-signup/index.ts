@@ -61,8 +61,8 @@ const handler = async (req: Request): Promise<Response> => {
     const inviterId = referralCodeData.user_id;
     console.log(`Found inviter: ${inviterId}`);
 
-    // Fixed reward days - no tier system
-    const rewardDays = 7;
+    // Trial days for the new user (invitee only)
+    const trialDays = 7;
 
     // Check for existing pending referral (personal or group invite)
     const { data: existingReferral, error: referralError } = await supabaseClient
@@ -119,8 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
         .update({
           status: "joined",
           joined_at: new Date().toISOString(),
-          invitee_name: userName,
-          reward_days: rewardDays
+          invitee_name: userName
         })
         .eq("id", existingReferral.id)
         .select()
@@ -155,8 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
         .update({
           status: "joined",
           joined_at: new Date().toISOString(),
-          invitee_name: userName,
-          reward_days: rewardDays
+          invitee_name: userName
         })
         .eq("id", pendingGroupInvite.referral_id)
         .select()
@@ -193,7 +191,6 @@ const handler = async (req: Request): Promise<Response> => {
           referral_code: referralCode,
           status: "joined",
           joined_at: new Date().toISOString(),
-          reward_days: rewardDays,
           referral_source: "direct",
           expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         })
@@ -211,7 +208,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Get referral record for group info
     const { data: referralRecord } = await supabaseClient
       .from("referrals")
-      .select("reward_days, group_id, group_name")
+      .select("group_id, group_name")
       .eq("id", referralId)
       .single();
 
@@ -239,29 +236,11 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("✅ Created referral_progress - invitee can now trigger milestone points");
     }
 
-    // =============================================
-    // Create referral reward for the inviter (7 days)
-    // =============================================
-    console.log(`Creating referral reward for inviter: ${rewardDays} days`);
-    
-    const { error: rewardError } = await supabaseClient
-      .from("referral_rewards")
-      .insert({
-        user_id: inviterId,
-        referral_id: referralId,
-        days_earned: rewardDays,
-        applied_to_subscription: false
-      });
-
-    if (rewardError) {
-      console.error("Error creating referral reward:", rewardError);
-    }
-
     // Create a free trial subscription for the new user (7 days)
     console.log("Creating trial subscription for new user");
     
     const trialStartDate = new Date();
-    const trialEndDate = new Date(trialStartDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+    const trialEndDate = new Date(trialStartDate.getTime() + (trialDays * 24 * 60 * 60 * 1000));
 
     const { error: subscriptionError } = await supabaseClient
       .from("user_subscriptions")
@@ -280,11 +259,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Send notification to the inviter
     const notificationPayload: Record<string, unknown> = {
       invitee_name: userName || "صديق جديد",
-      reward_days: rewardDays,
       referral_code: referralCode,
       source: isGroupReferral ? "group_invite" : "personal",
       points_pending: true,
-      message_ar: `${userName || 'صديق جديد'} سجّل! ستحصل على نقاط عند استخدامه للتطبيق (10 نقاط أول استخدام + 20 نقاط عند إنشاء قروب/تسوية)`
+      message_ar: `${userName || 'صديق جديد'} سجّل! ستحصل على 10 نقاط عند أول استخدام + 20 نقاط عند إنشاء قروب/تسوية`
     };
 
     if (referralRecord?.group_name) {

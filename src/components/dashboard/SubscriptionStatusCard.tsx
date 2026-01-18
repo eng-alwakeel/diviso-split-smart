@@ -8,7 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { useNavigate } from "react-router-dom";
-import { Crown, Calendar, Gem, TrendingUp } from "lucide-react";
+import { Crown, Calendar, Gem } from "lucide-react";
 
 export const SubscriptionStatusCard = () => {
   const { t } = useTranslation('dashboard');
@@ -153,18 +153,6 @@ export const SubscriptionStatusCard = () => {
           </div>
         )}
 
-        {/* إجمالي الأيام المتبقية */}
-        {totalDaysLeft > 0 && (
-          <div className="flex items-center justify-between p-2 bg-primary/5 rounded-lg">
-            <span className="text-sm font-medium text-foreground flex items-center gap-1">
-              <TrendingUp className="w-4 h-4" />
-              {t('subscription.total_days_remaining')}:
-            </span>
-            <span className="text-sm font-bold text-primary">
-              {totalDaysLeft} {t('subscription.days')}
-            </span>
-          </div>
-        )}
 
         {/* أزرار الإجراءات */}
         <div className="flex gap-2 pt-2">
