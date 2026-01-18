@@ -12,6 +12,9 @@ verify_jwt = true
 [functions.delete-account]
 verify_jwt = true
 
+[functions.paymentwall-widget-key]
+verify_jwt = false
+
 [functions.amazon-affiliate-sync]
 verify_jwt = false
 
