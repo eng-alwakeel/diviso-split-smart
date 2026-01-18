@@ -203,16 +203,15 @@ export const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll Down Arrow */}
-      <div 
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${
-          showScrollArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="animate-bounce">
-          <ChevronDown className="w-8 h-8 text-white/60" />
+      {/* Scroll Down Arrow - using CSS animation with will-change for performance */}
+      {showScrollArrow && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <ChevronDown 
+            className="w-8 h-8 text-white/60 animate-[bounce_2s_ease-in-out_infinite]" 
+            style={{ willChange: 'transform' }}
+          />
         </div>
-      </div>
+      )}
     </section>
   );
 };
