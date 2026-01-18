@@ -1,11 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Users, Receipt, CheckCircle, Shield, TrendingUp } from "lucide-react";
+import { Users, Receipt, CheckCircle, Shield, TrendingUp, ChevronDown, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AnimatedCounter } from "./landing/AnimatedCounter";
+import { useEffect, useState } from "react";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
   const isRTL = i18n.language === 'ar';
+  const [showScrollArrow, setShowScrollArrow] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollArrow(window.scrollY < 100);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const steps = [
     {
@@ -58,16 +68,26 @@ export const HeroSection = () => {
               {t('hero.valueDesc')}
             </p>
 
-            {/* CTA Button */}
+            {/* CTA Button with Glow Effect */}
             <div className="mb-8">
               <Button 
                 variant="secondary" 
                 size="lg" 
-                className="text-lg px-8 py-6 h-auto"
+                className="text-lg px-8 py-6 h-auto relative overflow-hidden shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_50px_rgba(var(--primary-rgb),0.6)] hover:scale-105 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
                 onClick={() => window.location.href = '/dashboard'}
               >
                 {t('hero.startFree')}
               </Button>
+            </div>
+
+            {/* Security Badge */}
+            <div className="flex items-center justify-center lg:justify-start gap-2">
+              <div className="flex items-center gap-1.5 bg-green-500/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-green-500/30">
+                <ShieldCheck className="w-4 h-4 text-green-400" />
+                <span className="text-xs font-medium text-green-300">
+                  {isRTL ? 'آمن 100%' : '100% Secure'}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -152,28 +172,39 @@ export const HeroSection = () => {
 
         {/* Trust indicators with animated counters */}
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90">
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
             <Users className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">
               +<AnimatedCounter end={10247} duration={2000} /> {t('hero.usersLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
             <Receipt className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">
               +<AnimatedCounter end={45000} duration={2500} /> {t('hero.expensesLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
             <TrendingUp className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">
               +<AnimatedCounter end={8500} duration={2200} /> {t('hero.groupsLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
             <Shield className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">{t('hero.secure')}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Scroll Down Arrow */}
+      <div 
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${
+          showScrollArrow ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="animate-bounce">
+          <ChevronDown className="w-8 h-8 text-white/60" />
         </div>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Star, Quote } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -76,14 +76,30 @@ export const TestimonialsSection = () => {
   const { t, i18n } = useTranslation('landing');
   const isArabic = i18n.language === 'ar';
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const goToNext = useCallback(() => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+      setTimeout(() => setIsAnimating(false), 50);
+    }, 300);
+  }, [isAnimating]);
+
+  const goToIndex = useCallback((index: number) => {
+    if (isAnimating || index === currentIndex) return;
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setTimeout(() => setIsAnimating(false), 50);
+    }, 300);
+  }, [isAnimating, currentIndex]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 4000);
-
+    const timer = setInterval(goToNext, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [goToNext]);
 
   const currentTestimonial = testimonials[currentIndex];
 
@@ -106,8 +122,12 @@ export const TestimonialsSection = () => {
             {/* Quote Icon */}
             <Quote className="absolute top-4 right-4 w-12 h-12 text-primary/10" />
             
-            {/* Content */}
-            <div className="relative">
+            {/* Content with fade animation */}
+            <div 
+              className={`relative transition-all duration-300 ease-in-out ${
+                isAnimating ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'
+              }`}
+            >
               {/* Stars */}
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(currentTestimonial.rating)].map((_, i) => (
@@ -116,7 +136,7 @@ export const TestimonialsSection = () => {
               </div>
 
               {/* Text */}
-              <p className="text-lg md:text-xl leading-relaxed mb-6 min-h-[80px] transition-all duration-500">
+              <p className="text-lg md:text-xl leading-relaxed mb-6 min-h-[80px]">
                 "{isArabic ? currentTestimonial.contentAr : currentTestimonial.content}"
               </p>
 
@@ -142,11 +162,11 @@ export const TestimonialsSection = () => {
             {testimonials.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                onClick={() => goToIndex(index)}
+                className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex
                     ? "w-6 bg-primary"
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
