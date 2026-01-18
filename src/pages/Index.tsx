@@ -6,17 +6,23 @@ import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 
 // Lazy load below-the-fold components for faster FCP
-const InteractiveSplitDemo = lazy(() => import("@/components/landing/InteractiveSplitDemo").then(m => ({ default: m.InteractiveSplitDemo })));
 const AnimatedHowItWorks = lazy(() => import("@/components/landing/AnimatedHowItWorks").then(m => ({ default: m.AnimatedHowItWorks })));
 const FeaturesSection = lazy(() => import("@/components/FeaturesSection").then(m => ({ default: m.FeaturesSection })));
 const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const QuickStartSection = lazy(() => import("@/components/landing/QuickStartSection").then(m => ({ default: m.QuickStartSection })));
 const PricingSection = lazy(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
 
-// Light skeleton for lazy sections
-const SectionSkeleton = () => (
-  <div className="py-16 flex justify-center">
-    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+// Import non-lazy for above-the-fold
+import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
+
+// Properly sized skeleton to prevent layout shift
+const BelowFoldSkeleton = () => (
+  <div style={{ minHeight: '2000px', contentVisibility: 'auto', containIntrinsicSize: '0 2000px' }}>
+    <div className="py-16 bg-gradient-to-b from-muted/30 to-background" style={{ minHeight: '500px' }} />
+    <div className="py-12 bg-muted/50" style={{ minHeight: '600px' }} />
+    <div className="py-16" style={{ minHeight: '400px' }} />
+    <div className="py-16" style={{ minHeight: '300px' }} />
+    <div className="py-16" style={{ minHeight: '500px' }} />
   </div>
 );
 
@@ -33,23 +39,15 @@ const Index = () => {
       <Header />
       <HeroSection />
       
-      {/* Lazy loaded sections below the fold */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <InteractiveSplitDemo />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}>
+      {/* Above the fold - not lazy */}
+      <InteractiveSplitDemo />
+      
+      {/* Below the fold - consolidated lazy loading */}
+      <Suspense fallback={<BelowFoldSkeleton />}>
         <AnimatedHowItWorks />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}>
         <FeaturesSection />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}>
         <TestimonialsSection />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}>
         <QuickStartSection />
-      </Suspense>
-      <Suspense fallback={<SectionSkeleton />}>
         <PricingSection />
       </Suspense>
       <Footer />
