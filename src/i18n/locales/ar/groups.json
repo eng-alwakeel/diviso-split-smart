@@ -117,6 +117,8 @@
     "dispute": "لم أستلم",
     "confirm_dispute": "تأكيد عدم الاستلام",
     "dispute_warning": "سيتم إبلاغ المرسل بأنك لم تستلم المبلغ.",
+    "dispute_reason_label": "سبب الرفض (اختياري)",
+    "dispute_reason_placeholder": "اذكر سبب عدم استلامك للمبلغ...",
     "confirmed": "تم تأكيد التسوية",
     "confirmed_desc": "تم تحديث حالة التسوية بنجاح",
     "confirm_failed": "تعذر تأكيد التسوية",

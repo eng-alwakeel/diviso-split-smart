@@ -117,6 +117,8 @@
     "dispute": "Not Received",
     "confirm_dispute": "Confirm Not Received",
     "dispute_warning": "The sender will be notified that you did not receive the amount.",
+    "dispute_reason_label": "Reason for dispute (optional)",
+    "dispute_reason_placeholder": "Explain why you didn't receive the amount...",
     "confirmed": "Settlement Confirmed",
     "confirmed_desc": "Settlement status updated successfully",
     "confirm_failed": "Failed to confirm settlement",
