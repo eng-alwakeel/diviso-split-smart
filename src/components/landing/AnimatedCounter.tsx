@@ -65,18 +65,18 @@ export const AnimatedCounter = ({
     return num.toLocaleString('en-US');
   };
 
-  // Show skeleton before visible
-  if (!isVisible) {
-    return (
-      <span ref={ref} className={`inline-block ${className}`}>
-        <span className="inline-block w-12 h-4 bg-white/20 rounded animate-pulse align-middle" />
-      </span>
-    );
-  }
-
+  // Fixed width to prevent layout shift - reserve space for largest expected number
   return (
-    <span ref={ref} className={className}>
-      {prefix}{formatNumber(count)}{suffix}
+    <span 
+      ref={ref} 
+      className={`inline-block min-w-[3.5rem] text-center tabular-nums ${className}`}
+      style={{ fontVariantNumeric: 'tabular-nums' }}
+    >
+      {isVisible ? (
+        <>{prefix}{formatNumber(count)}{suffix}</>
+      ) : (
+        <span className="inline-block w-full h-4 bg-white/20 rounded animate-pulse align-middle" />
+      )}
     </span>
   );
 };

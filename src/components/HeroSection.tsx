@@ -91,17 +91,24 @@ export const HeroSection = () => {
             </div>
           </div>
 
-          {/* Abstract Brand Art */}
+          {/* Abstract Brand Art - Optimized for performance */}
           <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
             <div className="relative w-full max-w-md mx-auto h-80 lg:h-96 overflow-hidden">
-              {/* Large gradient orb - primary */}
-              <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl animate-pulse" />
+              {/* Static gradient orbs - removed animate-pulse for better performance */}
+              <div 
+                className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl"
+                style={{ willChange: 'opacity' }}
+              />
               
               {/* Medium gradient orb */}
-              <div className="absolute bottom-1/4 right-1/3 w-28 h-28 bg-gradient-to-tr from-primary/40 to-transparent rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+              <div 
+                className="absolute bottom-1/4 right-1/3 w-28 h-28 bg-gradient-to-tr from-primary/40 to-transparent rounded-full blur-xl"
+              />
               
               {/* Small accent orb */}
-              <div className="absolute top-1/3 right-1/2 w-16 h-16 bg-primary/50 rounded-full blur-lg animate-pulse" style={{ animationDelay: '2s' }} />
+              <div 
+                className="absolute top-1/3 right-1/2 w-16 h-16 bg-primary/50 rounded-full blur-lg"
+              />
 
               {/* Geometric shapes */}
               <div className="absolute top-10 right-10 w-16 h-16 border-2 border-primary/30 rounded-2xl rotate-12" />
@@ -113,15 +120,14 @@ export const HeroSection = () => {
               <div className="absolute bottom-16 right-1/3 w-2 h-2 bg-primary rounded-full shadow-lg shadow-primary/50" />
               <div className="absolute top-1/2 right-16 w-4 h-4 bg-primary/80 rounded-full shadow-lg shadow-primary/50" />
               
-              {/* Curved lines - SVG */}
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400">
+              {/* Curved lines - SVG - static for performance */}
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400" aria-hidden="true">
                 <path 
                   d="M50,200 Q150,100 200,200 T350,200" 
                   fill="none" 
                   stroke="hsl(var(--primary))" 
                   strokeWidth="2" 
                   strokeOpacity="0.3"
-                  className="animate-pulse"
                 />
                 <path 
                   d="M100,300 Q200,200 250,300 T400,300" 

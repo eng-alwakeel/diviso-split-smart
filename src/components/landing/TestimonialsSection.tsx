@@ -104,7 +104,10 @@ export const TestimonialsSection = () => {
   const currentTestimonial = testimonials[currentIndex];
 
   return (
-    <section className="py-16 bg-muted/30">
+    <section 
+      className="py-16 bg-muted/30"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 450px' }}
+    >
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-10">
@@ -116,40 +119,41 @@ export const TestimonialsSection = () => {
           </p>
         </div>
 
-        {/* Testimonial Card */}
+        {/* Testimonial Card - Fixed height to prevent CLS */}
         <div className="max-w-2xl mx-auto">
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-8 relative overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-lg p-8 relative overflow-hidden min-h-[280px]">
             {/* Quote Icon */}
             <Quote className="absolute top-4 right-4 w-12 h-12 text-primary/10" />
             
-            {/* Content with fade animation */}
+            {/* Content with fade animation - using will-change for smooth transitions */}
             <div 
-              className={`relative transition-all duration-300 ease-in-out ${
-                isAnimating ? 'opacity-0 transform translate-y-2' : 'opacity-100 transform translate-y-0'
+              className={`relative transition-opacity duration-300 ease-in-out ${
+                isAnimating ? 'opacity-0' : 'opacity-100'
               }`}
+              style={{ willChange: 'opacity' }}
             >
               {/* Stars */}
-              <div className="flex items-center gap-1 mb-4">
+              <div className="flex items-center gap-1 mb-4 h-5">
                 {[...Array(currentTestimonial.rating)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                 ))}
               </div>
 
-              {/* Text */}
-              <p className="text-lg md:text-xl leading-relaxed mb-6 min-h-[80px]">
+              {/* Text - Fixed height to prevent layout shift */}
+              <p className="text-lg md:text-xl leading-relaxed mb-6 min-h-[100px] line-clamp-4">
                 "{isArabic ? currentTestimonial.contentAr : currentTestimonial.content}"
               </p>
 
-              {/* Author */}
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center text-2xl">
+              {/* Author - Fixed height */}
+              <div className="flex items-center gap-4 h-14">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
                   {currentTestimonial.avatar}
                 </div>
-                <div>
-                  <p className="font-semibold">
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">
                     {isArabic ? currentTestimonial.nameAr : currentTestimonial.name}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground truncate">
                     {isArabic ? currentTestimonial.roleAr : currentTestimonial.role}
                   </p>
                 </div>
