@@ -53,6 +53,7 @@ const LazyPaymentCallback = withLazyLoading(lazy(() => import("./pages/PaymentCa
 const LazyBlog = withLazyLoading(lazy(() => import("./pages/Blog")));
 const LazyBlogPost = withLazyLoading(lazy(() => import("./pages/BlogPost")));
 const LazyOfferwall = withLazyLoading(lazy(() => import("./pages/Offerwall")));
+const LazyRecommendationTest = withLazyLoading(lazy(() => import("./pages/RecommendationTestPage")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -118,6 +119,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/admin/support" element={<AdminProtectedRoute><LazySupportDashboard /></AdminProtectedRoute>} />
             <Route path="/my-tickets" element={<ProtectedRoute><PageErrorBoundary><LazyMyTickets /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/ad-test" element={<AdTestPage />} />
+            <Route path="/recommendation-test" element={<ProtectedRoute><PageErrorBoundary><LazyRecommendationTest /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/payment-callback" element={<ProtectedRoute><PageErrorBoundary><LazyPaymentCallback /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
