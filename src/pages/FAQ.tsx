@@ -180,7 +180,11 @@ const FAQ = () => {
                           <Icon className="w-4 h-4" />
                         </div>
                         <span className="font-medium text-foreground">
-                          {t(`questions.${id}.question`)}
+                          <Trans
+                            i18nKey={`questions.${id}.question`}
+                            ns="faq"
+                            components={{ brand: <BrandedDiviso /> }}
+                          />
                         </span>
                       </div>
                     </AccordionTrigger>
