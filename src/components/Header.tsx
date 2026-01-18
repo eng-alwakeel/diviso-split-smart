@@ -60,7 +60,16 @@ export const Header = () => {
           {/* Center: Logo */}
           <Link to="/" className="justify-self-center inline-flex flex-col items-center gap-1">
             <div className="flex items-center gap-3">
-              <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+              <img 
+                src={appLogo} 
+                alt="شعار Diviso" 
+                className="h-8 w-auto" 
+                width={128} 
+                height={32}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+              />
             </div>
             <span className="hidden md:block text-xs text-muted-foreground font-medium">
               {t('header.slogan')}
@@ -97,7 +106,7 @@ export const Header = () => {
                 <div className="flex flex-col h-full py-6">
                   {/* Logo */}
                   <div className="flex items-center justify-between mb-8 px-2">
-                    <img src={appLogo} alt="Diviso" className="h-8 w-auto" />
+                    <img src={appLogo} alt="Diviso" className="h-8 w-auto" width={128} height={32} loading="lazy" />
                     <SheetClose asChild>
                       <Button variant="ghost" size="icon">
                         <X className="w-5 h-5" />
