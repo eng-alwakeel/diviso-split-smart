@@ -44,6 +44,7 @@ interface BalanceDashboardProps {
     created_at: string;
     note?: string;
     status?: string;
+    dispute_reason?: string;
     confirmed_at?: string;
     confirmed_by?: string;
   }>;
@@ -77,7 +78,7 @@ export const BalanceDashboard = ({
     return profile?.display_name || profile?.name || `${userId.slice(0, 4)}...`;
   };
 
-  const getStatusBadge = (status?: string) => {
+  const getStatusBadge = (status?: string, disputeReason?: string) => {
     switch (status) {
       case 'confirmed':
         return (
@@ -88,10 +89,17 @@ export const BalanceDashboard = ({
         );
       case 'disputed':
         return (
-          <Badge variant="destructive" className="text-xs">
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            {t('settlements_tab.status_disputed')}
-          </Badge>
+          <div className="flex flex-col gap-1">
+            <Badge variant="destructive" className="text-xs">
+              <AlertTriangle className="w-3 h-3 mr-1" />
+              {t('settlements_tab.status_disputed')}
+            </Badge>
+            {disputeReason && (
+              <p className="text-xs text-destructive/80">
+                {t('settlements_tab.dispute_reason')}: {disputeReason}
+              </p>
+            )}
+          </div>
         );
       default:
         return (
@@ -331,7 +339,7 @@ export const BalanceDashboard = ({
                       
                       {/* Status and confirm button */}
                       <div className="flex items-center justify-between pt-2 border-t border-border/20">
-                        {getStatusBadge(settlement.status)}
+                        {getStatusBadge(settlement.status, settlement.dispute_reason)}
                         
                         {canConfirm && (
                           <Button

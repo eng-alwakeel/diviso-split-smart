@@ -124,7 +124,8 @@
     "confirm_failed": "تعذر تأكيد التسوية",
     "disputed": "تم الإبلاغ عن التسوية",
     "disputed_desc": "تم تسجيل عدم استلامك للمبلغ",
-    "dispute_failed": "تعذر الإبلاغ عن التسوية"
+    "dispute_failed": "تعذر الإبلاغ عن التسوية",
+    "dispute_reason": "سبب الرفض"
   },
 
   "budget_tab": {
