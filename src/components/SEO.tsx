@@ -1,5 +1,18 @@
 import { useEffect } from 'react';
 
+interface ArticleMetadata {
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  section?: string;
+  tags?: string[];
+}
+
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
 interface SEOProps {
   title?: string;
   description?: string;
@@ -9,6 +22,8 @@ interface SEOProps {
   noIndex?: boolean;
   keywords?: string;
   lang?: 'ar' | 'en';
+  article?: ArticleMetadata;
+  breadcrumbs?: BreadcrumbItem[];
 }
 
 const defaultSEO = {
@@ -28,6 +43,8 @@ export const SEO = ({
   noIndex = false,
   keywords,
   lang = 'ar',
+  article,
+  breadcrumbs,
 }: SEOProps) => {
   useEffect(() => {
     // Update document title
@@ -98,8 +115,9 @@ export const SEO = ({
     // Update og:image:alt
     updateMetaTag('meta[property="og:image:alt"]', fullTitle);
 
-    // Update canonical link
-    updateLinkTag('canonical', canonicalUrl);
+    // Update canonical link - clean URL without unnecessary query params
+    const cleanCanonicalUrl = canonicalUrl.split('?')[0];
+    updateLinkTag('canonical', cleanCanonicalUrl);
 
     // Update author meta tag
     updateMetaTag('meta[name="author"]', 'Diviso');
@@ -110,6 +128,52 @@ export const SEO = ({
     updateLinkTag('alternate', `${baseUrl}${currentPath}`, 'ar');
     updateLinkTag('alternate', `${baseUrl}${currentPath}?lang=en`, 'en');
     updateLinkTag('alternate', `${baseUrl}${currentPath}`, 'x-default');
+
+    // Handle article metadata for blog posts
+    if (ogType === 'article' && article) {
+      if (article.publishedTime) {
+        updateMetaTag('meta[property="article:published_time"]', article.publishedTime);
+      }
+      if (article.modifiedTime) {
+        updateMetaTag('meta[property="article:modified_time"]', article.modifiedTime);
+      }
+      if (article.author) {
+        updateMetaTag('meta[property="article:author"]', article.author);
+      }
+      if (article.section) {
+        updateMetaTag('meta[property="article:section"]', article.section);
+      }
+      if (article.tags) {
+        article.tags.forEach((tag, index) => {
+          updateMetaTag(`meta[property="article:tag"][data-index="${index}"]`, tag);
+        });
+      }
+    }
+
+    // Add dynamic breadcrumb structured data
+    if (breadcrumbs && breadcrumbs.length > 0) {
+      const existingBreadcrumbScript = document.querySelector('script[data-seo-breadcrumbs]');
+      if (existingBreadcrumbScript) {
+        existingBreadcrumbScript.remove();
+      }
+
+      const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbs.map((item, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "name": item.name,
+          "item": item.url
+        }))
+      };
+
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-seo-breadcrumbs', 'true');
+      script.textContent = JSON.stringify(breadcrumbSchema);
+      document.head.appendChild(script);
+    }
 
     // Handle noIndex
     let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
@@ -128,8 +192,11 @@ export const SEO = ({
     return () => {
       // Reset to defaults when component unmounts
       document.title = defaultSEO.title;
+      // Remove dynamic breadcrumb schema
+      const breadcrumbScript = document.querySelector('script[data-seo-breadcrumbs]');
+      if (breadcrumbScript) breadcrumbScript.remove();
     };
-  }, [title, description, canonical, ogImage, ogType, noIndex, keywords, lang]);
+  }, [title, description, canonical, ogImage, ogType, noIndex, keywords, lang, article, breadcrumbs]);
 
   return null;
 };
