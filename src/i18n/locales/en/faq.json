@@ -2,10 +2,15 @@
   "pageTitle": "Frequently Asked Questions",
   "pageDescription": "Answers to the most common questions about <brand>Diviso</brand> app",
   "searchPlaceholder": "Search questions...",
+  "noResults": "No results found",
+  "supportTeamReady": "Our support team is ready to help you 24/7",
+  "allCategories": "All",
   "categories": {
     "general": "General",
     "groups": "Groups",
     "expenses": "Expenses",
+    "credits": "Credits & Plans",
+    "ai": "AI Features",
     "account": "Account & Security"
   },
   "questions": {
@@ -15,11 +20,11 @@
     },
     "is_free": {
       "question": "Is the app free?",
-      "answer": "Yes! You can use <brand>Diviso</brand> for free with basic features. We also offer paid plans for advanced features like unlimited groups and advanced reports."
+      "answer": "Yes! You can use <brand>Diviso</brand> for free with basic features. We also offer paid plans for advanced features like Trip Planner and Smart Recommendations."
     },
     "plan_difference": {
       "question": "What's the difference between plans?",
-      "answer": "The free plan includes 1 group and 5 members. The Pro plan offers unlimited groups, advanced reports, and AI receipt scanning. The Family plan allows managing family member accounts."
+      "answer": "Starter: 70 credits/month with basic features. Pro: 90 credits with advanced reports and AI receipt scanning. Max: 260 credits with all features including Trip Planner and Smart Recommendations."
     },
     "create_group": {
       "question": "How do I create a new group?",
@@ -31,7 +36,7 @@
     },
     "multiple_groups": {
       "question": "Can I manage multiple groups?",
-      "answer": "Yes! With the Pro plan, you can create and manage unlimited groups. The free plan allows managing one group."
+      "answer": "Yes! With paid plans, you can create and manage unlimited groups. The free plan allows managing one group."
     },
     "add_expense": {
       "question": "How do I add a new expense?",
@@ -44,6 +49,54 @@
     "edit_expense": {
       "question": "Can I edit an expense after adding it?",
       "answer": "Yes, you can edit any expense you've added. Modified expenses may need approval from affected members depending on group settings."
+    },
+    "what_are_credits": {
+      "question": "What is the credit system in <brand>Diviso</brand>?",
+      "answer": "Credits are points used to activate advanced features like receipt scanning and trip planning. You get monthly credits with your subscription, and you can buy additional credits from the store."
+    },
+    "subscription_plans": {
+      "question": "What subscription plans are available?",
+      "answer": "We offer 3 plans: Starter (70 credits/month), Pro (90 credits with extra features), and Max (260 credits with all features). Annual plans are also available with up to 36% discount."
+    },
+    "buy_credits": {
+      "question": "How do I buy additional credits?",
+      "answer": "Go to the Credit Store from the main menu. We offer various packages: Starter (100 credits), Popular (200+20 bonus), and Pro (400+80 bonus) with 90-day validity."
+    },
+    "referral_program": {
+      "question": "How does the referral program work?",
+      "answer": "Share your referral link with friends. When they sign up and use the app, you earn bonus points (UC) that can be used for advanced features."
+    },
+    "referral_rewards": {
+      "question": "What are the referral rewards?",
+      "answer": "You earn UC points for each successful referral. You can track your referrals and rewards from the 'Referral Center' page, and share via WhatsApp and Twitter."
+    },
+    "ai_trip_planner": {
+      "question": "What is the Smart Trip Planner?",
+      "answer": "An AI-powered tool to plan your trips. Enter your destination, budget, and duration, and it will suggest a complete itinerary including places, restaurants, and activities with cost estimates."
+    },
+    "smart_recommendations": {
+      "question": "How do Smart Recommendations work?",
+      "answer": "Based on your location, group type, and budget, <brand>Diviso</brand> suggests suitable restaurants and places. You can choose between 'Budget' or 'Premium' options based on your preference."
+    },
+    "smart_categories": {
+      "question": "What is Smart Expense Categorization?",
+      "answer": "When adding an expense, the app automatically suggests the appropriate category based on the group type and previous expenses, saving you time and ensuring accurate categorization."
+    },
+    "create_budget": {
+      "question": "How do I create a budget for a group?",
+      "answer": "From within the group, go to 'Budgets' and tap 'Create Budget'. Set the categories, amounts, and period, and the app will track your spending and alert you when approaching the limit."
+    },
+    "budget_alerts": {
+      "question": "How do budget alerts work?",
+      "answer": "You'll receive a notification when you reach 80% and 100% of your budget. A colored progress bar also appears on the group page showing the budget status."
+    },
+    "group_chat": {
+      "question": "How do I use the group chat?",
+      "answer": "From within any group, tap the chat icon. You can discuss expenses with members, send messages, and easily agree on how to split costs."
+    },
+    "reports_analytics": {
+      "question": "How do I get a detailed report?",
+      "answer": "From the group page, go to 'Reports'. You'll find charts showing spending by category and time period, with the ability to export as a PDF file."
     },
     "change_password": {
       "question": "How do I change my password?",

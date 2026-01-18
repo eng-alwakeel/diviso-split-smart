@@ -22,7 +22,9 @@ import {
   Shield,
   ArrowRight,
   ArrowLeft,
-  Mail
+  Mail,
+  Coins,
+  Sparkles
 } from 'lucide-react';
 
 const FAQ = () => {
@@ -35,13 +37,17 @@ const FAQ = () => {
     { id: 'general', icon: HelpCircle, color: 'bg-primary/20 text-primary' },
     { id: 'groups', icon: Users, color: 'bg-blue-500/20 text-blue-400' },
     { id: 'expenses', icon: Receipt, color: 'bg-green-500/20 text-green-400' },
+    { id: 'credits', icon: Coins, color: 'bg-amber-500/20 text-amber-400' },
+    { id: 'ai', icon: Sparkles, color: 'bg-purple-500/20 text-purple-400' },
     { id: 'account', icon: Shield, color: 'bg-orange-500/20 text-orange-400' },
   ];
 
   const questionsByCategory: Record<string, string[]> = {
     general: ['what_is_diviso', 'is_free', 'plan_difference', 'currencies', 'offline_access'],
-    groups: ['create_group', 'invite_friends', 'multiple_groups'],
-    expenses: ['add_expense', 'expense_split', 'edit_expense', 'receipt_scan'],
+    groups: ['create_group', 'invite_friends', 'multiple_groups', 'group_chat'],
+    expenses: ['add_expense', 'expense_split', 'edit_expense', 'receipt_scan', 'create_budget', 'budget_alerts', 'reports_analytics'],
+    credits: ['what_are_credits', 'subscription_plans', 'buy_credits', 'referral_program', 'referral_rewards'],
+    ai: ['ai_trip_planner', 'smart_recommendations', 'smart_categories'],
     account: ['change_password', 'delete_account', 'data_security'],
   };
 
@@ -146,7 +152,7 @@ const FAQ = () => {
               className="cursor-pointer px-4 py-2 text-sm"
               onClick={() => setActiveCategory(null)}
             >
-              {isRTL ? 'الكل' : 'All'}
+              {t('allCategories')}
             </Badge>
             {categories.map(({ id, icon: Icon, color }) => (
               <Badge
@@ -204,7 +210,7 @@ const FAQ = () => {
               <div className="text-center py-12">
                 <HelpCircle className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  {isRTL ? 'لم يتم العثور على نتائج' : 'No results found'}
+                  {t('noResults')}
                 </p>
               </div>
             )}
@@ -217,9 +223,7 @@ const FAQ = () => {
                 {t('stillHaveQuestions')}
               </h2>
               <p className="text-muted-foreground mb-6">
-                {isRTL 
-                  ? 'فريق الدعم جاهز لمساعدتك على مدار الساعة'
-                  : 'Our support team is ready to help you 24/7'}
+                {t('supportTeamReady')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild>
