@@ -70,7 +70,52 @@ const testimonials: Testimonial[] = [
     avatar: "👨‍💼",
     rating: 5,
   },
+  {
+    id: 6,
+    name: "Layla Hassan",
+    nameAr: "ليلى حسن",
+    role: "Family Events",
+    roleAr: "مناسبات عائلية",
+    content: "Perfect for organizing family gatherings and splitting costs fairly!",
+    contentAr: "ممتاز لتنظيم التجمعات العائلية وتقسيم التكاليف بعدل!",
+    avatar: "👩‍🦱",
+    rating: 5,
+  },
 ];
+
+// Testimonial Card Component
+const TestimonialCard = ({ testimonial, isArabic }: { testimonial: Testimonial; isArabic: boolean }) => (
+  <div className="bg-card rounded-2xl border border-border shadow-lg p-6 relative overflow-hidden h-full">
+    <Quote className="absolute top-4 right-4 w-10 h-10 text-primary/10" />
+    
+    {/* Stars */}
+    <div className="flex items-center gap-1 mb-4">
+      {[...Array(testimonial.rating)].map((_, i) => (
+        <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+      ))}
+    </div>
+
+    {/* Text */}
+    <p className="text-base leading-relaxed mb-4 line-clamp-4">
+      "{isArabic ? testimonial.contentAr : testimonial.content}"
+    </p>
+
+    {/* Author */}
+    <div className="flex items-center gap-3 mt-auto">
+      <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center text-xl flex-shrink-0">
+        {testimonial.avatar}
+      </div>
+      <div className="min-w-0">
+        <p className="font-semibold text-sm truncate">
+          {isArabic ? testimonial.nameAr : testimonial.name}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
+          {isArabic ? testimonial.roleAr : testimonial.role}
+        </p>
+      </div>
+    </div>
+  </div>
+);
 
 export const TestimonialsSection = () => {
   const { t, i18n } = useTranslation('landing');
@@ -105,27 +150,49 @@ export const TestimonialsSection = () => {
 
   return (
     <section 
-      className="py-16 bg-muted/30"
-      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 450px' }}
+      className="py-16 lg:py-20 bg-muted/30"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 500px' }}
     >
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold mb-2">
+        <div className="text-center mb-10 lg:mb-12">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
             {t('testimonials.title')}
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             {t('testimonials.subtitle')}
           </p>
         </div>
 
-        {/* Testimonial Card - Fixed height to prevent CLS */}
-        <div className="max-w-2xl mx-auto">
+        {/* Desktop: 3 Cards Grid */}
+        <div className="hidden lg:block max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-6">
+            {testimonials.slice(0, 3).map((testimonial) => (
+              <TestimonialCard 
+                key={testimonial.id} 
+                testimonial={testimonial} 
+                isArabic={isArabic} 
+              />
+            ))}
+          </div>
+          
+          {/* Second row */}
+          <div className="grid lg:grid-cols-3 gap-6 mt-6">
+            {testimonials.slice(3, 6).map((testimonial) => (
+              <TestimonialCard 
+                key={testimonial.id} 
+                testimonial={testimonial} 
+                isArabic={isArabic} 
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile: Single Card Carousel */}
+        <div className="lg:hidden max-w-md mx-auto">
           <div className="bg-card rounded-2xl border border-border shadow-lg p-8 relative overflow-hidden min-h-[280px]">
-            {/* Quote Icon */}
             <Quote className="absolute top-4 right-4 w-12 h-12 text-primary/10" />
             
-            {/* Content with fade animation - using will-change for smooth transitions */}
             <div 
               className={`relative transition-opacity duration-300 ease-in-out ${
                 isAnimating ? 'opacity-0' : 'opacity-100'
@@ -139,12 +206,12 @@ export const TestimonialsSection = () => {
                 ))}
               </div>
 
-              {/* Text - Fixed height to prevent layout shift */}
+              {/* Text */}
               <p className="text-lg md:text-xl leading-relaxed mb-6 min-h-[100px] line-clamp-4">
                 "{isArabic ? currentTestimonial.contentAr : currentTestimonial.content}"
               </p>
 
-              {/* Author - Fixed height */}
+              {/* Author */}
               <div className="flex items-center gap-4 h-14">
                 <div className="w-14 h-14 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
                   {currentTestimonial.avatar}
