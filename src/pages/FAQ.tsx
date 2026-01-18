@@ -117,7 +117,11 @@ const FAQ = () => {
               {t('pageTitle')}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              {t('pageDescription')}
+              <Trans
+                i18nKey="pageDescription"
+                ns="faq"
+                components={{ brand: <BrandedDiviso /> }}
+              />
             </p>
           </section>
 
