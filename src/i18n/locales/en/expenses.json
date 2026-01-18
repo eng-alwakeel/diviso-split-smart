@@ -4,6 +4,8 @@
   "my_expenses_desc": "Track all your expenses in one place",
   "add": "Add Expense",
   "refresh": "Refresh",
+  "no_groups_title": "No Groups",
+  "no_groups_desc": "Create a group first to add expenses",
   "list": "List",
   "analytics": "Analytics",
   "no_expenses_filtered": "No expenses match the selected filters",

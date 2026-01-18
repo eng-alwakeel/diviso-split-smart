@@ -17,7 +17,9 @@ import {
   Percent,
   Brain,
   Check,
-  Info
+  Info,
+  Users,
+  Plus
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -607,6 +609,30 @@ const AddExpense = () => {
             <div className="h-96 bg-muted rounded"></div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Show empty state if user has no groups
+  if (userGroups.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEO title={t('add_new')} noIndex={true} />
+        <AppHeader />
+        <div className="page-container">
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">{t('no_groups_title')}</h2>
+            <p className="text-muted-foreground mb-6">{t('no_groups_desc')}</p>
+            <Button onClick={() => navigate('/create-group')}>
+              <Plus className="w-4 h-4 mr-2" />
+              {t('groups:create_first')}
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
       </div>
     );
   }

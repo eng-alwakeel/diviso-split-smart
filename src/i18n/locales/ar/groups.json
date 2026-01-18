@@ -29,6 +29,11 @@
   "continue_to_invite": "المتابعة لدعوة الأعضاء",
   "continue_to_balances": "المتابعة للأرصدة الأولية",
   "join_group": "انضم للمجموعة",
+  "create_first": "إنشاء مجموعة",
+  "credits_warning": {
+    "title": "رصيد غير كافٍ",
+    "description": "تحتاج {{required}} رصيد لإنشاء مجموعة. رصيدك الحالي: {{current}}"
+  },
 
   "create_page": {
     "title": "إنشاء مجموعة جديدة",
