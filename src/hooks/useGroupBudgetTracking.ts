@@ -44,32 +44,60 @@ async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTracking
       }));
     }
     
-    // استخدام fallback query محسن يعرض جميع الفئات
+    // استخدام fallback query محسن - خطوتين للتصفية الصحيحة
     console.log('RPC failed or returned empty, using enhanced fallback query. Error:', rpcError?.message);
     
+    // الخطوة 1: جلب الميزانيات للمجموعة أولاً
+    const today = new Date().toISOString().split('T')[0];
+    const { data: groupBudgets, error: budgetsError } = await supabase
+      .from('budgets')
+      .select('id')
+      .eq('group_id', groupId)
+      .lte('start_date', today)
+      .or(`end_date.is.null,end_date.gte.${today}`);
+    
+    if (budgetsError) {
+      console.error('Failed to fetch group budgets:', budgetsError);
+      throw budgetsError;
+    }
+    
+    // إذا لم توجد ميزانيات للمجموعة، إرجاع مصفوفة فارغة
+    if (!groupBudgets || groupBudgets.length === 0) {
+      console.log('No active budgets found for group:', groupId);
+      return [];
+    }
+    
+    const budgetIds = groupBudgets.map(b => b.id);
+    console.log('Found', budgetIds.length, 'budgets for group:', groupId);
+    
+    // الخطوة 2: جلب فئات الميزانية باستخدام budget_ids
     const { data: budgetCategories, error: categoriesError } = await supabase
       .from('budget_categories')
       .select(`
         id,
+        budget_id,
         category_id,
         allocated_amount,
         categories(id, name_ar),
         budgets(id, group_id, start_date, end_date, name)
       `)
-      .eq('budgets.group_id', groupId)
-      .lte('budgets.start_date', new Date().toISOString().split('T')[0])
-      .or(`end_date.is.null,end_date.gte.${new Date().toISOString().split('T')[0]}`, { foreignTable: 'budgets' });
+      .in('budget_id', budgetIds);
       
     if (categoriesError) {
       console.error('Fallback query failed:', categoriesError);
       throw categoriesError;
     }
     
-    console.log('Fallback query returned:', budgetCategories?.length || 0, 'budget categories');
+    // تصفية إضافية للتأكد من أن الميزانيات تنتمي للمجموعة الصحيحة
+    const filteredCategories = (budgetCategories || []).filter((bc: any) => 
+      bc.budgets && bc.budgets.group_id === groupId
+    );
+    
+    console.log('Fallback query returned:', filteredCategories.length, 'budget categories for group', groupId);
     
     const result: BudgetTrackingData[] = [];
     
-    for (const budgetCategory of budgetCategories || []) {
+    for (const budgetCategory of filteredCategories) {
       // التأكد من وجود category_id
       if (!budgetCategory.category_id || !budgetCategory.categories) {
         console.warn('Skipping budget category without category_id or categories:', budgetCategory);
