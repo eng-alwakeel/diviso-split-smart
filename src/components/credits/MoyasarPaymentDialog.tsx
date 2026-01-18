@@ -9,6 +9,7 @@ import {
 import { Loader2, CreditCard, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
+import { loadMoyasar } from '@/lib/moyasarLoader';
 interface MoyasarPaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -65,25 +66,11 @@ export function MoyasarPaymentDialog({
     setLoading(true);
     setError(null);
 
-    let attempts = 0;
-    const maxAttempts = 50; // 5 seconds max wait
-
-    // Wait for Moyasar script to load
-    const initMoyasar = () => {
-      attempts++;
-      
-      if (typeof window.Moyasar === 'undefined') {
-        if (attempts >= maxAttempts) {
-          console.error('Moyasar script failed to load after timeout');
-          setError(t('payment.init_error'));
-          setLoading(false);
-          return;
-        }
-        setTimeout(initMoyasar, 100);
-        return;
-      }
-
+    const initPayment = async () => {
       try {
+        // Load Moyasar SDK dynamically
+        await loadMoyasar();
+
         // Clear previous form
         if (formRef.current) {
           formRef.current.innerHTML = '';
@@ -135,7 +122,7 @@ export function MoyasarPaymentDialog({
     };
 
     // Small delay to ensure DOM is ready
-    setTimeout(initMoyasar, 200);
+    setTimeout(initPayment, 100);
   }, [open, packageDetails, purchaseId, userId, t]);
 
   if (!packageDetails) return null;

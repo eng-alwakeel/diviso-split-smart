@@ -214,10 +214,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600&display=swap" rel="stylesheet" />
 
-    <!-- Moyasar Payment Gateway - Lazy load only when needed -->
-    <link rel="preconnect" href="https://cdn.moyasar.com" />
-    <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" /></noscript>
+    <!-- Moyasar Payment Gateway - Loaded dynamically when needed via src/lib/moyasarLoader.ts -->
     
     <!-- Critical CSS Inline - Minimal styles for FCP -->
     <style>
@@ -230,8 +227,6 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <!-- Moyasar Payment Script - Deferred -->
-    <script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js" defer></script>
     <script>
       // Register service worker for caching
       if ('serviceWorker' in navigator) {
