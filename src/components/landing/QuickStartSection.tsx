@@ -33,27 +33,27 @@ export const QuickStartSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-gradient-hero relative overflow-hidden">
+    <section className="py-16 lg:py-20 bg-gradient-hero relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
 
       <div className="container mx-auto px-4 relative">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 lg:mb-16">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full mb-4">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">{t('quickStart.badge')}</span>
           </div>
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-2">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
             {t('quickStart.title')}
           </h2>
-          <p className="text-white/70">
+          <p className="text-white/70 text-lg max-w-2xl mx-auto">
             {t('quickStart.subtitle')}
           </p>
         </div>
 
         {/* Steps */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-10">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto mb-12">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (

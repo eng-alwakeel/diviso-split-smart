@@ -10,16 +10,16 @@ export const PricingSection = () => {
   const isRTL = i18n.language === 'ar';
 
   return (
-    <section id="pricing" className="py-12 px-4 bg-muted/50" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section id="pricing" className="py-16 lg:py-20 px-4 bg-muted/50" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="max-w-5xl mx-auto text-center">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
           {t('title')}
         </h2>
-        <p className="text-lg text-muted-foreground mb-8">
+        <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
           {t('subtitle')}
         </p>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-10">
           {/* Welcome Credits Card */}
           <Card className="bg-gradient-card border-0 shadow-card hover:shadow-elevated transition-all duration-300">
             <CardContent className="p-6 text-center">

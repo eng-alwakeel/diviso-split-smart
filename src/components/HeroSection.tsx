@@ -45,7 +45,7 @@ export const HeroSection = () => {
           {/* Text Content */}
           <div className={`text-center ${isRTL ? 'lg:text-right lg:order-last' : 'lg:text-left lg:order-first'}`}>
             {/* Main Title */}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
               <span className="text-primary">Diviso</span> {t('hero.mainTitle')}
             </h1>
             
@@ -93,7 +93,7 @@ export const HeroSection = () => {
 
           {/* Abstract Brand Art - Optimized for performance */}
           <div className={`relative ${isRTL ? 'lg:order-first' : 'lg:order-last'}`}>
-            <div className="relative w-full max-w-md mx-auto h-80 lg:h-96 overflow-hidden">
+            <div className="relative w-full max-w-md lg:max-w-lg mx-auto h-80 lg:h-[420px] xl:h-[480px] overflow-hidden">
               {/* Static gradient orbs - removed animate-pulse for better performance */}
               <div 
                 className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-primary/60 to-primary/20 rounded-full blur-2xl"
@@ -157,7 +157,7 @@ export const HeroSection = () => {
         </div>
 
         {/* 3 Steps - How it works */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-5xl mx-auto mb-10">
           {steps.map((step) => (
             <div 
               key={step.number}
