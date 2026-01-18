@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { usePaymentwallTokens } from './usePaymentwallTokens';
 
 // تكاليف العمليات بالنقاط - Updated per Final Spec
 export const CREDIT_COSTS = {
@@ -35,6 +36,8 @@ interface CreditCheckResult {
   shortfall: number;
   blocked: boolean;
   hasAdToken?: boolean;
+  hasPaymentwallToken?: boolean;
+  paymentwallCooldown?: number;
 }
 
 interface DeductResult {
@@ -113,7 +116,101 @@ export function useUsageCredits() {
     }
   }, []);
 
-  // التحقق من إمكانية تنفيذ عملية مع الـ gating الجديد + Ad Token
+  // التحقق من Paymentwall Token + Cooldown
+  const checkPaymentwallToken = useCallback(async (): Promise<{ hasToken: boolean; cooldownActive: boolean; cooldownSeconds: number }> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { hasToken: false, cooldownActive: false, cooldownSeconds: 0 };
+
+      const now = new Date();
+      const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
+
+      // Check for cooldown (no token used in last 30 seconds)
+      const { data: recentUsed } = await supabase
+        .from('one_time_action_tokens')
+        .select('used_at')
+        .eq('user_id', user.id)
+        .eq('source', 'paymentwall')
+        .eq('is_used', true)
+        .gte('used_at', thirtySecondsAgo.toISOString())
+        .order('used_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (recentUsed?.used_at) {
+        const usedAt = new Date(recentUsed.used_at);
+        const cooldownEnds = new Date(usedAt.getTime() + 30 * 1000);
+        const remainingSeconds = Math.ceil((cooldownEnds.getTime() - now.getTime()) / 1000);
+        
+        if (remainingSeconds > 0) {
+          console.log('Paymentwall cooldown active:', remainingSeconds, 'seconds remaining');
+          return { hasToken: false, cooldownActive: true, cooldownSeconds: remainingSeconds };
+        }
+      }
+
+      // Check for valid unused token
+      const { data: token } = await supabase
+        .from('one_time_action_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('source', 'paymentwall')
+        .eq('is_used', false)
+        .gt('expires_at', now.toISOString())
+        .limit(1)
+        .maybeSingle();
+
+      return { hasToken: !!token, cooldownActive: false, cooldownSeconds: 0 };
+    } catch (error) {
+      console.error('Error checking Paymentwall token:', error);
+      return { hasToken: false, cooldownActive: false, cooldownSeconds: 0 };
+    }
+  }, []);
+
+  // استهلاك Paymentwall Token
+  const consumePaymentwallToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const now = new Date();
+
+      // Get oldest valid unused token
+      const { data: token } = await supabase
+        .from('one_time_action_tokens')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('source', 'paymentwall')
+        .eq('is_used', false)
+        .gt('expires_at', now.toISOString())
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!token) return false;
+
+      // Use the token
+      const { error } = await supabase
+        .from('one_time_action_tokens')
+        .update({
+          is_used: true,
+          used_at: now.toISOString()
+        })
+        .eq('id', token.id);
+
+      if (error) {
+        console.error('Error consuming Paymentwall token:', error);
+        return false;
+      }
+
+      console.log('Paymentwall token consumed:', token.id);
+      return true;
+    } catch (error) {
+      console.error('Error in consumePaymentwallToken:', error);
+      return false;
+    }
+  }, []);
+
+  // التحقق من إمكانية تنفيذ عملية مع الـ gating الجديد + Ad Token + Paymentwall Token
   const checkCredits = useCallback(async (actionType: CreditActionType): Promise<CreditCheckResult> => {
     const action = CREDIT_COSTS[actionType];
     const requiredCredits = action.cost;
@@ -124,7 +221,7 @@ export function useUsageCredits() {
         return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
       }
 
-      // Check for Ad Token first
+      // 1. Check for Ad Token first
       const hasAdToken = await checkAdToken(actionType);
       if (hasAdToken) {
         return {
@@ -137,6 +234,45 @@ export function useUsageCredits() {
         };
       }
 
+      // 2. Check for Paymentwall Token (NEW!)
+      const paymentwallCheck = await checkPaymentwallToken();
+      if (paymentwallCheck.hasToken) {
+        return {
+          canPerform: true,
+          remainingCredits: balance.totalAvailable,
+          requiredCredits,
+          shortfall: 0,
+          blocked: false,
+          hasPaymentwallToken: true
+        };
+      }
+      
+      // If cooldown is active, return info about it
+      if (paymentwallCheck.cooldownActive) {
+        // Still check credits, but include cooldown info
+        const { data, error } = await supabase.rpc('get_available_credits', {
+          p_user_id: user.id
+        });
+
+        if (error) throw error;
+
+        const row = Array.isArray(data) ? data[0] : data;
+        const availableCredits = row?.total_available ?? 0;
+        const isBlocked = action.gated && availableCredits === 0;
+        const canPerform = !isBlocked && availableCredits >= requiredCredits;
+
+        return {
+          canPerform,
+          remainingCredits: availableCredits,
+          requiredCredits,
+          shortfall: canPerform ? 0 : Math.max(0, requiredCredits - availableCredits),
+          blocked: isBlocked,
+          hasPaymentwallToken: false,
+          paymentwallCooldown: paymentwallCheck.cooldownSeconds
+        };
+      }
+
+      // 3. Check regular credits
       const { data, error } = await supabase.rpc('get_available_credits', {
         p_user_id: user.id
       });
@@ -156,13 +292,14 @@ export function useUsageCredits() {
         requiredCredits,
         shortfall: canPerform ? 0 : Math.max(0, requiredCredits - availableCredits),
         blocked: isBlocked,
-        hasAdToken: false
+        hasAdToken: false,
+        hasPaymentwallToken: false
       };
     } catch (error) {
       console.error('Error checking credits:', error);
       return { canPerform: false, remainingCredits: 0, requiredCredits, shortfall: requiredCredits, blocked: true };
     }
-  }, [checkAdToken, balance.totalAvailable]);
+  }, [checkAdToken, checkPaymentwallToken, balance.totalAvailable]);
 
   // التحقق السريع إذا كان المستخدم محجوب (UC = 0)
   const isBlocked = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
@@ -170,13 +307,17 @@ export function useUsageCredits() {
     if (!action.gated) return false;
     
     // Check for Ad Token
-    const hasToken = await checkAdToken(actionType);
-    if (hasToken) return false;
+    const hasAdToken = await checkAdToken(actionType);
+    if (hasAdToken) return false;
+    
+    // Check for Paymentwall Token
+    const paymentwallCheck = await checkPaymentwallToken();
+    if (paymentwallCheck.hasToken) return false;
     
     return balance.totalAvailable === 0;
-  }, [balance.totalAvailable, checkAdToken]);
+  }, [balance.totalAvailable, checkAdToken, checkPaymentwallToken]);
 
-  // استهلاك النقاط باستخدام FEFO + Ad Token
+  // استهلاك النقاط باستخدام FEFO + Ad Token + Paymentwall Token
   const consumeCredits = useCallback(async (actionType: CreditActionType): Promise<boolean> => {
     const action = CREDIT_COSTS[actionType];
     
@@ -189,7 +330,19 @@ export function useUsageCredits() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      // Use the new FEFO function that checks Ad Token first
+      // 1. Try Paymentwall Token first (if available and no cooldown)
+      const paymentwallCheck = await checkPaymentwallToken();
+      if (paymentwallCheck.hasToken && !paymentwallCheck.cooldownActive) {
+        const paymentwallSuccess = await consumePaymentwallToken();
+        if (paymentwallSuccess) {
+          console.log('Credits consumed via Paymentwall token');
+          await fetchBalance();
+          queryClient.invalidateQueries({ queryKey: ['usage-credits'] });
+          return true;
+        }
+      }
+
+      // 2. Use the FEFO function that checks Ad Token first, then regular credits
       const { data, error } = await supabase.rpc('deduct_credits_fefo', {
         p_user_id: user.id,
         p_amount: action.cost,
@@ -216,7 +369,7 @@ export function useUsageCredits() {
     } finally {
       setConsuming(false);
     }
-  }, [fetchBalance, queryClient]);
+  }, [fetchBalance, queryClient, checkPaymentwallToken, consumePaymentwallToken]);
 
   // استهلاك مع معلومات تفصيلية عن الطريقة
   const consumeCreditsDetailed = useCallback(async (actionType: CreditActionType): Promise<DeductResult> => {
@@ -352,6 +505,8 @@ export function useUsageCredits() {
     getActionCost,
     isBlocked,
     checkAdToken,
+    checkPaymentwallToken,
+    consumePaymentwallToken,
     getReferralLimits,
     CREDIT_COSTS
   };
