@@ -82,6 +82,9 @@ type SettlementRow = {
   note: string | null;
   created_by: string;
   created_at: string | null;
+  status?: string | null;
+  confirmed_at?: string | null;
+  confirmed_by?: string | null;
 };
 
 export const useGroupData = (groupId?: string) => {
@@ -170,10 +173,10 @@ export const useGroupData = (groupId?: string) => {
           .order("spent_at", { ascending: false })
           .limit(100), // Limit to improve performance
         
-        // 4) التسويات
+        // 4) التسويات مع حالة التأكيد
         supabase
           .from("settlements")
-          .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at")
+          .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at, status, confirmed_at, confirmed_by")
           .eq("group_id", groupId)
           .order("created_at", { ascending: false })
           .limit(50) // Limit settlements
