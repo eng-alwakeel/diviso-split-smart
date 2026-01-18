@@ -82,15 +82,15 @@ export const Header = () => {
               <Link to="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.howItWorks')}
               </Link>
-              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.features')}
-              </a>
+              </Link>
               <Link to="/faq" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.faq')}
               </Link>
-              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.pricing')}
-              </a>
+              </Link>
               <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
                 {t('header.blog')}
               </Link>
@@ -125,12 +125,12 @@ export const Header = () => {
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <a 
-                        href="#features" 
+                      <Link 
+                        to="/#features" 
                         className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
                       >
                         {t('header.features')}
-                      </a>
+                      </Link>
                     </SheetClose>
                     <SheetClose asChild>
                       <Link 
@@ -141,12 +141,12 @@ export const Header = () => {
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
-                      <a 
-                        href="#pricing" 
+                      <Link 
+                        to="/#pricing" 
                         className="flex items-center px-4 py-3 rounded-lg text-foreground hover:bg-muted transition-colors"
                       >
                         {t('header.pricing')}
-                      </a>
+                      </Link>
                     </SheetClose>
                     <SheetClose asChild>
                       <Link 
