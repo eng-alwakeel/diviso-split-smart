@@ -60,90 +60,95 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
 
   return (
     <Card className="transition-all duration-200 hover:shadow-card hover:border-primary/30 bg-card/50 backdrop-blur-sm">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="flex-shrink-0">
-              {expense.category_icon ? (
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-lg">{expense.category_icon}</span>
-                </div>
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                  <Receipt className="h-5 w-5 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-foreground truncate">
-                {expense.description || expense.note_ar || t('card.no_description')}
-              </h3>
-              
-              <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{expense.group_name}</span>
-                {expense.category_name && (
-                  <>
-                    <span>•</span>
-                    <span className="truncate">{expense.category_name}</span>
-                  </>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span>
-                  {format(new Date(expense.spent_at), 'dd MMM yyyy', { locale: dateLocale })}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <Badge variant="outline" className={getStatusColor(expense.status)}>
+      <CardContent className="p-3 sm:p-4">
+        {/* Header: Status badge on its own row for mobile */}
+        <div className="flex justify-end mb-2">
+          <Badge variant="outline" className={`${getStatusColor(expense.status)} whitespace-nowrap text-xs`}>
             {getStatusText(expense.status)}
           </Badge>
         </div>
+        
+        {/* Main content row */}
+        <div className="flex items-start gap-3 mb-3">
+          <div className="flex-shrink-0">
+            {expense.category_icon ? (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-base sm:text-lg">{expense.category_icon}</span>
+              </div>
+            ) : (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center">
+                <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-foreground text-sm sm:text-base line-clamp-2">
+              {expense.description || expense.note_ar || t('card.no_description')}
+            </h3>
+            
+            {/* Group and category on separate lines for mobile */}
+            <div className="flex flex-col gap-0.5 mt-1 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 shrink-0" />
+                <span className="truncate">{expense.group_name}</span>
+              </div>
+              {expense.category_name && (
+                <span className="truncate text-xs text-muted-foreground/80 ps-4">
+                  {expense.category_name}
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3 shrink-0" />
+              <span>
+                {format(new Date(expense.spent_at), 'dd MMM yyyy', { locale: dateLocale })}
+              </span>
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
+          {/* Amount and members row - improved for mobile */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-sm">
+              <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="font-medium whitespace-nowrap">
                 {expense.amount.toLocaleString()} {expense.currency}
               </span>
             </div>
             
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-3 w-3" />
-              <span>{expense.splits.length} {t('card.members')}</span>
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
+              <Users className="h-3 w-3 shrink-0" />
+              <span className="whitespace-nowrap">{expense.splits.length} {t('card.members')}</span>
             </div>
           </div>
 
           {/* User's financial involvement */}
-          <div className="bg-gradient-card rounded-lg p-3 space-y-1 border border-border/30">
+          <div className="bg-gradient-card rounded-lg p-2 sm:p-3 space-y-1 border border-border/30">
             {isPayer && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('card.paid')}</span>
-                <span className="font-medium text-primary">
+              <div className="flex justify-between gap-2 text-xs sm:text-sm">
+                <span className="text-muted-foreground shrink-0">{t('card.paid')}</span>
+                <span className="font-medium text-primary whitespace-nowrap">
                   +{expense.amount.toLocaleString()} {expense.currency}
                 </span>
               </div>
             )}
             
             {shareAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t('card.your_share')}</span>
-                <span className="font-medium text-destructive">
+              <div className="flex justify-between gap-2 text-xs sm:text-sm">
+                <span className="text-muted-foreground shrink-0">{t('card.your_share')}</span>
+                <span className="font-medium text-destructive whitespace-nowrap">
                   -{shareAmount.toLocaleString()} {expense.currency}
                 </span>
               </div>
             )}
             
             {isPayer && shareAmount > 0 && (
-              <div className="flex justify-between text-sm border-t border-border pt-1">
-                <span className="text-muted-foreground">{t('card.net')}</span>
-                <span className={`font-medium ${
+              <div className="flex justify-between gap-2 text-xs sm:text-sm border-t border-border pt-1">
+                <span className="text-muted-foreground shrink-0">{t('card.net')}</span>
+                <span className={`font-medium whitespace-nowrap ${
                   (expense.amount - shareAmount) > 0 ? 'text-success' : 'text-destructive'
                 }`}>
                   {(expense.amount - shareAmount) > 0 ? '+' : ''}
