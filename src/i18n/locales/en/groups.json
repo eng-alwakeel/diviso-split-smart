@@ -329,13 +329,7 @@
     "join_error_desc": "Check the invite link validity. If you have a referral link (/join/...), it's for new users only."
   },
 
-  "roles": {
-    "owner": "Owner",
-    "admin": "Admin",
-    "member": "Member"
-  },
-
-"status": {
+  "status": {
     "approved": "Approved",
     "pending": "Pending",
     "rejected": "Rejected"
