@@ -2,6 +2,18 @@
   "title": "Groups",
   "my_groups": "My Groups",
   "create": "Create Group",
+  "confirm_dialog": {
+    "title": "Confirm Group Creation",
+    "group_name": "Group Name",
+    "type": "Type",
+    "currency": "Currency",
+    "invitees": "Invitees",
+    "initial_balances": "Initial Balances",
+    "members": "members",
+    "credit_warning": "Credits will be deducted from your balance to create this group",
+    "cancel": "Cancel",
+    "confirm": "Confirm Creation"
+  },
   "create_new": "Create New Group",
   "no_groups": "No groups yet",
   "no_groups_desc": "Create a new group to start tracking shared expenses",
