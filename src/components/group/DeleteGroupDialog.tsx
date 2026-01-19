@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -9,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trash2, AlertTriangle, Users, Receipt, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +73,7 @@ export const DeleteGroupDialog = ({
   const handleConfirm = async () => {
     if (!canDelete) return;
     await onConfirm();
+    onOpenChange(false);
   };
 
   return (
@@ -134,10 +135,10 @@ export const DeleteGroupDialog = ({
 
         <AlertDialogFooter>
           <AlertDialogCancel>{t("common:cancel", "إلغاء")}</AlertDialogCancel>
-          <AlertDialogAction
+          <Button
             onClick={handleConfirm}
             disabled={!canDelete || isDeleting || checking}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            variant="destructive"
           >
             {isDeleting ? (
               <>
@@ -147,7 +148,7 @@ export const DeleteGroupDialog = ({
             ) : (
               t("delete.confirm", "حذف نهائياً")
             )}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
