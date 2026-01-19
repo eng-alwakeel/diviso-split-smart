@@ -104,7 +104,8 @@ export const useGroupData = (groupId?: string) => {
   const [pendingAmounts, setPendingAmounts] = useState<PendingAmountRow[]>([]);
   const [balanceSummary, setBalanceSummary] = useState<BalanceSummaryRow[]>([]);
   const [settlements, setSettlements] = useState<SettlementRow[]>([]);
-  const [realtimeInitialized, setRealtimeInitialized] = useState(false);
+  const realtimeInitializedRef = useRef(false);
+  const expensesRef = useRef<ExpenseRow[]>([]);
 
   const load = useCallback(async () => {
     if (loadingRef.current) return; // Prevent duplicate calls
@@ -289,19 +290,17 @@ export const useGroupData = (groupId?: string) => {
     await load();
   }, [groupId, cache, load]);
 
+  // Keep expensesRef updated
+  useEffect(() => {
+    expensesRef.current = expenses;
+  }, [expenses]);
+
   // Real-time updates for balance-affecting tables
   useEffect(() => {
-    if (!groupId || realtimeInitialized) return;
+    if (!groupId || realtimeInitializedRef.current) return;
     
+    realtimeInitializedRef.current = true;
     console.log("[useGroupData] Setting up realtime listeners for group:", groupId);
-    
-    // Handler for channel errors with auto-reconnect
-    const handleChannelError = (channelName: string) => {
-      console.warn(`[useGroupData] ${channelName} channel error, will retry in 5s`);
-      setTimeout(() => {
-        setRealtimeInitialized(false);
-      }, 5000);
-    };
 
     const expensesChannel = supabase
       .channel(`expenses_${groupId}`)
@@ -310,17 +309,11 @@ export const useGroupData = (groupId?: string) => {
         { event: '*', schema: 'public', table: 'expenses', filter: `group_id=eq.${groupId}` },
         (payload) => {
           console.log("[useGroupData] Expenses change:", payload);
-          // Clear cache and refresh immediately (no debounce for real-time updates)
           cache.clear();
           load();
         }
       )
-      .subscribe((status) => {
-        console.log("[useGroupData] Expenses channel status:", status);
-        if (status === 'CHANNEL_ERROR') {
-          handleChannelError('expenses');
-        }
-      });
+      .subscribe();
 
     const settlementsChannel = supabase
       .channel(`settlements_${groupId}`)
@@ -329,17 +322,11 @@ export const useGroupData = (groupId?: string) => {
         { event: '*', schema: 'public', table: 'settlements', filter: `group_id=eq.${groupId}` },
         (payload) => {
           console.log("[useGroupData] Settlements change:", payload);
-          // Clear cache and refresh immediately
           cache.clear();
           load();
         }
       )
-      .subscribe((status) => {
-        console.log("[useGroupData] Settlements channel status:", status);
-        if (status === 'CHANNEL_ERROR') {
-          handleChannelError('settlements');
-        }
-      });
+      .subscribe();
 
     const splitsChannel = supabase
       .channel(`expense_splits_${groupId}`)
@@ -348,33 +335,25 @@ export const useGroupData = (groupId?: string) => {
         { event: '*', schema: 'public', table: 'expense_splits' },
         (payload) => {
           console.log("[useGroupData] Expense splits change:", payload);
-          // Check if this split is for an expense in our group
           if (payload.new || payload.old) {
             const expenseId = (payload.new as any)?.expense_id || (payload.old as any)?.expense_id;
-            if (expenseId && expenses.some(e => e.id === expenseId)) {
+            if (expenseId && expensesRef.current.some(e => e.id === expenseId)) {
               cache.clear();
-              debouncedLoad();
+              load();
             }
           }
         }
       )
-      .subscribe((status) => {
-        console.log("[useGroupData] Expense splits channel status:", status);
-        if (status === 'CHANNEL_ERROR') {
-          handleChannelError('expense_splits');
-        }
-      });
-
-    setRealtimeInitialized(true);
+      .subscribe();
 
     return () => {
       console.log("[useGroupData] Cleaning up realtime listeners");
+      realtimeInitializedRef.current = false;
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(settlementsChannel);
       supabase.removeChannel(splitsChannel);
-      setRealtimeInitialized(false);
     };
-  }, [groupId, realtimeInitialized, expenses, cache, debouncedLoad]);
+  }, [groupId, cache, load]);
 
   const totals = useMemo(() => {
     const approvedExpenses = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + Number(e.amount || 0), 0);
