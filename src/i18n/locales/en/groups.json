@@ -307,7 +307,8 @@
     "budget_error": "Error creating budget",
     "group_created_budget_failed": "Group created but budget creation failed",
     "based_on_type": "Based on your group type",
-    "suggested_categories": "here are some suggested categories to help manage expenses"
+    "suggested_categories": "here are some suggested categories to help manage expenses",
+    "skip_create": "Skip and Create Group"
   },
 
   "messages": {
