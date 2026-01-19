@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, TrendingUp, CheckCircle, XCircle, DollarSign } from "lucide-react";
+import { AlertTriangle, TrendingUp, DollarSign, FileText, FileSpreadsheet, Printer, Coins } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
 import { useCategories } from "@/hooks/useCategories";
@@ -48,6 +48,7 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
   const { checkCredits, consumeCredits } = useUsageCredits();
   const { toast } = useToast();
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [insufficientAction, setInsufficientAction] = useState<'advanced_report' | 'export_pdf' | 'export_excel'>('advanced_report');
   const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 2 });
   const rows = useMemo(() => {
     return expenses.map((e) => ({
@@ -99,13 +100,14 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
     const creditCheck = await checkCredits('advanced_report');
     if (!creditCheck.canPerform) {
       setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setInsufficientAction('advanced_report');
       setShowInsufficientDialog(true);
       return;
     }
     
     const expenseCsv = [
-      ['التاريخ','الوصف','الدافع','المبلغ','العملة'],
-      ...rows.map(r => [r.date, r.description, r.payer, r.amount.toString(), r.currency])
+      ['التاريخ','الوصف','الفئة','الدافع','المبلغ','العملة'],
+      ...rows.map(r => [r.date, r.description, r.category, r.payer, r.amount.toString(), r.currency])
     ].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
      .join('\n');
 
@@ -126,7 +128,162 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
     // Consume credits after successful export
     await consumeCredits('advanced_report');
     
-    toast({ title: "تم التصدير", description: "تم تصدير التقرير بنجاح" });
+    toast({ title: "تم التصدير", description: "تم تصدير التقرير كـ CSV" });
+  };
+
+  const exportExcel = async () => {
+    // Check credits before export
+    const creditCheck = await checkCredits('export_excel');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setInsufficientAction('export_excel');
+      setShowInsufficientDialog(true);
+      return;
+    }
+
+    // Create Excel-compatible CSV with BOM for Arabic support
+    const expenseRows = [
+      ['التاريخ', 'الوصف', 'الفئة', 'الدافع', 'المبلغ', 'العملة'],
+      ...rows.map(r => [r.date, r.description, r.category, r.payer, r.amount.toString(), r.currency])
+    ];
+    
+    const balanceData = [
+      ['العضو', 'الرصيد الصافي'],
+      ...balanceRows.map(r => [r.name, r.net.toString()])
+    ];
+
+    const csvContent = [
+      `تقرير المجموعة: ${groupName ?? ''}`,
+      '',
+      'المصاريف:',
+      ...expenseRows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')),
+      '',
+      'الأرصدة:',
+      ...balanceData.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `group-report-${Date.now()}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Consume credits after successful export
+    await consumeCredits('export_excel');
+    toast({ title: "تم التصدير", description: "تم تصدير التقرير كـ Excel" });
+  };
+
+  const exportPDF = async () => {
+    // Check credits before export
+    const creditCheck = await checkCredits('export_pdf');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setInsufficientAction('export_pdf');
+      setShowInsufficientDialog(true);
+      return;
+    }
+
+    // Create print-friendly HTML for PDF
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html dir="rtl">
+          <head>
+            <title>تقرير ${groupName ?? 'المجموعة'}</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; direction: rtl; }
+              h1 { text-align: center; margin-bottom: 20px; color: #333; }
+              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
+              th { background-color: #f5f5f5; font-weight: bold; }
+              .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+              .stats { display: flex; gap: 20px; margin: 20px 0; }
+              .stat-card { padding: 15px; border: 1px solid #ddd; border-radius: 8px; flex: 1; text-align: center; }
+              .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
+              .stat-label { font-size: 12px; color: #666; }
+              .section-title { font-size: 18px; font-weight: bold; margin: 20px 0 10px; color: #333; }
+              .positive { color: #16a34a; }
+              .negative { color: #dc2626; }
+              @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style>
+          </head>
+          <body>
+            <h1>تقرير مصاريف المجموعة</h1>
+            <div class="header">
+              <div><strong>المجموعة:</strong> ${groupName ?? '—'}</div>
+              <div><strong>التاريخ:</strong> ${new Date().toLocaleDateString('ar-SA')}</div>
+            </div>
+            
+            <div class="stats">
+              <div class="stat-card">
+                <div class="stat-value">${totalExpenses.toLocaleString()}</div>
+                <div class="stat-label">إجمالي المصاريف (ر.س)</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${rows.length}</div>
+                <div class="stat-label">عدد المصاريف</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">${Object.keys(profiles).length}</div>
+                <div class="stat-label">عدد الأعضاء</div>
+              </div>
+            </div>
+
+            <div class="section-title">المصاريف</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>الوصف</th>
+                  <th>الفئة</th>
+                  <th>الدافع</th>
+                  <th>المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(r => `
+                  <tr>
+                    <td>${r.date}</td>
+                    <td>${r.description}</td>
+                    <td>${r.category}</td>
+                    <td>${r.payer}</td>
+                    <td>${r.amount.toLocaleString()} ${r.currency}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="section-title">الأرصدة</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>العضو</th>
+                  <th>الرصيد الصافي</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${balanceRows.map(r => `
+                  <tr>
+                    <td>${r.name}</td>
+                    <td class="${r.net >= 0 ? 'positive' : 'negative'}">
+                      ${r.net >= 0 ? '+' : ''}${r.net.toLocaleString()} ر.س
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    // Consume credits after successful export
+    await consumeCredits('export_pdf');
+    toast({ title: "تم التصدير", description: "تم تصدير التقرير كـ PDF" });
   };
 
   const printReport = () => {
@@ -358,9 +515,32 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
             </TabsContent>
           </Tabs>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={exportCSV}>تصدير CSV</Button>
-            <Button variant="secondary" onClick={printReport}>طباعة</Button>
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1.5">
+              <FileText className="w-4 h-4" />
+              CSV
+              <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                <Coins className="w-3 h-3 mr-0.5" />2
+              </Badge>
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportExcel} className="gap-1.5">
+              <FileSpreadsheet className="w-4 h-4" />
+              Excel
+              <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                <Coins className="w-3 h-3 mr-0.5" />1
+              </Badge>
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
+              <FileText className="w-4 h-4" />
+              PDF
+              <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                <Coins className="w-3 h-3 mr-0.5" />1
+              </Badge>
+            </Button>
+            <Button variant="secondary" size="sm" onClick={printReport} className="gap-1.5">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
           </div>
         </div>
       </DialogContent>
@@ -369,7 +549,7 @@ export function GroupReportDialog({ open, onOpenChange, groupName, groupId, prof
       <ZeroCreditsPaywall
         open={showInsufficientDialog}
         onOpenChange={setShowInsufficientDialog}
-        actionName="advanced_report"
+        actionName={insufficientAction}
       />
     </Dialog>
   );

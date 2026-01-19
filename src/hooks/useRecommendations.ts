@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
 
 interface Recommendation {
   id: string;
@@ -40,12 +41,24 @@ export function useRecommendations(groupId?: string) {
   const { t } = useTranslation("recommendations");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [currentRecommendation, setCurrentRecommendation] = useState<Recommendation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingExpenseRecommendation, setPendingExpenseRecommendation] = useState<Recommendation | null>(null);
 
   // Generate a new recommendation
   const generateRecommendation = useCallback(async (params: GenerateRecommendationParams) => {
+    // Check credits before generating recommendation
+    const creditCheck = await checkCredits('recommendation');
+    if (!creditCheck.canPerform) {
+      toast({
+        title: t('errors.insufficient_credits', 'رصيد النقاط غير كافي'),
+        description: t('errors.need_credits', 'تحتاج نقاط لطلب توصية'),
+        variant: 'destructive'
+      });
+      return { blocked: true, needsCredits: true };
+    }
+
     setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -73,6 +86,8 @@ export function useRecommendations(groupId?: string) {
       if (error) throw error;
 
       if (data?.recommendation) {
+        // Consume credits after successful recommendation
+        await consumeCredits('recommendation');
         setCurrentRecommendation(data.recommendation);
         return data.recommendation;
       }
@@ -84,7 +99,7 @@ export function useRecommendations(groupId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, checkCredits, consumeCredits, t]);
 
   // Track recommendation event
   const trackEvent = useMutation({
