@@ -132,7 +132,7 @@ const CreateGroup = () => {
   };
 
   // Main function that creates the group
-  const handleCreateGroup = async () => {
+  const handleCreateGroup = async (categoriesOverride?: any[]) => {
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
@@ -184,9 +184,10 @@ const CreateGroup = () => {
       // 5. Notify referral progress
       await notifyMilestone('group');
       
-      // 6. Add AI suggestions budget if available
-      if (aiSuggestedCategories.length > 0) {
-        await createBudgetFromAISuggestions(groupId, user.id, aiSuggestedCategories);
+      // 6. Add AI suggestions budget if available (use passed categories or fallback to state)
+      const categoriesToUse = categoriesOverride ?? aiSuggestedCategories;
+      if (categoriesToUse.length > 0) {
+        await createBudgetFromAISuggestions(groupId, user.id, categoriesToUse);
       }
 
       toast({ 
@@ -205,11 +206,12 @@ const CreateGroup = () => {
   };
 
   const handleAISuggestionsAccept = async (budgetId: string, categories?: any[]) => {
-    if (categories) {
-      setAiSuggestedCategories(categories);
+    // Pass categories directly to avoid async state issues
+    if (categories && categories.length > 0) {
+      await handleCreateGroup(categories);
+    } else {
+      await handleCreateGroup();
     }
-    // Create the group with AI suggestions
-    await handleCreateGroup();
   };
 
   const handleAISuggestionsSkip = async () => {
