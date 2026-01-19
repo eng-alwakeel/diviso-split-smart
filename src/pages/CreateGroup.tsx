@@ -401,6 +401,12 @@ const CreateGroup = () => {
   };
 
   const handleCreateGroup = async () => {
+    // Use existing group created in step 1
+    if (!createdGroupId) {
+      toast({ title: t('groups:messages.creation_failed'), variant: "destructive" });
+      return;
+    }
+    
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
@@ -410,41 +416,26 @@ const CreateGroup = () => {
     
     setLoading(true);
     try {
-      const { data: groupInsert, error: groupErr } = await supabase
-        .from('groups')
-        .insert({ 
-          name: groupData.name, 
-          owner_id: user.id, 
-          currency: groupData.currency,
-          group_type: groupData.category
-        })
-        .select('id')
-        .single();
-      if (groupErr) throw groupErr;
-      const groupId = groupInsert.id;
-      
-      const { error: memberErr } = await supabase
-        .from('group_members')
-        .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
-      if (memberErr) throw memberErr;
-
+      // Add AI suggestions budget to existing group
       if (aiSuggestedCategories.length > 0) {
-        await createBudgetFromAISuggestions(groupId, user.id);
+        await createBudgetFromAISuggestions(createdGroupId, user.id);
       }
 
+      // Add initial balances to existing group
       if (initialBalances.length > 0) {
-        await createInitialBalances(groupId, user.id);
+        await createInitialBalances(createdGroupId, user.id);
       }
 
       toast({ 
         title: t('groups:messages.group_created'), 
         description: t('groups:messages.group_created_success', { name: groupData.name })
       });
-      navigate(`/group/${groupId}`);
+      navigate(`/group/${createdGroupId}`);
     } catch (e: any) {
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
+      setShowConfirmDialog(false);
     }
   };
 
@@ -541,6 +532,9 @@ const CreateGroup = () => {
       
       // Notify referral progress (grants 20 RP to inviter if this is first group)
       await notifyMilestone('group');
+      
+      // Reset creation state after successful group creation
+      setIsCreatingGroup(false);
       
     } catch (e: any) {
       setIsCreatingGroup(false);
