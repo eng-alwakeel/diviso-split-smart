@@ -5,8 +5,8 @@ import { usePaymentwallTokens } from './usePaymentwallTokens';
 
 // تكاليف العمليات بالنقاط - Updated per Final Spec
 export const CREDIT_COSTS = {
-  // العمليات المجانية دائماً (لا gating)
-  add_expense: { type: 'add_expense', cost: 0, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: false },
+  // العمليات المدفوعة الأساسية
+  add_expense: { type: 'add_expense', cost: 1, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: true },
   split_expense: { type: 'split_expense', cost: 0, nameAr: 'تقسيم مصاريف', nameEn: 'Split Expense', gated: false },
   view_data: { type: 'view_data', cost: 0, nameAr: 'عرض البيانات', nameEn: 'View Data', gated: false },
   

@@ -433,6 +433,18 @@ const AddExpense = () => {
       return;
     }
 
+    // Check credits before saving expense
+    const creditCheck = await checkCredits('add_expense');
+    if (!creditCheck.canPerform) {
+      setInsufficientAction('add_expense');
+      setCreditCheckResult({ 
+        currentBalance: creditCheck.remainingCredits, 
+        requiredCredits: creditCheck.requiredCredits 
+      });
+      setShowInsufficientDialog(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Validate expense data
@@ -620,6 +632,9 @@ const AddExpense = () => {
         p_task_name: 'expense',
         p_user_id: user.id
       });
+
+      // Consume credit for add_expense (includes split)
+      await consumeCredits('add_expense');
 
       // Reset form
       setAmount('');
