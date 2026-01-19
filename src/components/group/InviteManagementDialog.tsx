@@ -111,6 +111,7 @@ export const InviteManagementDialog = ({
                   groupId={groupId}
                   groupName={groupName}
                   onLinkGenerated={handleLinkGenerated}
+                  onInviteSent={handleInviteSent}
                 />
                 
                 {inviteLink && (

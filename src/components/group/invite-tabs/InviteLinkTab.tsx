@@ -15,11 +15,12 @@ interface InviteLinkTabProps {
   groupId: string | undefined;
   groupName?: string;
   onLinkGenerated: (link: string) => void;
+  onInviteSent?: () => void;
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLinkTabProps) => {
+export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSent }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
   const [link, setLink] = useState("");
@@ -137,6 +138,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
           dialogTitle: 'شارك رابط الدعوة'
         });
         toast({ title: "تمت المشاركة" });
+        onInviteSent?.();
         return;
       }
       
@@ -151,12 +153,14 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated }: InviteLin
           await navigator.share(shareData);
         }
         toast({ title: "تمت المشاركة" });
+        onInviteSent?.();
         return;
       }
       
       // Fallback - copy full message
       await navigator.clipboard.writeText(fullMessage);
       toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
+      onInviteSent?.();
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error("[InviteLinkTab] share error:", error);
