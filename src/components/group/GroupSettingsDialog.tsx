@@ -132,16 +132,7 @@ export const GroupSettingsDialog = ({
     setDeleting(true);
 
     try {
-      // حذف الدعوات المعلقة
-      await supabase.from("invites").delete().eq("group_id", groupId);
-      
-      // حذف رموز الانضمام
-      await supabase.from("group_join_tokens").delete().eq("group_id", groupId);
-      
-      // حذف عضوية المالك
-      await supabase.from("group_members").delete().eq("group_id", groupId);
-      
-      // حذف المجموعة
+      // حذف المجموعة مباشرة - قاعدة البيانات ستحذف السجلات المرتبطة تلقائياً (ON DELETE CASCADE)
       const { error } = await supabase.from("groups").delete().eq("id", groupId);
 
       if (error) {
@@ -151,6 +142,7 @@ export const GroupSettingsDialog = ({
           description: error.message, 
           variant: "destructive" 
         });
+        setDeleting(false);
         return;
       }
 
@@ -165,7 +157,6 @@ export const GroupSettingsDialog = ({
         description: t("common:try_again", "حاول مرة أخرى"), 
         variant: "destructive" 
       });
-    } finally {
       setDeleting(false);
     }
   };
