@@ -167,7 +167,7 @@ export const BalanceBreakdown = ({
         {/* Explanation */}
         <div className="p-3 rounded-lg bg-muted/20 text-xs text-muted-foreground">
           <div className="font-medium mb-1">تفسير الرصيد:</div>
-          <div>الرصيد الصافي = (ما دفعته + التسويات المستلمة) - (ما عليك + التسويات المدفوعة)</div>
+          <div>الرصيد الصافي = (ما دفعته - ما عليك) + (تسويات دفعتها - تسويات استلمتها)</div>
         </div>
       </CardContent>
     </Card>
