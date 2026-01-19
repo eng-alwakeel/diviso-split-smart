@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Calendar, User, FileText, CheckCircle, XCircle, Users, CreditCard } from "lucide-react";
+import { Receipt, Calendar, User, FileText, CheckCircle, XCircle, Users, CreditCard, Trash2 } from "lucide-react";
 import { RejectExpenseDialog } from "./RejectExpenseDialog";
+import { useExpenseActions } from "@/hooks/useExpenseActions";
 
 interface ExpenseRow {
   id: string;
@@ -41,6 +43,8 @@ interface ExpenseDetailsDialogProps {
   profiles: Record<string, ProfileRow>;
   canApprove: boolean;
   onApprove: (expenseId: string, action: "approve" | "reject") => void;
+  isAdmin?: boolean;
+  onDeleted?: () => void;
 }
 
 export const ExpenseDetailsDialog = ({
@@ -50,11 +54,23 @@ export const ExpenseDetailsDialog = ({
   profiles,
   canApprove,
   onApprove,
+  isAdmin = false,
+  onDeleted,
 }: ExpenseDetailsDialogProps) => {
   const { toast } = useToast();
   const [splits, setSplits] = useState<ExpenseSplit[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const { deleteExpense, deleting } = useExpenseActions();
+
+  const handleDelete = async () => {
+    if (!expense) return;
+    const success = await deleteExpense(expense.id);
+    if (success) {
+      onOpenChange(false);
+      onDeleted?.();
+    }
+  };
 
   useEffect(() => {
     if (open && expense) {
@@ -251,6 +267,36 @@ export const ExpenseDetailsDialog = ({
                 <XCircle className="w-5 h-5 ml-2" />
                 رفض المصروف
               </Button>
+            </div>
+          )}
+
+          {/* Delete Button for Admin */}
+          {isAdmin && (
+            <div className="pt-4 border-t">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={deleting} className="w-full">
+                    <Trash2 className="w-4 h-4 ml-2" />
+                    حذف المصروف
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>تأكيد حذف المصروف</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      هل أنت متأكد من حذف هذا المصروف؟ لا يمكن التراجع عن هذا الإجراء.
+                      <br />
+                      <strong className="text-foreground">{expense.description}</strong> - {Number(expense.amount).toLocaleString()} {expense.currency}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleting ? "جاري الحذف..." : "حذف"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
