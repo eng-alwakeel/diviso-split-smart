@@ -3,12 +3,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useSettlementActions = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('groups');
   const { notifyMilestone } = useReferralProgress();
+  const queryClient = useQueryClient();
+
+  // Invalidate all related queries to force immediate refresh
+  const invalidateRelatedQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['group-data'] });
+    queryClient.invalidateQueries({ queryKey: ['group-balance'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    queryClient.invalidateQueries({ queryKey: ['settlements'] });
+  };
 
   const confirmSettlement = async (settlementId: string) => {
     setLoading(true);
@@ -29,6 +39,9 @@ export const useSettlementActions = () => {
 
       // منح 20 نقطة للمُحيل عند أول تسوية
       await notifyMilestone('settlement');
+
+      // Invalidate queries to force immediate UI update
+      invalidateRelatedQueries();
 
       toast({
         title: t('settlements_tab.confirmed'),
@@ -66,6 +79,9 @@ export const useSettlementActions = () => {
         .eq('id', settlementId);
 
       if (error) throw error;
+
+      // Invalidate queries to force immediate UI update
+      invalidateRelatedQueries();
 
       toast({
         title: t('settlements_tab.disputed'),

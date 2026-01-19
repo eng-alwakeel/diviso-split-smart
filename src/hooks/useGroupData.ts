@@ -276,11 +276,18 @@ export const useGroupData = (groupId?: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
-  // Debounced load function for real-time updates
+  // Debounced load function for real-time updates (reduced from 500ms to 100ms)
   const debouncedLoad = useMemo(
-    () => debounce(load, 500),
+    () => debounce(load, 100),
     [debounce, load]
   );
+
+  // Force refresh function that bypasses cache and debounce
+  const forceRefresh = useCallback(async () => {
+    if (!groupId) return;
+    cache.clear();
+    await load();
+  }, [groupId, cache, load]);
 
   // Real-time updates for balance-affecting tables
   useEffect(() => {
@@ -303,9 +310,9 @@ export const useGroupData = (groupId?: string) => {
         { event: '*', schema: 'public', table: 'expenses', filter: `group_id=eq.${groupId}` },
         (payload) => {
           console.log("[useGroupData] Expenses change:", payload);
-          // Clear cache and refresh data
+          // Clear cache and refresh immediately (no debounce for real-time updates)
           cache.clear();
-          debouncedLoad();
+          load();
         }
       )
       .subscribe((status) => {
@@ -322,8 +329,9 @@ export const useGroupData = (groupId?: string) => {
         { event: '*', schema: 'public', table: 'settlements', filter: `group_id=eq.${groupId}` },
         (payload) => {
           console.log("[useGroupData] Settlements change:", payload);
+          // Clear cache and refresh immediately
           cache.clear();
-          debouncedLoad();
+          load();
         }
       )
       .subscribe((status) => {
@@ -395,5 +403,6 @@ return {
   settlements,
   totals,
   refetch: load,
+  forceRefresh,
 };
 };
