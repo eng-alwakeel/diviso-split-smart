@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
   ArrowRight,
   Users, 
@@ -83,6 +84,8 @@ const GroupDetails = () => {
   const [rejectExpenseOpen, setRejectExpenseOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [selectedExpenseForDetails, setSelectedExpenseForDetails] = useState<any>(null);
+  const [deleteExpenseConfirmOpen, setDeleteExpenseConfirmOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
   
   // Budget state
   const [createBudgetOpen, setCreateBudgetOpen] = useState(false);
@@ -158,6 +161,15 @@ const GroupDetails = () => {
     const me = members.find(m => m.user_id === currentUserId);
     return me ? (me.role === "admin" || me.role === "owner" || me.can_approve_expenses) : false;
   }, [members, currentUserId]);
+
+  const isAdmin = useMemo(() => {
+    if (!currentUserId) return false;
+    const me = members.find(m => m.user_id === currentUserId);
+    return me ? (me.role === "admin" || me.role === "owner") : false;
+  }, [members, currentUserId]);
+  
+  // Expense delete action
+  const { deleteExpense, deleting: deletingExpense } = useExpenseActions();
 
   const isOwner = currentUserId != null && group?.owner_id === currentUserId;
 
@@ -657,6 +669,40 @@ const GroupDetails = () => {
                               >
                                 <XCircle className="w-4 h-4" />
                               </Button>
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    setExpenseToDelete(expense);
+                                    setDeleteExpenseConfirmOpen(true);
+                                  }}
+                                  className="bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20 rounded-full h-8 w-8 p-0"
+                                  aria-label="حذف"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Quick delete button for admin on non-pending expenses */}
+                          {isAdmin && expense.status !== "pending" && (
+                            <div className="flex gap-2 mt-3 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  setExpenseToDelete(expense);
+                                  setDeleteExpenseConfirmOpen(true);
+                                }}
+                                className="bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20 rounded-full h-8 w-8 p-0"
+                                aria-label="حذف"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           )}
                           
@@ -1042,7 +1088,42 @@ const GroupDetails = () => {
         profiles={profiles}
         canApprove={canApprove}
         onApprove={handleExpenseApproval}
+        isAdmin={isAdmin}
+        onDeleted={() => refetch()}
       />
+
+      {/* Delete Expense Confirmation Dialog */}
+      <AlertDialog open={deleteExpenseConfirmOpen} onOpenChange={setDeleteExpenseConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد حذف المصروف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذا المصروف؟ لا يمكن التراجع عن هذا الإجراء.
+              <br />
+              <strong className="text-foreground">{expenseToDelete?.description}</strong> - {Number(expenseToDelete?.amount || 0).toLocaleString()} {expenseToDelete?.currency}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={async () => {
+                if (expenseToDelete) {
+                  const success = await deleteExpense(expenseToDelete.id);
+                  if (success) {
+                    setDeleteExpenseConfirmOpen(false);
+                    setExpenseToDelete(null);
+                    refetch();
+                  }
+                }
+              }} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletingExpense}
+            >
+              {deletingExpense ? "جاري الحذف..." : "حذف"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Create Budget Dialog */}
       <CreateBudgetDialog
