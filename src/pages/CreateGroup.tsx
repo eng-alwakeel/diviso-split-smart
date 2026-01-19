@@ -46,6 +46,7 @@ const CreateGroup = () => {
   const { notifyMilestone } = useReferralProgress();
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false); // Prevent double creation
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
   const [hasEnoughCredits, setHasEnoughCredits] = useState<boolean | null>(null);
   const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 5 });
@@ -434,9 +435,24 @@ const CreateGroup = () => {
   };
 
   const createGroupOnly = async () => {
+    // Prevent double creation - if group already created, skip
+    if (createdGroupId) {
+      console.log('Group already created:', createdGroupId);
+      return;
+    }
+    
+    // Prevent concurrent creation attempts
+    if (isCreatingGroup) {
+      console.log('Group creation already in progress');
+      return;
+    }
+    
+    setIsCreatingGroup(true);
+    
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
+      setIsCreatingGroup(false);
       toast({ title: t('groups:messages.login_required'), variant: "destructive" });
       return;
     }
@@ -457,6 +473,7 @@ const CreateGroup = () => {
     // Check credits before creating group
     const creditCheck = await checkCredits('create_group');
     if (!creditCheck.canPerform) {
+      setIsCreatingGroup(false);
       setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
       setShowInsufficientDialog(true);
       throw new Error('insufficient_credits');
@@ -495,6 +512,7 @@ const CreateGroup = () => {
       await notifyMilestone('group');
       
     } catch (e: any) {
+      setIsCreatingGroup(false);
       if (e.message === 'insufficient_credits' || e.message === 'quota_exceeded') throw e;
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
       throw e;
@@ -651,11 +669,11 @@ const CreateGroup = () => {
 
               <Button 
                 onClick={nextStep}
-                disabled={!groupData.name || !groupData.currency}
+                disabled={!groupData.name || !groupData.currency || loading || isCreatingGroup}
                 className="w-full"
                 variant="hero"
               >
-                {t('groups:continue_to_invite')}
+                {isCreatingGroup ? t('common:loading') : t('groups:continue_to_invite')}
               </Button>
             </CardContent>
           </Card>
