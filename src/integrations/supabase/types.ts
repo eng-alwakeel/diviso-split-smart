@@ -4920,16 +4920,15 @@ export type Database = {
       get_group_budget_tracking_v2: {
         Args: { p_group_id: string }
         Returns: {
+          allocated_amount: number
           budget_id: string
           budget_name: string
-          budgeted_amount: number
           category_id: string
           category_name: string
           expense_count: number
+          percentage_used: number
           remaining_amount: number
           spent_amount: number
-          spent_percentage: number
-          status: string
         }[]
       }
       get_group_income_balance: {
@@ -5193,6 +5192,10 @@ export type Database = {
       process_referral_milestone: {
         Args: { p_invited_user_id: string; p_milestone: string }
         Returns: Json
+      }
+      relink_approved_expenses: {
+        Args: { p_group_id: string }
+        Returns: number
       }
       seed_demo_for_user: { Args: never; Returns: string }
       share_achievement: {
