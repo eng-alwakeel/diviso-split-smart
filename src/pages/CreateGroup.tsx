@@ -20,12 +20,6 @@ import {
 import {
   ArrowRight, 
   Users, 
-  Plus, 
-  X, 
-  Share2, 
-  Copy,
-  Phone,
-  Link as LinkIcon,
   Calculator,
   AlertTriangle,
   CheckCircle
@@ -39,25 +33,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { InitialBalancesStep, type MemberBalance } from "@/components/group/InitialBalancesStep";
 import { useCurrencies } from "@/hooks/useCurrencies";
 import { AIGroupCategorySuggestions } from '@/components/group/AIGroupCategorySuggestions';
-import { useAIGroupSuggestions } from '@/hooks/useAIGroupSuggestions';
 import { Bot } from 'lucide-react';
 import { UnifiedAdLayout } from '@/components/ads/UnifiedAdLayout';
 import { useTranslation } from 'react-i18next';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
-import { useUsageCredits, CreditActionType } from '@/hooks/useUsageCredits';
+import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
-import { BRAND_CONFIG } from "@/lib/brandConfig";
 
 const CreateGroup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation(['groups', 'common']);
   const { currencies } = useCurrencies();
-  const { createCategoriesFromSuggestions } = useAIGroupSuggestions();
   const { notifyMilestone } = useReferralProgress();
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false); // Prevent double creation
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
   const [hasEnoughCredits, setHasEnoughCredits] = useState<boolean | null>(null);
   const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 5 });
@@ -68,24 +58,19 @@ const CreateGroup = () => {
     category: "",
     currency: ""
   });
-  const [phoneNumbers, setPhoneNumbers] = useState([""]);
-  const [inviteLink, setInviteLink] = useState("");
   const [initialBalances, setInitialBalances] = useState<MemberBalance[]>([]);
   const [aiSuggestedCategories, setAiSuggestedCategories] = useState<any[]>([]);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
-  const [createdGroupId, setCreatedGroupId] = useState<string>("");
-  const [currentUserName, setCurrentUserName] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const categories = [
     "trip", "home", "work", "party", "project", "general"
   ];
 
-  // Fetch current user name and check credits on mount
+  // Check credits on mount
   useEffect(() => {
     const initializeData = async () => {
       try {
-        // Check credits
         const creditCheck = await checkCredits('create_group');
         setHasEnoughCredits(creditCheck.canPerform);
         if (!creditCheck.canPerform) {
@@ -94,22 +79,9 @@ const CreateGroup = () => {
             requiredCredits: creditCheck.requiredCredits 
           });
         }
-        
-        // Fetch current user name
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, name')
-            .eq('id', user.id)
-            .single();
-          if (profile?.display_name || profile?.name) {
-            setCurrentUserName(profile.display_name || profile.name || '');
-          }
-        }
       } catch (error) {
         console.error('Error initializing data:', error);
-        setHasEnoughCredits(true); // Assume true on error
+        setHasEnoughCredits(true);
       }
     };
     initializeData();
@@ -119,129 +91,10 @@ const CreateGroup = () => {
     return t(`groups:types.${category}`, category);
   };
 
-  const handleAddPhone = () => {
-    setPhoneNumbers([...phoneNumbers, ""]);
-  };
-
-  const handleRemovePhone = (index: number) => {
-    setPhoneNumbers(phoneNumbers.filter((_, i) => i !== index));
-  };
-
-  const handlePhoneChange = (index: number, value: string) => {
-    const newPhones = [...phoneNumbers];
-    newPhones[index] = value;
-    setPhoneNumbers(newPhones);
-  };
-
-  const generateInviteLink = async () => {
-    if (!createdGroupId) {
-      toast({
-        title: t('groups:invite.error'),
-        description: t('groups:invite.must_create_group'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("group_join_tokens")
-        .insert({ group_id: createdGroupId })
-        .select("token")
-        .single();
-
-      if (error) throw error;
-
-      const token = data?.token as string;
-      const link = `${BRAND_CONFIG.url}/i/${token}`;
-      setInviteLink(link);
-      
-      toast({
-        title: t('groups:invite.invite_created'),
-        description: t('groups:invite.share_with_members'),
-      });
-    } catch (error: any) {
-      console.error('Error generating invite link:', error);
-      toast({
-        title: t('groups:invite.link_error'),
-        description: error.message || t('groups:invite.try_again'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: t('groups:messages.copied'),
-      description: t('groups:messages.link_copied_clipboard'),
-    });
-  };
-
-  const sendSMSInvite = async (phone: string) => {
-    if (!inviteLink) {
-      toast({
-        title: t('groups:invite.error'),
-        description: t('groups:invite.must_create_link'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('send-sms-invite', {
-        body: {
-          phone: phone.startsWith('+') ? phone : `+${phone}`,
-          groupName: groupData.name,
-          inviteLink,
-          senderName: t('common:user')
-        }
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: t('groups:invite.sms_sent'),
-        description: `${t('groups:invite.sms_sent_to')} ${phone}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: t('groups:invite.sms_error'),
-        description: error.message || t('groups:invite.try_again'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const sendWhatsAppInvite = (phoneNumber: string) => {
-    if (!inviteLink) {
-      toast({
-        title: t('groups:invite.error'),
-        description: t('groups:invite.must_create_link'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const message = t('groups:invite.whatsapp_message', { 
-      groupName: groupData.name, 
-      inviteLink,
-      senderName: currentUserName || t('common:friend', 'صديقك')
-    });
-    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    
-    toast({
-      title: t('groups:invite.whatsapp_opened'),
-      description: t('groups:invite.whatsapp_redirect'),
-    });
-  };
-
   const createInitialBalances = async (groupId: string, userId: string) => {
     if (initialBalances.length === 0) return;
 
     try {
-      // Create initial expenses for members who paid
       for (const member of initialBalances) {
         if (member.amountPaid > 0) {
           const { data: expenseData, error: expenseError } = await supabase
@@ -260,7 +113,6 @@ const CreateGroup = () => {
 
           if (expenseError) throw expenseError;
 
-          // Create expense splits for all members based on their owed amounts
           const totalOwed = initialBalances.reduce((sum, m) => sum + m.amountOwed, 0);
           if (totalOwed > 0) {
             const splits = initialBalances
@@ -282,12 +134,10 @@ const CreateGroup = () => {
         }
       }
 
-      // Create settlements to balance the accounts
       for (const member of initialBalances) {
         const netBalance = member.amountPaid - member.amountOwed;
         if (Math.abs(netBalance) > 0.01) {
           if (netBalance > 0) {
-            // Member is owed money
             const { error: settlementError } = await supabase
               .from('settlements')
               .insert({
@@ -301,7 +151,6 @@ const CreateGroup = () => {
 
             if (settlementError) throw settlementError;
           } else {
-            // Member owes money
             const { error: settlementError } = await supabase
               .from('settlements')
               .insert({
@@ -400,108 +249,27 @@ const CreateGroup = () => {
     }
   };
 
+  // Main function that creates the group with all data
   const handleCreateGroup = async () => {
-    // Use existing group created in step 1
-    if (!createdGroupId) {
-      toast({ title: t('groups:messages.creation_failed'), variant: "destructive" });
-      return;
-    }
-    
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user;
     if (!user) {
       toast({ title: t('groups:messages.login_required'), variant: "destructive" });
+      return;
+    }
+    
+    // Check credits before creating group
+    const creditCheck = await checkCredits('create_group');
+    if (!creditCheck.canPerform) {
+      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
+      setShowInsufficientDialog(true);
+      setShowConfirmDialog(false);
       return;
     }
     
     setLoading(true);
     try {
-      // Add AI suggestions budget to existing group
-      if (aiSuggestedCategories.length > 0) {
-        await createBudgetFromAISuggestions(createdGroupId, user.id);
-      }
-
-      // Add initial balances to existing group
-      if (initialBalances.length > 0) {
-        await createInitialBalances(createdGroupId, user.id);
-      }
-
-      toast({ 
-        title: t('groups:messages.group_created'), 
-        description: t('groups:messages.group_created_success', { name: groupData.name })
-      });
-      navigate(`/group/${createdGroupId}`);
-    } catch (e: any) {
-      toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-      setShowConfirmDialog(false);
-    }
-  };
-
-  const nextStep = async () => {
-    if (currentStep === 1 && groupData.category !== 'general') {
-      await createGroupOnly();
-      setShowAISuggestions(true);
-      setCurrentStep(2);
-    } else if (currentStep === 1) {
-      await createGroupOnly();
-      await generateInviteLink();
-      setCurrentStep(3);
-    } else if (currentStep === 2 && showAISuggestions) {
-      await generateInviteLink();
-      setCurrentStep(3);
-    } else if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const createGroupOnly = async () => {
-    // Prevent double creation - if group already created, skip
-    if (createdGroupId) {
-      console.log('Group already created:', createdGroupId);
-      return;
-    }
-    
-    // Prevent concurrent creation attempts
-    if (isCreatingGroup) {
-      console.log('Group creation already in progress');
-      return;
-    }
-    
-    setIsCreatingGroup(true);
-    
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
-    if (!user) {
-      setIsCreatingGroup(false);
-      toast({ title: t('groups:messages.login_required'), variant: "destructive" });
-      return;
-    }
-    
-    // Check group quota limit first
-    const { count: groupCount, error: countError } = await supabase
-      .from('groups')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', user.id)
-      .is('archived_at', null);
-    
-    if (countError) {
-      console.error('Error checking group count:', countError);
-    }
-    
-    // Note: Subscription limits have been removed - groups are now unlimited
-    
-    // Check credits before creating group
-    const creditCheck = await checkCredits('create_group');
-    if (!creditCheck.canPerform) {
-      setIsCreatingGroup(false);
-      setCreditCheckResult({ currentBalance: creditCheck.remainingCredits, requiredCredits: creditCheck.requiredCredits });
-      setShowInsufficientDialog(true);
-      throw new Error('insufficient_credits');
-    }
-    
-    try {
+      // 1. Create the group
       const { data: groupInsert, error: groupErr } = await supabase
         .from('groups')
         .insert({ 
@@ -514,33 +282,61 @@ const CreateGroup = () => {
         .single();
       if (groupErr) throw groupErr;
       
-      setCreatedGroupId(groupInsert.id);
+      const groupId = groupInsert.id;
       
+      // 2. Add owner as member
       const { error: memberErr } = await supabase
         .from('group_members')
-        .insert({ group_id: groupInsert.id, user_id: user.id, role: 'owner' });
+        .insert({ group_id: groupId, user_id: user.id, role: 'owner' });
       if (memberErr) throw memberErr;
       
-      // Consume credits after successful group creation
+      // 3. Consume credits
       await consumeCredits('create_group');
       
-      // Update onboarding task - first group created
+      // 4. Complete onboarding task
       await supabase.rpc('complete_onboarding_task', {
         p_task_name: 'group',
         p_user_id: user.id
       });
       
-      // Notify referral progress (grants 20 RP to inviter if this is first group)
+      // 5. Notify referral progress
       await notifyMilestone('group');
       
-      // Reset creation state after successful group creation
-      setIsCreatingGroup(false);
+      // 6. Add AI suggestions budget if available
+      if (aiSuggestedCategories.length > 0) {
+        await createBudgetFromAISuggestions(groupId, user.id);
+      }
+
+      // 7. Add initial balances if available
+      if (initialBalances.length > 0) {
+        await createInitialBalances(groupId, user.id);
+      }
+
+      toast({ 
+        title: t('groups:messages.group_created'), 
+        description: t('groups:messages.group_created_success', { name: groupData.name })
+      });
       
+      // Navigate to group page with openInvite flag
+      navigate(`/group/${groupId}?openInvite=true`);
     } catch (e: any) {
-      setIsCreatingGroup(false);
-      if (e.message === 'insufficient_credits' || e.message === 'quota_exceeded') throw e;
+      console.error('Error creating group:', e);
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
-      throw e;
+    } finally {
+      setLoading(false);
+      setShowConfirmDialog(false);
+    }
+  };
+
+  const nextStep = () => {
+    if (currentStep === 1 && groupData.category !== 'general') {
+      setShowAISuggestions(true);
+      setCurrentStep(2);
+    } else if (currentStep === 1) {
+      // Skip AI suggestions for "general" type
+      setCurrentStep(3);
+    } else if (currentStep === 2 && showAISuggestions) {
+      setCurrentStep(3);
     }
   };
 
@@ -599,7 +395,7 @@ const CreateGroup = () => {
           </Alert>
         )}
 
-        {/* Progress Indicator */}
+        {/* Progress Indicator - 3 Steps */}
         <div className="flex items-center justify-between mb-8">
           <div className={`flex items-center gap-2 ${currentStep >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary text-white' : 'bg-muted'}`}>
@@ -620,13 +416,6 @@ const CreateGroup = () => {
               3
             </div>
             <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step3')}</span>
-          </div>
-          <div className={`flex-1 h-1 mx-2 ${currentStep > 3 ? 'bg-primary' : 'bg-muted'}`}></div>
-          <div className={`flex items-center gap-2 ${currentStep >= 4 ? 'text-primary' : 'text-muted-foreground'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-primary text-white' : 'bg-muted'}`}>
-              4
-            </div>
-            <span className="font-medium text-xs md:text-sm">{t('groups:create_page.step4')}</span>
           </div>
         </div>
 
@@ -694,11 +483,11 @@ const CreateGroup = () => {
 
               <Button 
                 onClick={nextStep}
-                disabled={!groupData.name || !groupData.currency || loading || isCreatingGroup}
+                disabled={!groupData.name || !groupData.currency || loading}
                 className="w-full"
                 variant="hero"
               >
-                {isCreatingGroup ? t('common:loading') : t('groups:continue_to_invite')}
+                {t('common:next', 'التالي')}
               </Button>
             </CardContent>
           </Card>
@@ -718,7 +507,7 @@ const CreateGroup = () => {
               </CardHeader>
               <CardContent>
                 <AIGroupCategorySuggestions
-                  groupId={createdGroupId}
+                  groupId=""
                   groupType={groupData.category}
                   groupName={groupData.name}
                   expectedBudget={undefined}
@@ -731,111 +520,14 @@ const CreateGroup = () => {
             </Card>
           )}
 
-        {/* Step 3: Invite Members */}
+        {/* Step 3: Initial Balances */}
           {currentStep === 3 && (
           <div className="space-y-6">
-            {/* Phone Numbers */}
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Phone className="w-5 h-5 text-accent" />
-                  {t('groups:invite.by_phone')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {phoneNumbers.map((phone, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder={t('groups:invite.phone_placeholder')}
-                      value={phone}
-                      onChange={(e) => handlePhoneChange(index, e.target.value)}
-                      className="text-left bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-                      dir="ltr"
-                    />
-                    <Button
-                      variant="outline"
-                      disabled={!phone.trim()}
-                      onClick={() => sendWhatsAppInvite(phone)}
-                      className="bg-green-500 hover:bg-green-600 text-white border-green-500"
-                    >
-                      {t('groups:invite.whatsapp')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      disabled={!phone.trim()}
-                      onClick={() => sendSMSInvite(phone)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                    >
-                      {t('groups:invite.sms')}
-                    </Button>
-                    {phoneNumbers.length > 1 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemovePhone(index)}
-                        className="border-border text-foreground hover:bg-accent/20"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                
-                <Button
-                  variant="outline"
-                  onClick={handleAddPhone}
-                  className="w-full border-border text-foreground hover:bg-accent/20"
-                >
-                  <Plus className="w-4 h-4 ml-2" />
-                  {t('groups:invite.add_another')}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Invite Link */}
-            <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <LinkIcon className="w-5 h-5 text-accent" />
-                  {t('groups:invite.link_title')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {t('groups:invite.link_description')}
-                </p>
-                
-                <div className="flex gap-2">
-                  <Input
-                    value={inviteLink}
-                    readOnly
-                    className="text-left bg-background/50 border-border text-foreground"
-                    dir="ltr"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => copyToClipboard(inviteLink)}
-                    className="border-border text-foreground hover:bg-accent/20"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: `${t('groups:join_group')} ${groupData.name}`,
-                          url: inviteLink
-                        });
-                      }
-                    }}
-                    className="border-border text-foreground hover:bg-accent/20"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <InitialBalancesStep
+              currency={groupData.currency}
+              onBalancesChange={setInitialBalances}
+              initialBalances={initialBalances}
+            />
 
             {/* Actions */}
             <div className="flex gap-4">
@@ -853,37 +545,8 @@ const CreateGroup = () => {
                 {t('groups:back')}
               </Button>
               <Button
-                onClick={nextStep}
-                className="flex-1"
-                variant="hero"
-              >
-                {t('groups:continue_to_balances')}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Initial Balances */}
-          {currentStep === 4 && (
-          <div className="space-y-6">
-            <InitialBalancesStep
-              currency={groupData.currency}
-              onBalancesChange={setInitialBalances}
-              initialBalances={initialBalances}
-            />
-
-            {/* Actions */}
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(3)}
-                className="flex-1"
-              >
-                {t('groups:back')}
-              </Button>
-              <Button
                 onClick={() => setShowConfirmDialog(true)}
-                disabled={!isStep3Valid() || loading || isCreatingGroup}
+                disabled={!isStep3Valid() || loading}
                 className="flex-1"
                 variant="hero"
               >
@@ -921,12 +584,6 @@ const CreateGroup = () => {
                     <span className="text-muted-foreground">{t('groups:confirm_dialog.currency')}:</span>
                     <span className="font-medium text-foreground">{groupData.currency}</span>
                   </p>
-                  {phoneNumbers.filter(p => p.trim()).length > 0 && (
-                    <p className="flex justify-between">
-                      <span className="text-muted-foreground">{t('groups:confirm_dialog.invitees')}:</span>
-                      <span className="font-medium text-foreground">{phoneNumbers.filter(p => p.trim()).length}</span>
-                    </p>
-                  )}
                   {initialBalances.length > 0 && (
                     <p className="flex justify-between">
                       <span className="text-muted-foreground">{t('groups:confirm_dialog.initial_balances')}:</span>
@@ -945,9 +602,9 @@ const CreateGroup = () => {
             <AlertDialogCancel>{t('groups:confirm_dialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleCreateGroup}
-              disabled={loading || isCreatingGroup}
+              disabled={loading}
             >
-              {loading || isCreatingGroup ? t('groups:creating') : t('groups:confirm_dialog.confirm')}
+              {loading ? t('groups:creating') : t('groups:confirm_dialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
