@@ -22,11 +22,14 @@ import {
   Loader2, 
   Star,
   ExternalLink,
-  Plus
+  Plus,
+  Coins
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 
 interface AskRecommendationDialogProps {
   open: boolean;
@@ -91,6 +94,13 @@ export function AskRecommendationDialog({
   };
 
   const handleSubmit = async () => {
+    // Check credits before making the request
+    const creditCheck = await checkCredits('recommendation');
+    if (!creditCheck.canPerform) {
+      setShowInsufficientDialog(true);
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -118,6 +128,8 @@ export function AskRecommendationDialog({
       if (response.ok) {
         const data = await response.json();
         if (data.recommendations) {
+          // Consume credits after successful recommendation
+          await consumeCredits('recommendation');
           setRecommendations(data.recommendations);
           setStep('results');
         }
@@ -259,7 +271,10 @@ export function AskRecommendationDialog({
               {isRTL ? 'جاري البحث...' : 'Searching...'}
             </>
           ) : (
-            isRTL ? 'ابحث' : 'Search'
+            <>
+              <Coins className="w-4 h-4 mr-1" />
+              {isRTL ? 'ابحث (1 نقطة)' : 'Search (1 credit)'}
+            </>
           )}
         </Button>
       </div>
@@ -360,16 +375,24 @@ export function AskRecommendationDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{getTitle()}</DialogTitle>
+          </DialogHeader>
 
-        {step === 'type' && renderTypeSelection()}
-        {step === 'preferences' && renderPreferences()}
-        {step === 'results' && renderResults()}
-      </DialogContent>
-    </Dialog>
+          {step === 'type' && renderTypeSelection()}
+          {step === 'preferences' && renderPreferences()}
+          {step === 'results' && renderResults()}
+        </DialogContent>
+      </Dialog>
+
+      <ZeroCreditsPaywall
+        open={showInsufficientDialog}
+        onOpenChange={setShowInsufficientDialog}
+        actionName="recommendation"
+      />
+    </>
   );
 }
