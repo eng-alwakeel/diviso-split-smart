@@ -63,15 +63,17 @@ const CreateGroup = () => {
   const [aiSuggestedCategories, setAiSuggestedCategories] = useState<any[]>([]);
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [createdGroupId, setCreatedGroupId] = useState<string>("");
+  const [currentUserName, setCurrentUserName] = useState<string>("");
 
   const categories = [
     "trip", "home", "work", "party", "project", "general"
   ];
 
-  // Early credit check on mount
+  // Fetch current user name and check credits on mount
   useEffect(() => {
-    const checkGroupCredits = async () => {
+    const initializeData = async () => {
       try {
+        // Check credits
         const creditCheck = await checkCredits('create_group');
         setHasEnoughCredits(creditCheck.canPerform);
         if (!creditCheck.canPerform) {
@@ -80,12 +82,25 @@ const CreateGroup = () => {
             requiredCredits: creditCheck.requiredCredits 
           });
         }
+        
+        // Fetch current user name
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, name')
+            .eq('id', user.id)
+            .single();
+          if (profile?.display_name || profile?.name) {
+            setCurrentUserName(profile.display_name || profile.name || '');
+          }
+        }
       } catch (error) {
-        console.error('Error checking credits:', error);
+        console.error('Error initializing data:', error);
         setHasEnoughCredits(true); // Assume true on error
       }
     };
-    checkGroupCredits();
+    initializeData();
   }, [checkCredits]);
 
   const getCategoryLabel = (category: string) => {
@@ -196,7 +211,11 @@ const CreateGroup = () => {
       return;
     }
 
-    const message = t('groups:invite.whatsapp_message', { groupName: groupData.name, inviteLink });
+    const message = t('groups:invite.whatsapp_message', { 
+      groupName: groupData.name, 
+      inviteLink,
+      senderName: currentUserName || t('common:friend', 'صديقك')
+    });
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     

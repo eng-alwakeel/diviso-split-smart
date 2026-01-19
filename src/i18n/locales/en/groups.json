@@ -184,7 +184,8 @@
     "must_create_link": "You must create invite link first",
     "must_create_group": "You must create the group first",
     "error": "Error",
-    "try_again": "Please try again"
+    "try_again": "Please try again",
+    "whatsapp_message": "👋 Invitation from {{senderName}} to join \"{{groupName}}\"\n\n📱 Download Diviso for smart expense splitting\n\n🔗 {{inviteLink}}"
   },
 
   "balance": {
