@@ -78,11 +78,11 @@ const CreateGroup = () => {
     return t(`groups:types.${category}`, category);
   };
 
-  const createBudgetFromAISuggestions = async (groupId: string, userId: string) => {
-    if (aiSuggestedCategories.length === 0) return;
+  const createBudgetFromAISuggestions = async (groupId: string, userId: string, categories: any[]) => {
+    if (categories.length === 0) return;
 
     try {
-      const totalAmount = aiSuggestedCategories.reduce((sum, cat) => sum + cat.amount, 0);
+      const totalAmount = categories.reduce((sum, cat) => sum + (cat.suggested_amount || cat.amount || 0), 0);
       
       const { data: budgetData, error: budgetError } = await supabase
         .from('budgets')
@@ -101,10 +101,10 @@ const CreateGroup = () => {
 
       if (budgetError) throw budgetError;
 
-      const budgetCategories = aiSuggestedCategories.map(category => ({
+      const budgetCategories = categories.map(category => ({
         budget_id: budgetData.id,
-        name: category.name_ar,
-        allocated_amount: category.amount
+        name: category.category_name || category.name_ar,
+        allocated_amount: category.suggested_amount || category.amount || 0
       }));
 
       const { error: categoriesError } = await supabase
@@ -118,7 +118,7 @@ const CreateGroup = () => {
         description: t('groups:messages.budget_created_with_categories', {
           amount: totalAmount.toLocaleString(),
           currency: groupData.currency,
-          count: aiSuggestedCategories.length
+          count: categories.length
         })
       });
     } catch (error) {
@@ -186,7 +186,7 @@ const CreateGroup = () => {
       
       // 6. Add AI suggestions budget if available
       if (aiSuggestedCategories.length > 0) {
-        await createBudgetFromAISuggestions(groupId, user.id);
+        await createBudgetFromAISuggestions(groupId, user.id, aiSuggestedCategories);
       }
 
       toast({ 
