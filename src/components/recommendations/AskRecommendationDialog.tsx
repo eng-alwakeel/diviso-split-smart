@@ -74,10 +74,12 @@ export function AskRecommendationDialog({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
+  const { checkCredits, consumeCredits } = useUsageCredits();
 
   const [step, setStep] = useState<'type' | 'preferences' | 'results'>('type');
   const [loading, setLoading] = useState(false);
   const [requestType, setRequestType] = useState<RequestType>('restaurant');
+  const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
   const [preferences, setPreferences] = useState({
     budget: 'medium' as Budget,
     distance: 'near' as Distance,
