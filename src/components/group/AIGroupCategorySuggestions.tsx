@@ -32,7 +32,7 @@ interface AIGroupCategorySuggestionsProps {
   groupName: string;
   expectedBudget?: number;
   memberCount?: number;
-  onAcceptSuggestions: (budgetId: string) => void;
+  onAcceptSuggestions: (budgetId: string, categories?: CategorySuggestion[]) => void;
   onSkip: () => void;
   loading?: boolean;
 }
@@ -128,7 +128,7 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
     return 'bg-red-100 text-red-800';
   };
 
-  const handleAcceptSuggestions = async () => {
+  const handleAcceptSuggestions = () => {
     if (selectedCategories.length === 0) {
       toast({
         title: 'تنبيه',
@@ -138,17 +138,8 @@ export const AIGroupCategorySuggestions: React.FC<AIGroupCategorySuggestionsProp
       return;
     }
     
-    try {
-      const budgetId = await createBudgetFromAISuggestions(
-        groupId,
-        `ميزانية ${groupName}`,
-        getTotalSelectedAmount(),
-        selectedCategories
-      );
-      onAcceptSuggestions(budgetId);
-    } catch (error) {
-      // Error is already handled in the hook
-    }
+    // Pass selected categories to parent - budget will be created after group is created
+    onAcceptSuggestions('', selectedCategories);
   };
 
   if (loadingSuggestions) {
