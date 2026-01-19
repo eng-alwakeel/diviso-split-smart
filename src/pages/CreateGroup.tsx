@@ -8,6 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowRight, 
   Users, 
   Plus, 
@@ -17,7 +27,8 @@ import {
   Phone,
   Link as LinkIcon,
   Calculator,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from "lucide-react";
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { AppHeader } from "@/components/AppHeader";
@@ -64,6 +75,7 @@ const CreateGroup = () => {
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [createdGroupId, setCreatedGroupId] = useState<string>("");
   const [currentUserName, setCurrentUserName] = useState<string>("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const categories = [
     "trip", "home", "work", "party", "project", "general"
@@ -876,8 +888,8 @@ const CreateGroup = () => {
                 {t('groups:back')}
               </Button>
               <Button
-                onClick={handleCreateGroup}
-                disabled={!isStep3Valid() || loading}
+                onClick={() => setShowConfirmDialog(true)}
+                disabled={!isStep3Valid() || loading || isCreatingGroup}
                 className="flex-1"
                 variant="hero"
               >
@@ -891,6 +903,61 @@ const CreateGroup = () => {
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
+      
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              {t('groups:confirm_dialog.title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2 text-start">
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">{t('groups:confirm_dialog.group_name')}:</span>
+                    <span className="font-medium text-foreground">{groupData.name}</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">{t('groups:confirm_dialog.type')}:</span>
+                    <span className="font-medium text-foreground">{getCategoryLabel(groupData.category)}</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span className="text-muted-foreground">{t('groups:confirm_dialog.currency')}:</span>
+                    <span className="font-medium text-foreground">{groupData.currency}</span>
+                  </p>
+                  {phoneNumbers.filter(p => p.trim()).length > 0 && (
+                    <p className="flex justify-between">
+                      <span className="text-muted-foreground">{t('groups:confirm_dialog.invitees')}:</span>
+                      <span className="font-medium text-foreground">{phoneNumbers.filter(p => p.trim()).length}</span>
+                    </p>
+                  )}
+                  {initialBalances.length > 0 && (
+                    <p className="flex justify-between">
+                      <span className="text-muted-foreground">{t('groups:confirm_dialog.initial_balances')}:</span>
+                      <span className="font-medium text-foreground">{initialBalances.length} {t('groups:confirm_dialog.members')}</span>
+                    </p>
+                  )}
+                </div>
+                <p className="text-amber-600 dark:text-amber-500 text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  {t('groups:confirm_dialog.credit_warning')}
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('groups:confirm_dialog.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCreateGroup}
+              disabled={loading || isCreatingGroup}
+            >
+              {loading || isCreatingGroup ? t('groups:creating') : t('groups:confirm_dialog.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Zero Credits Paywall */}
       <ZeroCreditsPaywall
