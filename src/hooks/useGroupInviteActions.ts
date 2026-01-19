@@ -32,16 +32,31 @@ export const useGroupInviteActions = () => {
 
       if (fetchError) throw fetchError;
 
+      const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+
       // Add user to group members
       const { error: memberError } = await supabase
         .from('group_members')
         .insert({
           group_id: invite.group_id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: currentUserId,
           role: invite.invited_role
         });
 
       if (memberError) throw memberError;
+
+      // Update referral record with invited_user_id if exists (for group invites)
+      if (currentUserId) {
+        await supabase
+          .from('referrals')
+          .update({ 
+            invited_user_id: currentUserId,
+            status: 'joined',
+            joined_at: new Date().toISOString()
+          })
+          .eq('group_id', invite.group_id)
+          .is('invited_user_id', null);
+      }
 
       // Mark notification as read
       await supabase

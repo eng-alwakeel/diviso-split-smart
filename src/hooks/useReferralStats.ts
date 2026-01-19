@@ -43,12 +43,12 @@ export function useReferralStats(): ReferralStats {
 
       if (referralsError) throw referralsError;
 
-      // Calculate total points earned from referrals
+      // Calculate total points earned from referrals from usage_credits table
       const { data: rewardTransactions, error: rewardsError } = await supabase
-        .from('reward_points')
+        .from('usage_credits')
         .select('amount')
         .eq('user_id', user.id)
-        .like('source', 'referral%');
+        .in('source', ['referral_first_usage', 'referral_milestone', 'referral_bonus']);
 
       if (rewardsError) throw rewardsError;
 
