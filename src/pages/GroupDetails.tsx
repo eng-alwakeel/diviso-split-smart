@@ -32,7 +32,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { InviteManagementDialog } from "@/components/group/InviteManagementDialog";
@@ -70,8 +70,18 @@ const GroupDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { id: rawId } = useParams();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
+  
+  // Auto-open invite dialog if coming from group creation
+  useEffect(() => {
+    if (searchParams.get('openInvite') === 'true') {
+      setOpenInvite(true);
+      // Clear the URL parameter
+      window.history.replaceState({}, '', `/group/${rawId}`);
+    }
+  }, [searchParams, rawId]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   // حوار التسوية
