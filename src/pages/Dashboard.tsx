@@ -156,6 +156,31 @@ const Dashboard = React.memo(() => {
   const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
 
+  // Real-time listener for group members changes (new member joins)
+  useEffect(() => {
+    if (!userId) return;
+    
+    const channel = supabase
+      .channel('dashboard-group-members')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_members'
+        },
+        () => {
+          // Refetch dashboard data when group members change
+          refetch();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, refetch]);
+
   // Show location dialog for first-time users
   useEffect(() => {
     if (userId && shouldShowLocationPrompt()) {

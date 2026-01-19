@@ -579,11 +579,7 @@ const GroupDetails = () => {
                   <Card 
                     key={expense.id} 
                     className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm"
-                    onClick={() => {
-                      if (expense.status === "pending" && canApprove) {
-                        setSelectedExpenseForDetails(expense);
-                      }
-                    }}
+                    onClick={() => setSelectedExpenseForDetails(expense)}
                   >
                     <CardContent className="p-5 md:p-6">
                       <div className="flex items-center justify-between gap-4">
