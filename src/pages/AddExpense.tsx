@@ -486,33 +486,85 @@ const AddExpense = () => {
         return;
       }
 
-      // Validate and create expense splits
+      // Validate and create expense splits with proper rounding for percentage splits
       const validatedSplits: any[] = [];
-      for (const split of memberSplits) {
-        const shareAmount = splitType === 'percentage' 
-          ? (parseFloat(amount) * split.share_amount) / 100
-          : split.share_amount;
-          
-        const splitValidation = safeValidateInput(expenseSplitSchema, {
-          member_id: split.member_id,
-          share_amount: shareAmount
-        });
+      const amountNumber = parseFloat(amount);
+      
+      // Helper function to round to 2 decimal places
+      const roundTo2 = (num: number) => Math.round(num * 100) / 100;
+      
+      if (splitType === 'percentage') {
+        // Calculate rounded amounts and handle remainder for last member
+        let sumRounded = 0;
+        const splitsWithAmounts: { member_id: string; share_amount: number }[] = [];
         
-        if (splitValidation.success === false) {
-          toast({
-            title: t('errors.split_validation'),
-            description: splitValidation.error,
-            variant: "destructive",
-          });
-          setIsSubmitting(false);
-          return;
+        for (let i = 0; i < memberSplits.length; i++) {
+          const split = memberSplits[i];
+          const isLast = i === memberSplits.length - 1;
+          
+          let shareAmount: number;
+          if (isLast) {
+            // Last member gets the remainder to ensure total matches exactly
+            shareAmount = roundTo2(amountNumber - sumRounded);
+          } else {
+            const raw = (amountNumber * split.share_amount) / 100;
+            shareAmount = roundTo2(raw);
+            sumRounded += shareAmount;
+          }
+          
+          splitsWithAmounts.push({ member_id: split.member_id, share_amount: shareAmount });
         }
         
-        validatedSplits.push({
-          expense_id: expense.id,
-          member_id: splitValidation.data.member_id,
-          share_amount: splitValidation.data.share_amount
-        });
+        for (const split of splitsWithAmounts) {
+          const splitValidation = safeValidateInput(expenseSplitSchema, {
+            member_id: split.member_id,
+            share_amount: split.share_amount
+          });
+          
+          if (splitValidation.success === false) {
+            toast({
+              title: t('errors.split_validation'),
+              description: splitValidation.error,
+              variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+          }
+          
+          validatedSplits.push({
+            expense_id: expense.id,
+            member_id: splitValidation.data.member_id,
+            share_amount: splitValidation.data.share_amount
+          });
+        }
+      } else {
+        // For equal and custom splits, use original logic
+        for (const split of memberSplits) {
+          const shareAmount = splitType === 'equal' 
+            ? roundTo2(amountNumber / memberSplits.length)
+            : split.share_amount;
+          
+          const splitValidation = safeValidateInput(expenseSplitSchema, {
+            member_id: split.member_id,
+            share_amount: shareAmount
+          });
+        
+          if (splitValidation.success === false) {
+            toast({
+              title: t('errors.split_validation'),
+              description: splitValidation.error,
+              variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+          }
+          
+          validatedSplits.push({
+            expense_id: expense.id,
+            member_id: splitValidation.data.member_id,
+            share_amount: splitValidation.data.share_amount
+          });
+        }
       }
 
       const { error: splitsError } = await supabase
@@ -1081,7 +1133,7 @@ const AddExpense = () => {
                            memberSplits.some(split => split.member_id === member.user_id) && (
                             <div className="flex items-center space-x-2 space-x-reverse">
                               {splitType === 'percentage' && (
-                                <>
+                                <div className="flex items-center gap-2">
                                   <Input
                                     type="number"
                                     min="0"
@@ -1102,7 +1154,14 @@ const AddExpense = () => {
                                     }}
                                   />
                                   <span className="text-sm text-muted-foreground">%</span>
-                                </>
+                                  <span className="text-sm font-medium text-primary min-w-[80px] text-left" dir="ltr">
+                                    = {(() => {
+                                      const pct = memberSplits.find(split => split.member_id === member.user_id)?.share_amount || 0;
+                                      const amt = parseFloat(amount || "0");
+                                      return amt > 0 ? ((amt * pct) / 100).toFixed(2) : "0.00";
+                                    })()} {selectedGroup?.currency || 'ريال'}
+                                  </span>
+                                </div>
                               )}
                               
                               {splitType === 'custom' && (
