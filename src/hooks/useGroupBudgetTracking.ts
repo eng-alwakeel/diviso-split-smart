@@ -21,27 +21,58 @@ export type BudgetAlert = {
   spent_percentage: number;
 };
 
+async function relinkApprovedExpenses(groupId: string): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('relink_approved_expenses', {
+      p_group_id: groupId
+    });
+    if (error) {
+      console.warn('Failed to relink expenses:', error.message);
+    }
+  } catch (e) {
+    console.warn('Relink expenses error:', e);
+  }
+}
+
 async function fetchGroupBudgetTracking(groupId: string): Promise<BudgetTrackingData[]> {
   try {
     console.log('Fetching budget tracking for group:', groupId);
     
-    // محاولة استخدام الـ RPC function المحسنة أولاً
+    // ربط المصاريف القديمة غير المربوطة أولاً
+    await relinkApprovedExpenses(groupId);
+    
+    // محاولة استخدام الـ RPC function المحسنة
     const { data: rpcData, error: rpcError } = await supabase.rpc('get_group_budget_tracking_v2', {
       p_group_id: groupId
     });
     
     if (!rpcError && rpcData && rpcData.length > 0) {
       console.log('RPC function succeeded, returning data:', rpcData.length, 'categories');
-      return rpcData.map((item: any) => ({
-        category_id: item.category_id,
-        category_name: item.category_name || 'غير محدد',
-        budgeted_amount: Number(item.budgeted_amount) || 0,
-        spent_amount: Number(item.spent_amount) || 0,
-        remaining_amount: Number(item.remaining_amount) || 0,
-        spent_percentage: Number(item.spent_percentage) || 0,
-        status: item.status as BudgetTrackingData['status'],
-        expense_count: Number(item.expense_count) || 0,
-      }));
+      
+      // تحويل البيانات للشكل المطلوب
+      return rpcData.map((item: any) => {
+        const budgeted_amount = Number(item.allocated_amount) || 0;
+        const spent_amount = Number(item.spent_amount) || 0;
+        const remaining_amount = budgeted_amount - spent_amount;
+        const spent_percentage = budgeted_amount > 0 ? (spent_amount / budgeted_amount) * 100 : 0;
+        
+        let status: BudgetTrackingData['status'] = 'safe';
+        if (budgeted_amount === 0) status = 'no_budget';
+        else if (spent_amount > budgeted_amount) status = 'exceeded';
+        else if (spent_percentage >= 90) status = 'critical';
+        else if (spent_percentage >= 80) status = 'warning';
+        
+        return {
+          category_id: item.category_id,
+          category_name: item.category_name || 'غير محدد',
+          budgeted_amount,
+          spent_amount,
+          remaining_amount,
+          spent_percentage,
+          status,
+          expense_count: Number(item.expense_count) || 0,
+        };
+      });
     }
     
     // استخدام fallback query محسن - خطوتين للتصفية الصحيحة

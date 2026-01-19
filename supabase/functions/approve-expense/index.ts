@@ -129,6 +129,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ربط المصاريف المعتمدة بفئات الميزانية تلقائياً
+    const { error: relinkErr } = await supabase.rpc("relink_approved_expenses", {
+      p_group_id: expense.group_id,
+    });
+    if (relinkErr) {
+      console.warn("Relink expenses warning:", relinkErr.message);
+      // لا نوقف العملية بسبب خطأ الربط
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
