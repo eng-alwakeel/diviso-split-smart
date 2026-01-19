@@ -200,7 +200,11 @@ export const GroupSettlementDialog = ({
       
       toast({ title: "تمت إضافة التسوية", description: "تم تسجيل التحويلات بنجاح." });
       onOpenChange(false);
-      onCreated?.();
+      
+      // Small delay to allow database triggers to complete, then refresh
+      setTimeout(() => {
+        onCreated?.();
+      }, 150);
     } catch (err: any) {
       console.error("[GroupSettlementDialog] insert error", err);
       toast({ title: "تعذر إضافة التسوية", description: err?.message || "حدث خطأ غير متوقع", variant: "destructive" });

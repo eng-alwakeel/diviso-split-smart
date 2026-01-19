@@ -254,32 +254,7 @@ const GroupDetails = () => {
 
   const nameOf = (uid: string) => (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`);
 
-  // Real-time listener for settlements AND expenses
-  useEffect(() => {
-    if (!id) return;
-    const channel = supabase
-      .channel(`grp_updates_${id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'settlements', filter: `group_id=eq.${id}` },
-        () => refetch()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'expenses', filter: `group_id=eq.${id}` },
-        () => refetch()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'expense_approvals' },
-        () => refetch()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  // Note: Real-time listener is handled by useGroupData hook to avoid duplicate channels
 
   const handleDeleteSettlement = async (settlementId: string) => {
     const { error: delErr } = await supabase.from('settlements').delete().eq('id', settlementId);
