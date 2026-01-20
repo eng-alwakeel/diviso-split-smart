@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { showBrowserNotification, getNotificationPreference } from '@/lib/browserNotifications';
 
 export interface Notification {
   id: string;
@@ -299,11 +300,32 @@ export const useNotifications = (includeArchived = false) => {
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
 
+          const title = getNotificationTitle(newNotification.type);
+          const description = getNotificationDescription(newNotification);
+
           // Show toast notification
           toast({
-            title: getNotificationTitle(newNotification.type),
-            description: getNotificationDescription(newNotification),
+            title,
+            description,
           });
+
+          // Show browser notification if enabled
+          if (getNotificationPreference() && document.hidden) {
+            showBrowserNotification(title, {
+              body: description,
+              tag: newNotification.id,
+              data: newNotification.payload,
+              onClick: () => {
+                // Navigate to notification or group
+                const groupId = newNotification.payload?.group_id;
+                if (groupId) {
+                  window.location.href = `/group/${groupId}`;
+                } else {
+                  window.location.href = '/notifications';
+                }
+              }
+            });
+          }
         }
       )
       .subscribe();

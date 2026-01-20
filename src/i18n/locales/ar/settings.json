@@ -58,7 +58,17 @@
     "verify_phone": "تأكيد الجوال",
     "sent": "تم الإرسال",
     "email_pending": "تم إرسال رمز التأكيد، يرجى إدخاله أدناه",
-    "phone_verified_success": "تم التحقق من رقم الجوال بنجاح"
+    "phone_verified_success": "تم التحقق من رقم الجوال بنجاح",
+    "browser_notifications": "إشعارات المتصفح",
+    "browser_notifications_desc": "تلقي إشعارات فورية في المتصفح عند وصول إشعارات جديدة (حتى لو كنت في تبويب آخر)",
+    "notifications_not_supported": "متصفحك لا يدعم الإشعارات",
+    "notifications_blocked": "تم حظر الإشعارات. يرجى السماح بها من إعدادات المتصفح",
+    "notifications_enabled": "تم تفعيل إشعارات المتصفح",
+    "notifications_denied": "تم رفض إذن الإشعارات",
+    "notifications_disabled": "تم إيقاف إشعارات المتصفح",
+    "notifications_active": "الإشعارات مفعّلة",
+    "enable_notifications": "تفعيل الإشعارات",
+    "disable_notifications": "إيقاف الإشعارات"
   },
   "email_verification": {
     "title": "تأكيد البريد الإلكتروني",

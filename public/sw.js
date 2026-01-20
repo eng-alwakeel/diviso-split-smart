@@ -149,3 +149,54 @@ self.addEventListener('sync', (event) => {
     );
   }
 });
+
+// Handle push notifications (for future server-side push)
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() || {};
+  
+  const title = data.title || 'إشعار جديد';
+  const options = {
+    body: data.body || '',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    dir: 'rtl',
+    lang: 'ar',
+    data: data.payload || {},
+    tag: data.id || 'notification',
+    requireInteraction: false,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  const data = event.notification.data || {};
+  let url = '/notifications';
+  
+  // Navigate to group if group_id exists
+  if (data.group_id) {
+    url = `/group/${data.group_id}`;
+  }
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // If there's already a window open, focus it
+        for (const client of clientList) {
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.navigate(url);
+            return client.focus();
+          }
+        }
+        // Otherwise open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+  );
+});

@@ -7,13 +7,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock } from "lucide-react";
+import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock, Bell, BellOff } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 import { EmailVerificationDialog } from "./EmailVerificationDialog";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { 
+  isBrowserNotificationSupported, 
+  getNotificationPermission, 
+  requestNotificationPermission,
+  saveNotificationPreference,
+  getNotificationPreference 
+} from "@/lib/browserNotifications";
 
 interface ProfileTabProps {
   profile: {
@@ -70,6 +77,16 @@ export function ProfileTab({
   // قص الصورة
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // إشعارات المتصفح
+  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('default');
+
+  // تحميل حالة إشعارات المتصفح
+  useEffect(() => {
+    setBrowserNotificationsEnabled(getNotificationPreference());
+    setNotificationPermission(getNotificationPermission());
+  }, []);
 
   // تحديث الحالة الأصلية عند تغيير البروفايل من الخارج
   useEffect(() => {
@@ -129,6 +146,32 @@ export function ProfileTab({
     setPhoneVerified(true);
     setEmailVerificationSent(false);
     setValidationErrors({});
+  };
+
+  // تفعيل إشعارات المتصفح
+  const handleEnableBrowserNotifications = async () => {
+    if (!isBrowserNotificationSupported()) {
+      toast.error(t('settings:profile.notifications_not_supported'));
+      return;
+    }
+
+    const granted = await requestNotificationPermission();
+    setNotificationPermission(getNotificationPermission());
+    
+    if (granted) {
+      setBrowserNotificationsEnabled(true);
+      saveNotificationPreference(true);
+      toast.success(t('settings:profile.notifications_enabled'));
+    } else {
+      toast.error(t('settings:profile.notifications_denied'));
+    }
+  };
+
+  // إيقاف إشعارات المتصفح
+  const handleDisableBrowserNotifications = () => {
+    setBrowserNotificationsEnabled(false);
+    saveNotificationPreference(false);
+    toast.success(t('settings:profile.notifications_disabled'));
   };
 
   const sendVerificationEmail = async () => {
@@ -489,6 +532,55 @@ export function ProfileTab({
               </AlertDialog>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* قسم إشعارات المتصفح */}
+      <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Bell className="w-5 h-5 text-accent" />
+            {t('settings:profile.browser_notifications')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {t('settings:profile.browser_notifications_desc')}
+          </p>
+          
+          {notificationPermission === 'unsupported' ? (
+            <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+              {t('settings:profile.notifications_not_supported')}
+            </div>
+          ) : notificationPermission === 'denied' ? (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+              {t('settings:profile.notifications_blocked')}
+            </div>
+          ) : browserNotificationsEnabled ? (
+            <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm font-medium">{t('settings:profile.notifications_active')}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisableBrowserNotifications}
+                className="gap-2"
+              >
+                <BellOff className="w-4 h-4" />
+                {t('settings:profile.disable_notifications')}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              onClick={handleEnableBrowserNotifications}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Bell className="w-4 h-4" />
+              {t('settings:profile.enable_notifications')}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
