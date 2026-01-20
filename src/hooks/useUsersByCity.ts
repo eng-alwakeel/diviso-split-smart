@@ -17,7 +17,13 @@ export function useUsersByCity() {
         console.error('Error fetching users by city:', error);
         throw error;
       }
-      return (data || []) as CityStats[];
+      // Convert bigint strings to numbers for proper calculations
+      return (data || []).map((item: Record<string, unknown>) => ({
+        city: String(item.city || 'غير محدد'),
+        user_count: Number(item.user_count) || 0,
+        avg_lat: item.avg_lat ? Number(item.avg_lat) : null,
+        avg_lng: item.avg_lng ? Number(item.avg_lng) : null,
+      })) as CityStats[];
     },
     staleTime: 5 * 60 * 1000,
     retry: 1,
