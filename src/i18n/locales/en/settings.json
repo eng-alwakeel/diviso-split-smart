@@ -58,7 +58,17 @@
     "verify_phone": "Verify Phone",
     "sent": "Sent",
     "email_pending": "Verification code sent, please enter it below",
-    "phone_verified_success": "Phone number verified successfully"
+    "phone_verified_success": "Phone number verified successfully",
+    "browser_notifications": "Browser Notifications",
+    "browser_notifications_desc": "Receive instant notifications in your browser when new notifications arrive (even when in another tab)",
+    "notifications_not_supported": "Your browser does not support notifications",
+    "notifications_blocked": "Notifications are blocked. Please enable them in browser settings",
+    "notifications_enabled": "Browser notifications enabled",
+    "notifications_denied": "Notification permission denied",
+    "notifications_disabled": "Browser notifications disabled",
+    "notifications_active": "Notifications are active",
+    "enable_notifications": "Enable Notifications",
+    "disable_notifications": "Disable Notifications"
   },
   "email_verification": {
     "title": "Email Verification",

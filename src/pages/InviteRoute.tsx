@@ -43,7 +43,19 @@ const InviteRoute = () => {
           const memberName = profileRes.data?.display_name || profileRes.data?.name || 'عضو جديد';
           
           // Notify other members about the new member
-          await notifyMemberJoined(data, groupName, user.id, memberName);
+          console.log('🔔 Sending member_joined notification...', {
+            groupId: data,
+            groupName,
+            userId: user.id,
+            memberName
+          });
+          
+          try {
+            await notifyMemberJoined(data, groupName, user.id, memberName);
+            console.log('✅ Member joined notification sent successfully');
+          } catch (notifyError) {
+            console.error('❌ Failed to send member joined notification:', notifyError);
+          }
           
           toast({ 
             title: t('groups:messages.joined_success'), 
