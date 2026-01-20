@@ -107,6 +107,15 @@ export const useNotifications = (includeArchived = false) => {
           name: payload.deleted_by_name,
           group: payload.group_name
         });
+      case 'referral_milestone':
+        return payload.message_ar || t('descriptions.referral_milestone', { 
+          milestone: payload.milestone, 
+          points: payload.points 
+        });
+      case 'referral_compensation':
+        return payload.message_ar || t('descriptions.referral_compensation', { 
+          points: payload.total_points 
+        });
       default:
         return t('descriptions.default');
     }
@@ -204,24 +213,46 @@ export const useNotifications = (includeArchived = false) => {
 
   const archiveNotification = async (notificationId: string) => {
     try {
-      const { error } = await supabase
+      console.log('🗃️ Archiving notification:', notificationId);
+      
+      const { data, error } = await supabase
         .from('notifications')
         .update({ archived_at: new Date().toISOString() })
-        .eq('id', notificationId);
+        .eq('id', notificationId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Archive error:', error);
+        throw error;
+      }
 
+      if (!data || data.length === 0) {
+        console.error('❌ No rows updated - check RLS policies');
+        throw new Error('Failed to archive - no rows affected');
+      }
+
+      console.log('✅ Archived successfully:', data);
+
+      // نقل الإشعار للقائمة المؤرشفة
+      const archivedNotif = notifications.find(n => n.id === notificationId);
+      if (archivedNotif) {
+        setArchivedNotifications(prev => [
+          { ...archivedNotif, archived_at: new Date().toISOString() }, 
+          ...prev
+        ]);
+      }
+      
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
       
       toast({
         title: t('toasts.archived'),
         description: t('toasts.archive_success'),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error archiving notification:', error);
       toast({
         title: t('toasts.error'),
-        description: t('toasts.archive_failed'),
+        description: error.message || t('toasts.archive_failed'),
         variant: 'destructive',
       });
     }

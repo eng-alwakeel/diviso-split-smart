@@ -67,6 +67,22 @@ export default function Notifications() {
       case 'referral_joined':
       case 'referral_completed':
         return '🎉';
+      case 'referral_milestone':
+        return '🎯';
+      case 'referral_compensation':
+        return '🎁';
+      case 'settlement_received':
+        return '💸';
+      case 'settlement_confirmed':
+        return '✅';
+      case 'settlement_disputed':
+        return '⚠️';
+      case 'member_joined':
+        return '👋';
+      case 'member_left':
+        return '👋';
+      case 'group_deleted':
+        return '🗑️';
       default:
         return '🔔';
     }
@@ -77,20 +93,36 @@ export default function Notifications() {
     
     switch (type) {
       case 'expense_created':
-        return `${payload.creator_name} أضاف مصروف بقيمة ${payload.amount} ${payload.currency}`;
+        return t('notifications:types.expense_created', { name: payload.creator_name, amount: payload.amount, currency: payload.currency });
       case 'expense_approved':
-        return `تم اعتماد مصروفك بقيمة ${payload.amount} ${payload.currency}`;
+        return t('notifications:types.expense_approved', { amount: payload.amount, currency: payload.currency });
       case 'expense_rejected':
-        return `تم رفض مصروفك بقيمة ${payload.amount} ${payload.currency}`;
+        return t('notifications:types.expense_rejected', { amount: payload.amount, currency: payload.currency });
       case 'new_message':
-        return `${payload.sender_name}: ${payload.content}`;
+        return t('notifications:types.new_message', { name: payload.sender_name, content: payload.content });
       case 'group_invite':
-        return `دعوة انضمام لمجموعة "${payload.group_name}"`;
+        return t('notifications:types.group_invite', { group: payload.group_name });
       case 'referral_joined':
       case 'referral_completed':
-        return `${payload.invitee_name} انضم عبر إحالتك! حصلت على ${payload.reward_days} أيام مجانية`;
+        return t('notifications:types.referral_joined', { name: payload.invitee_name, days: payload.reward_days });
+      case 'referral_milestone':
+        return payload.message_ar || t('notifications:types.referral_milestone', { milestone: payload.milestone, points: payload.points });
+      case 'referral_compensation':
+        return payload.message_ar || t('notifications:types.referral_compensation', { points: payload.total_points });
+      case 'settlement_received':
+        return t('notifications:types.settlement_received', { name: payload.sender_name, amount: payload.amount, currency: payload.currency });
+      case 'settlement_confirmed':
+        return t('notifications:types.settlement_confirmed', { name: payload.receiver_name, amount: payload.amount, currency: payload.currency });
+      case 'settlement_disputed':
+        return t('notifications:types.settlement_disputed', { name: payload.receiver_name, reason: payload.reason });
+      case 'member_joined':
+        return t('notifications:types.member_joined', { name: payload.member_name, group: payload.group_name });
+      case 'member_left':
+        return t('notifications:types.member_left', { name: payload.member_name, group: payload.group_name });
+      case 'group_deleted':
+        return t('notifications:types.group_deleted', { name: payload.deleted_by_name, group: payload.group_name });
       default:
-        return 'إشعار جديد';
+        return t('notifications:types.new_notification');
     }
   };
 
