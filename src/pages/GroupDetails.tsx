@@ -41,7 +41,7 @@ import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
 import { useGroupData } from "@/hooks/useGroupData";
-import { GroupSettingsDialog } from "@/components/group/GroupSettingsDialog";
+// GroupSettingsDialog moved to dedicated page - /group/:id/settings
 import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog";
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
@@ -87,7 +87,6 @@ const GroupDetails = () => {
       window.history.replaceState({}, '', `/group/${rawId}`);
     }
   }, [searchParams, rawId]);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   // حوار التسوية
   const [settleOpen, setSettleOpen] = useState(false);
@@ -389,18 +388,7 @@ const GroupDetails = () => {
         groupName={group?.name}
         existingMembers={members.map(m => m.user_id).filter(Boolean)}
       />
-      <GroupSettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        groupId={id}
-        groupName={group?.name}
-        isOwner={isOwner}
-        canAdmin={canApprove}
-        onOpenInvite={() => setOpenInvite(true)}
-        onRenamed={() => refetch()}
-        onLeftGroup={() => navigate('/dashboard')}
-        onGroupDeleted={() => navigate('/dashboard')}
-      />
+      {/* GroupSettingsDialog moved to /group/:id/settings page */}
 
       <GroupReportDialog
         open={reportOpen}
@@ -512,7 +500,7 @@ const GroupDetails = () => {
                   className="w-full md:w-auto text-xs md:text-sm"
                   variant="outline"
                   size="sm"
-                  onClick={() => setSettingsOpen(true)}
+                  onClick={() => navigate(`/group/${id}/settings`)}
                 >
                   <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
                   {t('groups:details.settings')}
