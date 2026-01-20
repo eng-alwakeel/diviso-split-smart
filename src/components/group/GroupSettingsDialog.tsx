@@ -9,6 +9,7 @@ import { Copy, ExternalLink, LogOut, Pencil, Trash2, Archive } from "lucide-reac
 import { useGroupArchive } from "@/hooks/useGroupArchive";
 import { ArchiveGroupDialog } from "./ArchiveGroupDialog";
 import { DeleteGroupDialog } from "./DeleteGroupDialog";
+import { LeaveGroupDialog } from "./LeaveGroupDialog";
 import { useTranslation } from "react-i18next";
 
 interface GroupSettingsDialogProps {
@@ -44,6 +45,7 @@ export const GroupSettingsDialog = ({
   const [deleting, setDeleting] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
   const { archiveGroup, isArchiving } = useGroupArchive();
 
@@ -90,8 +92,6 @@ export const GroupSettingsDialog = ({
       toast({ title: t("settings.owner_cannot_leave", "لا يمكن للمالك مغادرة المجموعة"), description: t("settings.assign_owner_first", "عيّن مالكاً آخر أولاً."), variant: "destructive" });
       return;
     }
-    const confirm = window.confirm(t("settings.leave_confirm", "هل ترغب حقاً في مغادرة هذه المجموعة؟"));
-    if (!confirm) return;
 
     const { data: userRes } = await supabase.auth.getUser();
     const uid = userRes.user?.id;
@@ -115,6 +115,7 @@ export const GroupSettingsDialog = ({
     }
 
     toast({ title: t("settings.left", "تمت مغادرة المجموعة") });
+    setLeaveDialogOpen(false);
     onOpenChange(false);
     onLeftGroup?.();
   };
@@ -232,15 +233,9 @@ export const GroupSettingsDialog = ({
                   {t("settings.delete", "حذف المجموعة")}
                 </Button>
               ) : (
-                <Button variant="destructive" onClick={handleLeave} disabled={leaving} className="w-full">
+                <Button variant="destructive" onClick={() => setLeaveDialogOpen(true)} disabled={leaving} className="w-full">
                   <LogOut className="w-4 h-4 ml-2" /> {t("settings.leave", "مغادرة المجموعة")}
                 </Button>
-              )}
-              
-              {isOwner && (
-                <p className="text-xs text-muted-foreground">
-                  {t("delete.info", "يمكن حذف المجموعة فقط إذا كانت فارغة (بدون أعضاء أو مصاريف)")}
-                </p>
               )}
             </div>
           </div>
@@ -264,12 +259,20 @@ export const GroupSettingsDialog = ({
         <DeleteGroupDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
-          groupId={groupId}
           groupName={groupName || ""}
           onConfirm={handleDeleteGroup}
           isDeleting={deleting}
         />
       )}
+
+      {/* Leave Confirmation Dialog */}
+      <LeaveGroupDialog
+        open={leaveDialogOpen}
+        onOpenChange={setLeaveDialogOpen}
+        groupName={groupName || ""}
+        onConfirm={handleLeave}
+        isLeaving={leaving}
+      />
     </>
   );
 };

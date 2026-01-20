@@ -237,16 +237,18 @@
   "delete": {
     "title": "Delete Group",
     "description": "Are you sure you want to delete group",
-    "warning": "This action cannot be undone.",
-    "cannot_delete": "Cannot delete group for the following reasons:",
-    "has_expenses": "There are {{count}} expenses that must be deleted first",
-    "has_members": "There are {{count}} members that must be removed first",
-    "final_warning": "The group will be permanently deleted including all associated data.",
+    "warning": "All expenses, settlements, and members will be permanently deleted. This action cannot be undone.",
     "confirm": "Delete Permanently",
     "deleting": "Deleting...",
     "failed": "Failed to delete group",
-    "success": "Group deleted successfully",
-    "info": "Group can only be deleted if empty (no members or expenses)"
+    "success": "Group deleted successfully"
+  },
+
+  "leave": {
+    "title": "Leave Group",
+    "description": "Are you sure you want to leave group",
+    "confirm": "Leave",
+    "leaving": "Leaving..."
   },
 
   "roles": {
