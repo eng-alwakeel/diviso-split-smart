@@ -57,19 +57,18 @@ const useMyExpenses = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
   const { toast } = useToast();
 
   const ITEMS_PER_PAGE = 20;
 
-  // Get current user ID for stats calculation with better error handling
+  // Get current user ID once
   useEffect(() => {
+    let mounted = true;
     const getCurrentUser = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          console.error('Error getting user in useMyExpenses:', error);
-          return;
-        }
+        if (error || !mounted) return;
         if (user) {
           setCurrentUserId(user.id);
         }
@@ -78,22 +77,19 @@ const useMyExpenses = () => {
       }
     };
     
-    // Add a small delay to avoid race conditions
-    const timeoutId = setTimeout(getCurrentUser, 50);
-    return () => clearTimeout(timeoutId);
+    getCurrentUser();
+    return () => { mounted = false; };
   }, []);
 
   const fetchExpenses = useCallback(async (reset = false) => {
+    if (!currentUserId) return;
+    
     try {
       setLoading(true);
       setError(null);
 
-      const currentUser = await supabase.auth.getUser();
-      if (!currentUser.data.user) {
-        // Don't show error immediately, just return silently and let ProtectedRoute handle auth
-        setLoading(false);
-        return;
-      }
+      // Use cached currentUserId instead of fetching again
+      const userId = currentUserId;
 
       // First, get expenses where user is creator or payer
       const createdOrPaidQuery = supabase
@@ -108,7 +104,7 @@ const useMyExpenses = () => {
             profiles(name, display_name)
           )
         `)
-        .or(`created_by.eq.${currentUser.data.user.id},payer_id.eq.${currentUser.data.user.id}`)
+        .or(`created_by.eq.${userId},payer_id.eq.${userId}`)
         .order('spent_at', { ascending: false });
 
       // Then, get expenses where user has a split
@@ -124,11 +120,11 @@ const useMyExpenses = () => {
             profiles(name, display_name)
           )
         `)
-        .eq('expense_splits.member_id', currentUser.data.user.id)
+        .eq('expense_splits.member_id', userId)
         .order('spent_at', { ascending: false });
 
       // Apply filters to both queries
-      const applyFilters = (query: any) => {
+      const applyFiltersToQuery = (query: any) => {
         if (filters.status && filters.status !== 'all') {
           query = query.eq('status', filters.status);
         }
@@ -153,12 +149,13 @@ const useMyExpenses = () => {
         return query;
       };
 
-      // Apply pagination to both queries
-      const from = reset ? 0 : (page - 1) * ITEMS_PER_PAGE;
+      // Apply pagination
+      const currentPage = reset ? 1 : page;
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
 
-      const filteredCreatedOrPaidQuery = applyFilters(createdOrPaidQuery).range(from, to);
-      const filteredSplitQuery = applyFilters(splitQuery).range(from, to);
+      const filteredCreatedOrPaidQuery = applyFiltersToQuery(createdOrPaidQuery).range(from, to);
+      const filteredSplitQuery = applyFiltersToQuery(splitQuery).range(from, to);
 
       // Execute both queries
       const [createdOrPaidResult, splitResult] = await Promise.all([
@@ -172,7 +169,7 @@ const useMyExpenses = () => {
       // Merge and deduplicate results
       const allExpenses = [...(createdOrPaidResult.data || []), ...(splitResult.data || [])];
       const uniqueExpenses = allExpenses.reduce((acc, expense) => {
-        if (!acc.find(e => e.id === expense.id)) {
+        if (!acc.find((e: any) => e.id === expense.id)) {
           acc.push(expense);
         }
         return acc;
@@ -181,12 +178,7 @@ const useMyExpenses = () => {
       // Sort by spent_at
       uniqueExpenses.sort((a, b) => new Date(b.spent_at).getTime() - new Date(a.spent_at).getTime());
 
-      const data = uniqueExpenses;
-      const count = Math.max(createdOrPaidResult.count || 0, splitResult.count || 0);
-
-      if (error) throw error;
-
-      const transformedExpenses: MyExpense[] = (data || []).map((expense: any) => ({
+      const transformedExpenses: MyExpense[] = uniqueExpenses.map((expense: any) => ({
         id: expense.id,
         amount: expense.amount,
         currency: expense.currency,
@@ -212,11 +204,18 @@ const useMyExpenses = () => {
 
       if (reset) {
         setExpenses(transformedExpenses);
+        setPage(1);
       } else {
-        setExpenses(prev => [...prev, ...transformedExpenses]);
+        setExpenses(prev => {
+          // Deduplicate when adding more
+          const existingIds = new Set(prev.map(e => e.id));
+          const newExpenses = transformedExpenses.filter(e => !existingIds.has(e.id));
+          return [...prev, ...newExpenses];
+        });
       }
 
-      setHasMore((count || 0) > (reset ? transformedExpenses.length : expenses.length + transformedExpenses.length));
+      setHasMore(transformedExpenses.length === ITEMS_PER_PAGE);
+      setInitialFetchDone(true);
 
     } catch (err: any) {
       console.error('Error fetching expenses:', err);
@@ -229,7 +228,7 @@ const useMyExpenses = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, page, toast, expenses.length]);
+  }, [currentUserId, filters, page, toast]);
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
@@ -237,20 +236,20 @@ const useMyExpenses = () => {
     }
   }, [loading, hasMore]);
 
-  const applyFilters = useCallback((newFilters: ExpenseFilters) => {
+  const applyNewFilters = useCallback((newFilters: ExpenseFilters) => {
     setFilters(newFilters);
     setPage(1);
     setExpenses([]);
+    setInitialFetchDone(false);
   }, []);
 
   const refreshExpenses = useCallback(() => {
-    setPage(1);
     fetchExpenses(true);
   }, [fetchExpenses]);
 
   // Stats calculation
   const stats = useMemo((): ExpenseStats => {
-    return expenses.reduce((acc, expense) => {
+    const result = expenses.reduce((acc, expense) => {
       const userSplit = expense.splits.find(split => split.member_id === currentUserId);
       const shareAmount = userSplit?.share_amount || 0;
       const isPayer = expense.payer_id === currentUserId;
@@ -283,12 +282,17 @@ const useMyExpenses = () => {
       total_count: 0,
       groups_count: new Set(expenses.map(e => e.group_id)).size
     });
+    
+    result.total_net = result.total_paid - result.total_owed;
+    return result;
   }, [expenses, currentUserId]);
 
-  stats.total_net = stats.total_paid - stats.total_owed;
-
-  // Real-time updates
+  // Real-time updates with debounce
   useEffect(() => {
+    if (!currentUserId) return;
+    
+    let debounceTimer: NodeJS.Timeout;
+    
     const channel = supabase
       .channel('my-expenses-changes')
       .on('postgres_changes', {
@@ -296,25 +300,42 @@ const useMyExpenses = () => {
         schema: 'public',
         table: 'expenses'
       }, () => {
-        refreshExpenses();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          fetchExpenses(true);
+        }, 500);
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'expense_splits'
       }, () => {
-        refreshExpenses();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          fetchExpenses(true);
+        }, 500);
       })
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [refreshExpenses]);
+  }, [currentUserId, fetchExpenses]);
 
+  // Initial fetch - only when user ID is available and not done yet
   useEffect(() => {
-    fetchExpenses(true);
-  }, [fetchExpenses]);
+    if (currentUserId && !initialFetchDone) {
+      fetchExpenses(true);
+    }
+  }, [currentUserId, initialFetchDone, fetchExpenses]);
+
+  // Page change fetch
+  useEffect(() => {
+    if (currentUserId && initialFetchDone && page > 1) {
+      fetchExpenses(false);
+    }
+  }, [page, currentUserId, initialFetchDone, fetchExpenses]);
 
   return {
     expenses,
@@ -323,9 +344,10 @@ const useMyExpenses = () => {
     stats,
     filters,
     hasMore,
-    applyFilters,
+    applyFilters: applyNewFilters,
     loadMore,
-    refreshExpenses
+    refreshExpenses,
+    currentUserId
   };
 };
 
