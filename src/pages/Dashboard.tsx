@@ -28,6 +28,7 @@ const SmartPromotionBanner = lazy(() => import("@/components/promotions/SmartPro
 const RecommendationDialog = lazy(() => import("@/components/recommendations/RecommendationDialog").then(m => ({ default: m.RecommendationDialog })));
 const SelectGroupDialog = lazy(() => import("@/components/recommendations/SelectGroupDialog").then(m => ({ default: m.SelectGroupDialog })));
 const LocationPermissionDialog = lazy(() => import("@/components/LocationPermissionDialog").then(m => ({ default: m.LocationPermissionDialog })));
+const NotificationPermissionDialog = lazy(() => import("@/components/NotificationPermissionDialog").then(m => ({ default: m.NotificationPermissionDialog })));
 const RecommendationNotification = lazy(() => import("@/components/recommendations/RecommendationNotification").then(m => ({ default: m.RecommendationNotification })));
 
 // Fallback for lazy components
@@ -41,6 +42,8 @@ import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { FloatingSupportButton } from "@/components/support/FloatingSupportButton";
 import { useDivisoCoins } from "@/hooks/useDivisoCoins";
+import { useBrowserNotificationPrompt } from "@/hooks/useBrowserNotificationPrompt";
+import { toast as sonnerToast } from "sonner";
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -50,6 +53,7 @@ const Dashboard = React.memo(() => {
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const [showSelectGroupDialog, setShowSelectGroupDialog] = useState(false);
   const [userId, setUserId] = useState<string>();
@@ -62,6 +66,13 @@ const Dashboard = React.memo(() => {
     shouldShowLocationPrompt,
     getFreshLocation 
   } = useUserLocation();
+
+  // Browser notification prompt hook
+  const {
+    shouldShowPrompt: shouldShowNotificationPrompt,
+    requestPermission: requestNotificationPermission,
+    dismissPrompt: dismissNotificationPrompt,
+  } = useBrowserNotificationPrompt();
 
   // Recommendation triggers
   const { 
@@ -192,6 +203,17 @@ const Dashboard = React.memo(() => {
     }
   }, [userId, shouldShowLocationPrompt]);
 
+  // Show notification dialog after location dialog closes
+  useEffect(() => {
+    if (userId && !showLocationDialog && shouldShowNotificationPrompt()) {
+      // Show notification prompt 3 seconds after location dialog is handled
+      const timer = setTimeout(() => {
+        setShowNotificationDialog(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [userId, showLocationDialog, shouldShowNotificationPrompt]);
+
   // Handle viewing a recommendation
   const handleViewRecommendation = useCallback(async () => {
     if (!recommendationsEnabled) return;
@@ -233,6 +255,21 @@ const Dashboard = React.memo(() => {
     dismissLocationRequest();
     setShowLocationDialog(false);
   }, [dismissLocationRequest]);
+
+  // Handle notification permission
+  const handleNotificationAllow = useCallback(async () => {
+    const success = await requestNotificationPermission();
+    setShowNotificationDialog(false);
+    if (success) {
+      sonnerToast.success(t("notifications:permission.enabled_success"));
+    }
+    return success;
+  }, [requestNotificationPermission, t]);
+
+  const handleNotificationDismiss = useCallback(() => {
+    dismissNotificationPrompt();
+    setShowNotificationDialog(false);
+  }, [dismissNotificationPrompt]);
 
   // Memoized callbacks for better performance
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
@@ -354,6 +391,15 @@ const Dashboard = React.memo(() => {
           open={showLocationDialog}
           onAllow={handleLocationAllow}
           onDismiss={handleLocationDismiss}
+        />
+      </Suspense>
+
+      {/* Browser Notification Permission Dialog */}
+      <Suspense fallback={null}>
+        <NotificationPermissionDialog
+          open={showNotificationDialog}
+          onAllow={handleNotificationAllow}
+          onDismiss={handleNotificationDismiss}
         />
       </Suspense>
 

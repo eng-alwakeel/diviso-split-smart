@@ -3,6 +3,18 @@
   "mark_all_read": "تعليم الكل كمقروء",
   "no_notifications": "لا توجد إشعارات",
   "view_all": "عرض جميع الإشعارات",
+  "permission": {
+    "title": "تفعيل الإشعارات",
+    "description": "احصل على إشعارات فورية عند حدوث تحديثات مهمة في مجموعاتك",
+    "benefit_groups": "معرفة فور انضمام أعضاء جدد",
+    "benefit_expenses": "تنبيهات عند إضافة مصاريف جديدة",
+    "benefit_messages": "إشعارات التسوية والتذكيرات",
+    "allow_button": "تفعيل الإشعارات",
+    "skip_button": "لاحقاً",
+    "loading": "جاري التفعيل...",
+    "privacy_note": "يمكنك تغيير هذا الإعداد في أي وقت من الإعدادات",
+    "enabled_success": "تم تفعيل الإشعارات بنجاح!"
+  },
   "types": {
     "expense_created": "{{name}} أضاف مصروف بقيمة {{amount}} {{currency}}",
     "expense_approved": "تم اعتماد مصروفك بقيمة {{amount}} {{currency}}",

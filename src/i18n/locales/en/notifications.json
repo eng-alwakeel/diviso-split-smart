@@ -3,6 +3,18 @@
   "mark_all_read": "Mark all as read",
   "no_notifications": "No notifications",
   "view_all": "View all notifications",
+  "permission": {
+    "title": "Enable Notifications",
+    "description": "Get instant updates when important things happen in your groups",
+    "benefit_groups": "Know when new members join",
+    "benefit_expenses": "Alerts for new expenses",
+    "benefit_messages": "Settlement and reminder notifications",
+    "allow_button": "Enable Notifications",
+    "skip_button": "Later",
+    "loading": "Enabling...",
+    "privacy_note": "You can change this anytime in Settings",
+    "enabled_success": "Notifications enabled successfully!"
+  },
   "types": {
     "expense_created": "{{name}} added an expense of {{amount}} {{currency}}",
     "expense_approved": "Your expense of {{amount}} {{currency}} was approved",
