@@ -5081,6 +5081,15 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      get_users_by_city: {
+        Args: never
+        Returns: {
+          avg_lat: number
+          avg_lng: number
+          city: string
+          user_count: number
+        }[]
+      }
       get_users_for_admin: {
         Args: never
         Returns: {

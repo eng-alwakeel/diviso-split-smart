@@ -1,13 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminStats } from "@/hooks/useAdminStats";
 import { 
   useUserActivityMetrics, 
   useCreditsEconomyHealth, 
   useRevenueMetricsKPI,
-  useRetentionCohorts 
+  useRetentionCohorts,
+  useGrowthLoopMetrics
 } from "@/hooks/useAdminKPIs";
+import { useUsersByCity } from "@/hooks/useUsersByCity";
 import { TVKPICard } from "@/components/admin/TVKPICard";
+import { UsersLocationMap } from "@/components/admin/UsersLocationMap";
+import { CityStatsPanel } from "@/components/admin/CityStatsPanel";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -19,7 +24,11 @@ import {
   X,
   RefreshCw,
   Maximize,
-  Minimize
+  Minimize,
+  Layers,
+  CreditCard,
+  BarChart3,
+  Repeat
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -33,22 +42,28 @@ const TVDashboard = () => {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   const { data: adminData, isLoading: adminLoading } = useAdminAuth();
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
   const { data: activity, isLoading: activityLoading, refetch: refetchActivity } = useUserActivityMetrics();
   const { data: credits, isLoading: creditsLoading, refetch: refetchCredits } = useCreditsEconomyHealth();
   const { data: revenue, isLoading: revenueLoading, refetch: refetchRevenue } = useRevenueMetricsKPI();
   const { data: retention, isLoading: retentionLoading, refetch: refetchRetention } = useRetentionCohorts(2);
+  const { data: growth, isLoading: growthLoading, refetch: refetchGrowth } = useGrowthLoopMetrics();
+  const { data: cityData, isLoading: cityLoading, refetch: refetchCity } = useUsersByCity();
 
-  const isLoading = adminLoading || activityLoading || creditsLoading || revenueLoading || retentionLoading;
+  const isLoading = adminLoading || activityLoading || creditsLoading || revenueLoading || retentionLoading || statsLoading || growthLoading;
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([
+      refetchStats(),
       refetchActivity(),
       refetchCredits(),
       refetchRevenue(),
       refetchRetention(),
+      refetchGrowth(),
+      refetchCity(),
     ]);
     setLastRefresh(new Date());
-  }, [refetchActivity, refetchCredits, refetchRevenue, refetchRetention]);
+  }, [refetchStats, refetchActivity, refetchCredits, refetchRevenue, refetchRetention, refetchGrowth, refetchCity]);
 
   // Update clock every second
   useEffect(() => {
@@ -113,7 +128,7 @@ const TVDashboard = () => {
   const d7Rate = latestCohort?.d7_rate || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-4 md:p-8 overflow-auto">
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -173,71 +188,115 @@ const TVDashboard = () => {
 
       {/* KPI Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+          {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="h-48 bg-white/10" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <TVKPICard
-            title="المستخدمون النشطون اليوم"
-            value={activity?.dau || 0}
-            icon={Users}
-            kpiName="dau"
-          />
-          <TVKPICard
-            title="المستخدمون النشطون شهرياً"
-            value={activity?.mau || 0}
-            icon={Users}
-            kpiName="mau"
-          />
-          <TVKPICard
-            title="معدل الالتصاق"
-            value={activity?.stickiness || 0}
-            unit="%"
-            icon={TrendingUp}
-            kpiName="stickiness"
-            threshold={{ green: 30, yellow: 20 }}
-          />
-          <TVKPICard
-            title="مستخدمون جدد اليوم"
-            value={activity?.new_users_today || 0}
-            icon={UserPlus}
-            kpiName="new_users"
-          />
-          <TVKPICard
-            title="D7 Retention"
-            value={d7Rate}
-            unit="%"
-            icon={Target}
-            kpiName="d7_retention"
-            threshold={{ green: 25, yellow: 15 }}
-          />
-          <TVKPICard
-            title="إيرادات الشهر"
-            value={revenue?.total_monthly_revenue || 0}
-            unit="ر.س"
-            icon={DollarSign}
-            kpiName="monthly_revenue"
-          />
-          <TVKPICard
-            title="Paywall Conversion"
-            value={credits?.paywall_conversion_rate || 0}
-            unit="%"
-            icon={Zap}
-            kpiName="paywall_conversion"
-            threshold={{ green: 8, yellow: 5 }}
-          />
-          <TVKPICard
-            title="معدل الإلغاء"
-            value={revenue?.churn_rate || 0}
-            unit="%"
-            icon={Target}
-            kpiName="churn_rate"
-            threshold={{ green: 5, yellow: 10, invert: true }}
-          />
-        </div>
+        <>
+          {/* Main KPIs - Row 1 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+            <TVKPICard
+              title="إجمالي المستخدمين"
+              value={stats?.total_users || 0}
+              icon={Users}
+              kpiName="total_users"
+            />
+            <TVKPICard
+              title="إجمالي المجموعات"
+              value={stats?.total_groups || 0}
+              icon={Layers}
+              kpiName="total_groups"
+            />
+            <TVKPICard
+              title="إجمالي المصاريف"
+              value={stats?.total_expenses || 0}
+              icon={CreditCard}
+              kpiName="total_expenses"
+            />
+            <TVKPICard
+              title="المشتركين النشطين"
+              value={revenue?.subscriber_count || 0}
+              icon={DollarSign}
+              kpiName="active_subscribers"
+            />
+          </div>
+
+          {/* Activity KPIs - Row 2 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+            <TVKPICard
+              title="المستخدمون النشطون اليوم"
+              value={activity?.dau || 0}
+              icon={Users}
+              kpiName="dau"
+            />
+            <TVKPICard
+              title="المستخدمون النشطون شهرياً"
+              value={activity?.mau || 0}
+              icon={Users}
+              kpiName="mau"
+            />
+            <TVKPICard
+              title="معدل الالتصاق"
+              value={activity?.stickiness || 0}
+              unit="%"
+              icon={TrendingUp}
+              kpiName="stickiness"
+              threshold={{ green: 30, yellow: 20 }}
+            />
+            <TVKPICard
+              title="مستخدمون جدد اليوم"
+              value={activity?.new_users_today || 0}
+              icon={UserPlus}
+              kpiName="new_users"
+            />
+          </div>
+
+          {/* Revenue & Growth KPIs - Row 3 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <TVKPICard
+              title="D7 Retention"
+              value={d7Rate}
+              unit="%"
+              icon={Target}
+              kpiName="d7_retention"
+              threshold={{ green: 25, yellow: 15 }}
+            />
+            <TVKPICard
+              title="إيرادات الشهر"
+              value={revenue?.total_monthly_revenue || 0}
+              unit="ر.س"
+              icon={DollarSign}
+              kpiName="monthly_revenue"
+            />
+            <TVKPICard
+              title="K-Factor"
+              value={growth?.k_factor || 0}
+              icon={Repeat}
+              kpiName="k_factor"
+              threshold={{ green: 1, yellow: 0.5 }}
+            />
+            <TVKPICard
+              title="معدل الإلغاء"
+              value={revenue?.churn_rate || 0}
+              unit="%"
+              icon={Target}
+              kpiName="churn_rate"
+              threshold={{ green: 5, yellow: 10, invert: true }}
+            />
+          </div>
+
+          {/* Map Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <UsersLocationMap data={cityData || []} isLoading={cityLoading} />
+            </div>
+            <div className="lg:col-span-1">
+              <CityStatsPanel data={cityData || []} isLoading={cityLoading} maxCities={8} />
+            </div>
+          </div>
+        </>
       )}
 
       {/* Auto-refresh toggle */}
