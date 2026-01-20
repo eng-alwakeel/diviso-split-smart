@@ -90,6 +90,22 @@ export const useNotifications = (includeArchived = false) => {
           group: payload.group_name,
           reason: payload.reason
         });
+      // إشعارات المجموعة
+      case 'member_joined':
+        return t('descriptions.member_joined', {
+          name: payload.member_name,
+          group: payload.group_name
+        });
+      case 'member_left':
+        return t('descriptions.member_left', {
+          name: payload.member_name,
+          group: payload.group_name
+        });
+      case 'group_deleted':
+        return t('descriptions.group_deleted', {
+          name: payload.deleted_by_name,
+          group: payload.group_name
+        });
       default:
         return t('descriptions.default');
     }

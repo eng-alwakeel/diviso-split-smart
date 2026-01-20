@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Copy, ExternalLink, LogOut, Pencil, Trash2, Archive } from "lucide-react";
 import { useGroupArchive } from "@/hooks/useGroupArchive";
+import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { ArchiveGroupDialog } from "./ArchiveGroupDialog";
 import { DeleteGroupDialog } from "./DeleteGroupDialog";
 import { LeaveGroupDialog } from "./LeaveGroupDialog";
@@ -48,6 +49,7 @@ export const GroupSettingsDialog = ({
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
   const { archiveGroup, isArchiving } = useGroupArchive();
+  const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
 
   useEffect(() => {
     if (open) setName(groupName ?? "");
@@ -101,6 +103,10 @@ export const GroupSettingsDialog = ({
     }
 
     setLeaving(true);
+    
+    // Notify other members before leaving
+    await notifyMemberLeft(groupId, groupName || "", uid);
+    
     const { error } = await supabase
       .from("group_members")
       .delete()
@@ -133,6 +139,17 @@ export const GroupSettingsDialog = ({
     setDeleting(true);
 
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: t("common:login_required", "تسجيل الدخول مطلوب"), variant: "destructive" });
+        setDeleting(false);
+        return;
+      }
+
+      // Notify members before deletion
+      await notifyGroupDeleted(groupId, groupName || "", user.id);
+
       // حذف المجموعة مباشرة - قاعدة البيانات ستحذف السجلات المرتبطة تلقائياً (ON DELETE CASCADE)
       const { error } = await supabase.from("groups").delete().eq("id", groupId);
 

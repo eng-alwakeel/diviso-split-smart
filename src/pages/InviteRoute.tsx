@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuotaHandler } from '@/hooks/useQuotaHandler';
+import { useGroupNotifications } from '@/hooks/useGroupNotifications';
 
 const InviteRoute = () => {
   const { code } = useParams<{ code: string }>();
@@ -11,6 +12,7 @@ const InviteRoute = () => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
   const { t } = useTranslation(['groups', 'errors']);
+  const { notifyMemberJoined } = useGroupNotifications();
 
   useEffect(() => {
     const run = async () => {
@@ -31,6 +33,18 @@ const InviteRoute = () => {
         const { data, error } = await supabase.rpc('join_group_with_token', { p_token: code });
         if (error) throw error;
         if (data) {
+          // Get group name and user name for notification
+          const [groupRes, profileRes] = await Promise.all([
+            supabase.from('groups').select('name').eq('id', data).single(),
+            supabase.from('profiles').select('display_name, name').eq('id', user.id).single()
+          ]);
+          
+          const groupName = groupRes.data?.name || 'مجموعة';
+          const memberName = profileRes.data?.display_name || profileRes.data?.name || 'عضو جديد';
+          
+          // Notify other members about the new member
+          await notifyMemberJoined(data, groupName, user.id, memberName);
+          
           toast({ 
             title: t('groups:messages.joined_success'), 
             description: t('groups:messages.added_to_group') 
