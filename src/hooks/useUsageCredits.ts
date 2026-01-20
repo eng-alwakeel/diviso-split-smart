@@ -28,6 +28,7 @@ export const CREDIT_COSTS = {
   restore_group: { type: 'restore_group', cost: 1, nameAr: 'استعادة مجموعة', nameEn: 'Restore Group', gated: true },
   update_group_settings: { type: 'update_group_settings', cost: 1, nameAr: 'تحديث إعدادات المجموعة', nameEn: 'Update Group Settings', gated: true },
   update_member_role: { type: 'update_member_role', cost: 1, nameAr: 'تغيير دور عضو', nameEn: 'Update Member Role', gated: true },
+  leave_group: { type: 'leave_group', cost: 1, nameAr: 'مغادرة مجموعة', nameEn: 'Leave Group', gated: true },
   delete_group: { type: 'delete_group', cost: 2, nameAr: 'حذف مجموعة', nameEn: 'Delete Group', gated: true },
   
   // عمليات الدعوات (1-2 نقطة)
