@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Copy, ExternalLink, LogOut, Pencil, Trash2, Archive } from "lucide-react";
 import { useGroupArchive } from "@/hooks/useGroupArchive";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { ArchiveGroupDialog } from "./ArchiveGroupDialog";
 import { DeleteGroupDialog } from "./DeleteGroupDialog";
 import { LeaveGroupDialog } from "./LeaveGroupDialog";
@@ -40,6 +42,7 @@ export const GroupSettingsDialog = ({
 }: GroupSettingsDialogProps) => {
   const { t } = useTranslation(["groups", "common"]);
   const { toast } = useToast();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [name, setName] = useState<string>(groupName ?? "");
   const [saving, setSaving] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -47,6 +50,8 @@ export const GroupSettingsDialog = ({
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallAction, setPaywallAction] = useState<'update_group_settings' | 'archive_group' | 'delete_group'>('update_group_settings');
 
   const { archiveGroup, isArchiving } = useGroupArchive();
   const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
@@ -70,6 +75,18 @@ export const GroupSettingsDialog = ({
     const newName = name.trim();
     if (!newName || newName === groupName) return;
 
+    // Check credits before proceeding
+    const creditCheck = await checkCredits('update_group_settings');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setPaywallAction('update_group_settings');
+        setShowPaywall(true);
+        return;
+      }
+      toast({ title: t("common:insufficient_credits", "رصيد غير كافٍ"), variant: "destructive" });
+      return;
+    }
+
     setSaving(true);
     const { error } = await supabase
       .from("groups")
@@ -82,6 +99,9 @@ export const GroupSettingsDialog = ({
       toast({ title: t("settings.rename_failed", "تعذر حفظ الاسم"), description: error.message, variant: "destructive" });
       return;
     }
+
+    // Consume credits after successful update
+    await consumeCredits('update_group_settings');
 
     toast({ title: t("settings.renamed", "تم تحديث اسم المجموعة") });
     onRenamed?.(newName);
@@ -126,15 +146,44 @@ export const GroupSettingsDialog = ({
     onLeftGroup?.();
   };
 
-  const handleArchive = () => {
+  const handleArchive = async () => {
     if (!groupId) return;
+    
+    // Check credits before proceeding
+    const creditCheck = await checkCredits('archive_group');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setPaywallAction('archive_group');
+        setShowPaywall(true);
+        return;
+      }
+      toast({ title: t("common:insufficient_credits", "رصيد غير كافٍ"), variant: "destructive" });
+      return;
+    }
+
     archiveGroup(groupId);
+    
+    // Consume credits after successful archive
+    await consumeCredits('archive_group');
+    
     setArchiveDialogOpen(false);
     onOpenChange(false);
   };
 
   const handleDeleteGroup = async () => {
     if (!groupId || !isOwner) return;
+
+    // Check credits before proceeding
+    const creditCheck = await checkCredits('delete_group');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setPaywallAction('delete_group');
+        setShowPaywall(true);
+        return;
+      }
+      toast({ title: t("common:insufficient_credits", "رصيد غير كافٍ"), variant: "destructive" });
+      return;
+    }
 
     setDeleting(true);
 
@@ -163,6 +212,9 @@ export const GroupSettingsDialog = ({
         setDeleting(false);
         return;
       }
+
+      // Consume credits after successful deletion
+      await consumeCredits('delete_group');
 
       toast({ title: t("delete.success", "تم حذف المجموعة بنجاح") });
       setDeleteDialogOpen(false);
@@ -289,6 +341,13 @@ export const GroupSettingsDialog = ({
         groupName={groupName || ""}
         onConfirm={handleLeave}
         isLeaving={leaving}
+      />
+
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        actionName={paywallAction}
+        requiredCredits={paywallAction === 'delete_group' ? 2 : 1}
       />
     </>
   );

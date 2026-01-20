@@ -29,6 +29,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 
 interface DayPlan {
   day: number;
@@ -74,10 +76,12 @@ export default function TripPlanner() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const isRTL = i18n.language === 'ar';
 
   const [step, setStep] = useState<'form' | 'loading' | 'result'>('form');
   const [copied, setCopied] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   const [formData, setFormData] = useState({
     destination: '',
@@ -111,6 +115,21 @@ export default function TripPlanner() {
       return;
     }
 
+    // Check credits before proceeding
+    const creditCheck = await checkCredits('trip_planner');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setShowPaywall(true);
+        return;
+      }
+      toast({
+        title: isRTL ? 'رصيد غير كافٍ' : 'Insufficient Credits',
+        description: isRTL ? 'لا يوجد رصيد كافٍ لتخطيط الرحلة' : 'Not enough credits for trip planning',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setStep('loading');
 
     try {
@@ -139,6 +158,9 @@ export default function TripPlanner() {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.plan) {
+          // Consume credits after successful generation
+          await consumeCredits('trip_planner');
+          
           setPlan({
             id: data.plan.id,
             shareToken: data.plan.share_token,
@@ -429,6 +451,13 @@ export default function TripPlanner() {
       </div>
 
       <BottomNav />
+
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        actionName="trip_planner"
+        requiredCredits={5}
+      />
     </div>
   );
 }

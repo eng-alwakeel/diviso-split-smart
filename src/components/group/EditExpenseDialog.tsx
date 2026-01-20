@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 
 interface ExpenseRow {
   id: string;
@@ -38,11 +40,13 @@ export const EditExpenseDialog = ({
   onUpdated,
 }: EditExpenseDialogProps) => {
   const { toast } = useToast();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState<RejectionReason | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (open && expense) {
@@ -81,6 +85,21 @@ export const EditExpenseDialog = ({
       return;
     }
 
+    // Check credits before proceeding
+    const creditCheck = await checkCredits('edit_expense');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setShowPaywall(true);
+        return;
+      }
+      toast({
+        title: "رصيد غير كافٍ",
+        description: "لا يوجد رصيد كافٍ لتعديل المصروف",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setSubmitting(true);
     
     try {
@@ -96,6 +115,9 @@ export const EditExpenseDialog = ({
         .eq("id", expense.id);
 
       if (error) throw error;
+
+      // Consume credits after successful update
+      await consumeCredits('edit_expense');
 
       toast({
         title: "تم تحديث المصروف",
@@ -119,93 +141,102 @@ export const EditExpenseDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {expense?.status === "rejected" ? "تعديل وإعادة تقديم المصروف" : "تعديل المصروف"}
-          </DialogTitle>
-          <DialogDescription>
-            {expense?.status === "rejected" 
-              ? "يمكنك تعديل المصروف وإعادة تقديمه للمراجعة مرة أخرى."
-              : "تعديل تفاصيل المصروف."
-            }
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Show rejection reason if available */}
-          {expense?.status === "rejected" && rejectionReason && (
-            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-              <h4 className="text-sm font-semibold text-destructive mb-2">سبب الرفض:</h4>
-              <p className="text-sm text-muted-foreground">
-                {rejectionReason.rejection_reason || "لم يتم توضيح سبب الرفض"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                تم الرفض في: {new Date(rejectionReason.rejected_at).toLocaleDateString('ar-SA')}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="description">الوصف *</Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="وصف المصروف"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="amount">المبلغ *</Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="note">ملاحظات (اختياري)</Label>
-            <Textarea
-              id="note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="ملاحظات إضافية..."
-              rows={3}
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={submitting}
-            >
-              إلغاء
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={submitting}
-              variant="hero"
-            >
-              {submitting 
-                ? "جاري الحفظ..." 
-                : expense?.status === "rejected" 
-                  ? "إعادة تقديم" 
-                  : "حفظ التغييرات"
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {expense?.status === "rejected" ? "تعديل وإعادة تقديم المصروف" : "تعديل المصروف"}
+            </DialogTitle>
+            <DialogDescription>
+              {expense?.status === "rejected" 
+                ? "يمكنك تعديل المصروف وإعادة تقديمه للمراجعة مرة أخرى."
+                : "تعديل تفاصيل المصروف."
               }
-            </Button>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Show rejection reason if available */}
+            {expense?.status === "rejected" && rejectionReason && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                <h4 className="text-sm font-semibold text-destructive mb-2">سبب الرفض:</h4>
+                <p className="text-sm text-muted-foreground">
+                  {rejectionReason.rejection_reason || "لم يتم توضيح سبب الرفض"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  تم الرفض في: {new Date(rejectionReason.rejected_at).toLocaleDateString('ar-SA')}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="description">الوصف *</Label>
+              <Input
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="وصف المصروف"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">المبلغ *</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="note">ملاحظات (اختياري)</Label>
+              <Textarea
+                id="note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="ملاحظات إضافية..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={submitting}
+              >
+                إلغاء
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={submitting}
+                variant="hero"
+              >
+                {submitting 
+                  ? "جاري الحفظ..." 
+                  : expense?.status === "rejected" 
+                    ? "إعادة تقديم" 
+                    : "حفظ التغييرات"
+                }
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        actionName="edit_expense"
+        requiredCredits={1}
+      />
+    </>
   );
 };
