@@ -43,12 +43,21 @@ export function useAdminAuth() {
           .eq("id", userData.user.id)
           .single();
 
+        // جلب أدوار المستخدم
+        const { data: userRoles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userData.user.id);
+
+        const roles = userRoles?.map(r => r.role) || [];
+
         if (!isAdmin) {
           return { 
             isAdmin: false, 
             error: 'ليس لديك صلاحيات للوصول إلى لوحة التحكم الإدارية',
             user: userData.user,
-            profile
+            profile,
+            roles
           };
         }
 
@@ -56,6 +65,7 @@ export function useAdminAuth() {
           isAdmin: true, 
           user: userData.user,
           profile,
+          roles,
           error: null
         };
       } catch (error) {
