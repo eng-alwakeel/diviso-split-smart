@@ -49,11 +49,17 @@ const getColor = (count: number, maxCount: number): string => {
 };
 
 export const UsersLocationMap = ({ data, isLoading }: UsersLocationMapProps) => {
-  const maxCount = Math.max(...data.map(d => d.user_count), 1);
-  const totalUsers = data.reduce((sum, d) => sum + d.user_count, 0);
-  
-  // Filter valid data points
+  // Filter valid data points (with location)
   const validData = data.filter(d => d.avg_lat && d.avg_lng);
+  const usersWithLocation = validData.reduce((sum, d) => sum + d.user_count, 0);
+  
+  // Users without location
+  const usersWithoutLocation = data
+    .filter(d => !d.avg_lat || !d.avg_lng)
+    .reduce((sum, d) => sum + d.user_count, 0);
+  
+  const totalUsers = usersWithLocation + usersWithoutLocation;
+  const maxCount = Math.max(...validData.map(d => d.user_count), 1);
   
   if (isLoading) {
     return (
@@ -79,10 +85,18 @@ export const UsersLocationMap = ({ data, isLoading }: UsersLocationMapProps) => 
         <CardTitle className="text-white flex items-center gap-2">
           <MapPin className="w-5 h-5 text-primary" />
           توزيع المستخدمين حسب المدن
-          <span className="text-sm font-normal text-white/60 mr-2">
-            ({totalUsers.toLocaleString('ar-SA')} مستخدم في {data.length} مدينة)
-          </span>
         </CardTitle>
+        <div className="flex flex-wrap gap-4 text-sm mt-2">
+          <span className="text-white/80">
+            الإجمالي: <strong className="text-primary">{totalUsers.toLocaleString('ar-SA')}</strong>
+          </span>
+          <span className="text-emerald-400">
+            مع موقع: <strong>{usersWithLocation.toLocaleString('ar-SA')}</strong>
+          </span>
+          <span className="text-white/50">
+            بدون موقع: <strong>{usersWithoutLocation.toLocaleString('ar-SA')}</strong>
+          </span>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] rounded-lg overflow-hidden border border-white/10">
