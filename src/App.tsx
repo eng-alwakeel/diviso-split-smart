@@ -55,6 +55,7 @@ const LazyBlog = withLazyLoading(lazy(() => import("./pages/Blog")));
 const LazyBlogPost = withLazyLoading(lazy(() => import("./pages/BlogPost")));
 const LazyOfferwall = withLazyLoading(lazy(() => import("./pages/Offerwall")));
 const LazyRecommendationTest = withLazyLoading(lazy(() => import("./pages/RecommendationTestPage")));
+const LazyGroupSettings = withLazyLoading(lazy(() => import("./pages/GroupSettings")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -105,6 +106,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id/invite" element={<ProtectedRoute><PageErrorBoundary><LazyGroupInvite /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/group/:id/settings" element={<ProtectedRoute><PageErrorBoundary><LazyGroupSettings /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
