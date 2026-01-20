@@ -238,6 +238,8 @@
     "title": "Delete Group",
     "description": "Are you sure you want to delete group",
     "warning": "All expenses, settlements, and members will be permanently deleted. This action cannot be undone.",
+    "type_name_label": "Type the group name to confirm:",
+    "type_name_placeholder": "Type the name here...",
     "confirm": "Delete Permanently",
     "deleting": "Deleting...",
     "failed": "Failed to delete group",

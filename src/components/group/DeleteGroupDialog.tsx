@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -8,6 +9,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Trash2, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -27,8 +30,19 @@ export const DeleteGroupDialog = ({
   isDeleting,
 }: DeleteGroupDialogProps) => {
   const { t } = useTranslation(["groups"]);
+  const [confirmationText, setConfirmationText] = useState("");
+
+  // Reset confirmation text when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setConfirmationText("");
+    }
+  }, [open]);
+
+  const canDelete = confirmationText === groupName;
 
   const handleConfirm = async () => {
+    if (!canDelete) return;
     await onConfirm();
     onOpenChange(false);
   };
@@ -53,13 +67,28 @@ export const DeleteGroupDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
 
+        <div className="space-y-2 py-4">
+          <Label htmlFor="delete-confirmation">
+            {t("delete.type_name_label", "اكتب اسم المجموعة للتأكيد:")}{" "}
+            <strong className="text-destructive">"{groupName}"</strong>
+          </Label>
+          <Input
+            id="delete-confirmation"
+            value={confirmationText}
+            onChange={(e) => setConfirmationText(e.target.value)}
+            placeholder={t("delete.type_name_placeholder", "اكتب الاسم هنا...")}
+            dir="auto"
+            disabled={isDeleting}
+          />
+        </div>
+
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>
             {t("common:cancel", "إلغاء")}
           </AlertDialogCancel>
           <Button
             onClick={handleConfirm}
-            disabled={isDeleting}
+            disabled={isDeleting || !canDelete}
             variant="destructive"
           >
             {isDeleting ? (
