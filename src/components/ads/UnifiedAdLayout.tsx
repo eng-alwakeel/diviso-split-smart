@@ -1,10 +1,9 @@
 import { ReactNode, Component, ErrorInfo } from 'react';
-import { PersistentAdBanner } from './PersistentAdBanner';
-import { PersistentAdSidebar } from './PersistentAdSidebar';
+import { GoogleAdSense } from './GoogleAdSense';
 import { LazyAdLoader } from './LazyAdLoader';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AD_DISPLAY_RULES, AD_DENSITY_RULES, ENABLE_AMAZON_ADS } from '@/lib/adConfig';
+import { AD_DISPLAY_RULES, AD_DENSITY_RULES, ENABLE_ADS, ADSENSE_CONFIG } from '@/lib/adConfig';
 
 // Error boundary for ads to prevent crashes
 class AdErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -47,7 +46,7 @@ export const UnifiedAdLayout = ({
   className = ""
 }: UnifiedAdLayoutProps) => {
   // ✅ إذا كانت الإعلانات معطلة: لا تعرض أي إعلانات
-  if (!ENABLE_AMAZON_ADS) {
+  if (!ENABLE_ADS) {
     return <>{children}</>;
   }
 
@@ -89,8 +88,9 @@ export const UnifiedAdLayout = ({
         <AdErrorBoundary>
           <LazyAdLoader minViewportScroll={AD_DENSITY_RULES.minViewportBeforeFirstAd} minHeight={90}>
             <div className="mb-6 animate-fade-in">
-              <PersistentAdBanner 
-                placement={`${placement}_top`}
+              <GoogleAdSense 
+                slot={ADSENSE_CONFIG.slots.banner}
+                format="horizontal"
                 className="rounded-lg"
               />
             </div>
@@ -105,13 +105,17 @@ export const UnifiedAdLayout = ({
           {children}
         </div>
 
-        {/* Sidebar Ad - Desktop only (1024px+) - 3 إعلانات 300x250 */}
+        {/* Sidebar Ad - Desktop only (1024px+) */}
         {finalShowSidebar && (
           <aside className="hidden lg:block w-[320px] flex-shrink-0">
             <AdErrorBoundary>
               <LazyAdLoader minViewportScroll={0.2} minHeight={250}>
                 <div className="sticky top-20 space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin">
-                  <PersistentAdSidebar className="animate-fade-in" />
+                  <GoogleAdSense 
+                    slot={ADSENSE_CONFIG.slots.sidebar}
+                    format="rectangle"
+                    className="animate-fade-in rounded-lg"
+                  />
                 </div>
               </LazyAdLoader>
             </AdErrorBoundary>
@@ -125,8 +129,9 @@ export const UnifiedAdLayout = ({
           <LazyAdLoader minViewportScroll={0.5} minHeight={100}>
             <div className="fixed bottom-20 left-0 right-0 z-40 px-4 lg:hidden animate-slide-up" 
                  style={{ marginTop: `${AD_DENSITY_RULES.minContentBetweenAds / 2}px` }}>
-              <PersistentAdBanner 
-                placement={`${placement}_bottom`}
+              <GoogleAdSense 
+                slot={ADSENSE_CONFIG.slots.banner}
+                format="horizontal"
                 className="shadow-lg rounded-lg"
               />
             </div>
