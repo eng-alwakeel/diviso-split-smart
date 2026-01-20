@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { SEO } from "@/components/SEO";
-import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical } from "lucide-react";
+import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical, Trash2, LogOut } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupArchive } from "@/hooks/useGroupArchive";
 import { useNavigate } from "react-router-dom";
@@ -19,11 +19,23 @@ import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
+import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
+import { useGroupNotifications } from "@/hooks/useGroupNotifications";
+import { useToast } from "@/hooks/use-toast";
 
 export default function MyGroups() {
   const { t } = useTranslation(['common', 'groups']);
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("active");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<{id: string, name: string, owner_id: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
   const {
     data: groups = [],
     isLoading,
@@ -36,6 +48,12 @@ export default function MyGroups() {
   } = useGroupArchive();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
+
+  // Get current user ID
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setCurrentUserId(data.session?.user?.id ?? null));
+  }, []);
 
   // Real-time listener للتحديث الفوري عند تغيير الأعضاء
   useEffect(() => {
@@ -76,6 +94,60 @@ export default function MyGroups() {
   const totalGroups = groups.length;
   const adminGroups = groups.filter(g => g.member_role === 'admin' || g.member_role === 'owner').length;
   const totalMembers = groups.reduce((sum, g) => sum + (g.member_count || 0), 0);
+
+  const handleDeleteGroup = async () => {
+    if (!selectedGroup || !currentUserId) return;
+    setIsDeleting(true);
+    
+    await notifyGroupDeleted(selectedGroup.id, selectedGroup.name, currentUserId);
+    
+    const { error: deleteError } = await supabase.from("groups").delete().eq("id", selectedGroup.id);
+    setIsDeleting(false);
+    
+    if (deleteError) {
+      toast({ title: t('groups:delete.failed'), variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: t('groups:delete.success') });
+    setDeleteDialogOpen(false);
+    setSelectedGroup(null);
+    invalidateGroups();
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!selectedGroup || !currentUserId) return;
+    setIsLeaving(true);
+    
+    await notifyMemberLeft(selectedGroup.id, selectedGroup.name, currentUserId);
+    
+    const { error: leaveError } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", selectedGroup.id)
+      .eq("user_id", currentUserId);
+    setIsLeaving(false);
+    
+    if (leaveError) {
+      toast({ title: t('groups:settings.leave_failed'), variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: t('groups:settings.left') });
+    setLeaveDialogOpen(false);
+    setSelectedGroup(null);
+    invalidateGroups();
+  };
+
+  const openDeleteDialog = (groupId: string, groupName: string, ownerId: string) => {
+    setSelectedGroup({ id: groupId, name: groupName, owner_id: ownerId });
+    setDeleteDialogOpen(true);
+  };
+
+  const openLeaveDialog = (groupId: string, groupName: string, ownerId: string) => {
+    setSelectedGroup({ id: groupId, name: groupName, owner_id: ownerId });
+    setLeaveDialogOpen(true);
+  };
   
   if (error) {
     return (
@@ -199,12 +271,30 @@ export default function MyGroups() {
                   </Button>
                 </CardContent>
               </Card> : <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-              {filteredGroups.map(group => <GroupCard key={group.id} group={group} onNavigate={navigate} onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup} isArchived={activeTab === 'archived'} isMobile={isMobile} />)}
+              {filteredGroups.map(group => <GroupCard key={group.id} group={group} onNavigate={navigate} onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup} isArchived={activeTab === 'archived'} isMobile={isMobile} currentUserId={currentUserId} onDelete={openDeleteDialog} onLeave={openLeaveDialog} />)}
             </div>}
           </TabsContent>
         </Tabs>
         </div>
       </UnifiedAdLayout>
+
+      {/* Delete Group Dialog */}
+      <DeleteGroupDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        groupName={selectedGroup?.name || ""}
+        onConfirm={handleDeleteGroup}
+        isDeleting={isDeleting}
+      />
+
+      {/* Leave Group Dialog */}
+      <LeaveGroupDialog
+        open={leaveDialogOpen}
+        onOpenChange={setLeaveDialogOpen}
+        groupName={selectedGroup?.name || ""}
+        onConfirm={handleLeaveGroup}
+        isLeaving={isLeaving}
+      />
 
       <div className="h-32 lg:hidden" />
       <BottomNav />
@@ -220,11 +310,15 @@ interface GroupCardProps {
     member_role?: string;
     member_count?: number;
     created_at: string;
+    owner_id?: string;
   };
   onNavigate: (path: string) => void;
   onArchive: (groupId: string) => void;
   isArchived?: boolean;
   isMobile?: boolean;
+  currentUserId: string | null;
+  onDelete: (groupId: string, groupName: string, ownerId: string) => void;
+  onLeave: (groupId: string, groupName: string, ownerId: string) => void;
 }
 
 function GroupCard({
@@ -232,10 +326,14 @@ function GroupCard({
   onNavigate,
   onArchive,
   isArchived,
-  isMobile
+  isMobile,
+  currentUserId,
+  onDelete,
+  onLeave
 }: GroupCardProps) {
   const { t } = useTranslation(['groups']);
   const isAdmin = group.member_role === 'admin' || group.member_role === 'owner';
+  const isOwner = currentUserId != null && group.owner_id === currentUserId;
   
   return (
     <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]">
@@ -270,24 +368,44 @@ function GroupCard({
             <CreditCard className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} me-1`} />
             {t('groups:card.expense')}
           </Button>
-          {isAdmin && <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size={isMobile ? "sm" : "default"} variant="ghost" className={`hover:bg-muted/50 ${isMobile ? '' : 'col-span-2'}`}>
-                  <MoreVertical className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                  {!isMobile && <span className="ms-2">{t('groups:card.options')}</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
-                <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)} className="cursor-pointer">
-                  <Settings className="h-4 w-4 me-2" />
-                  {t('groups:card.settings')}
-                </DropdownMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size={isMobile ? "sm" : "default"} variant="ghost" className={`hover:bg-muted/50 ${isMobile ? '' : 'col-span-2'}`}>
+                <MoreVertical className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                {!isMobile && <span className="ms-2">{t('groups:card.options')}</span>}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
+              <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)} className="cursor-pointer">
+                <Settings className="h-4 w-4 me-2" />
+                {t('groups:card.settings')}
+              </DropdownMenuItem>
+              {isAdmin && (
                 <DropdownMenuItem onClick={() => onArchive(group.id)} className="cursor-pointer">
                   <Archive className="h-4 w-4 me-2" />
                   {isArchived ? t('groups:card.restore') : t('groups:card.archive')}
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>}
+              )}
+              <DropdownMenuSeparator />
+              {isOwner ? (
+                <DropdownMenuItem 
+                  onClick={() => onDelete(group.id, group.name, group.owner_id || "")} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 me-2" />
+                  {t('groups:card.delete')}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem 
+                  onClick={() => onLeave(group.id, group.name, group.owner_id || "")} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="h-4 w-4 me-2" />
+                  {t('groups:card.leave')}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>

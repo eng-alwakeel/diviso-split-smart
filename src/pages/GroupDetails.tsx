@@ -29,7 +29,8 @@ import {
   Shield,
   FileText,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  LogOut
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -64,6 +65,10 @@ import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
 import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
+import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
+import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
+import { useGroupNotifications } from "@/hooks/useGroupNotifications";
+import { useTranslation } from "react-i18next";
 
 
 const GroupDetails = () => {
@@ -103,6 +108,15 @@ const GroupDetails = () => {
   const [deleteBudgetOpen, setDeleteBudgetOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>(null);
   const [deletingBudget, setDeletingBudget] = useState<any>(null);
+  
+  // Delete/Leave group state
+  const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
+  const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
+  const [isDeletingGroup, setIsDeletingGroup] = useState(false);
+  const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+  
+  const { t } = useTranslation(['groups', 'common']);
+  const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -202,6 +216,48 @@ const GroupDetails = () => {
     toast({
       title: "اكتب رسالتك في صندوق الدردشة أسفل التبويب",
     });
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!id || !isOwner || !currentUserId) return;
+    setIsDeletingGroup(true);
+    
+    await notifyGroupDeleted(id, group?.name || "", currentUserId);
+    
+    const { error: deleteError } = await supabase.from("groups").delete().eq("id", id);
+    setIsDeletingGroup(false);
+    
+    if (deleteError) {
+      toast({ title: t('groups:delete.failed'), variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: t('groups:delete.success') });
+    setDeleteGroupDialogOpen(false);
+    navigate('/dashboard');
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!id || !currentUserId || isOwner) return;
+    setIsLeavingGroup(true);
+    
+    await notifyMemberLeft(id, group?.name || "", currentUserId);
+    
+    const { error: leaveError } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", id)
+      .eq("user_id", currentUserId);
+    setIsLeavingGroup(false);
+    
+    if (leaveError) {
+      toast({ title: t('groups:settings.leave_failed'), variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: t('groups:settings.left') });
+    setLeaveGroupDialogOpen(false);
+    navigate('/dashboard');
   };
 
   const handleExpenseApproval = async (expenseId: string, action: "approve" | "reject") => {
@@ -459,8 +515,30 @@ const GroupDetails = () => {
                   onClick={() => setSettingsOpen(true)}
                 >
                   <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                  إعدادات
+                  {t('groups:details.settings')}
                 </Button>
+                {/* Delete/Leave Group Button */}
+                {isOwner ? (
+                  <Button
+                    className="w-full md:w-auto text-xs md:text-sm"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteGroupDialogOpen(true)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                    {t('groups:card.delete')}
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full md:w-auto text-xs md:text-sm border-destructive text-destructive hover:bg-destructive/10"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLeaveGroupDialogOpen(true)}
+                  >
+                    <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                    {t('groups:card.leave')}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -1173,6 +1251,24 @@ const GroupDetails = () => {
           }
         }}
         isDeleting={isCreating}
+      />
+
+      {/* Delete Group Dialog */}
+      <DeleteGroupDialog
+        open={deleteGroupDialogOpen}
+        onOpenChange={setDeleteGroupDialogOpen}
+        groupName={group?.name || ""}
+        onConfirm={handleDeleteGroup}
+        isDeleting={isDeletingGroup}
+      />
+
+      {/* Leave Group Dialog */}
+      <LeaveGroupDialog
+        open={leaveGroupDialogOpen}
+        onOpenChange={setLeaveGroupDialogOpen}
+        groupName={group?.name || ""}
+        onConfirm={handleLeaveGroup}
+        isLeaving={isLeavingGroup}
       />
       </div>
       </UnifiedAdLayout>

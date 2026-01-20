@@ -401,7 +401,9 @@
     "options": "خيارات",
     "settings": "الإعدادات",
     "archive": "أرشفة",
-    "restore": "استعادة"
+    "restore": "استعادة",
+    "delete": "حذف",
+    "leave": "مغادرة"
   },
   "load_error": "حدث خطأ في تحميل المجموعات",
   "no_search_results": "لا توجد نتائج للبحث",
