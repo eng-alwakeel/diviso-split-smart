@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2, Pencil } from "lucide-react";
+import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2, Pencil, Coins } from "lucide-react";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { MyExpense } from "@/hooks/useMyExpenses";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
 
 interface ExpenseCardProps {
   expense: MyExpense;
@@ -21,10 +23,12 @@ interface ExpenseCardProps {
 
 export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDeleted }: ExpenseCardProps) => {
   const { t, i18n } = useTranslation('expenses');
-  const { deleteExpense, deleting } = useExpenseActions();
+  const { deleteExpense, deleting, deleteCost } = useExpenseActions();
+  const { balance } = useUsageCredits();
   const isArabic = i18n.language === 'ar';
   const dateLocale = isArabic ? ar : enUS;
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -52,9 +56,11 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const canDelete = canEdit;
 
   const handleDelete = async () => {
-    const success = await deleteExpense(expense.id);
-    if (success && onExpenseDeleted) {
+    const result = await deleteExpense(expense.id);
+    if (result.success && onExpenseDeleted) {
       onExpenseDeleted();
+    } else if (result.needsPaywall) {
+      setShowPaywall(true);
     }
   };
 
@@ -191,6 +197,10 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
                     disabled={deleting}
                   >
                     <Trash2 className="h-3 w-3" />
+                    <Badge variant="outline" className="mr-1 text-[10px] px-1 py-0 bg-destructive/10 border-destructive/20">
+                      <Coins className="w-2 h-2 ml-0.5" />
+                      {deleteCost}
+                    </Badge>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -202,6 +212,10 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
                       <strong>{expense.description || expense.note_ar || t('card.no_description')}</strong>
                       <br />
                       {t('details.amount')}: {expense.amount.toLocaleString()} {expense.currency}
+                      <br />
+                      <span className="text-xs text-muted-foreground">
+                        {isArabic ? `سيتم خصم ${deleteCost} نقطة` : `${deleteCost} credit will be deducted`}
+                      </span>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -238,6 +252,15 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
         onUpdated={() => {
           if (onExpenseDeleted) onExpenseDeleted(); // Refresh the list
         }}
+      />
+      
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        currentBalance={balance?.totalAvailable || 0}
+        actionName={isArabic ? "حذف المصروف" : "Delete Expense"}
+        requiredCredits={deleteCost}
       />
     </Card>
   );

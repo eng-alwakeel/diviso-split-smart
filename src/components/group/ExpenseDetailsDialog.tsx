@@ -7,9 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Receipt, Calendar, User, FileText, CheckCircle, XCircle, Users, CreditCard, Trash2 } from "lucide-react";
+import { Receipt, Calendar, User, FileText, CheckCircle, XCircle, Users, Trash2, Coins } from "lucide-react";
 import { RejectExpenseDialog } from "./RejectExpenseDialog";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
 
 interface ExpenseRow {
   id: string;
@@ -61,14 +63,18 @@ export const ExpenseDetailsDialog = ({
   const [splits, setSplits] = useState<ExpenseSplit[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const { deleteExpense, deleting } = useExpenseActions();
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { deleteExpense, deleting, deleteCost } = useExpenseActions();
+  const { balance } = useUsageCredits();
 
   const handleDelete = async () => {
     if (!expense) return;
-    const success = await deleteExpense(expense.id);
-    if (success) {
+    const result = await deleteExpense(expense.id);
+    if (result.success) {
       onOpenChange(false);
       onDeleted?.();
+    } else if (result.needsPaywall) {
+      setShowPaywall(true);
     }
   };
 
@@ -278,6 +284,10 @@ export const ExpenseDetailsDialog = ({
                   <Button variant="destructive" size="sm" disabled={deleting} className="w-full">
                     <Trash2 className="w-4 h-4 ml-2" />
                     حذف المصروف
+                    <Badge variant="outline" className="mr-2 bg-destructive/20 border-destructive/30 text-destructive-foreground">
+                      <Coins className="w-3 h-3 ml-1" />
+                      {deleteCost}
+                    </Badge>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -287,6 +297,8 @@ export const ExpenseDetailsDialog = ({
                       هل أنت متأكد من حذف هذا المصروف؟ لا يمكن التراجع عن هذا الإجراء.
                       <br />
                       <strong className="text-foreground">{expense.description}</strong> - {Number(expense.amount).toLocaleString()} {expense.currency}
+                      <br />
+                      <span className="text-xs text-muted-foreground">سيتم خصم {deleteCost} نقطة</span>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -313,6 +325,15 @@ export const ExpenseDetailsDialog = ({
           // Trigger parent refresh by calling onApprove with a refresh signal
           onApprove(expense.id, "reject");
         }}
+      />
+      
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        currentBalance={balance?.totalAvailable || 0}
+        actionName="حذف المصروف"
+        requiredCredits={deleteCost}
       />
     </Dialog>
   );
