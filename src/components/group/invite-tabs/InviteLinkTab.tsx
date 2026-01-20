@@ -109,6 +109,8 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
     if (!link) return;
     await navigator.clipboard.writeText(link);
     toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة إلى الحافظة." });
+    // اعتبار نسخ الرابط كإرسال دعوة لتحديث مهمة الـ onboarding
+    onInviteSent?.();
   };
 
   const shareLink = async () => {
