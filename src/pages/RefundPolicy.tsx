@@ -170,13 +170,18 @@ const RefundPolicy = () => {
             {/* Section 8: Disclaimer */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
                 </div>
                 <h2 className="text-xl font-semibold">{t('sections.disclaimer.title')}</h2>
               </div>
-              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 p-6 rounded-lg">
-                <p className="text-foreground">{t('sections.disclaimer.content')}</p>
+              <div className="bg-amber-50 dark:bg-amber-950/50 border-2 border-amber-300 dark:border-amber-700 p-6 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-amber-900 dark:text-amber-100 font-medium">
+                    {t('sections.disclaimer.content')}
+                  </p>
+                </div>
               </div>
             </section>
           </CardContent>
