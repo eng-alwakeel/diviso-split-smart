@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 export function usePhoneVerification() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // حفظ الـ session الأصلي ومعرف المستخدم
+  const originalSessionRef = useRef<Session | null>(null);
+  const originalUserIdRef = useRef<string | null>(null);
 
   // وضع التطوير - يتحدد تلقائياً حسب البيئة
   const DEV_MODE = import.meta.env.DEV && false; // تم إيقاف وضع التطوير للإنتاج
@@ -34,6 +39,77 @@ export function usePhoneVerification() {
     return formattedPhone;
   };
 
+  // حفظ الـ session الحالي قبل التحقق
+  const saveCurrentSession = async (): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        originalSessionRef.current = session;
+        originalUserIdRef.current = session.user?.id || null;
+        console.log('🔒 تم حفظ الـ session الأصلي:', originalUserIdRef.current);
+        return true;
+      }
+      console.warn('⚠️ لا يوجد session لحفظه');
+      return false;
+    } catch (err) {
+      console.error('❌ خطأ في حفظ الـ session:', err);
+      return false;
+    }
+  };
+
+  // استعادة الـ session الأصلي بعد التحقق
+  const restoreOriginalSession = async (): Promise<boolean> => {
+    try {
+      if (originalSessionRef.current) {
+        console.log('🔓 استعادة الـ session الأصلي...');
+        const { error } = await supabase.auth.setSession({
+          access_token: originalSessionRef.current.access_token,
+          refresh_token: originalSessionRef.current.refresh_token
+        });
+        if (error) {
+          console.error('❌ خطأ في استعادة الـ session:', error);
+          return false;
+        }
+        console.log('✅ تم استعادة الـ session الأصلي');
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('❌ خطأ في استعادة الـ session:', err);
+      return false;
+    }
+  };
+
+  // تحديث رقم الجوال في الـ profile الصحيح
+  const updateProfilePhone = async (phoneNumber: string): Promise<boolean> => {
+    try {
+      const userId = originalUserIdRef.current;
+      if (!userId) {
+        console.error('❌ لا يوجد user ID محفوظ');
+        return false;
+      }
+
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      console.log('📱 تحديث رقم الجوال للمستخدم:', userId, '→', formattedPhone);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ phone: formattedPhone })
+        .eq('id', userId);
+
+      if (error) {
+        console.error('❌ خطأ في تحديث الـ profile:', error);
+        return false;
+      }
+
+      console.log('✅ تم تحديث رقم الجوال في الـ profile');
+      return true;
+    } catch (err) {
+      console.error('❌ خطأ في تحديث الـ profile:', err);
+      return false;
+    }
+  };
+
   const sendOTP = async (phoneNumber: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
@@ -52,6 +128,9 @@ export function usePhoneVerification() {
       const formattedPhone = formatPhoneNumber(phoneNumber);
       console.log('🔵 محاولة إرسال OTP إلى:', formattedPhone);
 
+      // 1. حفظ الـ session الحالي قبل إرسال OTP
+      await saveCurrentSession();
+
       if (DEV_MODE) {
         // وضع التطوير - محاكاة إرسال OTP
         console.log(`✅ وضع التطوير: OTP المرسل إلى ${formattedPhone}: ${DEV_OTP}`);
@@ -64,7 +143,7 @@ export function usePhoneVerification() {
         return true;
       }
 
-      // استخدام Supabase Auth لإرسال OTP (للإنتاج)
+      // 2. إرسال OTP
       console.log('🔵 استدعاء Supabase signInWithOtp...');
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
@@ -74,6 +153,9 @@ export function usePhoneVerification() {
       });
 
       console.log('🔵 استجابة Supabase:', { data, error });
+
+      // 3. استعادة الـ session الأصلي فوراً بعد إرسال OTP
+      await restoreOriginalSession();
 
       if (error) {
         console.error('❌ خطأ في إرسال OTP:', error);
@@ -130,6 +212,9 @@ export function usePhoneVerification() {
       if (DEV_MODE) {
         // وضع التطوير - التحقق من OTP الثابت
         if (otp === DEV_OTP) {
+          // تحديث الـ profile حتى في وضع التطوير
+          await updateProfilePhone(phoneNumber);
+          
           toast({
             title: "تم تأكيد رقم الجوال بنجاح! (وضع التطوير)",
             description: "تم التحقق من رقم الجوال وحفظه في حسابك",
@@ -141,7 +226,7 @@ export function usePhoneVerification() {
         }
       }
 
-      // التحقق من OTP (للإنتاج)
+      // 1. التحقق من OTP (للإنتاج)
       const { error } = await supabase.auth.verifyOtp({
         phone: formattedPhone,
         token: otp,
@@ -157,6 +242,16 @@ export function usePhoneVerification() {
           setError("فشل في التحقق من الرمز. حاول مرة أخرى");
         }
         return false;
+      }
+
+      // 2. استعادة الـ session الأصلي بعد التحقق الناجح
+      await restoreOriginalSession();
+
+      // 3. تحديث رقم الجوال في الـ profile الصحيح
+      const updateSuccess = await updateProfilePhone(phoneNumber);
+      
+      if (!updateSuccess) {
+        console.warn('⚠️ تم التحقق لكن فشل تحديث الـ profile');
       }
 
       toast({
@@ -180,6 +275,7 @@ export function usePhoneVerification() {
     loading,
     error,
     validatePhoneNumber,
-    formatPhoneNumber
+    formatPhoneNumber,
+    originalUserId: originalUserIdRef.current
   };
 }
