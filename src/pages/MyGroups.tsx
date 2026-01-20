@@ -23,6 +23,8 @@ import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { useToast } from "@/hooks/use-toast";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 
 export default function MyGroups() {
   const { t } = useTranslation(['common', 'groups']);
@@ -35,6 +37,8 @@ export default function MyGroups() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [requiredCredits, setRequiredCredits] = useState(1);
   
   const {
     data: groups = [],
@@ -46,6 +50,7 @@ export default function MyGroups() {
     archiveGroup,
     unarchiveGroup
   } = useGroupArchive();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
@@ -97,6 +102,19 @@ export default function MyGroups() {
 
   const handleDeleteGroup = async () => {
     if (!selectedGroup || !currentUserId) return;
+    
+    // Check credits for delete_group (2 points)
+    const creditCheck = await checkCredits('delete_group');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setRequiredCredits(creditCheck.requiredCredits);
+        setShowPaywall(true);
+      } else {
+        toast({ title: t('groups:insufficient_credits'), variant: "destructive" });
+      }
+      return;
+    }
+    
     setIsDeleting(true);
     
     await notifyGroupDeleted(selectedGroup.id, selectedGroup.name, currentUserId);
@@ -109,6 +127,9 @@ export default function MyGroups() {
       return;
     }
     
+    // Consume credits after successful deletion
+    await consumeCredits('delete_group');
+    
     toast({ title: t('groups:delete.success') });
     setDeleteDialogOpen(false);
     setSelectedGroup(null);
@@ -117,6 +138,19 @@ export default function MyGroups() {
 
   const handleLeaveGroup = async () => {
     if (!selectedGroup || !currentUserId) return;
+    
+    // Check credits for leave_group (1 point)
+    const creditCheck = await checkCredits('leave_group');
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setRequiredCredits(creditCheck.requiredCredits);
+        setShowPaywall(true);
+      } else {
+        toast({ title: t('groups:insufficient_credits'), variant: "destructive" });
+      }
+      return;
+    }
+    
     setIsLeaving(true);
     
     await notifyMemberLeft(selectedGroup.id, selectedGroup.name, currentUserId);
@@ -133,10 +167,40 @@ export default function MyGroups() {
       return;
     }
     
+    // Consume credits after successful leave
+    await consumeCredits('leave_group');
+    
     toast({ title: t('groups:settings.left') });
     setLeaveDialogOpen(false);
     setSelectedGroup(null);
     invalidateGroups();
+  };
+
+  // Handle archive/restore with credit consumption
+  const handleArchiveWithCredits = async (groupId: string, isCurrentlyArchived: boolean) => {
+    const actionType = isCurrentlyArchived ? 'restore_group' : 'archive_group';
+    
+    // Check credits
+    const creditCheck = await checkCredits(actionType);
+    if (!creditCheck.canPerform) {
+      if (creditCheck.blocked) {
+        setRequiredCredits(creditCheck.requiredCredits);
+        setShowPaywall(true);
+      } else {
+        toast({ title: t('groups:insufficient_credits'), variant: "destructive" });
+      }
+      return;
+    }
+    
+    // Execute the operation
+    if (isCurrentlyArchived) {
+      unarchiveGroup(groupId);
+    } else {
+      archiveGroup(groupId);
+    }
+    
+    // Consume credits after operation
+    await consumeCredits(actionType);
   };
 
   const openDeleteDialog = (groupId: string, groupName: string, ownerId: string) => {
@@ -271,7 +335,7 @@ export default function MyGroups() {
                   </Button>
                 </CardContent>
               </Card> : <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-              {filteredGroups.map(group => <GroupCard key={group.id} group={group} onNavigate={navigate} onArchive={activeTab === 'active' ? archiveGroup : unarchiveGroup} isArchived={activeTab === 'archived'} isMobile={isMobile} currentUserId={currentUserId} onDelete={openDeleteDialog} onLeave={openLeaveDialog} />)}
+              {filteredGroups.map(group => <GroupCard key={group.id} group={group} onNavigate={navigate} onArchive={(groupId) => handleArchiveWithCredits(groupId, activeTab === 'archived')} isArchived={activeTab === 'archived'} isMobile={isMobile} currentUserId={currentUserId} onDelete={openDeleteDialog} onLeave={openLeaveDialog} />)}
             </div>}
           </TabsContent>
         </Tabs>
@@ -294,6 +358,13 @@ export default function MyGroups() {
         groupName={selectedGroup?.name || ""}
         onConfirm={handleLeaveGroup}
         isLeaving={isLeaving}
+      />
+
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        requiredCredits={requiredCredits}
       />
 
       <div className="h-32 lg:hidden" />
