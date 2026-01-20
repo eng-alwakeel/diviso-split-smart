@@ -139,7 +139,7 @@ export const useOnboarding = () => {
     queryKey: ['onboarding', userId],
     queryFn: () => fetchOnboardingData(userId!),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000, // تحديث أسرع للـ onboarding
     gcTime: 10 * 60 * 1000,
   });
 
