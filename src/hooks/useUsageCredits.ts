@@ -5,20 +5,49 @@ import { usePaymentwallTokens } from './usePaymentwallTokens';
 
 // تكاليف العمليات بالنقاط - Updated per Final Spec
 export const CREDIT_COSTS = {
-  // العمليات المدفوعة الأساسية
-  add_expense: { type: 'add_expense', cost: 1, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: true },
+  // العمليات المجانية
   split_expense: { type: 'split_expense', cost: 0, nameAr: 'تقسيم مصاريف', nameEn: 'Split Expense', gated: false },
   view_data: { type: 'view_data', cost: 0, nameAr: 'عرض البيانات', nameEn: 'View Data', gated: false },
   
-  // العمليات المدفوعة والمقفلة عند UC = 0
+  // عمليات المصاريف (1 نقطة)
+  add_expense: { type: 'add_expense', cost: 1, nameAr: 'إضافة مصروف', nameEn: 'Add Expense', gated: true },
+  edit_expense: { type: 'edit_expense', cost: 1, nameAr: 'تعديل مصروف', nameEn: 'Edit Expense', gated: true },
+  delete_expense: { type: 'delete_expense', cost: 1, nameAr: 'حذف مصروف', nameEn: 'Delete Expense', gated: true },
+  
+  // عمليات المسح والتصنيف (1 نقطة)
   ocr_scan: { type: 'ocr_scan', cost: 1, nameAr: 'مسح إيصال', nameEn: 'Receipt Scan', gated: true },
   smart_category: { type: 'smart_category', cost: 1, nameAr: 'تصنيف ذكي', nameEn: 'Smart Category', gated: true },
   recommendation: { type: 'recommendation', cost: 1, nameAr: 'توصية ذكية', nameEn: 'Smart Recommendation', gated: true },
+  
+  // عمليات التصدير (1 نقطة)
   export_pdf: { type: 'export_pdf', cost: 1, nameAr: 'تصدير PDF', nameEn: 'PDF Export', gated: true },
   export_excel: { type: 'export_excel', cost: 1, nameAr: 'تصدير Excel', nameEn: 'Excel Export', gated: true },
+  
+  // عمليات المجموعات (1-2 نقطة)
+  archive_group: { type: 'archive_group', cost: 1, nameAr: 'أرشفة مجموعة', nameEn: 'Archive Group', gated: true },
+  restore_group: { type: 'restore_group', cost: 1, nameAr: 'استعادة مجموعة', nameEn: 'Restore Group', gated: true },
+  update_group_settings: { type: 'update_group_settings', cost: 1, nameAr: 'تحديث إعدادات المجموعة', nameEn: 'Update Group Settings', gated: true },
+  update_member_role: { type: 'update_member_role', cost: 1, nameAr: 'تغيير دور عضو', nameEn: 'Update Member Role', gated: true },
+  delete_group: { type: 'delete_group', cost: 2, nameAr: 'حذف مجموعة', nameEn: 'Delete Group', gated: true },
+  
+  // عمليات الدعوات (1-2 نقطة)
+  generate_invite_link: { type: 'generate_invite_link', cost: 1, nameAr: 'إنشاء رابط دعوة', nameEn: 'Generate Invite Link', gated: true },
+  send_sms_invite: { type: 'send_sms_invite', cost: 2, nameAr: 'إرسال دعوة SMS', nameEn: 'Send SMS Invite', gated: true },
+  
+  // عمليات الميزانية (1-3 نقاط)
+  create_budget: { type: 'create_budget', cost: 2, nameAr: 'إنشاء ميزانية', nameEn: 'Create Budget', gated: true },
+  update_budget: { type: 'update_budget', cost: 1, nameAr: 'تحديث ميزانية', nameEn: 'Update Budget', gated: true },
+  delete_budget: { type: 'delete_budget', cost: 1, nameAr: 'حذف ميزانية', nameEn: 'Delete Budget', gated: true },
+  smart_budget_ai: { type: 'smart_budget_ai', cost: 3, nameAr: 'ميزانية ذكية AI', nameEn: 'Smart Budget AI', gated: true },
+  
+  // عمليات التسوية (2-3 نقاط)
   advanced_report: { type: 'advanced_report', cost: 2, nameAr: 'تقرير متقدم', nameEn: 'Advanced Report', gated: true },
+  delete_settlement: { type: 'delete_settlement', cost: 2, nameAr: 'حذف تسوية', nameEn: 'Delete Settlement', gated: true },
   settlement: { type: 'settlement', cost: 3, nameAr: 'تسوية', nameEn: 'Settlement', gated: true },
-  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true }
+  
+  // عمليات مميزة (5 نقاط)
+  create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true },
+  trip_planner: { type: 'trip_planner', cost: 5, nameAr: 'تخطيط رحلة', nameEn: 'Trip Planner', gated: true },
 } as const;
 
 export type CreditActionType = keyof typeof CREDIT_COSTS;
