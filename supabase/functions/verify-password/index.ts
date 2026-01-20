@@ -26,7 +26,17 @@ serve(async (req) => {
     }
 
     // Get user from JWT token
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Authorization header is required' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
     const token = authHeader.replace('Bearer ', '');
     
     // Initialize Supabase client
@@ -44,14 +54,17 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
+      console.error('User authentication failed:', userError?.message);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: 'Session expired or invalid' }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
+
+    console.log('Verifying password for user:', user.id, 'email:', user.email);
 
     // Create a new client instance for password verification
     const verificationClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
