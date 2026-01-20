@@ -8,24 +8,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, Loader2 } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-interface DeleteGroupDialogProps {
+interface LeaveGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupName: string;
   onConfirm: () => Promise<void>;
-  isDeleting: boolean;
+  isLeaving: boolean;
 }
 
-export const DeleteGroupDialog = ({
+export const LeaveGroupDialog = ({
   open,
   onOpenChange,
   groupName,
   onConfirm,
-  isDeleting,
-}: DeleteGroupDialogProps) => {
+  isLeaving,
+}: LeaveGroupDialogProps) => {
   const { t } = useTranslation(["groups"]);
 
   const handleConfirm = async () => {
@@ -37,38 +37,32 @@ export const DeleteGroupDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <Trash2 className="w-5 h-5" />
-            {t("delete.title", "حذف المجموعة")}
+          <AlertDialogTitle className="flex items-center gap-2">
+            <LogOut className="w-5 h-5" />
+            {t("leave.title", "مغادرة المجموعة")}
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-2">
-            <span>
-              {t("delete.description", "هل أنت متأكد من حذف مجموعة")}{" "}
-              <strong>"{groupName}"</strong>؟
-            </span>
-            <br />
-            <span className="text-destructive font-medium">
-              {t("delete.warning", "سيتم حذف جميع المصاريف والتسويات والأعضاء نهائياً. هذا الإجراء لا يمكن التراجع عنه.")}
-            </span>
+          <AlertDialogDescription>
+            {t("leave.description", "هل أنت متأكد من مغادرة مجموعة")}{" "}
+            <strong>"{groupName}"</strong>؟
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>
+          <AlertDialogCancel disabled={isLeaving}>
             {t("common:cancel", "إلغاء")}
           </AlertDialogCancel>
           <Button
             onClick={handleConfirm}
-            disabled={isDeleting}
+            disabled={isLeaving}
             variant="destructive"
           >
-            {isDeleting ? (
+            {isLeaving ? (
               <>
                 <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                {t("delete.deleting", "جاري الحذف...")}
+                {t("leave.leaving", "جاري المغادرة...")}
               </>
             ) : (
-              t("delete.confirm", "حذف نهائياً")
+              t("leave.confirm", "مغادرة")
             )}
           </Button>
         </AlertDialogFooter>
