@@ -23,6 +23,9 @@
     "settlement_received": "تسوية جديدة 💰",
     "settlement_confirmed": "تم تأكيد التسوية ✅",
     "settlement_disputed": "تم رفض التسوية ❌",
+    "member_joined": "عضو جديد 👋",
+    "member_left": "مغادرة عضو 👋",
+    "group_deleted": "تم حذف المجموعة 🗑️",
     "default": "إشعار جديد"
   },
   "descriptions": {
@@ -35,6 +38,9 @@
     "settlement_received": "{{name}} أرسل لك {{amount}} {{currency}} في {{group}}",
     "settlement_confirmed": "{{name}} أكد استلام {{amount}} {{currency}} في {{group}}",
     "settlement_disputed": "{{name}} رفض التسوية بقيمة {{amount}} {{currency}}: {{reason}}",
+    "member_joined": "{{name}} انضم إلى مجموعة \"{{group}}\"",
+    "member_left": "{{name}} غادر مجموعة \"{{group}}\"",
+    "group_deleted": "{{name}} حذف مجموعة \"{{group}}\"",
     "default": "إشعار جديد"
   },
   "toasts": {

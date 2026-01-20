@@ -23,6 +23,9 @@
     "settlement_received": "New Settlement 💰",
     "settlement_confirmed": "Settlement Confirmed ✅",
     "settlement_disputed": "Settlement Disputed ❌",
+    "member_joined": "New Member 👋",
+    "member_left": "Member Left 👋",
+    "group_deleted": "Group Deleted 🗑️",
     "default": "New Notification"
   },
   "descriptions": {
@@ -35,6 +38,9 @@
     "settlement_received": "{{name}} sent you {{amount}} {{currency}} in {{group}}",
     "settlement_confirmed": "{{name}} confirmed receipt of {{amount}} {{currency}} in {{group}}",
     "settlement_disputed": "{{name}} disputed settlement of {{amount}} {{currency}}: {{reason}}",
+    "member_joined": "{{name}} joined group \"{{group}}\"",
+    "member_left": "{{name}} left group \"{{group}}\"",
+    "group_deleted": "{{name}} deleted group \"{{group}}\"",
     "default": "New notification"
   },
   "toasts": {
