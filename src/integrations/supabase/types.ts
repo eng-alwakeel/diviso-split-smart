@@ -5087,6 +5087,7 @@ export type Database = {
           created_at: string
           current_plan: string
           display_name: string
+          email: string
           expenses_count: number
           groups_count: number
           id: string

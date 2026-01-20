@@ -37,6 +37,7 @@ interface User {
   display_name: string | null;
   name: string | null;
   phone: string | null;
+  email?: string | null;
   created_at: string;
   is_admin: boolean;
   is_banned?: boolean;
@@ -168,6 +169,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                   <TableHead>المستخدم</TableHead>
                   <TableHead>الحالة</TableHead>
                   <TableHead>الهاتف</TableHead>
+                  <TableHead>الإيميل</TableHead>
                   <TableHead>الباقة</TableHead>
                   <TableHead>الأدوار</TableHead>
                   <TableHead>المجموعات</TableHead>
@@ -195,6 +197,7 @@ export const AdminManagementTables = ({ users, groups }: AdminManagementTablesPr
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{user.phone || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm max-w-[180px] truncate" title={user.email || "-"}>{user.email || "-"}</TableCell>
                       <TableCell>{getPlanBadge(user.current_plan)}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
