@@ -37,6 +37,7 @@ const AdminDashboardContent = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     search: '',
+    searchType: 'all' as 'all' | 'name' | 'phone' | 'email',
     plan: 'all',
     dateRange: { from: '', to: '' },
     status: 'all'
@@ -63,14 +64,36 @@ const AdminDashboardContent = () => {
   const { data: groups, isLoading: groupsLoading, refetch: refetchGroups } = useAdminGroups();
   const { data: enhancedStats, isLoading: enhancedLoading, refetch: refetchEnhanced } = useEnhancedAdminStats();
   
-  // Apply filters to data
+  // Apply filters to data with search type support
   const filteredUsers = useMemo(() => {
     if (!users) return [];
     return users.filter(user => {
-      const matchesSearch = !filters.search || 
-        user.display_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        user.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        user.phone?.includes(filters.search);
+      if (!filters.search) {
+        const matchesPlan = filters.plan === 'all' || user.current_plan === filters.plan;
+        return matchesPlan;
+      }
+      
+      const searchLower = filters.search.toLowerCase();
+      let matchesSearch = false;
+      
+      switch (filters.searchType) {
+        case 'name':
+          matchesSearch = user.display_name?.toLowerCase().includes(searchLower) ||
+                          user.name?.toLowerCase().includes(searchLower) || false;
+          break;
+        case 'phone':
+          matchesSearch = user.phone?.includes(filters.search) || false;
+          break;
+        case 'email':
+          matchesSearch = (user as any).email?.toLowerCase().includes(searchLower) || false;
+          break;
+        default: // 'all'
+          matchesSearch = user.display_name?.toLowerCase().includes(searchLower) ||
+                          user.name?.toLowerCase().includes(searchLower) ||
+                          user.phone?.includes(filters.search) ||
+                          (user as any).email?.toLowerCase().includes(searchLower) || false;
+      }
+      
       const matchesPlan = filters.plan === 'all' || user.current_plan === filters.plan;
       return matchesSearch && matchesPlan;
     });
