@@ -1,9 +1,22 @@
 // ========================================
-// 🚫 MASTER AD CONTROL SWITCH
+// 🎯 MASTER AD CONTROL SWITCH
 // ========================================
-// تعطيل جميع إعلانات Amazon مؤقتاً حتى النشر على App Store
-// سيتم تفعيلها لاحقاً أو استبدالها بـ Google AdSense
-export const ENABLE_AMAZON_ADS = false; // ✅ غيّره إلى true لتفعيل الإعلانات مرة أخرى
+// تفعيل الإعلانات عبر Google AdSense
+export const ENABLE_AMAZON_ADS = false; // ❌ Amazon معطّل
+export const ENABLE_ADS = true; // ✅ الإعلانات مفعّلة
+
+// ========================================
+// 📢 Google AdSense Configuration
+// ========================================
+export const ADSENSE_CONFIG = {
+  publisherId: 'ca-pub-4156962854639409',
+  slots: {
+    // أضف slot IDs من لوحة Google AdSense
+    banner: '',     // للبانر العلوي/السفلي
+    sidebar: '',    // للشريط الجانبي
+    inFeed: '',     // للإعلانات داخل المحتوى
+  }
+} as const;
 
 // Google AdSense compliant ad sizes and configuration
 
