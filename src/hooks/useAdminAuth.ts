@@ -6,7 +6,7 @@ export function useAdminAuth() {
     queryKey: ["admin-auth"],
     queryFn: async () => {
       try {
-        const { data: user, error: userError } = await supabase.auth.getUser();
+        const { data: userData, error: userError } = await supabase.auth.getUser();
         if (userError) {
           console.error('Auth error:', userError);
           return { 
@@ -16,7 +16,7 @@ export function useAdminAuth() {
           };
         }
 
-        if (!user?.user) {
+        if (!userData?.user) {
           return { 
             isAdmin: false, 
             error: 'يرجى تسجيل الدخول للوصول إلى لوحة التحكم الإدارية',
@@ -24,35 +24,38 @@ export function useAdminAuth() {
           };
         }
 
-        // Check if user is admin
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("is_admin, display_name, name")
-          .eq("id", user.user.id)
-          .single();
+        // استخدام دالة is_admin_user() التي تتحقق من الأدوار في جدول user_roles
+        const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin_user');
 
-        if (error) {
-          console.error('Profile error:', error);
+        if (adminError) {
+          console.error('Admin check error:', adminError);
           return { 
             isAdmin: false, 
-            error: 'خطأ في تحميل بيانات المستخدم',
-            user: user.user 
+            error: 'خطأ في التحقق من الصلاحيات',
+            user: userData.user 
           };
         }
 
-        if (!data?.is_admin) {
+        // جلب بيانات الملف الشخصي
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name, name, is_admin")
+          .eq("id", userData.user.id)
+          .single();
+
+        if (!isAdmin) {
           return { 
             isAdmin: false, 
             error: 'ليس لديك صلاحيات للوصول إلى لوحة التحكم الإدارية',
-            user: user.user,
-            profile: data
+            user: userData.user,
+            profile
           };
         }
 
         return { 
           isAdmin: true, 
-          user: user.user,
-          profile: data,
+          user: userData.user,
+          profile,
           error: null
         };
       } catch (error) {
@@ -65,6 +68,6 @@ export function useAdminAuth() {
       }
     },
     retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
