@@ -24,6 +24,7 @@ import { MonetizationCenter } from "@/components/admin/MonetizationCenter";
 import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
 import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSection";
 import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
+import { useAdminTabs } from "@/hooks/useAdminTabs";
 
 export const AdminDashboard = () => {
   return (
@@ -45,6 +46,7 @@ const AdminDashboardContent = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminAuth();
+  const { allowedTabs, defaultTab, canManageAdmins, canAccessSupport, isLoading: tabsLoading } = useAdminTabs();
   
   const { 
     data: businessMetrics, 
@@ -204,7 +206,7 @@ const AdminDashboardContent = () => {
     );
   }
 
-  if (adminLoading || statsLoading || enhancedLoading) {
+  if (adminLoading || statsLoading || enhancedLoading || tabsLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="page-container">
@@ -228,18 +230,22 @@ const AdminDashboardContent = () => {
         {/* Admin Management Links - Responsive */}
         <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            <Link to="/admin-management">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">إدارة المديرين</span>
-              </Button>
-            </Link>
-            <Link to="/admin/support">
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Headphones className="h-4 w-4" />
-                <span className="hidden sm:inline">دعم العملاء</span>
-              </Button>
-            </Link>
+            {canManageAdmins && (
+              <Link to="/admin-management">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">إدارة المديرين</span>
+                </Button>
+              </Link>
+            )}
+            {canAccessSupport && (
+              <Link to="/admin/support">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Headphones className="h-4 w-4" />
+                  <span className="hidden sm:inline">دعم العملاء</span>
+                </Button>
+              </Link>
+            )}
             <Link to="/settings">
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
@@ -270,78 +276,110 @@ const AdminDashboardContent = () => {
           <AdminExport onExport={handleExport} isLoading={isExporting} />
         </div>
 
-        <Tabs defaultValue="executive" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8 h-auto">
-            <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">Executive</span>
-            </TabsTrigger>
-            <TabsTrigger value="funnel" className="flex items-center gap-1 py-2">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">Funnel</span>
-            </TabsTrigger>
-            <TabsTrigger value="retention" className="flex items-center gap-1 py-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">Retention</span>
-            </TabsTrigger>
-            <TabsTrigger value="monetization" className="flex items-center gap-1 py-2">
-              <DollarSign className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">Monetization</span>
-            </TabsTrigger>
-            <TabsTrigger value="credits" className="flex items-center gap-1 py-2">
-              <Coins className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">Credits</span>
-            </TabsTrigger>
-            <TabsTrigger value="targets" className="flex items-center gap-1 py-2">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">الأهداف</span>
-            </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-1 py-2">
-              <Lock className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">الصلاحيات</span>
-            </TabsTrigger>
-            <TabsTrigger value="management" className="flex items-center gap-1 py-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline text-xs lg:text-sm">الإدارة</span>
-            </TabsTrigger>
+        <Tabs defaultValue={defaultTab} className="space-y-6">
+          <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(allowedTabs.length, 8)}, minmax(0, 1fr))` }}>
+            {allowedTabs.some(t => t.id === "executive") && (
+              <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">Executive</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "funnel") && (
+              <TabsTrigger value="funnel" className="flex items-center gap-1 py-2">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">Funnel</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "retention") && (
+              <TabsTrigger value="retention" className="flex items-center gap-1 py-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">Retention</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "monetization") && (
+              <TabsTrigger value="monetization" className="flex items-center gap-1 py-2">
+                <DollarSign className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">Monetization</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "credits") && (
+              <TabsTrigger value="credits" className="flex items-center gap-1 py-2">
+                <Coins className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">Credits</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "targets") && (
+              <TabsTrigger value="targets" className="flex items-center gap-1 py-2">
+                <Target className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">الأهداف</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "permissions") && (
+              <TabsTrigger value="permissions" className="flex items-center gap-1 py-2">
+                <Lock className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">الصلاحيات</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "management") && (
+              <TabsTrigger value="management" className="flex items-center gap-1 py-2">
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">الإدارة</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="executive">
-            <ExecutiveSnapshot />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "executive") && (
+            <TabsContent value="executive">
+              <ExecutiveSnapshot />
+            </TabsContent>
+          )}
 
-          <TabsContent value="funnel">
-            <FunnelAnalytics />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "funnel") && (
+            <TabsContent value="funnel">
+              <FunnelAnalytics />
+            </TabsContent>
+          )}
 
-          <TabsContent value="retention">
-            <RetentionCohorts />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "retention") && (
+            <TabsContent value="retention">
+              <RetentionCohorts />
+            </TabsContent>
+          )}
 
-          <TabsContent value="monetization">
-            <MonetizationCenter />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "monetization") && (
+            <TabsContent value="monetization">
+              <MonetizationCenter />
+            </TabsContent>
+          )}
 
-          <TabsContent value="credits">
-            <CreditsEconomyHealth />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "credits") && (
+            <TabsContent value="credits">
+              <CreditsEconomyHealth />
+            </TabsContent>
+          )}
 
-          <TabsContent value="targets">
-            <KPITargetsManager />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "targets") && (
+            <TabsContent value="targets">
+              <KPITargetsManager />
+            </TabsContent>
+          )}
 
-          <TabsContent value="permissions">
-            <RolesPermissionsSection />
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "permissions") && (
+            <TabsContent value="permissions">
+              <RolesPermissionsSection />
+            </TabsContent>
+          )}
 
-          <TabsContent value="management">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">إدارة المستخدمين والمجموعات</h2>
-              {filteredUsers && filteredGroups && (
-                <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
-              )}
-            </div>
-          </TabsContent>
+          {allowedTabs.some(t => t.id === "management") && (
+            <TabsContent value="management">
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">إدارة المستخدمين والمجموعات</h2>
+                {filteredUsers && filteredGroups && (
+                  <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
+                )}
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
