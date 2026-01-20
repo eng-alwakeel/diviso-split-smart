@@ -1,9 +1,10 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lazy load below-the-fold components for faster FCP
 const AnimatedHowItWorks = lazy(() => import("@/components/landing/AnimatedHowItWorks").then(m => ({ default: m.AnimatedHowItWorks })));
@@ -28,6 +29,39 @@ const BelowFoldSkeleton = () => (
 
 const Index = () => {
   const { t } = useTranslation('landing');
+
+  // Handle pending invite tokens after Google OAuth redirect
+  useEffect(() => {
+    const handlePendingInvites = async () => {
+      const joinToken = localStorage.getItem('joinToken');
+      const phoneInviteToken = localStorage.getItem('phoneInviteToken');
+      
+      // No pending invites
+      if (!joinToken && !phoneInviteToken) return;
+      
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // User is logged in, redirect to invite route
+        if (joinToken) {
+          console.log('🔗 Found pending joinToken, redirecting...');
+          localStorage.removeItem('joinToken');
+          window.location.href = `/i/${joinToken}`;
+          return;
+        }
+        
+        if (phoneInviteToken) {
+          console.log('🔗 Found pending phoneInviteToken, redirecting...');
+          localStorage.removeItem('phoneInviteToken');
+          window.location.href = `/invite-phone/${phoneInviteToken}`;
+          return;
+        }
+      }
+    };
+    
+    handlePendingInvites();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
