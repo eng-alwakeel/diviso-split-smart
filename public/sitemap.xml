@@ -31,6 +31,16 @@
     <priority>0.5</priority>
   </url>
   
+  <!-- صفحة سياسة الاسترجاع -->
+  <url>
+    <loc>https://diviso.app/refund-policy</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/refund-policy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/refund-policy?lang=en" />
+    <lastmod>2026-01-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
   <!-- صفحة تسجيل الدخول -->
   <url>
     <loc>https://diviso.app/auth</loc>

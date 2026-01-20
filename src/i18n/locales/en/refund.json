@@ -1,0 +1,68 @@
+{
+  "title": "Refund & Cancellation Policy",
+  "description": "Refund and Cancellation Policy for Diviso",
+  "seo": {
+    "title": "Refund & Cancellation Policy | Diviso",
+    "description": "Learn about Diviso's refund and cancellation policy. Information about subscriptions, credits, and rewarded advertising."
+  },
+  "last_updated": "Last updated",
+  "last_updated_date": "January 2026",
+  "back": "Go Back",
+  "sections": {
+    "overview": {
+      "title": "Service Overview",
+      "content": "Diviso is a digital platform designed to organize and split shared expenses. Diviso does not process money transfers, does not hold funds, and does not act as a financial intermediary or wallet provider.",
+      "note": "All payments made on Diviso are strictly for digital access, subscriptions, or usage-based features."
+    },
+    "subscriptions": {
+      "title": "Subscriptions (Monthly & Yearly)",
+      "intro": "Users may subscribe to optional paid plans to unlock higher usage limits or premium organizational features.",
+      "items": {
+        "cancel": "Subscriptions may be cancelled at any time via account settings.",
+        "auto_renew": "Cancellation stops future billing cycles only.",
+        "access": "Access remains active until the end of the current paid period.",
+        "no_refund": "No refunds are issued for partially used subscription periods."
+      }
+    },
+    "credits": {
+      "title": "One-Time Credit Purchases",
+      "intro": "Users may purchase usage credits (operations/actions) for in-app feature usage.",
+      "items": {
+        "non_refundable": "Credits are non-refundable once used.",
+        "non_transferable": "Credits are non-transferable and have no cash value.",
+        "no_withdraw": "Credits cannot be withdrawn or exchanged."
+      }
+    },
+    "rewarded_ads": {
+      "title": "Rewarded Advertising (Paymentwall)",
+      "intro": "Diviso allows users to unlock temporary features or single usage actions by completing rewarded advertising offers.",
+      "items": {
+        "no_payment": "Rewarded advertising does not involve user payments.",
+        "no_refund": "Refunds and cancellations do not apply to rewarded actions."
+      }
+    },
+    "refund_requests": {
+      "title": "Refund Requests",
+      "intro": "Refund requests are reviewed only for subscriptions or credit purchases under the following conditions:",
+      "items": {
+        "timeframe": "The request is submitted within 7 days of purchase.",
+        "unused": "The subscription or credits have not been significantly used.",
+        "process": "Approved refunds are processed through the original payment provider."
+      },
+      "note": "Diviso reserves the right to deny refund requests that do not meet these conditions."
+    },
+    "payment_providers": {
+      "title": "Third-Party Payment Processing",
+      "content": "All payments are processed via third-party payment providers. Diviso does not store or process payment details directly."
+    },
+    "contact": {
+      "title": "Contact Information",
+      "intro": "For refund or cancellation inquiries, contact:",
+      "email": "📧 support@diviso.app"
+    },
+    "disclaimer": {
+      "title": "Important Notice",
+      "content": "Diviso does not act as a financial intermediary. Any financial settlements between users occur outside the platform."
+    }
+  }
+}
