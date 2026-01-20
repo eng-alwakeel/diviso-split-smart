@@ -12,10 +12,7 @@ import {
   Coins, 
   Gift, 
   History, 
-  ArrowLeftRight,
   TrendingUp,
-  Clock,
-  Loader2,
   UserPlus,
   CheckCircle2,
   Circle,
@@ -40,12 +37,11 @@ const CreditStore = React.memo(() => {
   const navigate = useNavigate();
 
   const { balance, loading: creditsLoading, getConsumptionHistory } = useUsageCredits();
-  const { summary, loading: rewardsLoading, converting, convertToCredits } = useRewardPoints();
+  const { summary, loading: rewardsLoading } = useRewardPoints();
   const { totalEarnedFromReferrals, inviteesProgress, loading: referralLoading } = useReferralStats();
 
   const [consumptionHistory, setConsumptionHistory] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
-  const [pointsToConvert, setPointsToConvert] = useState(0);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -56,13 +52,6 @@ const CreditStore = React.memo(() => {
     };
     loadHistory();
   }, [getConsumptionHistory]);
-
-  const handleConvert = async () => {
-    if (pointsToConvert >= 10) {
-      await convertToCredits(pointsToConvert);
-      setPointsToConvert(0);
-    }
-  };
 
   if (creditsLoading || rewardsLoading) {
     return (
@@ -199,80 +188,6 @@ const CreditStore = React.memo(() => {
 
           {/* Rewards Tab */}
           <TabsContent value="rewards" className="mt-4 space-y-4">
-            {/* Convert Section */}
-            <Card className="rounded-2xl">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <ArrowLeftRight className="h-5 w-5 text-primary" />
-                  {t('rewards.convert')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {t('rewards.rate')}
-                </p>
-                
-                {/* Conversion UI */}
-                <div className="space-y-3">
-                  <input
-                    type="range"
-                    min={0}
-                    max={summary.availableBalance}
-                    step={10}
-                    value={pointsToConvert}
-                    onChange={(e) => setPointsToConvert(Number(e.target.value))}
-                    className="w-full h-2 accent-primary rounded-full"
-                    disabled={!summary.canConvert || summary.availableBalance < 10}
-                  />
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{pointsToConvert}</div>
-                      <div className="text-xs text-muted-foreground">{t('balance_card.reward_points')}</div>
-                    </div>
-                    <div className="text-xl text-muted-foreground">=</div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-primary">{Math.floor(pointsToConvert / 10)}</div>
-                      <div className="text-xs text-muted-foreground">{t('balance_card.usage_credits')}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <Button 
-                  className="w-full h-11" 
-                  disabled={pointsToConvert < 10 || converting || !summary.canConvert}
-                  onClick={handleConvert}
-                >
-                  {converting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
-                      {t('rewards.converting')}
-                    </>
-                  ) : (
-                    <>
-                      <ArrowLeftRight className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                      {t('rewards.convert')}
-                    </>
-                  )}
-                </Button>
-
-                {!summary.canConvert && summary.nextConversionAt && (
-                  <p className="text-sm text-center text-muted-foreground flex items-center justify-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {t('rewards.next_conversion', { 
-                      hours: Math.ceil((summary.nextConversionAt.getTime() - Date.now()) / (1000 * 60 * 60))
-                    })}
-                  </p>
-                )}
-
-                {summary.availableBalance < 10 && (
-                  <p className="text-sm text-center text-muted-foreground">
-                    {t('rewards.min_convert')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Referral Stats */}
             <Card className="rounded-2xl">
               <CardHeader className="pb-2">
