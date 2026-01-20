@@ -1,149 +1,200 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Key, Eye, EyeOff, Save, Trash2 } from "lucide-react";
-import { useSecureValidation } from "@/hooks/useSecureValidation";
-import { useSecurityAudit } from "@/hooks/useSecurityAudit";
-
+import { Key, Trash2, Mail, Phone, CheckCircle, Loader2, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useSecurePasswordChange, VerificationMethod } from "@/hooks/useSecurePasswordChange";
+import { NewPasswordDialog } from "./NewPasswordDialog";
+import { PhonePasswordResetDialog } from "./PhonePasswordResetDialog";
 
 interface SecurityTabProps {
-  passwordData: {
+  passwordData?: {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
   };
-  setPasswordData: (data: any) => void;
-  handleChangePassword: () => Promise<void>;
-  passwordLoading: boolean;
+  setPasswordData?: (data: any) => void;
+  handleChangePassword?: () => Promise<void>;
+  passwordLoading?: boolean;
   deleteAccount: () => Promise<void>;
 }
 
 export function SecurityTab({
-  passwordData,
-  setPasswordData,
-  handleChangePassword,
-  passwordLoading,
   deleteAccount
 }: SecurityTabProps) {
-  const { t } = useTranslation(['settings']);
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
-  });
-  
-  const { validateField, errors } = useSecureValidation();
-  const { logSecurityEvent, validateInput } = useSecurityAudit();
-  
-  const handleSecurePasswordChange = async () => {
-    // Log password change attempt
-    await logSecurityEvent('password_change_attempt', 'profiles');
-    
-    // Validate inputs
-    if (!validateInput(passwordData.currentPassword) || 
-        !validateInput(passwordData.newPassword) || 
-        !validateInput(passwordData.confirmPassword)) {
-      return;
+  const { t } = useTranslation(['settings', 'common']);
+  const {
+    loading,
+    step,
+    verificationMethod,
+    resendCountdown,
+    getUserVerificationInfo,
+    initiatePasswordChange,
+    verifyOtpAndSetPassword,
+    setNewPassword,
+    resendOtp,
+    resetState,
+    maskEmail,
+    maskPhone
+  } = useSecurePasswordChange();
+
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
+  const [availableMethod, setAvailableMethod] = useState<VerificationMethod>('none');
+  const [showNewPasswordDialog, setShowNewPasswordDialog] = useState(false);
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
+  const [destination, setDestination] = useState("");
+
+  // Load user verification info
+  useEffect(() => {
+    const loadVerificationInfo = async () => {
+      const info = await getUserVerificationInfo();
+      setUserEmail(info.email);
+      setUserPhone(info.phone);
+      setAvailableMethod(info.method);
+    };
+    loadVerificationInfo();
+  }, [getUserVerificationInfo]);
+
+  // Handle URL params for email redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'reset') {
+      setShowNewPasswordDialog(true);
+      // Clean URL
+      const newUrl = window.location.pathname + '?tab=privacy';
+      window.history.replaceState({}, '', newUrl);
     }
-    
-    await handleChangePassword();
+  }, []);
+
+  // Open phone dialog when step changes to verify
+  useEffect(() => {
+    if (step === 'verify' && verificationMethod === 'phone') {
+      setShowPhoneDialog(true);
+    }
+  }, [step, verificationMethod]);
+
+  const handleInitiateChange = async () => {
+    const result = await initiatePasswordChange();
+    if (result.success) {
+      setDestination(result.destination || "");
+      
+      if (result.method === 'phone') {
+        setShowPhoneDialog(true);
+      }
+      // For email, user will receive a link and come back
+    }
+  };
+
+  const handlePhoneSubmit = async (otp: string, newPassword: string): Promise<boolean> => {
+    return await verifyOtpAndSetPassword(otp, newPassword);
+  };
+
+  const handleEmailPasswordSubmit = async (password: string): Promise<boolean> => {
+    return await setNewPassword(password);
+  };
+
+  const handlePhoneDialogClose = () => {
+    setShowPhoneDialog(false);
+    resetState();
   };
 
   return (
     <div className="space-y-6">
-      {/* Change Password */}
+      {/* Change Password - New Secure Method */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <Key className="w-5 h-5 text-accent" />
             {t('settings:security.title')}
           </CardTitle>
-          <CardDescription>{t('settings:security.description')}</CardDescription>
+          <CardDescription>
+            {t('settings:security.secure_change_description')}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword" className="text-foreground">{t('settings:security.current_password')}</Label>
-            <div className="relative">
-              <Input
-                id="currentPassword"
-                type={showPasswords.current ? "text" : "password"}
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pe-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                onClick={() => setShowPasswords(prev => ({...prev, current: !prev.current}))}
-              >
-                {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
+          {/* Show available verification method */}
+          {availableMethod !== 'none' ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+                {availableMethod === 'email' ? (
+                  <>
+                    <Mail className="h-5 w-5 text-primary" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {t('settings:security.verify_via_email')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {userEmail && maskEmail(userEmail)}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Phone className="h-5 w-5 text-primary" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {t('settings:security.verify_via_phone')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {userPhone && maskPhone(userPhone)}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="newPassword" className="text-foreground">{t('settings:security.new_password')}</Label>
-            <div className="relative">
-              <Input
-                id="newPassword"
-                type={showPasswords.new ? "text" : "password"}
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pe-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                onClick={() => setShowPasswords(prev => ({...prev, new: !prev.new}))}
-              >
-                {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-foreground">{t('settings:security.confirm_password')}</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showPasswords.confirm ? "text" : "password"}
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                className="bg-background/50 border-border text-foreground pe-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute end-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                onClick={() => setShowPasswords(prev => ({...prev, confirm: !prev.confirm}))}
-              >
-                {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4">
-            <Button onClick={handleSecurePasswordChange} disabled={passwordLoading} className="gap-2">
-              {passwordLoading ? (
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
+              {/* Status messages */}
+              {step === 'sent' && verificationMethod === 'email' && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-primary">
+                  <CheckCircle className="h-5 w-5" />
+                  <p className="text-sm">{t('settings:security.email_sent_check_inbox')}</p>
+                </div>
               )}
-              {t('settings:security.save_password')}
-            </Button>
-          </div>
+
+              <Button 
+                onClick={handleInitiateChange} 
+                disabled={loading || step === 'sent'}
+                className="w-full gap-2"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ShieldCheck className="w-4 h-4" />
+                )}
+                {step === 'sent' 
+                  ? t('settings:security.verification_sent')
+                  : t('settings:security.request_password_change')
+                }
+              </Button>
+
+              {step === 'sent' && verificationMethod === 'email' && (
+                <p className="text-xs text-muted-foreground text-center">
+                  {t('settings:security.didnt_receive_email')}
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="px-1 h-auto"
+                    onClick={() => resetState()}
+                  >
+                    {t('settings:security.try_again')}
+                  </Button>
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">
+                {t('settings:security.no_verification_method_available')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('settings:security.add_email_or_phone_first')}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
-
 
       {/* Account Actions */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
@@ -176,6 +227,26 @@ export function SecurityTab({
           </AlertDialog>
         </CardContent>
       </Card>
+
+      {/* Phone Password Reset Dialog */}
+      <PhonePasswordResetDialog
+        open={showPhoneDialog}
+        onOpenChange={handlePhoneDialogClose}
+        phone={userPhone || ""}
+        maskedPhone={userPhone ? maskPhone(userPhone) : ""}
+        onSubmit={handlePhoneSubmit}
+        onResend={resendOtp}
+        resendCountdown={resendCountdown}
+        loading={loading}
+      />
+
+      {/* Email Password Reset Dialog (after redirect) */}
+      <NewPasswordDialog
+        open={showNewPasswordDialog}
+        onOpenChange={setShowNewPasswordDialog}
+        onSubmit={handleEmailPasswordSubmit}
+        loading={loading}
+      />
     </div>
   );
 }

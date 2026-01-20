@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { useUserSettings } from "@/hooks/useUserSettings";
-import { usePasswordChange } from "@/hooks/usePasswordChange";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
 
@@ -44,7 +43,6 @@ const Settings = () => {
   const [languageCountdown, setLanguageCountdown] = useState(0);
   
   const { settings, saveSettings, loading: settingsLoading } = useUserSettings();
-  const { changePassword, loading: passwordLoading } = usePasswordChange();
   const { uploadProfileImage, uploading } = useProfileImage();
   const { currencies, updateExchangeRates, loading: currencyLoading } = useCurrencies();
   const { adminRoles, hasAnyAdminRole } = useCurrentUserRoles();
@@ -65,12 +63,6 @@ const Settings = () => {
   
   // تتبع الإيميل الأصلي للتحقق من التغيير
   const [originalEmail, setOriginalEmail] = useState("");
-  
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
 
   // Load user profile from Supabase
   useEffect(() => {
@@ -192,26 +184,6 @@ const Settings = () => {
         title: t('common:error'),
         description: t('common:toast.settings_error'),
         variant: "destructive"
-      });
-    }
-  };
-
-  const handleChangePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: t('common:error'),
-        description: t('settings:validation.password_mismatch'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const success = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-    if (success) {
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
       });
     }
   };
@@ -520,10 +492,6 @@ const Settings = () => {
           {/* Privacy/Security Tab */}
           <TabsContent value="privacy" className="space-y-6">
             <SecurityTab
-              passwordData={passwordData}
-              setPasswordData={setPasswordData}
-              handleChangePassword={handleChangePassword}
-              passwordLoading={passwordLoading}
               deleteAccount={deleteAccount}
             />
           </TabsContent>
