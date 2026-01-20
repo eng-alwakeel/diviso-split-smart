@@ -25,8 +25,24 @@ import {
   Settings,
   Bell,
   MessageSquare,
-  ArrowLeft
+  ArrowLeft,
+  Megaphone,
+  RefreshCw,
+  Trash2,
+  Terminal
 } from "lucide-react";
+
+// Ad Components
+import { GoogleAdSense } from "@/components/ads/GoogleAdSense";
+import { AdsterraAd } from "@/components/ads/AdsterraAd";
+import { SimplifiedAdManager } from "@/components/ads/SimplifiedAdManager";
+import { SmartAdManager } from "@/components/ads/SmartAdManager";
+import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
+import { SimpleAdBanner } from "@/components/ads/SimpleAdBanner";
+import { FallbackAds } from "@/components/ads/FallbackAds";
+import { DebugAdPanel } from "@/components/ads/DebugAdPanel";
+import { PaymentwallStatus } from "@/components/ads/PaymentwallStatus";
+import { ENABLE_ADS, ENABLE_AMAZON_ADS, ADSENSE_CONFIG } from "@/lib/adConfig";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useRecommendationSettings } from "@/hooks/useRecommendationSettings";
 import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
@@ -231,10 +247,14 @@ export default function RecommendationTestPage() {
       </div>
 
       <Tabs defaultValue="generate" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="generate">Generate</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="dialogs">Dialogs</TabsTrigger>
+          <TabsTrigger value="ads" className="gap-1">
+            <Megaphone className="h-3 w-3" />
+            Ads
+          </TabsTrigger>
           <TabsTrigger value="debug">Debug</TabsTrigger>
         </TabsList>
 
@@ -529,6 +549,177 @@ export default function RecommendationTestPage() {
               >
                 <MessageSquare className="h-4 w-4" />
                 Open AskRecommendationDialog
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Ads Tab */}
+        <TabsContent value="ads" className="space-y-4">
+          {/* Ad System Status */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                Ad System Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <Badge variant={ENABLE_ADS ? "default" : "secondary"}>
+                    {ENABLE_ADS ? "✅" : "❌"}
+                  </Badge>
+                  <span className="text-sm">Ads System</span>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <Badge variant={ENABLE_AMAZON_ADS ? "default" : "secondary"}>
+                    {ENABLE_AMAZON_ADS ? "✅" : "❌"}
+                  </Badge>
+                  <span className="text-sm">Amazon Ads</span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded font-mono">
+                Publisher ID: {ADSENSE_CONFIG.publisherId}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Debug Panel */}
+          <DebugAdPanel />
+
+          {/* Google AdSense */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <img src="https://www.google.com/favicon.ico" alt="" className="h-4 w-4" />
+                Google AdSense
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GoogleAdSense format="rectangle" className="min-h-[100px] border border-dashed border-muted-foreground/30 rounded" />
+            </CardContent>
+          </Card>
+
+          {/* Adsterra */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Adsterra Ad</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AdsterraAd className="min-h-[100px] border border-dashed border-muted-foreground/30 rounded" />
+            </CardContent>
+          </Card>
+
+          {/* Simplified Ad Manager */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Simplified Ad Manager</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SimplifiedAdManager placement="test_page" showDebug={true} />
+            </CardContent>
+          </Card>
+
+          {/* Smart Ad Manager */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Smart Ad Manager</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SmartAdManager 
+                context={{ type: 'dashboard' }} 
+                placement="test"
+                className="min-h-[100px]"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Simple Ad Banner */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Simple Ad Banner</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SimpleAdBanner />
+            </CardContent>
+          </Card>
+
+          {/* Fallback Ads Grid */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Fallback Ads</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FallbackAds placement="test_1" />
+                <FallbackAds placement="test_2" />
+                <FallbackAds placement="test_3" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Smart Ad Sidebar */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Smart Ad Sidebar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SmartAdSidebar />
+            </CardContent>
+          </Card>
+
+          {/* Paymentwall Status */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Paymentwall Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PaymentwallStatus />
+            </CardContent>
+          </Card>
+
+          {/* Control Buttons */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">أدوات التحكم</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="w-full gap-2"
+                variant="outline"
+              >
+                <RefreshCw className="h-4 w-4" />
+                إعادة تحميل الصفحة
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  localStorage.clear();
+                  toast({ title: "تم مسح بيانات التخزين المحلي" });
+                }} 
+                className="w-full gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                مسح بيانات التخزين المحلي
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  console.log('🎯 Ad State:', {
+                    localStorage: { ...localStorage },
+                    sessionStorage: { ...sessionStorage },
+                    ENABLE_ADS,
+                    ENABLE_AMAZON_ADS,
+                    ADSENSE_CONFIG
+                  });
+                  toast({ title: "تم عرض حالة الإعلانات في Console" });
+                }} 
+                className="w-full gap-2"
+              >
+                <Terminal className="h-4 w-4" />
+                عرض حالة الإعلانات في Console
               </Button>
             </CardContent>
           </Card>
