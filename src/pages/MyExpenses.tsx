@@ -24,7 +24,6 @@ import { useTranslation } from "react-i18next";
 const MyExpenses = () => {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'expenses']);
-  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [selectedExpense, setSelectedExpense] = useState<MyExpense | null>(null);
   const [groups, setGroups] = useState<Array<{ id: string; name: string }>>([]);
   const [activeTab, setActiveTab] = useState("list");
@@ -38,30 +37,9 @@ const MyExpenses = () => {
     hasMore,
     applyFilters,
     loadMore,
-    refreshExpenses
+    refreshExpenses,
+    currentUserId
   } = useMyExpenses();
-
-  // Get current user with better error handling
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          console.error('Error getting user:', error);
-          return;
-        }
-        if (user) {
-          setCurrentUserId(user.id);
-        }
-      } catch (error) {
-        console.error('Failed to get current user:', error);
-      }
-    };
-    
-    // Debounce the user check to avoid rapid calls
-    const timeoutId = setTimeout(getCurrentUser, 100);
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   // Fetch user's groups for filtering
   useEffect(() => {
