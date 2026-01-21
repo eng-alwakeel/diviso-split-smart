@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { 
   ArrowRight, 
   ArrowLeft, 
-  RefreshCw, 
+  FileText, 
   Building2, 
+  Globe, 
   CreditCard, 
-  Coins, 
-  AlertTriangle, 
   Receipt, 
-  Mail 
+  UserCheck, 
+  AlertTriangle, 
+  Edit, 
+  Scale 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
@@ -17,9 +19,9 @@ import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const RefundPolicy = () => {
+const TermsConditions = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation('refund');
+  const { t } = useTranslation('terms');
   const { isRTL } = useLanguage();
 
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
@@ -29,14 +31,14 @@ const RefundPolicy = () => {
       <SEO 
         title={t('seo.title')}
         description={t('seo.description')}
-        canonical="https://diviso.app/refund-policy"
+        canonical="https://diviso.app/terms"
       />
       <AppHeader />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center">
-              <RefreshCw className="h-8 w-8 text-white" />
+              <FileText className="h-8 w-8 text-white" />
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -61,83 +63,120 @@ const RefundPolicy = () => {
                 <h2 className="text-xl font-semibold">{t('sections.company_info.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
+                <p className="text-foreground">{t('sections.company_info.intro')}</p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
                   <li>{t('sections.company_info.items.legal_name')}</li>
                   <li>{t('sections.company_info.items.cr_number')}</li>
                   <li>{t('sections.company_info.items.vat_number')}</li>
+                  <li>{t('sections.company_info.items.country')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* Subscriptions */}
+            {/* Service Nature */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-4 w-4 text-green-600" />
+                  <Globe className="h-4 w-4 text-green-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.subscriptions.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.service_nature.title')}</h2>
+              </div>
+              <div className="bg-muted/50 p-6 rounded-lg space-y-3">
+                <p className="text-foreground">{t('sections.service_nature.content')}</p>
+                <p className="text-muted-foreground text-sm italic">{t('sections.service_nature.note')}</p>
+              </div>
+            </section>
+
+            {/* Subscriptions & Payment */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-4 w-4 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-semibold">{t('sections.subscriptions_payment.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.subscriptions.items.cancel')}</li>
-                  <li>{t('sections.subscriptions.items.auto_renew')}</li>
-                  <li>{t('sections.subscriptions.items.no_refund')}</li>
+                  <li>{t('sections.subscriptions_payment.items.prices_display')}</li>
+                  <li>{t('sections.subscriptions_payment.items.paid_services')}</li>
+                  <li>{t('sections.subscriptions_payment.items.vat')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* Credits */}
+            {/* Invoicing */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
-                  <Coins className="h-4 w-4 text-yellow-600" />
+                  <Receipt className="h-4 w-4 text-yellow-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.credits.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.invoicing.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.credits.items.non_refundable')}</li>
-                  <li>{t('sections.credits.items.no_refund_after_add')}</li>
+                  <li>{t('sections.invoicing.items.invoice_issued')}</li>
+                  <li>{t('sections.invoicing.items.approved_system')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* Technical Errors */}
+            {/* Service Usage */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
+                  <UserCheck className="h-4 w-4 text-teal-600" />
+                </div>
+                <h2 className="text-xl font-semibold">{t('sections.service_usage.title')}</h2>
+              </div>
+              <div className="bg-muted/50 p-6 rounded-lg space-y-3">
+                <p className="text-foreground">{t('sections.service_usage.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.service_usage.items.lawful_use')}</li>
+                  <li>{t('sections.service_usage.items.no_misuse')}</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Liability */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.technical_errors.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.liability.title')}</h2>
               </div>
-              <div className="bg-muted/50 p-6 rounded-lg">
-                <p className="text-muted-foreground">{t('sections.technical_errors.content')}</p>
-              </div>
-            </section>
-
-            {/* Tax Refunds */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                  <Receipt className="h-4 w-4 text-purple-600" />
-                </div>
-                <h2 className="text-xl font-semibold">{t('sections.tax_refunds.title')}</h2>
-              </div>
-              <div className="bg-muted/50 p-6 rounded-lg">
-                <p className="text-muted-foreground">{t('sections.tax_refunds.content')}</p>
+              <div className="bg-muted/50 p-6 rounded-lg space-y-3">
+                <p className="text-foreground">{t('sections.liability.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.liability.items.user_errors')}</li>
+                  <li>{t('sections.liability.items.external_disputes')}</li>
+                </ul>
               </div>
             </section>
 
-            {/* Contact */}
+            {/* Amendments */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
-                  <Mail className="h-4 w-4 text-pink-600" />
+                  <Edit className="h-4 w-4 text-pink-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.contact.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.amendments.title')}</h2>
               </div>
-              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg">
-                <p className="text-muted-foreground">{t('sections.contact.content')}</p>
+              <div className="bg-muted/50 p-6 rounded-lg">
+                <p className="text-muted-foreground">{t('sections.amendments.content')}</p>
+              </div>
+            </section>
+
+            {/* Governing Law */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
+                  <Scale className="h-4 w-4 text-indigo-600" />
+                </div>
+                <h2 className="text-xl font-semibold">{t('sections.governing_law.title')}</h2>
+              </div>
+              <div className="bg-muted/50 p-6 rounded-lg">
+                <p className="text-muted-foreground">{t('sections.governing_law.content')}</p>
               </div>
             </section>
           </CardContent>
@@ -158,4 +197,4 @@ const RefundPolicy = () => {
   );
 };
 
-export default RefundPolicy;
+export default TermsConditions;

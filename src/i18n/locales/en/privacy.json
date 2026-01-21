@@ -1,61 +1,61 @@
 {
   "title": "Privacy Policy",
-  "description": "We are committed to protecting your privacy and complying with the Personal Data Protection Law (PDPL) in Saudi Arabia",
+  "description": "We are committed to protecting your privacy and complying with the regulations of the Kingdom of Saudi Arabia",
   "seo": {
-    "title": "Privacy Policy",
-    "description": "Read the Diviso app privacy policy. We are committed to protecting your privacy and complying with the Personal Data Protection Law (PDPL) in Saudi Arabia."
+    "title": "Privacy Policy | Diviso",
+    "description": "Read the Diviso app privacy policy. We are committed to protecting your privacy and complying with the regulations of the Kingdom of Saudi Arabia."
   },
   "sections": {
-    "data_collection": {
-      "title": "1. Data We Collect",
-      "intro": "When using the app, we may ask you to provide the following information:",
+    "company_info": {
+      "title": "1. Company Information",
+      "intro": "This website and application are operated by:",
       "items": {
-        "name": "Full name",
-        "phone": "Phone number",
-        "email": "Email address"
+        "legal_name": "Legal Name: Takamel Albinna Commercial Establishment",
+        "entity_type": "Legal Entity Type: Establishment",
+        "cr_number": "Commercial Registration Number: 7009435244",
+        "country": "Country: Kingdom of Saudi Arabia"
       }
     },
-    "data_usage": {
-      "title": "2. How We Use Data",
-      "intro": "We use your personal data for the following purposes only:",
+    "data_collection": {
+      "title": "2. Data Collection and Use",
+      "intro": "We collect and use users' personal data solely for the purpose of providing and improving the services offered through the platform, including but not limited to:",
       "items": {
-        "account": "Creating your account in the app",
-        "communication": "Communicating with you about updates or services",
-        "experience": "Improving your experience within the app"
-      }
+        "account": "Account creation",
+        "subscriptions": "Subscription management",
+        "payments": "Payment processing",
+        "support": "Technical support",
+        "experience": "Improving user experience"
+      },
+      "note": "Personal data is not used for any unauthorized purposes."
+    },
+    "data_sharing": {
+      "title": "3. Data Sharing",
+      "intro": "We do not sell or rent users' personal data to third parties. Data may only be shared with:",
+      "items": {
+        "payment_providers": "Payment service providers",
+        "tech_providers": "Technical service providers"
+      },
+      "note": "This is done strictly to the extent necessary to deliver the service and in compliance with applicable regulations in the Kingdom of Saudi Arabia."
     },
     "data_protection": {
-      "title": "3. Data Protection",
-      "items": {
-        "storage": "Your data is stored in a secure environment",
-        "security": "We use appropriate technical measures to protect it from unauthorized access, modification, or disclosure",
-        "sharing": "We do not share your data with any third party unless required by law or with your prior consent"
-      }
+      "title": "4. Data Protection",
+      "content": "We are committed to implementing appropriate technical and organizational measures to protect personal data against unauthorized access, loss, misuse, or alteration."
     },
     "your_rights": {
-      "title": "4. Your Rights",
-      "intro": "Under the Personal Data Protection Law (PDPL), you have the right to:",
+      "title": "5. User Rights",
+      "intro": "Users have the right to:",
       "items": {
-        "view": "View your personal data",
-        "modify": "Request modification or update",
-        "delete": "Request deletion whenever you wish"
+        "access": "Request access to their personal data",
+        "modify": "Request correction or deletion of their data",
+        "cancel": "Cancel their account"
       }
     },
-    "consent": {
-      "title": "5. Your Consent",
-      "content": "By using the app, you consent to the collection and use of your data in accordance with this policy."
-    },
-    "modifications": {
-      "title": "6. Modifications",
-      "content": "We may update the privacy policy from time to time, and you will be notified of any significant changes via the app or email."
-    },
-    "contact": {
-      "title": "7. Contact Us",
-      "intro": "If you have any questions about this policy or the use of your data, you can contact us via:",
-      "email": "Email: support@diviso.app",
-      "phone": "Phone: +966500000000"
+    "governing_law": {
+      "title": "6. Governing Law",
+      "content": "This Privacy Policy is governed by the laws and regulations of the Kingdom of Saudi Arabia."
     }
   },
   "last_updated": "Last updated",
-  "back": "Back"
+  "last_updated_date": "January 2026",
+  "back": "Go Back"
 }

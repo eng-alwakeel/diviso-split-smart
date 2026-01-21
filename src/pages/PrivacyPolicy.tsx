@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ArrowLeft, Shield, Users, Lock, Eye, Edit, FileText } from "lucide-react";
+import { ArrowRight, ArrowLeft, Shield, Building2, Database, Share2, Lock, UserCheck, Scale } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
 import { SEO } from "@/components/SEO";
@@ -35,136 +35,118 @@ const PrivacyPolicy = () => {
           <p className="text-muted-foreground">
             {t('description')}
           </p>
+          <p className="text-sm text-muted-foreground">
+            {t('last_updated')}: {t('last_updated_date')}
+          </p>
         </div>
 
         <Card>
           <CardContent className="p-8 space-y-8">
-            {/* Data Collection */}
+            {/* Company Info */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                  <Users className="h-4 w-4 text-blue-600" />
+                  <Building2 className="h-4 w-4 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold">{t('sections.company_info.title')}</h2>
+              </div>
+              <div className="bg-muted/50 p-6 rounded-lg space-y-3">
+                <p className="text-foreground">{t('sections.company_info.intro')}</p>
+                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
+                  <li>{t('sections.company_info.items.legal_name')}</li>
+                  <li>{t('sections.company_info.items.entity_type')}</li>
+                  <li>{t('sections.company_info.items.cr_number')}</li>
+                  <li>{t('sections.company_info.items.country')}</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Data Collection */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                  <Database className="h-4 w-4 text-green-600" />
                 </div>
                 <h2 className="text-xl font-semibold">{t('sections.data_collection.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
                 <p className="text-foreground">{t('sections.data_collection.intro')}</p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.data_collection.items.name')}</li>
-                  <li>{t('sections.data_collection.items.phone')}</li>
-                  <li>{t('sections.data_collection.items.email')}</li>
+                  <li>{t('sections.data_collection.items.account')}</li>
+                  <li>{t('sections.data_collection.items.subscriptions')}</li>
+                  <li>{t('sections.data_collection.items.payments')}</li>
+                  <li>{t('sections.data_collection.items.support')}</li>
+                  <li>{t('sections.data_collection.items.experience')}</li>
                 </ul>
+                <p className="text-muted-foreground text-sm italic mt-4">{t('sections.data_collection.note')}</p>
               </div>
             </section>
 
-            {/* Data Usage */}
+            {/* Data Sharing */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-green-600" />
+                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+                  <Share2 className="h-4 w-4 text-purple-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.data_usage.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.data_sharing.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <p className="text-foreground">{t('sections.data_usage.intro')}</p>
+                <p className="text-foreground">{t('sections.data_sharing.intro')}</p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.data_usage.items.account')}</li>
-                  <li>{t('sections.data_usage.items.communication')}</li>
-                  <li>{t('sections.data_usage.items.experience')}</li>
+                  <li>{t('sections.data_sharing.items.payment_providers')}</li>
+                  <li>{t('sections.data_sharing.items.tech_providers')}</li>
                 </ul>
+                <p className="text-muted-foreground text-sm italic mt-4">{t('sections.data_sharing.note')}</p>
               </div>
             </section>
 
             {/* Data Protection */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                  <Lock className="h-4 w-4 text-purple-600" />
+                <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                  <Lock className="h-4 w-4 text-orange-600" />
                 </div>
                 <h2 className="text-xl font-semibold">{t('sections.data_protection.title')}</h2>
               </div>
-              <div className="bg-muted/50 p-6 rounded-lg space-y-3">
-                <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.data_protection.items.storage')}</li>
-                  <li>{t('sections.data_protection.items.security')}</li>
-                  <li>{t('sections.data_protection.items.sharing')}</li>
-                </ul>
+              <div className="bg-muted/50 p-6 rounded-lg">
+                <p className="text-muted-foreground">
+                  {t('sections.data_protection.content')}
+                </p>
               </div>
             </section>
 
             {/* Your Rights */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                  <Eye className="h-4 w-4 text-orange-600" />
+                <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
+                  <UserCheck className="h-4 w-4 text-teal-600" />
                 </div>
                 <h2 className="text-xl font-semibold">{t('sections.your_rights.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
                 <p className="text-foreground">{t('sections.your_rights.intro')}</p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ps-4">
-                  <li>{t('sections.your_rights.items.view')}</li>
+                  <li>{t('sections.your_rights.items.access')}</li>
                   <li>{t('sections.your_rights.items.modify')}</li>
-                  <li>{t('sections.your_rights.items.delete')}</li>
+                  <li>{t('sections.your_rights.items.cancel')}</li>
                 </ul>
               </div>
             </section>
 
-            {/* Consent */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center">
-                  <Shield className="h-4 w-4 text-teal-600" />
-                </div>
-                <h2 className="text-xl font-semibold">{t('sections.consent.title')}</h2>
-              </div>
-              <div className="bg-muted/50 p-6 rounded-lg">
-                <p className="text-muted-foreground">
-                  {t('sections.consent.content')}
-                </p>
-              </div>
-            </section>
-
-            {/* Modifications */}
+            {/* Governing Law */}
             <section className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
-                  <Edit className="h-4 w-4 text-indigo-600" />
+                  <Scale className="h-4 w-4 text-indigo-600" />
                 </div>
-                <h2 className="text-xl font-semibold">{t('sections.modifications.title')}</h2>
+                <h2 className="text-xl font-semibold">{t('sections.governing_law.title')}</h2>
               </div>
               <div className="bg-muted/50 p-6 rounded-lg">
                 <p className="text-muted-foreground">
-                  {t('sections.modifications.content')}
+                  {t('sections.governing_law.content')}
                 </p>
               </div>
             </section>
-
-            {/* Contact */}
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-pink-600" />
-                </div>
-                <h2 className="text-xl font-semibold">{t('sections.contact.title')}</h2>
-              </div>
-              <div className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-lg">
-                <p className="text-foreground mb-4">
-                  {t('sections.contact.intro')}
-                </p>
-                <div className="space-y-2 text-muted-foreground">
-                  <p>{t('sections.contact.email')}</p>
-                  <p>{t('sections.contact.phone')}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Last Updated */}
-            <div className="text-center pt-8 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                {t('last_updated')}: {new Date().toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
-              </p>
-            </div>
           </CardContent>
         </Card>
 

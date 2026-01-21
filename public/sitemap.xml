@@ -26,7 +26,19 @@
   <!-- صفحة سياسة الخصوصية -->
   <url>
     <loc>https://diviso.app/privacy-policy</loc>
-    <lastmod>2026-01-18</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/privacy-policy" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/privacy-policy?lang=en" />
+    <lastmod>2026-01-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- صفحة الشروط والأحكام -->
+  <url>
+    <loc>https://diviso.app/terms</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/terms" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/terms?lang=en" />
+    <lastmod>2026-01-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -36,7 +48,7 @@
     <loc>https://diviso.app/refund-policy</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/refund-policy" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/refund-policy?lang=en" />
-    <lastmod>2026-01-20</lastmod>
+    <lastmod>2026-01-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
