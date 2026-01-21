@@ -1,0 +1,67 @@
+{
+  "title": "Terms & Conditions",
+  "description": "Terms and Conditions for using Diviso app",
+  "seo": {
+    "title": "Terms & Conditions | Diviso",
+    "description": "Read the Terms and Conditions for using Diviso app. Information about service nature, subscriptions, payments, and invoicing."
+  },
+  "last_updated": "Last updated",
+  "last_updated_date": "January 2026",
+  "back": "Go Back",
+  "sections": {
+    "company_info": {
+      "title": "1. Company Details",
+      "intro": "Services are provided by:",
+      "items": {
+        "legal_name": "Legal Name: Takamel Albinna Commercial Establishment",
+        "cr_number": "Commercial Registration Number: 7009435244",
+        "vat_number": "VAT Registration Number: 310137963800003",
+        "country": "Country: Kingdom of Saudi Arabia"
+      }
+    },
+    "service_nature": {
+      "title": "2. Nature of the Service",
+      "content": "The platform provides digital tools for managing and splitting shared expenses between users.",
+      "note": "The platform is not a financial institution and does not provide financial advice or guarantee any savings or financial outcomes."
+    },
+    "subscriptions_payment": {
+      "title": "3. Subscriptions and Payments",
+      "items": {
+        "prices_display": "All prices are clearly displayed before payment completion.",
+        "paid_services": "Certain services require a paid subscription or the purchase of credits.",
+        "vat": "All payments are subject to Value Added Tax (VAT) in accordance with applicable regulations."
+      }
+    },
+    "invoicing": {
+      "title": "4. Invoicing",
+      "items": {
+        "invoice_issued": "A tax invoice is issued for every paid transaction.",
+        "approved_system": "Invoices are issued through an approved accounting system integrated with the Zakat, Tax and Customs Authority."
+      }
+    },
+    "service_usage": {
+      "title": "5. Use of the Service",
+      "intro": "Users agree to:",
+      "items": {
+        "lawful_use": "Use the service for lawful purposes only",
+        "no_misuse": "Refrain from misuse or exploitation of the platform in any form"
+      }
+    },
+    "liability": {
+      "title": "6. Limitation of Liability",
+      "intro": "The establishment shall not be liable for:",
+      "items": {
+        "user_errors": "Errors resulting from incorrect data entered by users",
+        "external_disputes": "Any financial disputes between parties outside the platform"
+      }
+    },
+    "amendments": {
+      "title": "7. Amendments",
+      "content": "The establishment reserves the right to amend these Terms & Conditions at any time. Continued use of the service constitutes acceptance of such amendments."
+    },
+    "governing_law": {
+      "title": "8. Governing Law and Jurisdiction",
+      "content": "These Terms & Conditions are governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia."
+    }
+  }
+}

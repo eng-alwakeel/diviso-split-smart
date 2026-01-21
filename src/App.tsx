@@ -41,6 +41,7 @@ const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
 const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
 const LazyPrivacyPolicy = withLazyLoading(lazy(() => import("./pages/PrivacyPolicy")));
 const LazyRefundPolicy = withLazyLoading(lazy(() => import("./pages/RefundPolicy")));
+const LazyTermsConditions = withLazyLoading(lazy(() => import("./pages/TermsConditions")));
 const LazyFAQ = withLazyLoading(lazy(() => import("./pages/FAQ")));
 const LazyHowItWorks = withLazyLoading(lazy(() => import("./pages/HowItWorks")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
@@ -97,6 +98,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
             <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
             <Route path="/refund-policy" element={<LazyRefundPolicy />} />
+            <Route path="/terms" element={<LazyTermsConditions />} />
             <Route path="/faq" element={<LazyFAQ />} />
             <Route path="/how-it-works" element={<LazyHowItWorks />} />
             <Route path="/blog" element={<LazyBlog />} />

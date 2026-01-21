@@ -22,6 +22,7 @@ import arCredits from './locales/ar/credits.json';
 import arSupport from './locales/ar/support.json';
 import arBlog from './locales/ar/blog.json';
 import arRefund from './locales/ar/refund.json';
+import arTerms from './locales/ar/terms.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
@@ -44,6 +45,7 @@ import enCredits from './locales/en/credits.json';
 import enSupport from './locales/en/support.json';
 import enBlog from './locales/en/blog.json';
 import enRefund from './locales/en/refund.json';
+import enTerms from './locales/en/terms.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -82,7 +84,8 @@ i18n
         credits: arCredits,
         support: arSupport,
         blog: arBlog,
-        refund: arRefund
+        refund: arRefund,
+        terms: arTerms
       },
       en: {
         common: enCommon,
@@ -104,13 +107,14 @@ i18n
         credits: enCredits,
         support: enSupport,
         blog: enBlog,
-        refund: enRefund
+        refund: enRefund,
+        terms: enTerms
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations', 'referral', 'budget', 'privacy', 'credits', 'support', 'blog', 'refund'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations', 'referral', 'budget', 'privacy', 'credits', 'support', 'blog', 'refund', 'terms'],
     interpolation: {
       escapeValue: false
     },
