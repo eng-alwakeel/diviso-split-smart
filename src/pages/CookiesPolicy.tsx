@@ -15,7 +15,7 @@ import {
   Mail 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AppHeader } from "@/components/AppHeader";
+import { Header } from "@/components/Header";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -34,7 +34,7 @@ const CookiesPolicy = () => {
         description={t('seo.description')}
         canonical="https://diviso.app/cookies"
       />
-      <AppHeader />
+      <Header />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
