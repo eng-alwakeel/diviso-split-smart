@@ -4723,15 +4723,15 @@ export type Database = {
         Returns: number
       }
       complete_credit_purchase: {
-        Args: { p_payment_reference: string; p_purchase_id: string }
-        Returns: boolean
+        Args: { p_payment_reference?: string; p_purchase_id: string }
+        Returns: Json
       }
       complete_onboarding_task: {
         Args: { p_task_name: string; p_user_id: string }
         Returns: Json
       }
       complete_subscription_purchase: {
-        Args: { p_payment_reference: string; p_purchase_id: string }
+        Args: { p_payment_reference?: string; p_purchase_id: string }
         Returns: Json
       }
       consume_credits: {
@@ -4763,6 +4763,19 @@ export type Database = {
           max_uses: number
           token: string
         }[]
+      }
+      create_invoice_for_purchase: {
+        Args: {
+          p_amount: number
+          p_billing_cycle?: string
+          p_description: string
+          p_description_ar: string
+          p_payment_reference?: string
+          p_purchase_id: string
+          p_purchase_type: string
+          p_user_id: string
+        }
+        Returns: string
       }
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
