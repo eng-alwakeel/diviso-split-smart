@@ -1,0 +1,67 @@
+{
+  "title": "Cookies Policy",
+  "description": "Cookies Policy for Diviso app",
+  "seo": {
+    "title": "Cookies Policy | Diviso",
+    "description": "Learn how we use cookies in Diviso app and how to manage them."
+  },
+  "last_updated": "Last updated",
+  "last_updated_date": "January 2026",
+  "back": "Go Back",
+  "sections": {
+    "what_are_cookies": {
+      "title": "1. What Are Cookies?",
+      "content": "Cookies are small text files stored on your device when you visit our website or use our application. These files help us improve your experience and remember your preferences."
+    },
+    "types_of_cookies": {
+      "title": "2. Types of Cookies We Use",
+      "essential": {
+        "title": "a. Essential Cookies",
+        "content": "These cookies are necessary for the website and application to function properly. They include:",
+        "items": {
+          "session": "Session cookies for login",
+          "preferences": "Language and settings preferences",
+          "security": "Security and authentication cookies"
+        }
+      },
+      "analytics": {
+        "title": "b. Analytics Cookies",
+        "content": "We use these cookies to understand how visitors use our website and to improve our services."
+      },
+      "advertising": {
+        "title": "c. Advertising Cookies",
+        "content": "We use third-party advertising services (such as Google AdSense) that may use cookies to display personalized ads based on your interests."
+      }
+    },
+    "third_party": {
+      "title": "3. Third-Party Cookies",
+      "content": "Cookies may be placed by third parties when you use our services, including:",
+      "items": {
+        "google_adsense": "Google AdSense for advertising",
+        "analytics": "Analytics services"
+      },
+      "note": "These services have their own privacy policies and we recommend reviewing them."
+    },
+    "manage_cookies": {
+      "title": "4. How to Manage Cookies",
+      "content": "You can control cookies through:",
+      "items": {
+        "browser": "Browser settings: You can delete or block cookies",
+        "app_settings": "App settings: You can modify ad preferences"
+      },
+      "warning": "Warning: Blocking some cookies may affect website functionality."
+    },
+    "consent": {
+      "title": "5. Your Consent",
+      "content": "By using our website and application, you consent to the use of cookies in accordance with this policy."
+    },
+    "updates": {
+      "title": "6. Policy Updates",
+      "content": "We may update this policy from time to time. Any changes will be posted on this page."
+    },
+    "contact": {
+      "title": "7. Contact",
+      "content": "For any inquiries about our cookies policy, you may contact us through the official support channels within the platform."
+    }
+  }
+}

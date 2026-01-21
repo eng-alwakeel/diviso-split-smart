@@ -53,6 +53,16 @@
     <priority>0.5</priority>
   </url>
   
+  <!-- صفحة سياسة ملفات تعريف الارتباط -->
+  <url>
+    <loc>https://diviso.app/cookies</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/cookies" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/cookies?lang=en" />
+    <lastmod>2026-01-21</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
   <!-- صفحة تسجيل الدخول -->
   <url>
     <loc>https://diviso.app/auth</loc>

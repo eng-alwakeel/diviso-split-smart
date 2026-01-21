@@ -42,6 +42,7 @@ const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSi
 const LazyPrivacyPolicy = withLazyLoading(lazy(() => import("./pages/PrivacyPolicy")));
 const LazyRefundPolicy = withLazyLoading(lazy(() => import("./pages/RefundPolicy")));
 const LazyTermsConditions = withLazyLoading(lazy(() => import("./pages/TermsConditions")));
+const LazyCookiesPolicy = withLazyLoading(lazy(() => import("./pages/CookiesPolicy")));
 const LazyFAQ = withLazyLoading(lazy(() => import("./pages/FAQ")));
 const LazyHowItWorks = withLazyLoading(lazy(() => import("./pages/HowItWorks")));
 const LazyAdminDashboard = withLazyLoading(lazy(() => import("./pages/AdminDashboard")));
@@ -99,6 +100,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
             <Route path="/refund-policy" element={<LazyRefundPolicy />} />
             <Route path="/terms" element={<LazyTermsConditions />} />
+            <Route path="/cookies" element={<LazyCookiesPolicy />} />
             <Route path="/faq" element={<LazyFAQ />} />
             <Route path="/how-it-works" element={<LazyHowItWorks />} />
             <Route path="/blog" element={<LazyBlog />} />

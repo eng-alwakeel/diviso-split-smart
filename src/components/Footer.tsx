@@ -64,6 +64,9 @@ export const Footer = () => {
               <Link to="/refund-policy" className="block hover:text-foreground transition-colors text-sm">
                 {t('footer.refund')}
               </Link>
+              <Link to="/cookies" className="block hover:text-foreground transition-colors text-sm">
+                {t('footer.cookies')}
+              </Link>
             </div>
           </div>
 
