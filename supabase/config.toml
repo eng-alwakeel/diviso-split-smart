@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.test-odoo-connection]
 verify_jwt = false
+
+[functions.odoo-create-invoice]
+verify_jwt = false
