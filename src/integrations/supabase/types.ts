@@ -2596,6 +2596,7 @@ export type Database = {
           is_banned: boolean | null
           last_admin_action_at: string | null
           name: string | null
+          odoo_partner_id: number | null
           phone: string | null
           privacy_policy_accepted_at: string | null
           updated_at: string
@@ -2612,6 +2613,7 @@ export type Database = {
           is_banned?: boolean | null
           last_admin_action_at?: string | null
           name?: string | null
+          odoo_partner_id?: number | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
           updated_at?: string
@@ -2628,6 +2630,7 @@ export type Database = {
           is_banned?: boolean | null
           last_admin_action_at?: string | null
           name?: string | null
+          odoo_partner_id?: number | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
           updated_at?: string
