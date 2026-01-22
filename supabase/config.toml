@@ -68,3 +68,9 @@ verify_jwt = false
 
 [functions.test-odoo-invoice]
 verify_jwt = false
+
+[functions.generate-invoice-pdf]
+verify_jwt = false
+
+[functions.send-invoice-email]
+verify_jwt = true

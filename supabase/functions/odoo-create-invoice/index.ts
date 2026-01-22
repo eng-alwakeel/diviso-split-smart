@@ -174,10 +174,18 @@ function parseXmlValue(xml: string): any {
   return xml;
 }
 
+// Check if user is Saudi based on phone number
+function isSaudiUser(phone: string | null): boolean {
+  if (!phone) return false;
+  // Saudi phone codes: +966 or 00966
+  const cleanPhone = phone.replace(/\s/g, '');
+  return cleanPhone.startsWith('+966') || cleanPhone.startsWith('00966');
+}
+
 interface InvoiceRequest {
   user_id: string;
   purchase_type: 'subscription_monthly' | 'subscription_annual' | 'credits_pack';
-  amount: number; // Amount in SAR (excluding VAT)
+  amount: number; // Amount in SAR (TAX-INCLUSIVE - the final price user pays)
   description?: string;
   payment_reference?: string;
   credit_purchase_id?: string;
@@ -255,6 +263,40 @@ serve(async (req) => {
     const userEmail = authUser?.user?.email;
 
     console.log('User profile:', { name: profile.name, phone: profile.phone, email: userEmail });
+
+    // Determine if user is Saudi (affects VAT and QR code)
+    const isSaudi = isSaudiUser(profile.phone);
+    console.log('User is Saudi:', isSaudi, '(phone:', profile.phone, ')');
+
+    // Calculate amounts based on tax-inclusive pricing
+    // The amount parameter is what the user pays (total including VAT for Saudi users)
+    let amountExclVat: number;
+    let vatAmount: number;
+    let vatRate: number;
+    let amountInclVat: number;
+
+    if (isSaudi) {
+      // Saudi users: 15% VAT included in price
+      vatRate = 0.15;
+      amountInclVat = amount;
+      amountExclVat = amount / (1 + vatRate); // Extract subtotal from tax-inclusive price
+      vatAmount = amountInclVat - amountExclVat;
+    } else {
+      // Non-Saudi users: No VAT, full amount is service fee
+      vatRate = 0;
+      amountExclVat = amount;
+      vatAmount = 0;
+      amountInclVat = amount;
+    }
+
+    console.log('Amount calculation:', {
+      isSaudi,
+      inputAmount: amount,
+      amountExclVat: amountExclVat.toFixed(2),
+      vatRate,
+      vatAmount: vatAmount.toFixed(2),
+      amountInclVat: amountInclVat.toFixed(2),
+    });
 
     // Authenticate with Odoo
     console.log('Authenticating with Odoo...');
@@ -345,16 +387,28 @@ serve(async (req) => {
 
     // Step 3: Create invoice (account.move)
     console.log('Creating invoice in Odoo...');
-    const vatRate = 0.15;
-    const amountExclVat = amount;
-    const vatAmount = amountExclVat * vatRate;
-    const amountInclVat = amountExclVat + vatAmount;
 
     const invoiceLineDescription = description || {
       'subscription_monthly': 'Diviso Monthly Subscription / اشتراك ديفيزو الشهري',
       'subscription_annual': 'Diviso Annual Subscription / اشتراك ديفيزو السنوي',
       'credits_pack': 'Diviso Credits Pack / رصيد ديفيزو',
     }[purchase_type];
+
+    // Build invoice line - only include VAT tax for Saudi users
+    const invoiceLine: any = {
+      product_id: productVariantId,
+      name: invoiceLineDescription,
+      quantity: 1,
+      price_unit: amountExclVat,
+    };
+
+    // Only add VAT tax for Saudi users
+    if (isSaudi && vatTaxId) {
+      invoiceLine.tax_ids = [[6, 0, [vatTaxId]]];
+    } else {
+      // Explicitly set no taxes for non-Saudi
+      invoiceLine.tax_ids = [[6, 0, []]];
+    }
 
     const invoiceData: any = {
       move_type: 'out_invoice',
@@ -363,15 +417,7 @@ serve(async (req) => {
       journal_id: salesJournalId,
       invoice_date: new Date().toISOString().split('T')[0],
       ref: payment_reference || `DIV-${Date.now()}`,
-      invoice_line_ids: [
-        [0, 0, {
-          product_id: productVariantId,
-          name: invoiceLineDescription,
-          quantity: 1,
-          price_unit: amountExclVat,
-          tax_ids: vatTaxId ? [[6, 0, [vatTaxId]]] : undefined,
-        }]
-      ],
+      invoice_line_ids: [[0, 0, invoiceLine]],
     };
 
     const invoiceId = await xmlRpcCall(objectUrl, 'execute_kw', [
@@ -383,6 +429,7 @@ serve(async (req) => {
 
     // Step 4: Post/validate the invoice to generate sequence number and ZATCA data
     // Skip posting if draft_only flag is set (for testing without hitting live ZATCA)
+    // Also skip ZATCA QR generation for non-Saudi (they won't have QR anyway)
     if (!draft_only) {
       console.log('Posting invoice...');
       await xmlRpcCall(objectUrl, 'execute_kw', [
@@ -413,11 +460,17 @@ serve(async (req) => {
 
     // Step 6: Update local invoice record if exists
     if (credit_purchase_id || subscription_id) {
-      // Store both qr_payload (raw) and qr_base64 (for display)
-      const qrData = invoice.l10n_sa_qr_code_str || null;
+      // Only store QR data for Saudi users (non-Saudi won't have ZATCA QR)
+      const qrData = isSaudi ? (invoice.l10n_sa_qr_code_str || null) : null;
+      
       const updateData: any = {
         qr_payload: qrData,
-        qr_base64: qrData, // The l10n_sa_qr_code_str is already base64 encoded
+        qr_base64: qrData,
+        // Update VAT fields based on Saudi status
+        vat_rate: vatRate,
+        total_excl_vat: parseFloat(amountExclVat.toFixed(2)),
+        total_vat: parseFloat(vatAmount.toFixed(2)),
+        total_incl_vat: parseFloat(amountInclVat.toFixed(2)),
         updated_at: new Date().toISOString(),
       };
 
@@ -434,13 +487,15 @@ serve(async (req) => {
       if (updateError) {
         console.warn('Failed to update local invoice:', updateError);
       } else {
-        console.log('Updated local invoice with Odoo QR data (qr_payload + qr_base64)');
+        console.log('Updated local invoice with correct VAT data (isSaudi:', isSaudi, ')');
       }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
+        is_saudi: isSaudi,
+        vat_applied: isSaudi,
         odoo_invoice: {
           id: invoice.id,
           number: invoice.name,
@@ -449,9 +504,16 @@ serve(async (req) => {
           amount_tax: invoice.amount_tax,
           amount_total: invoice.amount_total,
           invoice_date: invoice.invoice_date,
-          qr_code: invoice.l10n_sa_qr_code_str,
+          qr_code: isSaudi ? invoice.l10n_sa_qr_code_str : null,
         },
         partner_id: partnerId,
+        calculation: {
+          input_amount: amount,
+          amount_excl_vat: parseFloat(amountExclVat.toFixed(2)),
+          vat_rate: vatRate,
+          vat_amount: parseFloat(vatAmount.toFixed(2)),
+          amount_incl_vat: parseFloat(amountInclVat.toFixed(2)),
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
