@@ -182,6 +182,7 @@ interface InvoiceRequest {
   payment_reference?: string;
   credit_purchase_id?: string;
   subscription_id?: string;
+  draft_only?: boolean; // If true, don't post invoice (for testing)
 }
 
 serve(async (req) => {
@@ -215,7 +216,7 @@ serve(async (req) => {
 
     // Parse request body
     const body: InvoiceRequest = await req.json();
-    const { user_id, purchase_type, amount, description, payment_reference, credit_purchase_id, subscription_id } = body;
+    const { user_id, purchase_type, amount, description, payment_reference, credit_purchase_id, subscription_id, draft_only } = body;
 
     if (!user_id || !purchase_type || !amount) {
       return new Response(
@@ -381,13 +382,18 @@ serve(async (req) => {
     console.log('Created invoice ID:', invoiceId);
 
     // Step 4: Post/validate the invoice to generate sequence number and ZATCA data
-    console.log('Posting invoice...');
-    await xmlRpcCall(objectUrl, 'execute_kw', [
-      odooDb, uid, odooApiKey,
-      'account.move', 'action_post',
-      [[invoiceId]]
-    ]);
-    console.log('Invoice posted successfully');
+    // Skip posting if draft_only flag is set (for testing without hitting live ZATCA)
+    if (!draft_only) {
+      console.log('Posting invoice...');
+      await xmlRpcCall(objectUrl, 'execute_kw', [
+        odooDb, uid, odooApiKey,
+        'account.move', 'action_post',
+        [[invoiceId]]
+      ]);
+      console.log('Invoice posted successfully');
+    } else {
+      console.log('Skipping invoice posting (draft_only mode)');
+    }
 
     // Step 5: Fetch the final invoice data
     console.log('Fetching invoice details...');
@@ -407,8 +413,11 @@ serve(async (req) => {
 
     // Step 6: Update local invoice record if exists
     if (credit_purchase_id || subscription_id) {
+      // Store both qr_payload (raw) and qr_base64 (for display)
+      const qrData = invoice.l10n_sa_qr_code_str || null;
       const updateData: any = {
-        qr_payload: invoice.l10n_sa_qr_code_str || null,
+        qr_payload: qrData,
+        qr_base64: qrData, // The l10n_sa_qr_code_str is already base64 encoded
         updated_at: new Date().toISOString(),
       };
 
@@ -425,7 +434,7 @@ serve(async (req) => {
       if (updateError) {
         console.warn('Failed to update local invoice:', updateError);
       } else {
-        console.log('Updated local invoice with Odoo QR data');
+        console.log('Updated local invoice with Odoo QR data (qr_payload + qr_base64)');
       }
     }
 
