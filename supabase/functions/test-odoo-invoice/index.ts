@@ -22,16 +22,18 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const testUserId = body.user_id; // Optional: use a real user ID for testing
     const purchaseType = body.purchase_type || 'subscription_monthly'; // or 'subscription_annual', 'credits_pack'
-    const amountInSAR = body.amount || 19; // Amount in SAR (NOT halalas)
+    // Amount is now TAX-INCLUSIVE (what the user actually pays)
+    const amountInclVat = body.amount || 21.85; // Default: 19 SAR + 15% VAT = 21.85 SAR
     const draftOnly = body.draft_only !== false; // Default to true for testing
+    const sendEmail = body.send_email === true; // Default to false
 
-    console.log('Test parameters:', { testUserId, purchaseType, amountInSAR, draftOnly });
+    console.log('Test parameters:', { testUserId, purchaseType, amountInclVat, draftOnly, sendEmail });
 
     // Step 1: Get or create test data
     let userId = testUserId;
     let userEmail = 'test@example.com';
     let userName = 'Test User';
-    let userPhone = '+966500000000';
+    let userPhone = '+966500000000'; // Default to Saudi number
 
     if (testUserId) {
       // Fetch real user data
@@ -46,7 +48,13 @@ serve(async (req) => {
         userEmail = profile.email || userEmail;
         userName = profile.name || userName;
         userPhone = profile.phone || userPhone;
-        console.log('Using real user:', { userId, userEmail, userName });
+        console.log('Using real user:', { userId, userEmail, userName, userPhone });
+      }
+
+      // Get auth email
+      const { data: authUser } = await supabase.auth.admin.getUserById(testUserId);
+      if (authUser?.user?.email) {
+        userEmail = authUser.user.email;
       }
     }
 
@@ -57,20 +65,49 @@ serve(async (req) => {
           example: {
             user_id: 'your-uuid-here',
             purchase_type: 'subscription_monthly',
-            amount: 19,
-            draft_only: true
+            amount: 21.85, // TAX-INCLUSIVE amount
+            draft_only: true,
+            send_email: false
           }
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Determine if Saudi user (affects VAT calculation)
+    const isSaudi = userPhone && (userPhone.startsWith('+966') || userPhone.startsWith('00966'));
+    
+    // Calculate amounts based on tax-inclusive input
+    let subtotal: number;
+    let vatRate: number;
+    let vatAmount: number;
+    let totalAmount: number;
+
+    if (isSaudi) {
+      // Saudi: Extract subtotal from tax-inclusive price (15% VAT included)
+      vatRate = 0.15;
+      totalAmount = amountInclVat;
+      subtotal = amountInclVat / (1 + vatRate);
+      vatAmount = totalAmount - subtotal;
+    } else {
+      // Non-Saudi: No VAT, full amount is service fee
+      vatRate = 0;
+      subtotal = amountInclVat;
+      vatAmount = 0;
+      totalAmount = amountInclVat;
+    }
+
+    console.log('Amount calculation:', { 
+      isSaudi, 
+      inputAmount: amountInclVat,
+      subtotal: subtotal.toFixed(2), 
+      vatRate,
+      vatAmount: vatAmount.toFixed(2), 
+      totalAmount: totalAmount.toFixed(2) 
+    });
+
     // Step 2: Create a test invoice record in our database
     const invoiceNumber = `TEST-INV-${Date.now()}`;
-    const subtotal = amountInSAR; // Already in SAR
-    const vatRate = 0.15;
-    const vatAmount = subtotal * vatRate;
-    const totalAmount = subtotal + vatAmount;
 
     console.log('Creating test invoice:', { invoiceNumber, subtotal, vatAmount, totalAmount });
 
@@ -83,12 +120,12 @@ serve(async (req) => {
         buyer_email: userEmail,
         buyer_phone: userPhone,
         seller_legal_name: 'Diviso',
-        seller_vat_number: '300000000000003',
+        seller_vat_number: isSaudi ? '300000000000003' : null,
         seller_address: 'Riyadh, Saudi Arabia',
-        total_excl_vat: subtotal,
+        total_excl_vat: parseFloat(subtotal.toFixed(2)),
         vat_rate: vatRate,
-        total_vat: vatAmount,
-        total_incl_vat: totalAmount,
+        total_vat: parseFloat(vatAmount.toFixed(2)),
+        total_incl_vat: parseFloat(totalAmount.toFixed(2)),
         payment_status: 'paid',
         payment_provider: 'test',
         currency: 'SAR',
@@ -111,15 +148,22 @@ serve(async (req) => {
                      purchaseType === 'subscription_annual' ? 'Pro Annual Subscription' :
                      'Credits Pack';
 
+    const itemNameAr = purchaseType === 'subscription_monthly' ? 'اشتراك شهري برو' :
+                       purchaseType === 'subscription_annual' ? 'اشتراك سنوي برو' :
+                       'رصيد ديفيزو';
+
     const { error: itemError } = await supabase
       .from('invoice_items')
       .insert({
         invoice_id: invoice.id,
         item_type: purchaseType,
         description: itemName,
+        description_ar: itemNameAr,
         quantity: 1,
-        unit_price: subtotal,
-        total_price: subtotal,
+        unit_price_excl_vat: parseFloat(subtotal.toFixed(2)),
+        vat_rate: vatRate,
+        vat_amount: parseFloat(vatAmount.toFixed(2)),
+        line_total_incl_vat: parseFloat(totalAmount.toFixed(2)),
       });
 
     if (itemError) {
@@ -138,16 +182,32 @@ serve(async (req) => {
       body: JSON.stringify({
         user_id: userId,
         purchase_type: purchaseType,
-        amount: subtotal, // Amount in SAR (excluding VAT)
+        amount: amountInclVat, // Pass tax-inclusive amount
         credit_purchase_id: invoice.id,
-        draft_only: draftOnly, // Prevent posting to live ZATCA
+        draft_only: draftOnly,
       }),
     });
 
     const odooResult = await odooResponse.json();
     console.log('Odoo response:', odooResult);
 
-    // Step 5: Fetch the updated invoice with QR data
+    // Step 5: Optionally send invoice email
+    let emailResult = null;
+    if (sendEmail && userEmail) {
+      console.log('Sending invoice email...');
+      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-invoice-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({ invoice_id: invoice.id }),
+      });
+      emailResult = await emailResponse.json();
+      console.log('Email response:', emailResult);
+    }
+
+    // Step 6: Fetch the updated invoice with QR data
     const { data: updatedInvoice } = await supabase
       .from('invoices')
       .select('*, invoice_items(*)')
@@ -158,11 +218,21 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: 'Test invoice cycle completed',
+        is_saudi: isSaudi,
+        vat_applied: isSaudi,
+        calculation: {
+          input_amount: amountInclVat,
+          subtotal: parseFloat(subtotal.toFixed(2)),
+          vat_rate: vatRate,
+          vat_amount: parseFloat(vatAmount.toFixed(2)),
+          total: parseFloat(totalAmount.toFixed(2)),
+        },
         test_invoice: updatedInvoice,
         odoo_result: odooResult,
+        email_result: emailResult,
         next_steps: [
           'Check the invoice in your Odoo dashboard',
-          'Verify the QR code was generated',
+          isSaudi ? 'Verify the QR code was generated' : 'No QR code (non-Saudi user)',
           'The invoice should appear in the user\'s invoice history'
         ]
       }),
