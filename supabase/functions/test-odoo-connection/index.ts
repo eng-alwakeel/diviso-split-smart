@@ -305,7 +305,7 @@ serve(async (req) => {
       for (const product of productIds) {
         const products = await xmlRpcCall(objectUrl, 'execute_kw', [
           odooDb, uid, odooApiKey,
-          'product.product', 'search_read',
+          'product.template', 'search_read',
           [[['id', '=', parseInt(product.id!)]]],
           { fields: ['id', 'name', 'list_price', 'default_code'] }
         ]);
@@ -313,7 +313,7 @@ serve(async (req) => {
         if (products && products.length > 0) {
           productsData.push({ expected: product.name, found: products[0] });
         } else {
-          productsData.push({ expected: product.name, error: `Product ID ${product.id} not found` });
+          productsData.push({ expected: product.name, error: `Product ID ${product.id} not found in product.template` });
         }
       }
 
