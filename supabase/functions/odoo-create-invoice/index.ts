@@ -199,6 +199,7 @@ serve(async (req) => {
     const odooApiKey = Deno.env.get('ODOO_API_KEY');
     const odooCompanyId = parseInt(Deno.env.get('ODOO_COMPANY_ID') || '0');
     const salesJournalId = parseInt(Deno.env.get('ODOO_SALES_JOURNAL_ID') || '0');
+    const vatTaxId = parseInt(Deno.env.get('ODOO_VAT_TAX_ID') || '0');
 
     // Product mapping
     const productMapping: Record<string, number> = {
@@ -367,6 +368,7 @@ serve(async (req) => {
           name: invoiceLineDescription,
           quantity: 1,
           price_unit: amountExclVat,
+          tax_ids: vatTaxId ? [[6, 0, [vatTaxId]]] : undefined,
         }]
       ],
     };
