@@ -22,9 +22,10 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const testUserId = body.user_id; // Optional: use a real user ID for testing
     const purchaseType = body.purchase_type || 'subscription_monthly'; // or 'subscription_annual', 'credits_pack'
-    const amount = body.amount || 1900; // Amount in halalas (19 SAR)
+    const amountInSAR = body.amount || 19; // Amount in SAR (NOT halalas)
+    const draftOnly = body.draft_only !== false; // Default to true for testing
 
-    console.log('Test parameters:', { testUserId, purchaseType, amount });
+    console.log('Test parameters:', { testUserId, purchaseType, amountInSAR, draftOnly });
 
     // Step 1: Get or create test data
     let userId = testUserId;
@@ -56,7 +57,8 @@ serve(async (req) => {
           example: {
             user_id: 'your-uuid-here',
             purchase_type: 'subscription_monthly',
-            amount: 1900
+            amount: 19,
+            draft_only: true
           }
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -65,7 +67,7 @@ serve(async (req) => {
 
     // Step 2: Create a test invoice record in our database
     const invoiceNumber = `TEST-INV-${Date.now()}`;
-    const subtotal = amount / 100;
+    const subtotal = amountInSAR; // Already in SAR
     const vatRate = 0.15;
     const vatAmount = subtotal * vatRate;
     const totalAmount = subtotal + vatAmount;
@@ -125,7 +127,7 @@ serve(async (req) => {
     }
 
     // Step 4: Call the Odoo invoice creation function
-    console.log('Calling odoo-create-invoice...');
+    console.log('Calling odoo-create-invoice with draft_only:', draftOnly);
 
     const odooResponse = await fetch(`${supabaseUrl}/functions/v1/odoo-create-invoice`, {
       method: 'POST',
@@ -134,13 +136,11 @@ serve(async (req) => {
         'Authorization': `Bearer ${supabaseServiceKey}`,
       },
       body: JSON.stringify({
-        invoice_id: invoice.id,
         user_id: userId,
         purchase_type: purchaseType,
-        amount: amount,
-        user_email: userEmail,
-        user_name: userName,
-        user_phone: userPhone,
+        amount: subtotal, // Amount in SAR (excluding VAT)
+        credit_purchase_id: invoice.id,
+        draft_only: draftOnly, // Prevent posting to live ZATCA
       }),
     });
 
