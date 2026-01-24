@@ -2,8 +2,9 @@ import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 import { 
   Mail, 
-  Phone, 
   MapPin,
+  Building2,
+  FileText,
   Facebook,
   Linkedin,
   Youtube
@@ -75,12 +76,16 @@ export const Footer = () => {
             <h4 className="font-semibold mb-4">{t('footer.contactUs')}</h4>
             <div className="space-y-3 text-muted-foreground">
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span className="text-sm">support@diviso.app</span>
+                <Building2 className="w-4 h-4" />
+                <span className="text-sm">{t('footer.companyName')}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                <span className="text-sm">+966 50 123 4567</span>
+                <FileText className="w-4 h-4" />
+                <span className="text-sm">{t('footer.crNumber')}: 7009435244</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                <span className="text-sm">support@diviso.app</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
