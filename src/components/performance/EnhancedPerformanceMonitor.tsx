@@ -7,6 +7,7 @@ interface PerformanceMetrics {
   lcp?: number;
   cls?: number;
   fid?: number;
+  inp?: number; // Interaction to Next Paint (Google's 2024 metric)
   ttfb?: number;
   memoryUsage?: number;
   bundleSize?: number;
@@ -18,6 +19,7 @@ const getMetricRating = (name: string, value: number): 'good' | 'needs-improveme
     FCP: [1800, 3000],
     LCP: [2500, 4000],
     FID: [100, 300],
+    INP: [200, 500], // Google's 2024 Core Web Vital
     CLS: [0.1, 0.25],
     TTFB: [800, 1800],
   };
@@ -95,6 +97,23 @@ export const EnhancedPerformanceMonitor = () => {
       fidObserver.observe({ entryTypes: ['first-input'] });
       observers.push(fidObserver);
 
+      // Interaction to Next Paint (INP) - Google's 2024 Core Web Vital
+      const inpObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as any[]) {
+          const inp = entry.duration;
+          // Track the longest interaction (worst case)
+          if (!metricsRef.current.inp || inp > metricsRef.current.inp) {
+            metricsRef.current.inp = inp;
+          }
+        }
+      });
+      try {
+        inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 } as any);
+        observers.push(inpObserver);
+      } catch (e) {
+        console.warn('INP observation not supported');
+      }
+
     } catch (error) {
       console.warn('Performance Observer not supported:', error);
     }
@@ -123,6 +142,11 @@ export const EnhancedPerformanceMonitor = () => {
         sendMetricToGA4('CLS', metricsRef.current.cls);
       }
 
+      // Send INP after page interactions stabilize
+      if (metricsRef.current.inp !== undefined && !sentToGA4Ref.current.has('INP')) {
+        sendMetricToGA4('INP', metricsRef.current.inp);
+      }
+
       // Only log in development
       if (process.env.NODE_ENV === 'development') {
         const hasMetrics = Object.values(metricsRef.current).some(value => value && value > 0);
@@ -133,6 +157,7 @@ export const EnhancedPerformanceMonitor = () => {
             'Largest Contentful Paint': metricsRef.current.lcp ? `${Math.round(metricsRef.current.lcp)}ms` : 'N/A',
             'Cumulative Layout Shift': metricsRef.current.cls ? metricsRef.current.cls.toFixed(3) : 'N/A',
             'First Input Delay': metricsRef.current.fid ? `${Math.round(metricsRef.current.fid)}ms` : 'N/A',
+            'Interaction to Next Paint': metricsRef.current.inp ? `${Math.round(metricsRef.current.inp)}ms` : 'N/A',
             'Time to First Byte': metricsRef.current.ttfb ? `${Math.round(metricsRef.current.ttfb)}ms` : 'N/A',
             'Memory Usage': metricsRef.current.memoryUsage ? `${Math.round(metricsRef.current.memoryUsage)}MB` : 'N/A',
           });
@@ -186,6 +211,12 @@ function calculatePerformanceScore(metrics: PerformanceMetrics): number {
   if (metrics.fid) {
     if (metrics.fid > 300) score -= 15;
     else if (metrics.fid > 100) score -= 8;
+  }
+
+  // INP scoring (good < 200ms, poor > 500ms)
+  if (metrics.inp) {
+    if (metrics.inp > 500) score -= 20;
+    else if (metrics.inp > 200) score -= 10;
   }
   
   // Memory usage penalty
