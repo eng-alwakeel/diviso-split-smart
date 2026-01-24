@@ -15,7 +15,8 @@ export const BRAND_CONFIG = {
   },
   company: {
     legalName: "مؤسسة تكامل البناء التجارية",
-    legalNameEn: "Takamul Al-Bina Trading Est."
+    legalNameEn: "Takamul Al-Bina Trading Est.",
+    cr: "7009435244"
   },
   vat: {
     number: "310137963800003",
