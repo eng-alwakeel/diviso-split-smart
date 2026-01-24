@@ -14,6 +14,8 @@ import { Mail, Phone, Gift, Check, X, Loader2, Eye, EyeOff } from "lucide-react"
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { SEO } from "@/components/SEO";
+
+// Auth page should not be indexed by search engines
 import { useTranslation } from "react-i18next";
 import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 
@@ -598,6 +600,7 @@ const Auth = () => {
       <SEO 
         title={t('auth:title.login')}
         description={t('auth:slogan')}
+        noIndex={true}
         canonical="https://diviso.app/auth"
       />
       <AppHeader minimal />

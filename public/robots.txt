@@ -1,17 +1,95 @@
+# Diviso robots.txt - Updated for SEO optimization
+# Last updated: 2026-01-24
+
+# Google
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /my-groups
+Disallow: /my-expenses
+Disallow: /settings
+Disallow: /auth
+Disallow: /referral-signup
+Disallow: /referral
+Disallow: /credit-store
+Disallow: /trip-planner
+Disallow: /admin*
+Disallow: /group/
+Disallow: /create-*
+Disallow: /add-*
+Disallow: /notifications
+Disallow: /payment-*
+Disallow: /offerwall
 
+# Bing
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /my-groups
+Disallow: /my-expenses
+Disallow: /settings
+Disallow: /auth
+Disallow: /referral-signup
+Disallow: /referral
+Disallow: /credit-store
+Disallow: /trip-planner
+Disallow: /admin*
+Disallow: /group/
+Disallow: /create-*
+Disallow: /add-*
+Disallow: /notifications
+Disallow: /payment-*
+Disallow: /offerwall
 
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /dashboard
+Disallow: /my-groups
+Disallow: /my-expenses
+Disallow: /settings
+Disallow: /auth
+Disallow: /referral-signup
+Disallow: /referral
+Disallow: /credit-store
+Disallow: /trip-planner
+Disallow: /admin*
+Disallow: /group/
+Disallow: /create-*
+Disallow: /add-*
+Disallow: /notifications
+Disallow: /payment-*
+Disallow: /offerwall
+
+# Social Media Crawlers - Allow all for previews
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+# All other bots
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /my-groups
+Disallow: /my-expenses
+Disallow: /settings
+Disallow: /auth
+Disallow: /referral-signup
+Disallow: /referral
+Disallow: /credit-store
+Disallow: /trip-planner
+Disallow: /admin*
+Disallow: /group/
+Disallow: /create-*
+Disallow: /add-*
+Disallow: /notifications
+Disallow: /payment-*
+Disallow: /offerwall
 
 # Sitemap
 Sitemap: https://diviso.app/sitemap.xml

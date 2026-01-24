@@ -8,7 +8,7 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/?lang=en" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://diviso.app/" />
-    <lastmod>2026-01-18</lastmod>
+    <lastmod>2026-01-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -18,9 +18,29 @@
     <loc>https://diviso.app/pricing</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/pricing" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/pricing?lang=en" />
-    <lastmod>2026-01-18</lastmod>
+    <lastmod>2026-01-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+  </url>
+  
+  <!-- صفحة كيف يعمل التطبيق -->
+  <url>
+    <loc>https://diviso.app/how-it-works</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/how-it-works" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/how-it-works?lang=en" />
+    <lastmod>2026-01-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- صفحة الأسئلة الشائعة -->
+  <url>
+    <loc>https://diviso.app/faq</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/faq?lang=en" />
+    <lastmod>2026-01-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   
   <!-- صفحة سياسة الخصوصية -->
@@ -62,113 +82,13 @@
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
-  
-  <!-- صفحة تسجيل الدخول -->
-  <url>
-    <loc>https://diviso.app/auth</loc>
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  
-  <!-- صفحة التسجيل عبر الإحالة -->
-  <url>
-    <loc>https://diviso.app/referral-signup</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/referral-signup" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/referral-signup?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- صفحة الأسئلة الشائعة -->
-  <url>
-    <loc>https://diviso.app/faq</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/faq" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/faq?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- صفحة كيف يعمل التطبيق -->
-  <url>
-    <loc>https://diviso.app/how-it-works</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/how-it-works" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/how-it-works?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- صفحة لوحة التحكم -->
-  <url>
-    <loc>https://diviso.app/dashboard</loc>
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- صفحة متجر الرصيد -->
-  <url>
-    <loc>https://diviso.app/credit-store</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/credit-store" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/credit-store?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- صفحة مخطط الرحلات -->
-  <url>
-    <loc>https://diviso.app/trip-planner</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/trip-planner" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/trip-planner?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- صفحة مجموعاتي -->
-  <url>
-    <loc>https://diviso.app/my-groups</loc>
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- صفحة مصاريفي -->
-  <url>
-    <loc>https://diviso.app/my-expenses</loc>
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- صفحة مركز الإحالات -->
-  <url>
-    <loc>https://diviso.app/referral</loc>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/referral" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/referral?lang=en" />
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- صفحة الإعدادات -->
-  <url>
-    <loc>https://diviso.app/settings</loc>
-    <lastmod>2026-01-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
 
   <!-- صفحة المدونة الرئيسية -->
   <url>
     <loc>https://diviso.app/blog</loc>
     <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/blog" />
     <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog?lang=en" />
-    <lastmod>2026-01-18</lastmod>
+    <lastmod>2026-01-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
