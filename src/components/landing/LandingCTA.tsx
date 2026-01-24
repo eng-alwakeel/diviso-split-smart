@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { BRAND_CONFIG } from '@/lib/brandConfig';
 
 interface LandingCTAProps {
   ctaText: string;
@@ -18,13 +18,17 @@ const LandingCTA: React.FC<LandingCTAProps> = ({ ctaText, subtext, isRTL }) => {
 
   return (
     <section 
-      className="py-20 px-6 bg-gradient-to-t from-primary/10 to-background"
+      className="py-20 px-6 bg-gradient-to-t from-primary/10 via-primary/5 to-background"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <div className="max-w-xl mx-auto text-center">
-        {/* Icon */}
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Sparkles className="w-8 h-8 text-primary" />
+        {/* Logo */}
+        <div className="mb-6">
+          <img 
+            src={BRAND_CONFIG.logo} 
+            alt="Diviso Logo" 
+            className="h-10 w-auto mx-auto" 
+          />
         </div>
 
         {/* Motivational Text */}
