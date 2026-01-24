@@ -1,4 +1,4 @@
-import { ReactNode, Suspense } from "react";
+import { ReactNode, Suspense, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,12 +7,32 @@ import { AlertTriangle, Lock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminErrorBoundary } from "./admin/AdminErrorBoundary";
 
+// Add noindex meta tag to prevent search engines from indexing admin pages
+const useNoIndex = () => {
+  useEffect(() => {
+    let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement;
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.name = 'robots';
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.content = 'noindex, nofollow';
+    
+    return () => {
+      robotsMeta?.remove();
+    };
+  }, []);
+};
+
 interface AdminProtectedRouteProps {
   children: ReactNode;
 }
 
 export const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const { data: authData, isLoading, refetch } = useAdminAuth();
+  
+  // Prevent search engines from indexing admin routes
+  useNoIndex();
 
   if (isLoading) {
     return (

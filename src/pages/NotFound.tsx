@@ -2,17 +2,25 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 const NotFound = () => {
   const location = useLocation();
   const { t } = useTranslation('common');
+  const { trackEvent } = useGoogleAnalytics();
 
   useEffect(() => {
+    // Track 404 error in GA4
+    trackEvent('page_not_found', { 
+      attempted_path: location.pathname,
+      referrer: document.referrer 
+    });
+    
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname
     );
-  }, [location.pathname]);
+  }, [location.pathname, trackEvent]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted">

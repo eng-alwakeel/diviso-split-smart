@@ -50,6 +50,19 @@ export function useGoogleAnalytics() {
     });
   }, [trackEvent]);
 
+  // Track UTM parameters
+  const trackWithUTM = useCallback((eventName: string, additionalParams?: Record<string, unknown>) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    trackEvent(eventName, {
+      ...additionalParams,
+      utm_source: urlParams.get('utm_source') || undefined,
+      utm_medium: urlParams.get('utm_medium') || undefined,
+      utm_campaign: urlParams.get('utm_campaign') || undefined,
+      utm_content: urlParams.get('utm_content') || undefined,
+      utm_term: urlParams.get('utm_term') || undefined,
+    });
+  }, [trackEvent]);
+
   // User Properties
   const setUserProperties = useCallback((userId: string, isPaid: boolean, plan?: string) => {
     if (typeof window !== 'undefined' && window.dataLayer) {
@@ -83,6 +96,15 @@ export function useGoogleAnalytics() {
     trackEvent('paywall_viewed', { source });
   }, [trackEvent]);
 
+  // Track Core Web Vitals
+  const trackWebVitals = useCallback((metricName: string, value: number, rating: 'good' | 'needs-improvement' | 'poor') => {
+    trackEvent('web_vitals', { 
+      metric_name: metricName,
+      metric_value: Math.round(metricName === 'CLS' ? value * 1000 : value),
+      metric_rating: rating
+    });
+  }, [trackEvent]);
+
   return {
     trackEvent,
     trackSignup,
@@ -91,12 +113,14 @@ export function useGoogleAnalytics() {
     trackClickCTA,
     trackViewFeature,
     trackPageView,
+    trackWithUTM,
     setUserProperties,
     trackGroupCreated,
     trackExpenseAdded,
     trackSubscriptionStarted,
     trackCreditsPurchased,
-    trackPaywallViewed
+    trackPaywallViewed,
+    trackWebVitals
   };
 }
 

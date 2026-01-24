@@ -2,12 +2,32 @@ import { ReactNode, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Add noindex meta tag to prevent search engines from indexing protected pages
+const useNoIndex = () => {
+  useEffect(() => {
+    let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement;
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.name = 'robots';
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.content = 'noindex, nofollow';
+    
+    return () => {
+      robotsMeta?.remove();
+    };
+  }, []);
+};
+
 export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [authed, setAuthed] = useState(false);
   const authCheckTimeout = useRef<NodeJS.Timeout>();
   const redirectTimeout = useRef<NodeJS.Timeout>();
+
+  // Prevent search engines from indexing protected routes
+  useNoIndex();
 
   useEffect(() => {
     let isMounted = true;

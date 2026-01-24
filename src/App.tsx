@@ -13,6 +13,8 @@ import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 import { RoleAssignmentNotification } from "@/components/RoleAssignmentNotification";
+import { REDIRECTS } from "@/lib/redirects";
+
 // Lazy load critical pages for faster initial load
 const LazyIndex = withLazyLoading(lazy(() => import("./pages/Index")));
 const LazyDashboard = withLazyLoading(lazy(() => import("./pages/Dashboard")));
@@ -130,7 +132,6 @@ const AppRoutes: React.FC = () => {
             <Route path="/financial-plan" element={<ProtectedRoute><PageErrorBoundary><LazyFinancialPlan /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-unified-budget" element={<ProtectedRoute><PageErrorBoundary><LazyCreateUnifiedBudget /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/referral" element={<ProtectedRoute><PageErrorBoundary><LazyReferralCenter /></PageErrorBoundary></ProtectedRoute>} />
-            <Route path="/referral-center" element={<Navigate to="/referral" replace />} />
             <Route path="/notifications" element={<ProtectedRoute><PageErrorBoundary><LazyNotifications /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><PageErrorBoundary><LazySettings /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing-protected" element={<ProtectedRoute><PageErrorBoundary><LazyPricingProtected /></PageErrorBoundary></ProtectedRoute>} />
@@ -144,7 +145,12 @@ const AppRoutes: React.FC = () => {
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/payment-callback" element={<ProtectedRoute><PageErrorBoundary><LazyPaymentCallback /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
-            <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
+            
+            {/* Centralized redirects from lib/redirects.ts */}
+            {Object.entries(REDIRECTS).map(([from, to]) => (
+              <Route key={from} path={from} element={<Navigate to={to} replace />} />
+            ))}
+            
             <Route path="*" element={<NotFound />} />
         </Routes>
       </ImprovedErrorBoundary>

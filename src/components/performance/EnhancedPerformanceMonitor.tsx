@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
+import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 
 interface PerformanceMetrics {
   fcp?: number;
@@ -11,19 +12,40 @@ interface PerformanceMetrics {
   bundleSize?: number;
 }
 
+// Helper to get performance rating
+const getMetricRating = (name: string, value: number): 'good' | 'needs-improvement' | 'poor' => {
+  const thresholds: Record<string, [number, number]> = {
+    FCP: [1800, 3000],
+    LCP: [2500, 4000],
+    FID: [100, 300],
+    CLS: [0.1, 0.25],
+    TTFB: [800, 1800],
+  };
+  const [good, poor] = thresholds[name] || [0, 0];
+  if (value <= good) return 'good';
+  if (value <= poor) return 'needs-improvement';
+  return 'poor';
+};
+
 export const EnhancedPerformanceMonitor = () => {
   const { measurePerformance } = usePerformanceOptimization();
+  const { trackWebVitals } = useGoogleAnalytics();
   const [metrics, setMetrics] = useState<PerformanceMetrics>({});
   const observersRef = useRef<PerformanceObserver[]>([]);
   const metricsRef = useRef<PerformanceMetrics>({});
+  const sentToGA4Ref = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    // Only monitor in development or when specifically needed
-    if (process.env.NODE_ENV === 'production' && !window.location.search.includes('debug=true')) {
-      return;
-    }
-
     const observers: PerformanceObserver[] = [];
+
+    // Send metric to GA4 only once
+    const sendMetricToGA4 = (name: string, value: number) => {
+      if (!sentToGA4Ref.current.has(name) && value > 0) {
+        sentToGA4Ref.current.add(name);
+        const rating = getMetricRating(name, value);
+        trackWebVitals(name, value, rating);
+      }
+    };
 
     // Core Web Vitals monitoring
     try {
@@ -32,6 +54,7 @@ export const EnhancedPerformanceMonitor = () => {
         for (const entry of list.getEntries()) {
           if (entry.name === 'first-contentful-paint') {
             metricsRef.current.fcp = entry.startTime;
+            sendMetricToGA4('FCP', entry.startTime);
           }
         }
       });
@@ -43,6 +66,7 @@ export const EnhancedPerformanceMonitor = () => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
         metricsRef.current.lcp = lastEntry.startTime;
+        sendMetricToGA4('LCP', lastEntry.startTime);
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       observers.push(lcpObserver);
@@ -63,7 +87,9 @@ export const EnhancedPerformanceMonitor = () => {
       // First Input Delay
       const fidObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries() as any[]) {
-          metricsRef.current.fid = entry.processingStart - entry.startTime;
+          const fid = entry.processingStart - entry.startTime;
+          metricsRef.current.fid = fid;
+          sendMetricToGA4('FID', fid);
         }
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
@@ -83,15 +109,22 @@ export const EnhancedPerformanceMonitor = () => {
 
     // Log comprehensive metrics periodically (development only)
     const metricsInterval = setInterval(() => {
-      if (process.env.NODE_ENV === 'development') {
-        monitorMemory();
-        
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        if (navigation) {
-          metricsRef.current.ttfb = navigation.responseStart - navigation.requestStart;
-        }
+      monitorMemory();
+      
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      if (navigation) {
+        const ttfb = navigation.responseStart - navigation.requestStart;
+        metricsRef.current.ttfb = ttfb;
+        sendMetricToGA4('TTFB', ttfb);
+      }
 
-        // Only log if we have meaningful data
+      // Send CLS after page has stabilized (after 5 seconds)
+      if (metricsRef.current.cls !== undefined && !sentToGA4Ref.current.has('CLS')) {
+        sendMetricToGA4('CLS', metricsRef.current.cls);
+      }
+
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
         const hasMetrics = Object.values(metricsRef.current).some(value => value && value > 0);
         if (hasMetrics) {
           console.group('📊 Performance Dashboard');
@@ -122,7 +155,7 @@ export const EnhancedPerformanceMonitor = () => {
       observers.forEach(observer => observer.disconnect());
       clearInterval(metricsInterval);
     };
-  }, [measurePerformance]);
+  }, [trackWebVitals]);
 
   return null;
 };

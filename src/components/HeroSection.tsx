@@ -3,9 +3,11 @@ import { Users, Receipt, CheckCircle, Shield, TrendingUp, ChevronDown, ShieldChe
 import { useTranslation } from "react-i18next";
 import { AnimatedCounter } from "./landing/AnimatedCounter";
 import { useEffect, useState } from "react";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
+  const { trackClickCTA } = useGoogleAnalytics();
   const isRTL = i18n.language === 'ar';
   const [showScrollArrow, setShowScrollArrow] = useState(true);
 
@@ -74,7 +76,10 @@ export const HeroSection = () => {
                 variant="secondary" 
                 size="lg" 
                 className="text-lg px-8 py-6 h-auto relative overflow-hidden shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_50px_rgba(var(--primary-rgb),0.6)] hover:scale-105 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => {
+                  trackClickCTA('start_free', 'hero_section');
+                  window.location.href = '/dashboard';
+                }}
               >
                 {t('hero.startFree')}
               </Button>
