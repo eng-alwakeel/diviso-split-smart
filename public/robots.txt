@@ -4,6 +4,7 @@
 # Google
 User-agent: Googlebot
 Allow: /
+Allow: /use-cases/
 Disallow: /dashboard
 Disallow: /my-groups
 Disallow: /my-expenses
