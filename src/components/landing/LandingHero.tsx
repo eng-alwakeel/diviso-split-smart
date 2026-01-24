@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { BRAND_CONFIG } from '@/lib/brandConfig';
 
 interface LandingHeroProps {
   title: string;
@@ -16,15 +17,14 @@ const LandingHero: React.FC<LandingHeroProps> = ({ title, ctaText, isRTL }) => {
   };
 
   return (
-    <section className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-12 bg-gradient-to-b from-background to-muted/30">
+    <section className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-12 bg-gradient-to-b from-background via-primary/5 to-background">
       {/* Logo */}
       <div className="mb-6">
-        <div className="flex items-center gap-2">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xl">D</span>
-          </div>
-          <span className="text-2xl font-bold text-foreground">Diviso</span>
-        </div>
+        <img 
+          src={BRAND_CONFIG.logo} 
+          alt="Diviso Logo" 
+          className="h-12 w-auto" 
+        />
       </div>
 
       {/* Hero Title */}
