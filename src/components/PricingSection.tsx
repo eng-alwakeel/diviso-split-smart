@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Gift, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 export const PricingSection = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation('pricing');
+  const { trackClickCTA } = useGoogleAnalytics();
   const isRTL = i18n.language === 'ar';
 
   return (
@@ -87,7 +89,10 @@ export const PricingSection = () => {
         <Button 
           size="lg" 
           className="text-lg px-8 py-6"
-          onClick={() => navigate('/auth')}
+          onClick={() => {
+            trackClickCTA('start_free', 'pricing_section');
+            navigate('/auth');
+          }}
         >
           {t('cta')}
         </Button>
