@@ -2,7 +2,7 @@ import React, { lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ImprovedErrorBoundary } from "@/components/ImprovedErrorBoundary";
 import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPerformanceMonitor";
@@ -82,6 +82,19 @@ const AppRoutes: React.FC = () => {
   
   // Handle deep links
   useDeepLinks();
+
+  // Track page views for SPA navigation (GTM/GA4)
+  const location = useLocation();
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'page_view',
+        page_path: location.pathname,
+        page_title: document.title,
+        page_location: window.location.href
+      });
+    }
+  }, [location.pathname]);
 
   return (
     <>
