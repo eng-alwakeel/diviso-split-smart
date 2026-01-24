@@ -60,6 +60,8 @@ const LazyBlogPost = withLazyLoading(lazy(() => import("./pages/BlogPost")));
 const LazyOfferwall = withLazyLoading(lazy(() => import("./pages/Offerwall")));
 const LazyRecommendationTest = withLazyLoading(lazy(() => import("./pages/RecommendationTestPage")));
 const LazyGroupSettings = withLazyLoading(lazy(() => import("./pages/GroupSettings")));
+const LazyUseCases = withLazyLoading(lazy(() => import("./pages/UseCases")));
+const LazyUseCaseDetails = withLazyLoading(lazy(() => import("./pages/UseCaseDetails")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -120,6 +122,8 @@ const AppRoutes: React.FC = () => {
             <Route path="/how-it-works" element={<LazyHowItWorks />} />
             <Route path="/blog" element={<LazyBlog />} />
             <Route path="/blog/:slug" element={<LazyBlogPost />} />
+            <Route path="/use-cases" element={<LazyUseCases />} />
+            <Route path="/use-cases/:slug" element={<LazyUseCaseDetails />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
