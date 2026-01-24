@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.send-invoice-email]
 verify_jwt = true
+
+[functions.indexnow]
+verify_jwt = true
