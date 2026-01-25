@@ -129,8 +129,8 @@ export const Footer = () => {
                 <Linkedin className="w-5 h-5" />
               </a>
               <a 
-                href="https://www.tiktok.com/@diviso.app" 
-                target="_blank" 
+                href="https://www.tiktok.com/@diviso.d" 
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary transition-colors"
                 aria-label="TikTok"
