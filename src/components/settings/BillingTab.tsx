@@ -14,7 +14,8 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { useInvoices, Invoice } from '@/hooks/useInvoices';
 import { InvoiceDetailsDialog } from './InvoiceDetailsDialog';
@@ -22,13 +23,17 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export function BillingTab() {
   const { t, i18n } = useTranslation(['settings', 'common']);
   const { isRTL } = useLanguage();
+  const { toast } = useToast();
   const { invoices, creditNotes, loading, refresh, resendInvoiceEmail } = useInvoices();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,9 +114,45 @@ export function BillingTab() {
     setDialogOpen(true);
   };
 
-  const handleDownloadPDF = (invoice: Invoice) => {
+  const handleDownloadPDF = async (invoice: Invoice) => {
     if (invoice.pdf_url) {
       window.open(invoice.pdf_url, '_blank');
+      return;
+    }
+
+    // Generate PDF via edge function
+    setDownloadingId(invoice.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
+        body: { invoice_id: invoice.id, return_html: true }
+      });
+
+      if (error) throw error;
+
+      // Open the HTML in a new tab for printing as PDF
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(data);
+        newWindow.document.close();
+        // Trigger print dialog for PDF
+        setTimeout(() => {
+          newWindow.print();
+        }, 500);
+      }
+
+      toast({
+        title: i18n.language === 'ar' ? 'تم التحميل' : 'Downloaded',
+        description: i18n.language === 'ar' ? 'يمكنك طباعة الفاتورة كـ PDF' : 'You can print the invoice as PDF'
+      });
+    } catch (err: any) {
+      console.error('Error downloading PDF:', err);
+      toast({
+        title: i18n.language === 'ar' ? 'خطأ' : 'Error',
+        description: i18n.language === 'ar' ? 'فشل في تحميل الفاتورة' : 'Failed to download invoice',
+        variant: 'destructive'
+      });
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -225,16 +266,19 @@ export function BillingTab() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      {invoice.pdf_url && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDownloadPDF(invoice)}
-                          title={i18n.language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
-                        >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownloadPDF(invoice)}
+                        title={i18n.language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
+                        disabled={downloadingId === invoice.id}
+                      >
+                        {downloadingId === invoice.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
                           <Download className="w-4 h-4" />
-                        </Button>
-                      )}
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
