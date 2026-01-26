@@ -24,7 +24,8 @@ import {
   ArrowLeft,
   Mail,
   Coins,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 
 const FAQ = () => {
@@ -40,6 +41,7 @@ const FAQ = () => {
     { id: 'credits', icon: Coins, color: 'bg-amber-500/20 text-amber-400' },
     { id: 'ai', icon: Sparkles, color: 'bg-purple-500/20 text-purple-400' },
     { id: 'account', icon: Shield, color: 'bg-orange-500/20 text-orange-400' },
+    { id: 'scenarios', icon: MessageSquare, color: 'bg-cyan-500/20 text-cyan-400' },
   ];
 
   const questionsByCategory: Record<string, string[]> = {
@@ -49,6 +51,7 @@ const FAQ = () => {
     credits: ['what_are_credits', 'subscription_plans', 'buy_credits', 'referral_program', 'referral_rewards'],
     ai: ['ai_trip_planner', 'smart_recommendations', 'smart_categories'],
     account: ['change_password', 'delete_account', 'data_security'],
+    scenarios: ['avoid_money_disputes', 'best_way_split_trip', 'close_accounts_peacefully', 'one_pays_others_transfer'],
   };
 
   const allQuestions = Object.entries(questionsByCategory).flatMap(([category, questions]) =>

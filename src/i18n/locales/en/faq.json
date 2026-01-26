@@ -11,7 +11,8 @@
     "expenses": "Expenses",
     "credits": "Credits & Plans",
     "ai": "AI Features",
-    "account": "Account & Security"
+    "account": "Account & Security",
+    "scenarios": "Common Scenarios"
   },
   "questions": {
     "what_is_diviso": {
@@ -121,6 +122,22 @@
     "receipt_scan": {
       "question": "How does receipt scanning work?",
       "answer": "Take a photo of the receipt using your camera, and AI will automatically extract the amount, date, and merchant. You can review the data before saving the expense."
+    },
+    "avoid_money_disputes": {
+      "question": "How to avoid financial disputes between friends?",
+      "answer": "Use Diviso to record all shared expenses as they happen. The clear record and automatic splitting prevents misunderstandings and disputes, and everyone can see their balance clearly."
+    },
+    "best_way_split_trip": {
+      "question": "What is the best way to split group trip costs?",
+      "answer": "Create a group in Diviso and add all travelers. Record expenses as they happen, and the app automatically calculates who paid more and who owes whom."
+    },
+    "close_accounts_peacefully": {
+      "question": "How to close accounts without arguments?",
+      "answer": "The complete expense record in Diviso shows all details clearly. Settlement happens with one tap and everyone sees what they paid and what they owe without any debate."
+    },
+    "one_pays_others_transfer": {
+      "question": "Does one person have to pay and others transfer?",
+      "answer": "Not at all. In Diviso, anyone can pay any expense and record it. The app calculates the difference automatically and shows who owes whom fairly in the end."
     }
   },
   "stillHaveQuestions": "Still have questions?",
