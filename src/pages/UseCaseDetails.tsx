@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { 
-  Plane, Home, Users, PartyPopper, Mountain,
+  Plane, Home, Users, PartyPopper, Mountain, HandCoins,
   AlertCircle, CheckCircle2, ListOrdered
 } from 'lucide-react';
 import { useEffect } from 'react';
@@ -23,7 +23,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
   Users,
   PartyPopper,
-  Mountain
+  Mountain,
+  HandCoins
 };
 
 const UseCaseDetails = () => {
@@ -41,6 +42,8 @@ const UseCaseDetails = () => {
     const existingScript = document.querySelector('script[data-use-case-detail-schema]');
     if (existingScript) existingScript.remove();
 
+    const currentDate = new Date().toISOString().split('T')[0];
+    
     const schema = {
       "@context": "https://schema.org",
       "@graph": [
@@ -49,6 +52,9 @@ const UseCaseDetails = () => {
           "headline": isRTL ? useCase.question : useCase.questionEn,
           "description": isRTL ? useCase.intro : useCase.introEn,
           "isAccessibleForFree": true,
+          "datePublished": "2026-01-20",
+          "dateModified": currentDate,
+          "inLanguage": isRTL ? "ar" : "en",
           "author": {
             "@type": "Organization",
             "name": "Diviso",
@@ -65,6 +71,15 @@ const UseCaseDetails = () => {
           "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": `https://diviso.app/use-cases/${useCase.slug}`
+          },
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": ["h1", ".intro-text"]
+          },
+          "mentions": {
+            "@type": "SoftwareApplication",
+            "name": "Diviso",
+            "applicationCategory": "FinanceApplication"
           }
         },
         {
@@ -84,6 +99,7 @@ const UseCaseDetails = () => {
             ? `خطوات استخدام Diviso لـ${useCase.title}`
             : `Steps to use Diviso for ${useCase.titleEn}`,
           "description": isRTL ? useCase.intro : useCase.introEn,
+          "totalTime": "PT5M",
           "step": (isRTL ? useCase.steps : useCase.stepsEn).map((step, index) => ({
             "@type": "HowToStep",
             "position": index + 1,
@@ -105,7 +121,10 @@ const UseCaseDetails = () => {
             "@type": "AggregateRating",
             "ratingValue": "4.8",
             "ratingCount": "1250"
-          }
+          },
+          "featureList": isRTL 
+            ? ["تقسيم المصاريف تلقائياً", "دعم عملات متعددة", "تسوية سريعة", "سجل كامل للمصاريف"]
+            : ["Automatic expense splitting", "Multi-currency support", "Quick settlement", "Complete expense history"]
         }
       ]
     };
@@ -167,8 +186,8 @@ const UseCaseDetails = () => {
               {isRTL ? useCase.question : useCase.questionEn}
             </h1>
             
-            {/* Intro paragraph - AI-optimized */}
-            <p className="text-lg text-muted-foreground leading-relaxed">
+            {/* Intro paragraph - AI-optimized with speakable class */}
+            <p className="intro-text text-lg text-muted-foreground leading-relaxed">
               {isRTL ? useCase.intro : useCase.introEn}
             </p>
           </div>
