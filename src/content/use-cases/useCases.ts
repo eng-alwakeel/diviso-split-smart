@@ -80,15 +80,23 @@ export const useCases: UseCase[] = [
     faqs: [
       { question: 'هل يحتاج الجميع حساب في Diviso؟', answer: 'لا، يمكنك إضافة أعضاء بدون حساب ومشاركة رابط المجموعة معهم.' },
       { question: 'هل يدعم Diviso عملات متعددة؟', answer: 'نعم، يدعم Diviso أكثر من 30 عملة مع تحويل تلقائي.' },
-      { question: 'ماذا لو دفع شخص واحد كل المصاريف؟', answer: 'سيظهر الرصيد المستحق له من كل عضو تلقائيًا.' }
+      { question: 'ماذا لو دفع شخص واحد كل المصاريف؟', answer: 'سيظهر الرصيد المستحق له من كل عضو تلقائيًا.' },
+      { question: 'ما أفضل طريقة لتقسيم تكاليف الرحلة الجماعية؟', answer: 'أفضل طريقة هي استخدام تطبيق يسجل كل مصروف فور حدوثه ويقسمه تلقائياً بين المسافرين. Diviso يتيح لكل شخص إضافة المصاريف ويحسب الفرق بدقة.' },
+      { question: 'كيف نعرف مين دفع أكثر في الرحلة؟', answer: 'كل مصروف يُسجّل مع اسم الدافع تلقائياً. التطبيق يحسب إجمالي ما دفعه كل شخص ويعرض الفرق من شاشة الرصيد بضغطة واحدة.' },
+      { question: 'هل في تطبيق يحسب مصاريف السفر تلقائياً؟', answer: 'نعم، Diviso يحسب مصاريف السفر تلقائياً. تضيف المصروف ويقسمه التطبيق بين الأعضاء ويعرض من يدين لمن فوراً.' },
+      { question: 'كيف نتجنب الخلافات المالية بعد السفر؟', answer: 'سجّل كل مصروف أثناء الرحلة بدلاً من الانتظار للنهاية. السجل الواضح يمنع النسيان والخلافات، والتسوية تصير بضغطة زر.' }
     ],
     faqsEn: [
       { question: 'Does everyone need a Diviso account?', answer: 'No, you can add members without an account and share the group link with them.' },
       { question: 'Does Diviso support multiple currencies?', answer: 'Yes, Diviso supports over 30 currencies with automatic conversion.' },
-      { question: 'What if one person paid all expenses?', answer: 'The amount owed to them from each member will be shown automatically.' }
+      { question: 'What if one person paid all expenses?', answer: 'The amount owed to them from each member will be shown automatically.' },
+      { question: 'What is the best way to split group trip costs?', answer: 'The best way is to use an app that records each expense as it happens and splits it automatically. Diviso lets everyone add expenses and calculates the difference accurately.' },
+      { question: 'How do we know who paid more on the trip?', answer: 'Each expense is recorded with the payer\'s name automatically. The app calculates totals and shows the difference from the balance screen with one tap.' },
+      { question: 'Is there an app that calculates travel expenses automatically?', answer: 'Yes, Diviso calculates travel expenses automatically. Add the expense and the app splits it between members and shows who owes whom instantly.' },
+      { question: 'How to avoid financial disputes after traveling?', answer: 'Record each expense during the trip instead of waiting until the end. The clear record prevents forgetting and disputes, and settlement is just one tap away.' }
     ],
-    keywords: ['تقسيم مصاريف السفر', 'مصاريف الرحلات', 'حساب تكاليف السفر', 'تقسيم فاتورة السفر'],
-    keywordsEn: ['split travel expenses', 'trip expenses', 'travel cost calculator', 'travel bill splitting']
+    keywords: ['تقسيم مصاريف السفر', 'مصاريف الرحلات', 'حساب تكاليف السفر', 'تقسيم فاتورة السفر', 'كيف نقسم مصاريف السفر', 'تطبيق مصاريف السفر'],
+    keywordsEn: ['split travel expenses', 'trip expenses', 'travel cost calculator', 'travel bill splitting', 'how to split travel costs', 'travel expense app']
   },
   {
     slug: 'shared-housing',
@@ -138,15 +146,23 @@ export const useCases: UseCase[] = [
     faqs: [
       { question: 'هل يمكن تقسيم الإيجار بنسب مختلفة؟', answer: 'نعم، يمكنك تحديد نسبة مخصصة لكل عضو حسب حجم الغرفة.' },
       { question: 'كيف أتعامل مع المصاريف المتكررة؟', answer: 'يمكنك إضافة المصروف مرة واحدة وتكراره شهريًا.' },
-      { question: 'هل يمكن استثناء عضو من مصروف معين؟', answer: 'نعم، عند إضافة المصروف اختر الأعضاء المشاركين فقط.' }
+      { question: 'هل يمكن استثناء عضو من مصروف معين؟', answer: 'نعم، عند إضافة المصروف اختر الأعضاء المشاركين فقط.' },
+      { question: 'كيف نحسب فواتير الكهرباء والماء بين الساكنين؟', answer: 'أضف فاتورة الكهرباء أو الماء كمصروف وحدد طريقة التقسيم. يمكنك تقسيمها بالتساوي أو حسب عدد الغرف أو الأشخاص.' },
+      { question: 'ما الحل لو أحد الساكنين ما يدفع؟', answer: 'السجل الواضح في Diviso يُظهر المبالغ المستحقة بدقة. يمكنك إرسال تذكير ودي عبر التطبيق أو التفاوض على جدولة الدفع.' },
+      { question: 'هل يوجد تطبيق لإدارة مصاريف الشقة؟', answer: 'Diviso مصمم لإدارة مصاريف السكن المشترك. يتتبع الإيجار والفواتير والمشتريات ويحسب حصة كل ساكن تلقائياً.' },
+      { question: 'كيف نضمن العدالة في المصاريف المشتركة؟', answer: 'التسجيل الفوري للمصاريف والتقسيم التلقائي يضمن العدالة. كل شخص يشوف ما دفعه وما عليه بوضوح تام.' }
     ],
     faqsEn: [
       { question: 'Can rent be split in different ratios?', answer: 'Yes, you can set a custom ratio for each member based on room size.' },
       { question: 'How do I handle recurring expenses?', answer: 'You can add the expense once and repeat it monthly.' },
-      { question: 'Can I exclude a member from a specific expense?', answer: 'Yes, when adding the expense, choose only participating members.' }
+      { question: 'Can I exclude a member from a specific expense?', answer: 'Yes, when adding the expense, choose only participating members.' },
+      { question: 'How to calculate electricity and water bills between roommates?', answer: 'Add the electricity or water bill as an expense and choose the split method. You can split equally or by number of rooms or people.' },
+      { question: 'What if one of the roommates doesn\'t pay?', answer: 'The clear record in Diviso shows amounts owed accurately. You can send a friendly reminder through the app or negotiate a payment schedule.' },
+      { question: 'Is there an app to manage apartment expenses?', answer: 'Diviso is designed to manage shared housing expenses. It tracks rent, bills, and purchases and calculates each roommate\'s share automatically.' },
+      { question: 'How to ensure fairness in shared expenses?', answer: 'Immediate recording of expenses and automatic splitting ensures fairness. Everyone sees clearly what they paid and what they owe.' }
     ],
-    keywords: ['مصاريف السكن المشترك', 'تقسيم الإيجار', 'شركاء السكن', 'فواتير الشقة'],
-    keywordsEn: ['shared housing expenses', 'split rent', 'roommate expenses', 'apartment bills']
+    keywords: ['مصاريف السكن المشترك', 'تقسيم الإيجار', 'شركاء السكن', 'فواتير الشقة', 'تطبيق مصاريف الشقة', 'حساب فواتير السكن'],
+    keywordsEn: ['shared housing expenses', 'split rent', 'roommate expenses', 'apartment bills', 'apartment expense app', 'housing bills calculator']
   },
   {
     slug: 'friends-expenses',
@@ -196,15 +212,23 @@ export const useCases: UseCase[] = [
     faqs: [
       { question: 'هل يمكن تقسيم الفاتورة بشكل غير متساوٍ؟', answer: 'نعم، يمكنك تحديد مبلغ مخصص لكل شخص حسب طلبه.' },
       { question: 'كيف أتعامل مع من لم يأكل؟', answer: 'استثنِه من المصروف عند الإضافة.' },
-      { question: 'هل يمكن تصوير الفاتورة؟', answer: 'نعم، يمكنك إرفاق صورة الفاتورة كإثبات.' }
+      { question: 'هل يمكن تصوير الفاتورة؟', answer: 'نعم، يمكنك إرفاق صورة الفاتورة كإثبات.' },
+      { question: 'هل لازم واحد يدفع والباقي يحول؟', answer: 'لا، يمكن لأي شخص دفع أي مصروف وتسجيله في Diviso. التطبيق يحسب الفرق ويُظهر من يدين لمن في النهاية.' },
+      { question: 'ما أفضل طريقة لتقسيم مصاريف الطلعة؟', answer: 'سجّل كل فاتورة فور الدفع مع تحديد الدافع. التطبيق يحسب التقسيم تلقائياً ويُظهر المبلغ المستحق من كل شخص.' },
+      { question: 'كيف نعرف مين عليه كم بعد الطلعة؟', answer: 'شاشة الرصيد في Diviso تعرض بوضوح من يدين لمن وكم المبلغ. يمكنك التسوية مباشرة من التطبيق.' },
+      { question: 'كيف نقسم الحساب بدون إحراج؟', answer: 'Diviso يتولى الحساب تلقائياً ويرسل إشعارات ودية. لا حاجة لطلب الفلوس شخصياً، كل شخص يشوف رصيده.' }
     ],
     faqsEn: [
       { question: 'Can the bill be split unequally?', answer: 'Yes, you can set a custom amount for each person based on their order.' },
       { question: 'How to handle someone who didn\'t eat?', answer: 'Exclude them from the expense when adding.' },
-      { question: 'Can I take a photo of the receipt?', answer: 'Yes, you can attach a receipt photo as proof.' }
+      { question: 'Can I take a photo of the receipt?', answer: 'Yes, you can attach a receipt photo as proof.' },
+      { question: 'Does one person have to pay and others transfer?', answer: 'No, anyone can pay any expense and record it in Diviso. The app calculates the difference and shows who owes whom in the end.' },
+      { question: 'What is the best way to split outing expenses?', answer: 'Record each bill immediately after payment with the payer specified. The app calculates the split automatically and shows how much each person owes.' },
+      { question: 'How do we know who owes how much after the outing?', answer: 'The balance screen in Diviso clearly shows who owes whom and how much. You can settle directly from the app.' },
+      { question: 'How to split the bill without embarrassment?', answer: 'Diviso handles the calculation automatically and sends friendly notifications. No need to ask for money personally, everyone sees their balance.' }
     ],
-    keywords: ['تقسيم فاتورة المطعم', 'مصاريف الطلعات', 'حساب الشلة', 'تقسيم الحساب'],
-    keywordsEn: ['split restaurant bill', 'outing expenses', 'friend group expenses', 'bill splitting']
+    keywords: ['تقسيم فاتورة المطعم', 'مصاريف الطلعات', 'حساب الشلة', 'تقسيم الحساب', 'كيف نقسم الحساب', 'تطبيق تقسيم الفاتورة'],
+    keywordsEn: ['split restaurant bill', 'outing expenses', 'friend group expenses', 'bill splitting', 'how to split bill', 'bill splitting app']
   },
   {
     slug: 'events',
@@ -254,15 +278,23 @@ export const useCases: UseCase[] = [
     faqs: [
       { question: 'كيف أتعامل مع الرعاة والتبرعات؟', answer: 'سجلها كدخل للمجموعة لتخفيض المبالغ المستحقة.' },
       { question: 'هل يمكن تحديد حصص مختلفة للمنظمين؟', answer: 'نعم، يمكنك تعيين نسب مخصصة لكل عضو.' },
-      { question: 'كيف أتعامل مع المبالغ المستردة؟', answer: 'سجلها كمصروف سالب أو احذف المصروف الأصلي.' }
+      { question: 'كيف أتعامل مع المبالغ المستردة؟', answer: 'سجلها كمصروف سالب أو احذف المصروف الأصلي.' },
+      { question: 'ما أفضل حل لإدارة مصاريف الأنشطة الجماعية؟', answer: 'استخدم مجموعة مشتركة في Diviso لكل نشاط. سجّل المصاريف مع التصنيف والتطبيق يحسب حصة كل مشارك.' },
+      { question: 'كيف نتابع المصاريف في مجموعة كبيرة؟', answer: 'Diviso يدعم أي عدد من الأعضاء. كل مصروف يُسجّل مع الدافع والمشاركين، والتطبيق يتتبع كل شيء تلقائياً.' },
+      { question: 'هل في طريقة سهلة لتقسيم التكاليف؟', answer: 'نعم، أضف المصروف واختر التقسيم بالتساوي أو بنسب مخصصة. التطبيق يحسب حصة كل شخص في ثوانٍ.' },
+      { question: 'كيف نغلق الحسابات بدون نقاشات؟', answer: 'السجل الكامل للمصاريف يُظهر كل التفاصيل بوضوح. التسوية تتم بضغطة زر وكل شخص يشوف ما دفعه وما عليه.' }
     ],
     faqsEn: [
       { question: 'How to handle sponsors and donations?', answer: 'Record them as group income to reduce amounts owed.' },
       { question: 'Can organizers have different shares?', answer: 'Yes, you can assign custom ratios to each member.' },
-      { question: 'How to handle refunds?', answer: 'Record them as negative expense or delete the original expense.' }
+      { question: 'How to handle refunds?', answer: 'Record them as negative expense or delete the original expense.' },
+      { question: 'What is the best solution for managing group activity expenses?', answer: 'Use a shared group in Diviso for each activity. Record expenses with categories and the app calculates each participant\'s share.' },
+      { question: 'How to track expenses in a large group?', answer: 'Diviso supports any number of members. Each expense is recorded with the payer and participants, and the app tracks everything automatically.' },
+      { question: 'Is there an easy way to split costs?', answer: 'Yes, add the expense and choose equal split or custom ratios. The app calculates each person\'s share in seconds.' },
+      { question: 'How to close accounts without arguments?', answer: 'The complete expense record shows all details clearly. Settlement happens with one tap and everyone sees what they paid and what they owe.' }
     ],
-    keywords: ['تقسيم تكاليف الفعاليات', 'مصاريف الحفلات', 'تنظيم الفعاليات', 'ميزانية الفعالية'],
-    keywordsEn: ['event cost splitting', 'party expenses', 'event organizing', 'event budget']
+    keywords: ['تقسيم تكاليف الفعاليات', 'مصاريف الحفلات', 'تنظيم الفعاليات', 'ميزانية الفعالية', 'إدارة مصاريف الأنشطة', 'تقسيم التكاليف'],
+    keywordsEn: ['event cost splitting', 'party expenses', 'event organizing', 'event budget', 'activity expense management', 'cost splitting']
   },
   {
     slug: 'group-trips',
