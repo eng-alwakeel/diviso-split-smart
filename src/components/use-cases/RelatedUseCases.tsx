@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plane, Home, Users, PartyPopper, Mountain } from 'lucide-react';
+import { Plane, Home, Users, PartyPopper, Mountain, HandCoins } from 'lucide-react';
 import { UseCase } from '@/content/use-cases/useCases';
 
 interface RelatedUseCasesProps {
@@ -12,7 +12,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
   Users,
   PartyPopper,
-  Mountain
+  Mountain,
+  HandCoins
 };
 
 export const RelatedUseCases = ({ useCases }: RelatedUseCasesProps) => {

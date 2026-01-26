@@ -1,4 +1,4 @@
-import { Plane, Home, Users, PartyPopper, Mountain } from 'lucide-react';
+import { Plane, Home, Users, PartyPopper, Mountain, HandCoins } from 'lucide-react';
 
 export interface UseCaseStep {
   title: string;
@@ -321,6 +321,70 @@ export const useCases: UseCase[] = [
     ],
     keywords: ['ميزانية الكشتة', 'مصاريف الرحلات الجماعية', 'تقسيم تكاليف الرحلة', 'حساب الكشتة'],
     keywordsEn: ['camping budget', 'group trip expenses', 'trip cost splitting', 'camping expenses']
+  },
+  {
+    slug: 'awkward-money-situations',
+    icon: 'HandCoins',
+    title: 'التعامل مع مواقف الفلوس المحرجة',
+    titleEn: 'Handling Awkward Money Situations',
+    question: 'كيف تطلب فلوسك من صديقك بدون ما تخرب العلاقة؟',
+    questionEn: 'How to ask your friend for money back without ruining the relationship?',
+    intro: 'Diviso يحل مشكلة طلب الفلوس من الأصدقاء عن طريق نظام تلقائي يُظهر من يدين لمن بدون ما تحتاج تطلب بنفسك. كل شخص يشوف رصيده بوضوح في التطبيق، والتسوية تصير بضغطة زر عن طريق Apple Pay أو التحويل البنكي بدون إحراج أو خلافات.',
+    introEn: 'Diviso solves the problem of asking friends for money through an automatic system that shows who owes whom without needing to ask directly. Everyone sees their balance clearly in the app, and settlement happens with one tap via Apple Pay or bank transfer without awkwardness or disputes.',
+    problems: [
+      'إحراج طلب الفلوس مباشرة من صديق',
+      'نسيان المبالغ الصغيرة المتراكمة',
+      'تأثير الديون على العلاقات الشخصية',
+      'عدم وجود إثبات واضح للمصاريف',
+      'الخوف من إفساد الصداقة بسبب المال'
+    ],
+    problemsEn: [
+      'Awkwardness of directly asking a friend for money',
+      'Forgetting small accumulated amounts',
+      'Impact of debts on personal relationships',
+      'No clear proof of expenses',
+      'Fear of ruining friendship over money'
+    ],
+    solutions: [
+      'التطبيق يُظهر الرصيد تلقائياً لكل شخص',
+      'إشعارات ودية وغير مباشرة للتذكير',
+      'سجل واضح ومفصل لكل المصاريف',
+      'تسوية سهلة وسريعة بضغطة زر',
+      'لا حاجة لطلب المال شخصياً'
+    ],
+    solutionsEn: [
+      'App shows balance automatically to everyone',
+      'Friendly and indirect reminder notifications',
+      'Clear and detailed record of all expenses',
+      'Easy and quick settlement with one tap',
+      'No need to ask for money personally'
+    ],
+    steps: [
+      { title: 'أنشئ مجموعة مشتركة', description: 'أنشئ مجموعة تضم أصدقائك أو زملائك' },
+      { title: 'سجل المصاريف', description: 'كل شخص يسجل المصاريف اللي دفعها' },
+      { title: 'شاهد الأرصدة', description: 'التطبيق يحسب ويعرض من يدين لمن تلقائياً' },
+      { title: 'سوِّ بضغطة', description: 'اضغط على تسوية وحول المبلغ مباشرة' }
+    ],
+    stepsEn: [
+      { title: 'Create a shared group', description: 'Create a group with your friends or colleagues' },
+      { title: 'Record expenses', description: 'Everyone records the expenses they paid' },
+      { title: 'View balances', description: 'App calculates and shows who owes whom automatically' },
+      { title: 'Settle with one tap', description: 'Tap settle and transfer the amount directly' }
+    ],
+    faqs: [
+      { question: 'هل يرسل التطبيق تذكير لصديقي؟', answer: 'نعم، يرسل إشعارات ودية وغير مباشرة تذكر بالرصيد المستحق بدون إحراج.' },
+      { question: 'ماذا لو رفض صديقي الدفع؟', answer: 'السجل الواضح للمصاريف يساعد على توضيح الموقف، ويمكنك التفاوض على تقسيط المبلغ.' },
+      { question: 'هل يمكن تقسيم المبلغ على دفعات؟', answer: 'نعم، يمكنك تسوية جزء من المبلغ وترك الباقي للوقت المناسب.' },
+      { question: 'كيف أتجنب المواقف المحرجة من البداية؟', answer: 'استخدم Diviso من أول مصروف مشترك، والتطبيق يتولى الباقي تلقائياً.' }
+    ],
+    faqsEn: [
+      { question: 'Does the app send a reminder to my friend?', answer: 'Yes, it sends friendly and indirect notifications about the owed balance without awkwardness.' },
+      { question: 'What if my friend refuses to pay?', answer: 'The clear expense record helps clarify the situation, and you can negotiate installment payments.' },
+      { question: 'Can the amount be split into installments?', answer: 'Yes, you can settle part of the amount and leave the rest for later.' },
+      { question: 'How to avoid awkward situations from the start?', answer: 'Use Diviso from the first shared expense, and the app handles the rest automatically.' }
+    ],
+    keywords: ['طلب الفلوس من صديق', 'مواقف الفلوس المحرجة', 'تجنب الإحراج مع الأصدقاء', 'تسوية الديون بين الأصدقاء', 'كيف أطلب فلوسي'],
+    keywordsEn: ['asking friend for money', 'awkward money situations', 'avoiding money embarrassment', 'settling debts between friends', 'how to ask for money back']
   }
 ];
 

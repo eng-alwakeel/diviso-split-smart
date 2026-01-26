@@ -137,6 +137,15 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  
+  <url>
+    <loc>https://diviso.app/use-cases/awkward-money-situations</loc>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://diviso.app/use-cases/awkward-money-situations" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/use-cases/awkward-money-situations?lang=en" />
+    <lastmod>2026-01-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
   <!-- صفحة المدونة الرئيسية -->
   <url>
