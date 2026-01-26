@@ -21,10 +21,60 @@ function formatDate(dateStr: string): string {
   });
 }
 
+// Generate a placeholder QR code as base64 for testing
+function generatePlaceholderQR(invoiceNumber: string): string {
+  // This is a simple SVG QR code placeholder encoded as base64
+  // In production, this would be replaced by actual ZATCA QR from Odoo
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+    <rect width="150" height="150" fill="white"/>
+    <rect x="10" y="10" width="30" height="30" fill="#333"/>
+    <rect x="110" y="10" width="30" height="30" fill="#333"/>
+    <rect x="10" y="110" width="30" height="30" fill="#333"/>
+    <rect x="15" y="15" width="20" height="20" fill="white"/>
+    <rect x="115" y="15" width="20" height="20" fill="white"/>
+    <rect x="15" y="115" width="20" height="20" fill="white"/>
+    <rect x="20" y="20" width="10" height="10" fill="#333"/>
+    <rect x="120" y="20" width="10" height="10" fill="#333"/>
+    <rect x="20" y="120" width="10" height="10" fill="#333"/>
+    <rect x="50" y="10" width="10" height="10" fill="#333"/>
+    <rect x="70" y="10" width="10" height="10" fill="#333"/>
+    <rect x="50" y="30" width="10" height="10" fill="#333"/>
+    <rect x="60" y="40" width="10" height="10" fill="#333"/>
+    <rect x="50" y="50" width="10" height="10" fill="#333"/>
+    <rect x="70" y="50" width="10" height="10" fill="#333"/>
+    <rect x="90" y="50" width="10" height="10" fill="#333"/>
+    <rect x="50" y="70" width="10" height="10" fill="#333"/>
+    <rect x="70" y="70" width="10" height="10" fill="#333"/>
+    <rect x="90" y="70" width="10" height="10" fill="#333"/>
+    <rect x="110" y="70" width="10" height="10" fill="#333"/>
+    <rect x="130" y="70" width="10" height="10" fill="#333"/>
+    <rect x="50" y="90" width="10" height="10" fill="#333"/>
+    <rect x="70" y="90" width="10" height="10" fill="#333"/>
+    <rect x="90" y="90" width="10" height="10" fill="#333"/>
+    <rect x="110" y="90" width="10" height="10" fill="#333"/>
+    <rect x="50" y="110" width="10" height="10" fill="#333"/>
+    <rect x="70" y="110" width="10" height="10" fill="#333"/>
+    <rect x="90" y="110" width="10" height="10" fill="#333"/>
+    <rect x="110" y="110" width="10" height="10" fill="#333"/>
+    <rect x="130" y="110" width="10" height="10" fill="#333"/>
+    <rect x="50" y="130" width="10" height="10" fill="#333"/>
+    <rect x="90" y="130" width="10" height="10" fill="#333"/>
+    <rect x="110" y="130" width="10" height="10" fill="#333"/>
+    <text x="75" y="85" font-size="6" text-anchor="middle" fill="#666">${invoiceNumber}</text>
+  </svg>`;
+  
+  // Convert SVG to base64
+  const base64 = btoa(unescape(encodeURIComponent(svg)));
+  return base64;
+}
+
 // Generate HTML invoice template
 function generateInvoiceHtml(invoice: any, items: any[]): string {
   const isVatApplicable = invoice.vat_rate > 0;
-  const showQrCode = isVatApplicable && invoice.qr_base64;
+  // Use actual QR code if available, otherwise generate placeholder for testing
+  const qrBase64 = invoice.qr_base64 || (isVatApplicable ? generatePlaceholderQR(invoice.invoice_number) : null);
+  const showQrCode = isVatApplicable && qrBase64;
+  const isPlaceholderQr = !invoice.qr_base64 && qrBase64;
 
   return `
 <!DOCTYPE html>
@@ -370,8 +420,11 @@ function generateInvoiceHtml(invoice: any, items: any[]): string {
 
     ${showQrCode ? `
     <div class="qr-section">
-      <div class="qr-title">رمز ZATCA للتحقق | ZATCA Verification QR Code</div>
-      <img class="qr-code" src="data:image/png;base64,${invoice.qr_base64}" alt="QR Code" />
+      <div class="qr-title">
+        رمز ZATCA للتحقق | ZATCA Verification QR Code
+        ${isPlaceholderQr ? '<br><small style="color: #e67e22;">(نموذج تجريبي | Test Placeholder)</small>' : ''}
+      </div>
+      <img class="qr-code" src="data:image/${isPlaceholderQr ? 'svg+xml' : 'png'};base64,${qrBase64}" alt="QR Code" />
     </div>
     ` : ''}
 

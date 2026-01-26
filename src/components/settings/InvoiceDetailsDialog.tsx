@@ -11,12 +11,16 @@ import {
   CreditCard,
   QrCode,
   FileText,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from 'lucide-react';
-import { Invoice } from '@/hooks/useInvoices';
+import { Invoice, useInvoices } from '@/hooks/useInvoices';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { ar, enUS } from 'date-fns/locale';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
@@ -26,6 +30,10 @@ interface InvoiceDetailsDialogProps {
 
 export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDetailsDialogProps) {
   const { i18n } = useTranslation();
+  const { toast } = useToast();
+  const { resendInvoiceEmail } = useInvoices();
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   if (!invoice) return null;
 
@@ -54,6 +62,62 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
         return i18n.language === 'ar' ? 'باقة نقاط' : 'Credits Pack';
       default:
         return itemType;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!invoice) return;
+    
+    setIsDownloading(true);
+    try {
+      // If pdf_url exists, open it directly
+      if (invoice.pdf_url) {
+        window.open(invoice.pdf_url, '_blank');
+        return;
+      }
+
+      // Otherwise, generate PDF via edge function
+      const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
+        body: { invoice_id: invoice.id, return_html: true }
+      });
+
+      if (error) throw error;
+
+      // Open the HTML in a new tab for printing as PDF
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(data);
+        newWindow.document.close();
+        // Trigger print dialog for PDF
+        setTimeout(() => {
+          newWindow.print();
+        }, 500);
+      }
+
+      toast({
+        title: i18n.language === 'ar' ? 'تم التحميل' : 'Downloaded',
+        description: i18n.language === 'ar' ? 'يمكنك طباعة الفاتورة كـ PDF' : 'You can print the invoice as PDF'
+      });
+    } catch (err: any) {
+      console.error('Error downloading PDF:', err);
+      toast({
+        title: i18n.language === 'ar' ? 'خطأ' : 'Error',
+        description: i18n.language === 'ar' ? 'فشل في تحميل الفاتورة' : 'Failed to download invoice',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!invoice) return;
+    
+    setIsSendingEmail(true);
+    try {
+      await resendInvoiceEmail(invoice.id);
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -271,17 +335,28 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
 
           {/* Actions */}
           <div className="flex gap-3 justify-end">
-            {invoice.pdf_url && (
-              <Button 
-                variant="outline" 
-                onClick={() => window.open(invoice.pdf_url!, '_blank')}
-              >
+            <Button 
+              variant="outline" 
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
+            >
+              {isDownloading ? (
+                <Loader2 className="w-4 h-4 me-2 animate-spin" />
+              ) : (
                 <Download className="w-4 h-4 me-2" />
-                {i18n.language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
-              </Button>
-            )}
-            <Button variant="default">
-              <Mail className="w-4 h-4 me-2" />
+              )}
+              {i18n.language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
+            </Button>
+            <Button 
+              variant="default"
+              onClick={handleSendEmail}
+              disabled={isSendingEmail}
+            >
+              {isSendingEmail ? (
+                <Loader2 className="w-4 h-4 me-2 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4 me-2" />
+              )}
               {i18n.language === 'ar' ? 'إرسال بالبريد' : 'Send by Email'}
             </Button>
           </div>
