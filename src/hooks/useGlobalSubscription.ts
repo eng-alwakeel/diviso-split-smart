@@ -2,7 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCallback } from 'react';
 
-export type SubscriptionPlan = "personal" | "family" | "lifetime";
+export type SubscriptionPlan = 
+  | "starter_monthly" | "starter_yearly" 
+  | "pro_monthly" | "pro_yearly" 
+  | "max_monthly" | "max_yearly"
+  | "personal" | "family" | "lifetime"; // للتوافق مع البيانات القديمة
 export type SubscriptionStatus = "trialing" | "active" | "expired" | "canceled";
 
 export interface UserSubscription {

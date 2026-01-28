@@ -34,9 +34,12 @@
   },
   "subscription": {
     "title": "Subscription Status",
-    "free_plan": "Free Plan",
-    "personal_plan": "Personal Plan",
-    "family_plan": "Family Plan",
+    "free_plan": "Free",
+    "starter_plan": "Starter",
+    "pro_plan": "Pro",
+    "max_plan": "Max",
+    "personal_plan": "Starter",
+    "family_plan": "Pro",
     "trial_active": "Trial Active",
     "days_left": "{{days}} days left",
     "expired": "Expired",
@@ -54,7 +57,15 @@
     "manage_subscription": "Manage Subscription",
     "trial_warning": "Your trial will end in {{days}} days. Upgrade to continue using all features.",
     "reward_points": "Reward Points",
-    "points": "points"
+    "points": "points",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "billing_cycle": "Billing Cycle",
+    "plan_type": "Plan Type",
+    "expires_on": "Expires on",
+    "days_remaining": "Days Remaining",
+    "of_period_used": "of period used",
+    "expiry_warning": "Your subscription will expire in {{days}} days. Renew now to continue with premium features."
   },
   "usage": {
     "title": "Usage Limits",

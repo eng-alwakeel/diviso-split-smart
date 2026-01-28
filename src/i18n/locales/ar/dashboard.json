@@ -34,9 +34,12 @@
   },
   "subscription": {
     "title": "حالة الاشتراك",
-    "free_plan": "الباقة المجانية",
-    "personal_plan": "الباقة الشخصية",
-    "family_plan": "الباقة العائلية",
+    "free_plan": "مجاني",
+    "starter_plan": "Starter",
+    "pro_plan": "Pro",
+    "max_plan": "Max",
+    "personal_plan": "Starter",
+    "family_plan": "Pro",
     "trial_active": "تجربة نشطة",
     "days_left": "{{days}} يوم متبقي",
     "expired": "منتهي",
@@ -54,7 +57,15 @@
     "manage_subscription": "إدارة الاشتراك",
     "trial_warning": "ستنتهي فترة التجربة خلال {{days}} يوم. قم بالترقية للاستمرار في استخدام جميع الميزات.",
     "reward_points": "نقاط المكافآت",
-    "points": "نقطة"
+    "points": "نقطة",
+    "monthly": "شهري",
+    "yearly": "سنوي",
+    "billing_cycle": "دورة الفوترة",
+    "plan_type": "نوع الباقة",
+    "expires_on": "ينتهي في",
+    "days_remaining": "المدة المتبقية",
+    "of_period_used": "من الفترة مستخدمة",
+    "expiry_warning": "اشتراكك سينتهي خلال {{days}} أيام. جدد الآن للاستمرار بالميزات المميزة."
   },
   "usage": {
     "title": "حدود الاستخدام",
