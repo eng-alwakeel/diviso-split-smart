@@ -15,6 +15,7 @@ import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
 import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
+import { SubscriptionStatusCard } from "@/components/dashboard/SubscriptionStatusCard";
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
 
@@ -334,6 +335,9 @@ const Dashboard = React.memo(() => {
 
           {/* Onboarding Progress Card - Priority for new users */}
           <OnboardingProgress />
+
+          {/* Subscription Status Card */}
+          <SubscriptionStatusCard />
 
           {/* Stats Grid - Main focus after onboarding */}
           <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
