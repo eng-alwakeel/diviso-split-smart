@@ -36,10 +36,9 @@ const LaunchPage: React.FC = () => {
 
   // Share Handler
   const handleShare = async () => {
-    const shareText = `القسمة دايم تسبب لخبطة
-هذا تطبيق يخليها واضحة بينكم
-جرّبه 👇
-${window.location.origin}/launch`;
+    const shareText = `عشان ما نتوه في الحسابات والكسور المرة الجاية.. 🌚
+هذا التطبيق بيضبط لنا كل المصاريف ويقسمها بيننا بالملّي. حملوه وخلونا نترتب.
+الرابط: ${window.location.origin}/launch`;
 
     try {
       await navigator.clipboard.writeText(shareText);
