@@ -63,6 +63,7 @@ const LazyGroupSettings = withLazyLoading(lazy(() => import("./pages/GroupSettin
 const LazyUseCases = withLazyLoading(lazy(() => import("./pages/UseCases")));
 const LazyUseCaseDetails = withLazyLoading(lazy(() => import("./pages/UseCaseDetails")));
 const LazyLandingPage = withLazyLoading(lazy(() => import("./pages/LandingPage")));
+const LazyLaunchPage = withLazyLoading(lazy(() => import("./pages/LaunchPage")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -127,6 +128,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/use-cases/:slug" element={<LazyUseCaseDetails />} />
             {/* Landing Pages for Ad Campaigns - Zero Distraction */}
             <Route path="/lp/:slug" element={<LazyLandingPage />} />
+            <Route path="/launch" element={<LazyLaunchPage />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
