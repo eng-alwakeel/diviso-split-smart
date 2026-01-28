@@ -178,10 +178,25 @@
     "description": "الوصول إلى أدوات الإدارة والإحصائيات المتقدمة للنظام",
     "enter_dashboard": "دخول لوحة التحكم الإدارية"
   },
+  "subscription": {
+    "current_plan": "الخطة الحالية",
+    "current_plan_desc": "تفاصيل اشتراكك الحالي",
+    "status": "حالة الاشتراك",
+    "plan_type": "نوع الخطة",
+    "start_date": "تاريخ البداية",
+    "end_date": "تاريخ الانتهاء",
+    "days_remaining": "المدة المتبقية",
+    "subscribe_now": "اشترك الآن",
+    "manage_subscription": "إدارة الاشتراك",
+    "expiry_warning": "اشتراكك سينتهي خلال {{days}} أيام. جدد الآن للاستمرار بالميزات المميزة."
+  },
   "plans": {
     "free": "مجاني",
-    "personal": "شخصي",
-    "family": "عائلي"
+    "starter": "Starter",
+    "pro": "Pro",
+    "max": "Max",
+    "personal": "Starter",
+    "family": "Pro"
   },
   "status": {
     "trialing": "تجربة مجانية",

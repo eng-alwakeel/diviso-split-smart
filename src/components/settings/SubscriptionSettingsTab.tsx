@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useNavigate } from "react-router-dom";
-import { Crown, Calendar, Clock, CreditCard, ExternalLink, Gem } from "lucide-react";
+import { Crown, Calendar, Clock, CreditCard, ExternalLink, Gem, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -22,7 +22,7 @@ export const SubscriptionSettingsTab = () => {
     rewardPointsBalance,
     loading
   } = useSubscription();
-  const { currentPlan, badgeConfig } = usePlanBadge();
+  const { currentPlan, badgeConfig, isFreePlan } = usePlanBadge();
 
   const dateLocale = i18n.language === 'ar' ? ar : enUS;
 
@@ -43,17 +43,17 @@ export const SubscriptionSettingsTab = () => {
   }
 
   const getStatusText = () => {
-    if (!subscription) return t('dashboard:subscription.no_subscription');
+    if (!subscription) return t('settings:status.unknown');
     
     if (subscription.status === 'trialing') {
-      return isTrialActive ? t('dashboard:subscription.trialing_active') : t('dashboard:subscription.trialing_expired');
+      return isTrialActive ? t('settings:status.trialing') : t('settings:status.expired');
     }
     
     switch (subscription.status) {
-      case 'active': return t('dashboard:subscription.active');
-      case 'expired': return t('dashboard:subscription.expired');
-      case 'canceled': return t('dashboard:subscription.canceled');
-      default: return subscription.status;
+      case 'active': return t('settings:status.active');
+      case 'expired': return t('settings:status.expired');
+      case 'canceled': return t('settings:status.canceled');
+      default: return t('settings:status.unknown');
     }
   };
 
@@ -90,7 +90,7 @@ export const SubscriptionSettingsTab = () => {
   };
 
   const getPlanLabel = () => {
-    if (!subscription) return t('dashboard:subscription.free_plan');
+    if (!subscription || isFreePlan) return t('settings:plans.free');
     
     // استخراج اسم الخطة الأساسي
     const planBase = subscription.plan
@@ -103,9 +103,9 @@ export const SubscriptionSettingsTab = () => {
       'starter': 'Starter',
       'pro': 'Pro',
       'max': 'Max',
-      'personal': 'Starter', // توافق مع القديم
-      'family': 'Pro',       // توافق مع القديم
-      'lifetime': 'Max',     // توافق مع القديم
+      'personal': 'Starter',
+      'family': 'Pro',
+      'lifetime': 'Max',
     };
     
     return planMap[planBase] || subscription.plan;
@@ -113,7 +113,7 @@ export const SubscriptionSettingsTab = () => {
 
   const getBillingCycle = () => {
     if (!subscription) return null;
-    const isYearly = subscription.plan.includes('_yearly');
+    const isYearly = subscription.plan.includes('_yearly') || subscription.plan.includes('yearly');
     return isYearly ? t('dashboard:subscription.yearly') : t('dashboard:subscription.monthly');
   };
 
@@ -122,59 +122,71 @@ export const SubscriptionSettingsTab = () => {
   };
 
   const showExpiryInfo = subscription && (subscription.status === 'active' || subscription.status === 'trialing');
-  const shouldShowUpgrade = currentPlan === 'free' || subscription?.status === 'expired' || subscription?.status === 'canceled';
+  const shouldShowUpgrade = isFreePlan || subscription?.status === 'expired' || subscription?.status === 'canceled';
+  const hasActiveSubscription = subscription && (subscription.status === 'active' || (subscription.status === 'trialing' && isTrialActive));
 
   return (
     <div className="space-y-6">
       {/* الخطة الحالية */}
-      <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <Crown className="w-5 h-5 text-primary" />
                 {t('settings:subscription.current_plan')}
               </CardTitle>
-              <CardDescription>{t('settings:subscription.current_plan_desc', 'تفاصيل اشتراكك الحالي')}</CardDescription>
+              <CardDescription className="mt-1">
+                {t('settings:subscription.current_plan_desc')}
+              </CardDescription>
             </div>
             <Badge 
-              className={`${badgeConfig.bgColor} ${badgeConfig.color} border-0 text-base px-4 py-1`}
+              className={`${badgeConfig.bgColor} ${badgeConfig.color} border-0 text-base px-4 py-2 font-bold shadow-sm`}
             >
               {badgeConfig.badge} {badgeConfig.label}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        
+        <CardContent className="space-y-6 pt-6">
           {/* معلومات الخطة */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <CreditCard className="w-4 h-4" />
-                <span className="text-sm">{t('settings:subscription.plan_type', 'نوع الخطة')}</span>
+                <span className="text-sm font-medium">{t('settings:subscription.plan_type')}</span>
               </div>
-              <p className="text-lg font-semibold text-foreground">{getPlanLabel()}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xl font-bold text-foreground">{getPlanLabel()}</p>
+                {getBillingCycle() && hasActiveSubscription && (
+                  <Badge variant="outline" className="text-xs">
+                    {getBillingCycle()}
+                  </Badge>
+                )}
+              </div>
             </div>
             
-            <div className="p-4 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+            <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
                 <Clock className="w-4 h-4" />
-                <span className="text-sm">{t('settings:subscription.status')}</span>
+                <span className="text-sm font-medium">{t('settings:subscription.status')}</span>
               </div>
-              <Badge variant={getStatusVariant()} className="text-sm">
+              <Badge variant={getStatusVariant()} className="text-sm px-3 py-1">
+                {hasActiveSubscription && <CheckCircle2 className="w-3 h-3 me-1" />}
                 {getStatusText()}
               </Badge>
             </div>
           </div>
 
           {/* تواريخ الاشتراك */}
-          {subscription && (
+          {subscription && hasActiveSubscription && (
             <>
-              <Separator />
+              <Separator className="my-4" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-sm">{t('settings:subscription.start_date', 'تاريخ البداية')}</span>
+                    <span className="text-sm font-medium">{t('settings:subscription.start_date')}</span>
                   </div>
                   <p className="text-lg font-semibold text-foreground">
                     {formatDate(subscription.started_at)}
@@ -182,10 +194,10 @@ export const SubscriptionSettingsTab = () => {
                 </div>
                 
                 {showExpiryInfo && (
-                  <div className="p-4 rounded-lg bg-muted/50">
-                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border/30">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
                       <Calendar className="w-4 h-4" />
-                      <span className="text-sm">{t('settings:subscription.end_date', 'تاريخ الانتهاء')}</span>
+                      <span className="text-sm font-medium">{t('settings:subscription.end_date')}</span>
                     </div>
                     <p className={`text-lg font-semibold ${daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
                       {formatDate(subscription.expires_at)}
@@ -199,13 +211,13 @@ export const SubscriptionSettingsTab = () => {
           {/* شريط التقدم */}
           {showExpiryInfo && daysLeft > 0 && (
             <>
-              <Separator />
-              <div className="space-y-3">
+              <Separator className="my-4" />
+              <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border/30">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    {t('settings:subscription.days_remaining', 'المدة المتبقية')}
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {t('settings:subscription.days_remaining')}
                   </span>
-                  <span className={`text-sm font-medium ${daysLeft <= 7 ? 'text-warning' : 'text-foreground'}`}>
+                  <span className={`text-lg font-bold ${daysLeft <= 7 ? 'text-warning' : 'text-primary'}`}>
                     {daysLeft} {t('dashboard:subscription.days')}
                   </span>
                 </div>
@@ -220,15 +232,15 @@ export const SubscriptionSettingsTab = () => {
           {/* نقاط المكافآت */}
           {rewardPointsBalance > 0 && (
             <>
-              <Separator />
-              <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10">
+              <Separator className="my-4" />
+              <div className="flex items-center justify-between p-4 rounded-xl bg-primary/10 border border-primary/20">
                 <div className="flex items-center gap-2">
                   <Gem className="w-5 h-5 text-primary" />
                   <span className="text-foreground font-medium">{t('dashboard:subscription.reward_points')}</span>
                 </div>
                 <Button 
                   variant="link" 
-                  className="text-primary font-bold text-lg"
+                  className="text-primary font-bold text-lg p-0"
                   onClick={() => navigate('/credit-store')}
                 >
                   {rewardPointsBalance} {t('dashboard:subscription.points')}
@@ -243,27 +255,27 @@ export const SubscriptionSettingsTab = () => {
             {shouldShowUpgrade && (
               <Button 
                 onClick={() => navigate('/pricing')}
-                className="flex-1 bg-primary hover:bg-primary/90"
+                className="flex-1 bg-primary hover:bg-primary/90 h-12 text-base"
               >
-                <Crown className="w-4 h-4 me-2" />
-                {t('settings:subscription.subscribe_now', 'اشترك الآن')}
+                <Crown className="w-5 h-5 me-2" />
+                {t('settings:subscription.subscribe_now')}
               </Button>
             )}
             
             <Button 
               variant="outline" 
               onClick={() => navigate('/pricing')}
-              className="flex-1"
+              className="flex-1 h-12 text-base"
             >
-              {t('settings:subscription.manage_subscription', 'إدارة الاشتراك')}
+              {t('settings:subscription.manage_subscription')}
             </Button>
           </div>
 
           {/* تحذير انتهاء قريب */}
           {showExpiryInfo && daysLeft <= 7 && daysLeft > 0 && (
-            <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
-              <p className="text-sm text-warning text-center">
-                ⚠️ {t('settings:subscription.expiry_warning', { days: daysLeft, defaultValue: `اشتراكك سينتهي خلال ${daysLeft} أيام. جدد الآن للاستمرار بالميزات المميزة.` })}
+            <div className="p-4 rounded-xl bg-warning/10 border border-warning/30">
+              <p className="text-sm text-warning text-center font-medium">
+                ⚠️ {t('settings:subscription.expiry_warning', { days: daysLeft })}
               </p>
             </div>
           )}
