@@ -90,10 +90,12 @@
     "title": "Subscription Details",
     "description": "Manage your subscription and available plans",
     "current_plan": "Current Plan",
+    "current_plan_desc": "Your current subscription details",
     "status": "Subscription Status",
+    "plan_type": "Plan Type",
     "start_date": "Start Date",
     "end_date": "End Date",
-    "days_remaining": "Days Remaining (Active Subscription)",
+    "days_remaining": "Days Remaining",
     "days_count": "{{count}} days",
     "total_days": "of {{count}} days total",
     "loading": "Loading subscription information...",
@@ -129,7 +131,8 @@
     "current_balance": "Current Balance",
     "points_unit": "points",
     "go_to_store": "Credit Store",
-    "invite_friends": "Invite Friends"
+    "invite_friends": "Invite Friends",
+    "expiry_warning": "Your subscription will expire in {{days}} days. Renew now to continue enjoying premium features."
   },
   "security": {
     "title": "Change Password",
@@ -232,8 +235,11 @@
   },
   "plans": {
     "free": "Free",
-    "personal": "Personal",
-    "family": "Family"
+    "starter": "Starter",
+    "pro": "Pro",
+    "max": "Max",
+    "personal": "Starter",
+    "family": "Pro"
   },
   "status": {
     "trialing": "Free Trial",
