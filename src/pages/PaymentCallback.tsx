@@ -271,6 +271,25 @@ const PaymentCallback: React.FC = () => {
           console.log('Granted subscription credits:', grantResult);
         }
 
+        // Create invoice for the subscription purchase
+        const billingCycleAr = purchase.billing_cycle === 'yearly' ? 'سنوي' : 'شهري';
+        const { error: invoiceError } = await supabase.rpc('create_invoice_for_purchase', {
+          p_user_id: purchase.user_id,
+          p_purchase_type: 'subscription',
+          p_purchase_id: purchaseId,
+          p_amount: purchase.price_paid,
+          p_description: `${purchase.subscription_plans?.name || 'Subscription'} (${purchase.billing_cycle})`,
+          p_description_ar: `اشتراك ${purchase.subscription_plans?.name || ''} (${billingCycleAr})`,
+          p_payment_reference: paymentId || null,
+          p_billing_cycle: purchase.billing_cycle
+        });
+
+        if (invoiceError) {
+          console.error('Error creating invoice:', invoiceError);
+        } else {
+          console.log('Invoice created successfully for subscription:', purchaseId);
+        }
+
         setCreditsAdded(purchase.subscription_plans?.credits_per_month || 0);
         setStatus('success');
       } catch (err) {
