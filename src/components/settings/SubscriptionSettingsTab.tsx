@@ -92,12 +92,29 @@ export const SubscriptionSettingsTab = () => {
   const getPlanLabel = () => {
     if (!subscription) return t('dashboard:subscription.free_plan');
     
-    switch (subscription.plan) {
-      case 'personal': return t('dashboard:subscription.personal_plan');
-      case 'family': return t('dashboard:subscription.family_plan');
-      case 'lifetime': return t('dashboard:subscription.lifetime_plan');
-      default: return subscription.plan;
-    }
+    // استخراج اسم الخطة الأساسي
+    const planBase = subscription.plan
+      .replace('_monthly', '')
+      .replace('_yearly', '')
+      .toLowerCase();
+    
+    // خريطة للتوافق مع الخطط القديمة والجديدة
+    const planMap: Record<string, string> = {
+      'starter': 'Starter',
+      'pro': 'Pro',
+      'max': 'Max',
+      'personal': 'Starter', // توافق مع القديم
+      'family': 'Pro',       // توافق مع القديم
+      'lifetime': 'Max',     // توافق مع القديم
+    };
+    
+    return planMap[planBase] || subscription.plan;
+  };
+
+  const getBillingCycle = () => {
+    if (!subscription) return null;
+    const isYearly = subscription.plan.includes('_yearly');
+    return isYearly ? t('dashboard:subscription.yearly') : t('dashboard:subscription.monthly');
   };
 
   const formatDate = (dateStr: string) => {

@@ -100,12 +100,29 @@ export const SubscriptionStatusCard = () => {
   const getPlanLabel = () => {
     if (!subscription) return t('subscription.free_plan');
     
-    switch (subscription.plan) {
-      case 'personal': return t('subscription.personal_plan');
-      case 'family': return t('subscription.family_plan');
-      case 'lifetime': return t('subscription.lifetime_plan');
-      default: return subscription.plan;
-    }
+    // استخراج اسم الخطة الأساسي
+    const planBase = subscription.plan
+      .replace('_monthly', '')
+      .replace('_yearly', '')
+      .toLowerCase();
+    
+    // خريطة للتوافق مع الخطط القديمة والجديدة
+    const planMap: Record<string, string> = {
+      'starter': 'Starter',
+      'pro': 'Pro',
+      'max': 'Max',
+      'personal': 'Starter', // توافق مع القديم
+      'family': 'Pro',       // توافق مع القديم
+      'lifetime': 'Max',     // توافق مع القديم
+    };
+    
+    return planMap[planBase] || subscription.plan;
+  };
+
+  const getBillingCycle = () => {
+    if (!subscription) return null;
+    const isYearly = subscription.plan.includes('_yearly');
+    return isYearly ? t('subscription.yearly') : t('subscription.monthly');
   };
 
   const getExpiryDate = () => {

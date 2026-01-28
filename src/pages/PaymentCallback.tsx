@@ -212,18 +212,19 @@ const PaymentCallback: React.FC = () => {
           .eq('user_id', purchase.user_id)
           .single();
 
-        const rawPlanName = purchase.subscription_plans?.name?.toLowerCase() || 'personal';
-        // Map plan name to valid subscription plan type
-        const planName: 'personal' | 'family' | 'lifetime' = 
-          rawPlanName === 'family' || rawPlanName === 'max' ? 'family' : 
-          rawPlanName === 'lifetime' ? 'lifetime' : 'personal';
+        // استخدام اسم الخطة الفعلي من subscription_plans
+        const rawPlanName = purchase.subscription_plans?.name || 'starter_monthly';
+        // تحويل الاسم للشكل المناسب (starter_monthly, pro_yearly, etc.)
+        const planName = rawPlanName.toLowerCase().includes('_') 
+          ? rawPlanName.toLowerCase()
+          : `${rawPlanName.toLowerCase()}_${purchase.billing_cycle || 'monthly'}`;
 
         if (existingSub) {
           // Update existing subscription
           const { error: updateError } = await supabase
             .from('user_subscriptions')
             .update({
-              plan: planName,
+              plan: planName as any, // استخدام any للتوافق مع الأنواع الجديدة
               status: 'active' as const,
               started_at: now.toISOString(),
               expires_at: expiresAt.toISOString(),
@@ -243,7 +244,7 @@ const PaymentCallback: React.FC = () => {
             .from('user_subscriptions')
             .insert([{
               user_id: purchase.user_id,
-              plan: planName,
+              plan: planName as any, // استخدام any للتوافق مع الأنواع الجديدة
               status: 'active' as const,
               started_at: now.toISOString(),
               expires_at: expiresAt.toISOString(),

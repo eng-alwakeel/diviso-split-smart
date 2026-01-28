@@ -4,7 +4,11 @@ import { useRewardPoints } from "./useRewardPoints";
 import { useGlobalSubscription } from "./useGlobalSubscription";
 import { useGlobalTrialDays } from "./useGlobalTrialDays";
 
-export type SubscriptionPlan = "personal" | "family" | "lifetime";
+export type SubscriptionPlan = 
+  | "starter_monthly" | "starter_yearly" 
+  | "pro_monthly" | "pro_yearly" 
+  | "max_monthly" | "max_yearly"
+  | "personal" | "family" | "lifetime"; // للتوافق مع البيانات القديمة
 export type SubscriptionStatus = "trialing" | "active" | "expired" | "canceled";
 
 export interface UserSubscription {
@@ -43,13 +47,13 @@ export function useSubscription() {
       
       const { data, error } = await supabase
         .from("user_subscriptions")
-        .insert({ 
+        .insert([{ 
           user_id: user.id, 
-          plan, 
+          plan: plan as any, 
           status: "trialing" as const,
           first_trial_started_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + remainingTrialDays * 24 * 60 * 60 * 1000).toISOString()
-        })
+        }])
         .select("*")
         .single();
         
@@ -97,7 +101,7 @@ export function useSubscription() {
       const { data, error } = await supabase
         .from("user_subscriptions")
         .update({ 
-          plan: newPlan,
+          plan: newPlan as any,
           expires_at: new Date(Date.now() + remainingTrialDays * 24 * 60 * 60 * 1000).toISOString()
         })
         .eq("user_id", user.id)
@@ -172,15 +176,15 @@ export function useSubscription() {
       
       const { data, error } = await supabase
         .from("user_subscriptions")
-        .upsert({ 
+        .upsert([{ 
           user_id: user.id,
-          plan,
+          plan: plan as any,
           status,
           started_at: startedAt,
           expires_at: expiresAt,
           canceled_at: status === 'canceled' ? new Date().toISOString() : null,
           first_trial_started_at: status === 'trialing' ? startedAt : null
-        })
+        }])
         .select("*")
         .single();
         
