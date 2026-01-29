@@ -5314,7 +5314,16 @@ export type Database = {
         | "system.logs"
         | "system.settings"
       referral_status: "pending" | "joined" | "blocked" | "expired"
-      subscription_plan: "personal" | "family" | "lifetime"
+      subscription_plan:
+        | "personal"
+        | "family"
+        | "lifetime"
+        | "starter_monthly"
+        | "starter_yearly"
+        | "pro_monthly"
+        | "pro_yearly"
+        | "max_monthly"
+        | "max_yearly"
       subscription_status: "trialing" | "active" | "expired" | "canceled"
       ticket_category:
         | "payment"
@@ -5518,7 +5527,17 @@ export const Constants = {
         "system.settings",
       ],
       referral_status: ["pending", "joined", "blocked", "expired"],
-      subscription_plan: ["personal", "family", "lifetime"],
+      subscription_plan: [
+        "personal",
+        "family",
+        "lifetime",
+        "starter_monthly",
+        "starter_yearly",
+        "pro_monthly",
+        "pro_yearly",
+        "max_monthly",
+        "max_yearly",
+      ],
       subscription_status: ["trialing", "active", "expired", "canceled"],
       ticket_category: [
         "payment",
