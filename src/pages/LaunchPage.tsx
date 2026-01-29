@@ -60,7 +60,7 @@ const LaunchPage: React.FC = () => {
       <SEO 
         title="القسمة دايمًا تلخبط؟ خلّها واضحة"
         description="تطبيق بسيط يخلي القسمة بين الأصدقاء عادلة بدون إحراج ولا نقاش"
-        ogImage="https://diviso.app/og-image.png"
+        ogImage="https://diviso.app/og/launch-1200x630.png"
         noIndex={false}
       />
 
