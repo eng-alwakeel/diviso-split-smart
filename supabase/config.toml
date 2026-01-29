@@ -1,5 +1,8 @@
 project_id = "iwthriddasxzbjddpzzf"
 
+[functions.og-handler]
+verify_jwt = false
+
 [functions.send-sms-invite]
 verify_jwt = true
 
