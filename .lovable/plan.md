@@ -1,119 +1,114 @@
 
-# خطة إصلاح مشكلة فشل الدفع للاشتراكات
 
-## تشخيص المشكلة
+# خطة إنشاء الفاتورة المحلية وإرسالها لـ Odoo
 
-من تحليل سجلات الأخطاء والصور المرفقة:
+## ملخص الوضع الحالي
 
 | البيان | القيمة |
 |--------|--------|
 | المستخدم | `096e33cc-68ab-4abb-9561-90a709a1f408` |
-| عمليات الدفع | مرتين بـ 19 ر.س (09:08 و 09:09) |
-| حالة subscription_purchases | `completed` |
-| حالة user_subscriptions | **فارغ** - لا يوجد اشتراك! |
-| سبب الفشل | أخطاء في قاعدة البيانات |
+| الاسم | adel alwakeel |
+| الهاتف | +966540000663 (سعودي = VAT 15%) |
+| Odoo Partner ID | غير موجود (null) |
+| عدد عمليات الشراء المكتملة | 2 عمليات (19 ريال لكل واحدة) |
+| الفواتير الموجودة | 0 |
 
-## الأخطاء المكتشفة
-
-```
-ERROR: column "payment_reference" does not exist
-ERROR: invalid input value for enum subscription_plan: "starter_monthly"
-```
-
-## السبب الجذري
-
-### 1. عدم توافق RPC مع هيكل الجدول الفعلي
-
-دالة `complete_subscription_purchase` تستخدم أعمدة غير موجودة:
-
-| RPC تستخدم | الموجود فعلياً |
-|------------|----------------|
-| `payment_reference` | `payment_id` |
-| `plan_id` (uuid) | `plan` (enum) |
-| `current_period_start` | `started_at` |
-| `current_period_end` | `expires_at` |
-| `credits_remaining` | غير موجود |
-
-### 2. Enum غير محدث
-
-```sql
--- القيم المسموحة حالياً:
-personal, family, lifetime
-
--- القيم المطلوبة:
-starter_monthly, starter_yearly, pro_monthly, pro_yearly, max_monthly, max_yearly
-```
-
-### 3. Fallback يفشل أيضاً
-
-`handleSubscriptionPaymentManual` في `PaymentCallback.tsx` يحاول إدخال `starter_monthly` في enum قديم.
+### بيانات آخر عملية شراء:
+- **Purchase ID**: `257e2add-ba78-4d5a-9f1e-ed4d6aa0ff7f`
+- **Payment Reference**: `f0a9e8f0-9202-432c-8b82-19502dc848b6`
+- **Plan**: starter_monthly
+- **المبلغ**: 19 SAR
+- **Billing Cycle**: monthly
 
 ---
 
-## الحل المطلوب
+## الخطوات المطلوبة
 
-### الخطوة 1: تحديث Enum ليقبل الخطط الجديدة
+### الخطوة 1: إنشاء الفاتورة المحلية في قاعدة البيانات
 
-```sql
--- إضافة القيم الجديدة للـ enum
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'starter_monthly';
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'starter_yearly';
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'pro_monthly';
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'pro_yearly';
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'max_monthly';
-ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'max_yearly';
+سأقوم باستدعاء دالة `create_invoice_for_purchase` مع المعاملات التالية:
+
+```text
++---------------------+------------------------------------------+
+| المعامل             | القيمة                                   |
++---------------------+------------------------------------------+
+| p_user_id           | 096e33cc-68ab-4abb-9561-90a709a1f408     |
+| p_purchase_type     | subscription                             |
+| p_purchase_id       | 257e2add-ba78-4d5a-9f1e-ed4d6aa0ff7f     |
+| p_amount            | 19                                       |
+| p_description       | Starter Monthly Subscription             |
+| p_description_ar    | اشتراك ستارتر (شهري)                     |
+| p_payment_reference | f0a9e8f0-9202-432c-8b82-19502dc848b6     |
+| p_billing_cycle     | monthly                                  |
++---------------------+------------------------------------------+
 ```
 
-### الخطوة 2: تحديث دالة RPC
-
-إعادة كتابة `complete_subscription_purchase` لتستخدم الأعمدة الصحيحة:
-
-```sql
-CREATE OR REPLACE FUNCTION complete_subscription_purchase(...)
--- استخدام:
--- payment_id بدل payment_reference
--- plan (enum) بدل plan_id
--- started_at بدل current_period_start
--- expires_at بدل current_period_end
-```
-
-### الخطوة 3: إصلاح PaymentCallback.tsx
-
-تحديث `handleSubscriptionPaymentManual` لاستخدام أسماء الخطط الصحيحة.
-
-### الخطوة 4: تفعيل اشتراك المستخدم المتضرر
-
-```sql
--- إنشاء اشتراك للمستخدم الذي دفع
-INSERT INTO user_subscriptions (
-  user_id, plan, status, started_at, expires_at
-) VALUES (
-  '096e33cc-68ab-4abb-9561-90a709a1f408',
-  'personal', -- استخدام القيمة القديمة مؤقتاً
-  'active',
-  NOW(),
-  NOW() + INTERVAL '1 month'
-);
-
--- منح الرصيد
-UPDATE profiles 
-SET credits_balance = COALESCE(credits_balance, 0) + 70
-WHERE id = '096e33cc-68ab-4abb-9561-90a709a1f408';
-```
+**النتيجة المتوقعة:**
+- إنشاء سجل في جدول `invoices` برقم فاتورة جديد (مثل `DIV-INV-2026-000003`)
+- حساب الضريبة تلقائياً: 16.52 SAR + 2.48 VAT = 19 SAR
+- إنشاء سجل في جدول `invoice_items` بنوع `subscription_monthly`
 
 ---
 
-## الملفات التي سيتم تعديلها
+### الخطوة 2: إرسال الفاتورة إلى Odoo للحصول على ZATCA QR Code
 
-| الملف | التعديل |
-|-------|---------|
-| Database Migration | تحديث enum + تحديث RPC |
-| `src/pages/PaymentCallback.tsx` | إصلاح منطق تحويل أسماء الخطط |
+سأقوم باستدعاء Edge Function `odoo-create-invoice` مع البيانات التالية:
+
+```json
+{
+  "user_id": "096e33cc-68ab-4abb-9561-90a709a1f408",
+  "purchase_type": "subscription_monthly",
+  "amount": 19,
+  "description": "Diviso Monthly Subscription / اشتراك ديفيزو الشهري",
+  "payment_reference": "f0a9e8f0-9202-432c-8b82-19502dc848b6",
+  "subscription_id": "257e2add-ba78-4d5a-9f1e-ed4d6aa0ff7f"
+}
+```
+
+**ما سيحدث:**
+1. البحث عن Partner في Odoo بالإيميل أو الهاتف
+2. إنشاء Partner جديد إذا لم يوجد
+3. حفظ `odoo_partner_id` في جدول `profiles`
+4. إنشاء فاتورة في Odoo مع المنتج المناسب
+5. ترحيل الفاتورة (posting) لتوليد بيانات ZATCA
+6. استرجاع `l10n_sa_qr_code_str` وتحديث الفاتورة المحلية بـ QR Code
 
 ---
 
-## النتيجة المتوقعة
+### الخطوة 3: التحقق من النتائج
 
-1. تفعيل اشتراك المستخدم المتضرر فوراً
-2. أي عمليات دفع مستقبلية ستعمل بشكل صحيح
-3. الخطط الجديدة (`starter_monthly`, etc.) ستكون مدعومة
+بعد التنفيذ، سأتحقق من:
+1. وجود الفاتورة في جدول `invoices`
+2. وجود `qr_base64` في الفاتورة
+3. تحديث `odoo_partner_id` في `profiles`
+
+---
+
+## تفاصيل تقنية
+
+### حساب الضريبة (للمستخدم السعودي):
+```text
+المبلغ الإجمالي (شامل الضريبة): 19 SAR
+نسبة الضريبة: 15%
+المبلغ قبل الضريبة: 19 / 1.15 = 16.52 SAR
+قيمة الضريبة: 19 - 16.52 = 2.48 SAR
+```
+
+### Odoo Secrets المطلوبة (متوفرة):
+- ODOO_URL
+- ODOO_DB
+- ODOO_USERNAME
+- ODOO_API_KEY
+- ODOO_COMPANY_ID
+- ODOO_SALES_JOURNAL_ID
+- ODOO_VAT_TAX_ID
+- ODOO_PRODUCT_MONTHLY_SUB_ID
+
+---
+
+## الإجراءات
+
+1. **Migration SQL**: استدعاء `create_invoice_for_purchase` لإنشاء الفاتورة المحلية
+2. **Edge Function Call**: استدعاء `odoo-create-invoice` مع معرف الاشتراك للحصول على QR Code
+3. **التحقق**: التأكد من ظهور الفاتورة مع QR Code في واجهة المستخدم
+
