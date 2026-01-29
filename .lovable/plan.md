@@ -1,103 +1,104 @@
 
+# خطة إصلاح مشكلة فشل الدفع للاشتراكات
 
-# خطة إصلاح مشكلة عدم إنشاء الفواتير للاشتراكات
+## تشخيص المشكلة
 
-## المشكلة المكتشفة
+من تحليل سجلات الأخطاء والصور المرفقة:
 
-| العنصر | القيمة |
+| البيان | القيمة |
 |--------|--------|
-| عملية الشراء | `1673be5a-ac85-413e-8f8e-2cf8f37e94f7` |
-| المستخدم | `ab24ff88-62a9-4df7-8a8c-0dbd9b7a531b` |
-| حالة الشراء | `completed` |
-| المبلغ | 19 ر.س |
-| الفاتورة | **غير موجودة** |
+| المستخدم | `096e33cc-68ab-4abb-9561-90a709a1f408` |
+| عمليات الدفع | مرتين بـ 19 ر.س (09:08 و 09:09) |
+| حالة subscription_purchases | `completed` |
+| حالة user_subscriptions | **فارغ** - لا يوجد اشتراك! |
+| سبب الفشل | أخطاء في قاعدة البيانات |
+
+## الأخطاء المكتشفة
+
+```
+ERROR: column "payment_reference" does not exist
+ERROR: invalid input value for enum subscription_plan: "starter_monthly"
+```
 
 ## السبب الجذري
 
-في ملف `PaymentCallback.tsx`، هناك مساران لإكمال الاشتراك:
+### 1. عدم توافق RPC مع هيكل الجدول الفعلي
 
-**المسار 1 - `complete_subscription_purchase` RPC (ينشئ فاتورة):**
-```tsx
-const { data: result } = await supabase.rpc('complete_subscription_purchase', {...});
+دالة `complete_subscription_purchase` تستخدم أعمدة غير موجودة:
+
+| RPC تستخدم | الموجود فعلياً |
+|------------|----------------|
+| `payment_reference` | `payment_id` |
+| `plan_id` (uuid) | `plan` (enum) |
+| `current_period_start` | `started_at` |
+| `current_period_end` | `expires_at` |
+| `credits_remaining` | غير موجود |
+
+### 2. Enum غير محدث
+
+```sql
+-- القيم المسموحة حالياً:
+personal, family, lifetime
+
+-- القيم المطلوبة:
+starter_monthly, starter_yearly, pro_monthly, pro_yearly, max_monthly, max_yearly
 ```
-- هذا المسار يستدعي `create_invoice_for_purchase` داخل قاعدة البيانات
 
-**المسار 2 - `handleSubscriptionPaymentManual` (لا ينشئ فاتورة):**
-```tsx
-await handleSubscriptionPaymentManual(purchaseId, paymentId);
-```
-- يتم استخدامه كـ fallback إذا فشل المسار الأول
-- **لا يستدعي إنشاء الفاتورة**
+### 3. Fallback يفشل أيضاً
 
-ما حدث على الأرجح:
-1. المستخدم دفع ونجح الدفع
-2. تم استدعاء `complete_subscription_purchase` لكنه أرجع خطأ أو `success: false`
-3. تم تنفيذ `handleSubscriptionPaymentManual` الذي أكمل الاشتراك **بدون إنشاء فاتورة**
+`handleSubscriptionPaymentManual` في `PaymentCallback.tsx` يحاول إدخال `starter_monthly` في enum قديم.
 
 ---
 
-## الحل المقترح
+## الحل المطلوب
 
-### 1. إصلاح `handleSubscriptionPaymentManual` في `PaymentCallback.tsx`
-
-إضافة استدعاء إنشاء الفاتورة في نهاية الدالة:
-
-```tsx
-// بعد إكمال الاشتراك ومنح الرصيد، إنشاء الفاتورة
-const { data: invoiceResult, error: invoiceError } = await supabase.rpc('create_invoice_for_purchase', {
-  p_user_id: purchase.user_id,
-  p_purchase_type: 'subscription',
-  p_purchase_id: purchaseId,
-  p_amount: purchase.price_paid,
-  p_description: `${purchase.subscription_plans?.name || 'Subscription'} (${purchase.billing_cycle})`,
-  p_description_ar: `اشتراك ${purchase.subscription_plans?.name || ''} (${purchase.billing_cycle === 'yearly' ? 'سنوي' : 'شهري'})`,
-  p_payment_reference: paymentId || null,
-  p_billing_cycle: purchase.billing_cycle
-});
-
-if (invoiceError) {
-  console.error('Error creating invoice:', invoiceError);
-}
-```
-
-### 2. إنشاء الفاتورة المفقودة للمستخدم الحالي
-
-تنفيذ SQL لإنشاء فاتورة للاشتراك المكتمل الذي لا يحتوي على فاتورة:
+### الخطوة 1: تحديث Enum ليقبل الخطط الجديدة
 
 ```sql
--- إنشاء الفواتير المفقودة للاشتراكات المكتملة
-DO $$
-DECLARE
-  v_purchase RECORD;
-  v_plan RECORD;
-  v_billing_cycle_ar TEXT;
-BEGIN
-  FOR v_purchase IN 
-    SELECT sp.* FROM subscription_purchases sp
-    WHERE sp.status = 'completed'
-    AND NOT EXISTS (SELECT 1 FROM invoices i WHERE i.subscription_id = sp.id)
-  LOOP
-    SELECT * INTO v_plan FROM subscription_plans WHERE id = v_purchase.plan_id;
-    
-    IF v_purchase.billing_cycle = 'yearly' THEN
-      v_billing_cycle_ar := 'سنوي';
-    ELSE
-      v_billing_cycle_ar := 'شهري';
-    END IF;
-    
-    PERFORM create_invoice_for_purchase(
-      v_purchase.user_id, 
-      'subscription', 
-      v_purchase.id, 
-      v_purchase.price_paid,
-      COALESCE(v_plan.name, 'Subscription') || ' (' || v_purchase.billing_cycle || ')',
-      'اشتراك ' || COALESCE(v_plan.name, '') || ' (' || v_billing_cycle_ar || ')',
-      v_purchase.payment_id,
-      v_purchase.billing_cycle
-    );
-  END LOOP;
-END;
-$$;
+-- إضافة القيم الجديدة للـ enum
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'starter_monthly';
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'starter_yearly';
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'pro_monthly';
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'pro_yearly';
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'max_monthly';
+ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'max_yearly';
+```
+
+### الخطوة 2: تحديث دالة RPC
+
+إعادة كتابة `complete_subscription_purchase` لتستخدم الأعمدة الصحيحة:
+
+```sql
+CREATE OR REPLACE FUNCTION complete_subscription_purchase(...)
+-- استخدام:
+-- payment_id بدل payment_reference
+-- plan (enum) بدل plan_id
+-- started_at بدل current_period_start
+-- expires_at بدل current_period_end
+```
+
+### الخطوة 3: إصلاح PaymentCallback.tsx
+
+تحديث `handleSubscriptionPaymentManual` لاستخدام أسماء الخطط الصحيحة.
+
+### الخطوة 4: تفعيل اشتراك المستخدم المتضرر
+
+```sql
+-- إنشاء اشتراك للمستخدم الذي دفع
+INSERT INTO user_subscriptions (
+  user_id, plan, status, started_at, expires_at
+) VALUES (
+  '096e33cc-68ab-4abb-9561-90a709a1f408',
+  'personal', -- استخدام القيمة القديمة مؤقتاً
+  'active',
+  NOW(),
+  NOW() + INTERVAL '1 month'
+);
+
+-- منح الرصيد
+UPDATE profiles 
+SET credits_balance = COALESCE(credits_balance, 0) + 70
+WHERE id = '096e33cc-68ab-4abb-9561-90a709a1f408';
 ```
 
 ---
@@ -106,14 +107,13 @@ $$;
 
 | الملف | التعديل |
 |-------|---------|
-| `src/pages/PaymentCallback.tsx` | إضافة استدعاء `create_invoice_for_purchase` في `handleSubscriptionPaymentManual` |
-| Database Migration | إنشاء الفواتير المفقودة للاشتراكات المكتملة |
+| Database Migration | تحديث enum + تحديث RPC |
+| `src/pages/PaymentCallback.tsx` | إصلاح منطق تحويل أسماء الخطط |
 
 ---
 
 ## النتيجة المتوقعة
 
-1. المستخدم الحالي سيرى فاتورته في قسم الفواتير
-2. أي اشتراكات مستقبلية ستنشئ فواتير تلقائيا سواء عبر المسار الرئيسي أو الـ fallback
-3. ضمان عدم وجود اشتراكات مكتملة بدون فواتير
-
+1. تفعيل اشتراك المستخدم المتضرر فوراً
+2. أي عمليات دفع مستقبلية ستعمل بشكل صحيح
+3. الخطط الجديدة (`starter_monthly`, etc.) ستكون مدعومة
