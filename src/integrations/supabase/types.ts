@@ -2013,6 +2013,8 @@ export type Database = {
           invoice_type: string
           issue_datetime: string
           notes: string | null
+          odoo_invoice_id: number | null
+          odoo_invoice_name: string | null
           original_invoice_id: string | null
           payment_provider: string | null
           payment_status: string
@@ -2044,6 +2046,8 @@ export type Database = {
           invoice_type?: string
           issue_datetime?: string
           notes?: string | null
+          odoo_invoice_id?: number | null
+          odoo_invoice_name?: string | null
           original_invoice_id?: string | null
           payment_provider?: string | null
           payment_status?: string
@@ -2075,6 +2079,8 @@ export type Database = {
           invoice_type?: string
           issue_datetime?: string
           notes?: string | null
+          odoo_invoice_id?: number | null
+          odoo_invoice_name?: string | null
           original_invoice_id?: string | null
           payment_provider?: string | null
           payment_status?: string

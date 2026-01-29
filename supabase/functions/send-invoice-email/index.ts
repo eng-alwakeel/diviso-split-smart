@@ -167,7 +167,12 @@ function parseXmlValue(xml: string): any {
 }
 
 // Fetch QR code from Odoo for a specific invoice
-async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
+// Can search by: odoo_invoice_id (integer), odoo_invoice_name (INV/26/00001), or local invoice_number
+async function fetchQrFromOdoo(
+  odooInvoiceId: number | null, 
+  odooInvoiceName: string | null, 
+  localInvoiceNumber: string
+): Promise<{ qrCode: string | null; odooId: number | null; odooName: string | null }> {
   const odooUrl = Deno.env.get('ODOO_URL');
   const odooDb = Deno.env.get('ODOO_DB');
   const odooUsername = Deno.env.get('ODOO_USERNAME');
@@ -175,11 +180,11 @@ async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
 
   if (!odooUrl || !odooDb || !odooUsername || !odooApiKey) {
     console.log('Odoo not configured, cannot fetch QR');
-    return null;
+    return { qrCode: null, odooId: null, odooName: null };
   }
 
   try {
-    console.log('Fetching QR code from Odoo for invoice:', invoiceNumber);
+    console.log('Fetching QR code from Odoo:', { odooInvoiceId, odooInvoiceName, localInvoiceNumber });
     
     // Authenticate with Odoo
     const commonUrl = `${odooUrl}/xmlrpc/2/common`;
@@ -187,69 +192,90 @@ async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
     
     if (!uid) {
       console.warn('Odoo authentication failed');
-      return null;
+      return { qrCode: null, odooId: null, odooName: null };
     }
 
     console.log('Odoo authentication successful, uid:', uid);
     const objectUrl = `${odooUrl}/xmlrpc/2/object`;
 
-    // Search for invoice by multiple fields: name, ref, or origin
-    const searchDomains = [
-      [['name', '=', invoiceNumber]],
-      [['ref', '=', invoiceNumber]],
-      [['name', 'ilike', invoiceNumber]],
-      [['ref', 'ilike', invoiceNumber]],
-      [['invoice_origin', 'ilike', invoiceNumber]],
-    ];
-
     let invoice = null;
     
-    for (const domain of searchDomains) {
-      console.log('Searching Odoo with domain:', JSON.stringify(domain));
+    // Priority 1: Search by Odoo ID (most reliable)
+    if (odooInvoiceId) {
+      console.log('Searching Odoo by ID:', odooInvoiceId);
       const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
         odooDb, uid, odooApiKey,
         'account.move', 'search_read',
-        [domain],
+        [[['id', '=', odooInvoiceId]]],
+        { fields: ['id', 'name', 'ref', 'state', 'l10n_sa_qr_code_str', 'move_type'], limit: 1 }
+      ]);
+      
+      if (invoices && invoices.length > 0) {
+        invoice = invoices[0];
+        console.log('Found invoice by Odoo ID:', invoice.id, invoice.name);
+      }
+    }
+    
+    // Priority 2: Search by Odoo name (INV/26/00001 format)
+    if (!invoice && odooInvoiceName) {
+      console.log('Searching Odoo by name:', odooInvoiceName);
+      const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
+        odooDb, uid, odooApiKey,
+        'account.move', 'search_read',
+        [[['name', '=', odooInvoiceName]]],
+        { fields: ['id', 'name', 'ref', 'state', 'l10n_sa_qr_code_str', 'move_type'], limit: 1 }
+      ]);
+      
+      if (invoices && invoices.length > 0) {
+        invoice = invoices[0];
+        console.log('Found invoice by Odoo name:', invoice.id, invoice.name);
+      }
+    }
+    
+    // Priority 3: Search by ref (our local invoice number might be stored there)
+    if (!invoice && localInvoiceNumber) {
+      console.log('Searching Odoo by ref:', localInvoiceNumber);
+      const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
+        odooDb, uid, odooApiKey,
+        'account.move', 'search_read',
+        [[['ref', 'ilike', localInvoiceNumber]]],
         { fields: ['id', 'name', 'ref', 'state', 'l10n_sa_qr_code_str', 'move_type'], limit: 5 }
       ]);
-
-      console.log('Odoo search result:', JSON.stringify(invoices));
-
+      
       if (invoices && invoices.length > 0) {
-        // Find the first posted invoice (state = 'posted')
+        // Prefer posted invoices
         invoice = invoices.find((inv: any) => inv.state === 'posted') || invoices[0];
-        if (invoice) {
-          console.log('Found invoice in Odoo:', JSON.stringify({
-            id: invoice.id,
-            name: invoice.name,
-            ref: invoice.ref,
-            state: invoice.state,
-            has_qr: !!invoice.l10n_sa_qr_code_str
-          }));
-          break;
-        }
+        console.log('Found invoice by ref:', invoice.id, invoice.name);
       }
     }
 
     if (invoice) {
+      console.log('Odoo invoice found:', JSON.stringify({
+        id: invoice.id,
+        name: invoice.name,
+        state: invoice.state,
+        has_qr: !!invoice.l10n_sa_qr_code_str
+      }));
+      
       if (invoice.state !== 'posted') {
-        console.log('Invoice found but not posted (state:', invoice.state, '). QR may not be available.');
+        console.log('Invoice not posted (state:', invoice.state, '). QR may not be available.');
       }
       
       const qrCode = invoice.l10n_sa_qr_code_str;
       if (qrCode && typeof qrCode === 'string' && qrCode.length > 10) {
-        console.log('Found valid QR code from Odoo for invoice:', invoiceNumber, 'Length:', qrCode.length);
-        return qrCode;
+        console.log('Found valid QR code from Odoo, length:', qrCode.length);
+        return { qrCode, odooId: invoice.id, odooName: invoice.name };
       } else {
-        console.log('Invoice found but QR code is empty or invalid. State:', invoice.state);
+        console.log('Invoice found but QR code is empty or invalid');
+        return { qrCode: null, odooId: invoice.id, odooName: invoice.name };
       }
     }
 
-    console.log('No matching invoice found in Odoo for:', invoiceNumber);
-    return null;
+    console.log('No matching invoice found in Odoo');
+    return { qrCode: null, odooId: null, odooName: null };
   } catch (error) {
     console.error('Error fetching QR from Odoo:', error.message);
-    return null;
+    return { qrCode: null, odooId: null, odooName: null };
   }
 }
 
@@ -444,25 +470,47 @@ serve(async (req) => {
     // If no QR code stored and VAT applies, try to fetch from Odoo
     if (!qrBase64 && isVatApplicable) {
       console.log('No QR code stored, attempting to fetch from Odoo...');
-      const odooQr = await fetchQrFromOdoo(invoice.invoice_number);
+      console.log('Invoice Odoo data:', { 
+        odoo_invoice_id: invoice.odoo_invoice_id, 
+        odoo_invoice_name: invoice.odoo_invoice_name 
+      });
       
-      if (odooQr) {
-        qrBase64 = odooQr;
+      const result = await fetchQrFromOdoo(
+        invoice.odoo_invoice_id || null,
+        invoice.odoo_invoice_name || null,
+        invoice.invoice_number
+      );
+      
+      if (result.qrCode) {
+        qrBase64 = result.qrCode;
         
-        // Update the invoice with the fetched QR code
+        // Update the invoice with the fetched QR code and Odoo data
+        const updateData: any = { 
+          qr_base64: result.qrCode, 
+          qr_payload: result.qrCode,
+          updated_at: new Date().toISOString() 
+        };
+        
+        // Also save Odoo ID/Name if we discovered them
+        if (result.odooId && !invoice.odoo_invoice_id) {
+          updateData.odoo_invoice_id = result.odooId;
+        }
+        if (result.odooName && !invoice.odoo_invoice_name) {
+          updateData.odoo_invoice_name = result.odooName;
+        }
+        
         const { error: updateError } = await supabase
           .from('invoices')
-          .update({ 
-            qr_base64: odooQr, 
-            qr_payload: odooQr,
-            updated_at: new Date().toISOString() 
-          })
+          .update(updateData)
           .eq('id', invoice_id);
         
         if (updateError) {
           console.warn('Failed to save QR code to invoice:', updateError);
         } else {
-          console.log('Saved QR code from Odoo to invoice');
+          console.log('Saved QR code and Odoo data to invoice:', { 
+            odooId: result.odooId, 
+            odooName: result.odooName 
+          });
         }
       }
     }

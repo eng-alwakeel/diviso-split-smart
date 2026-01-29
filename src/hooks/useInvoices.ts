@@ -26,6 +26,9 @@ export interface Invoice {
   notes: string | null;
   issue_datetime: string;
   created_at: string;
+  // Odoo integration fields
+  odoo_invoice_id: number | null;
+  odoo_invoice_name: string | null;
   items?: InvoiceItem[];
 }
 
