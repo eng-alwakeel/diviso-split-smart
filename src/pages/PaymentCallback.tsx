@@ -212,19 +212,31 @@ const PaymentCallback: React.FC = () => {
           .eq('user_id', purchase.user_id)
           .single();
 
-        // استخدام اسم الخطة الفعلي من subscription_plans
-        const rawPlanName = purchase.subscription_plans?.name || 'starter_monthly';
-        // تحويل الاسم للشكل المناسب (starter_monthly, pro_yearly, etc.)
-        const planName = rawPlanName.toLowerCase().includes('_') 
-          ? rawPlanName.toLowerCase()
-          : `${rawPlanName.toLowerCase()}_${purchase.billing_cycle || 'monthly'}`;
+        // استخدام اسم الخطة الفعلي من subscription_plans بالشكل الصحيح
+        // الصيغة المطلوبة: starter_monthly, starter_yearly, pro_monthly, pro_yearly, max_monthly, max_yearly
+        const rawPlanName = purchase.subscription_plans?.name || 'Starter';
+        const billingCycle = purchase.billing_cycle || 'monthly';
+        
+        // تحويل الاسم للشكل المناسب - التعامل مع جميع الحالات
+        let planName: string;
+        const lowerRawName = rawPlanName.toLowerCase();
+        
+        if (lowerRawName.includes('_')) {
+          // الاسم يحتوي على _ بالفعل (مثل starter_monthly)
+          planName = lowerRawName;
+        } else {
+          // إنشاء الاسم الصحيح (مثل Starter -> starter_monthly)
+          planName = `${lowerRawName}_${billingCycle}`;
+        }
+
+        console.log('Plan name for subscription:', planName);
 
         if (existingSub) {
           // Update existing subscription
           const { error: updateError } = await supabase
             .from('user_subscriptions')
             .update({
-              plan: planName as any, // استخدام any للتوافق مع الأنواع الجديدة
+              plan: planName as any,
               status: 'active' as const,
               started_at: now.toISOString(),
               expires_at: expiresAt.toISOString(),
@@ -244,7 +256,7 @@ const PaymentCallback: React.FC = () => {
             .from('user_subscriptions')
             .insert([{
               user_id: purchase.user_id,
-              plan: planName as any, // استخدام any للتوافق مع الأنواع الجديدة
+              plan: planName as any,
               status: 'active' as const,
               started_at: now.toISOString(),
               expires_at: expiresAt.toISOString(),
