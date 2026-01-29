@@ -45,6 +45,9 @@ function generateOgHtml(path: string, fullUrl: string): string {
 
   const appUrl = 'https://diviso.app';
   const ogImage = `${appUrl}/og-image.png`;
+  
+  // CTA button text based on path
+  const ctaText = path === '/launch' ? 'جرّب الآن' : 'جرّب Diviso';
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -75,31 +78,67 @@ function generateOgHtml(path: string, fullUrl: string): string {
   <meta name="twitter:description" content="${metadata.description}">
   <meta name="twitter:image" content="${ogImage}">
   
-  <!-- Redirect to actual page -->
-  <meta http-equiv="refresh" content="0;url=${fullUrl}">
-  
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
       background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
       color: white;
       text-align: center;
+      padding: 2rem;
     }
-    .container { padding: 2rem; }
-    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
-    p { opacity: 0.9; }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+    p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+      margin-bottom: 2rem;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: white;
+      color: #65a30d;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+    }
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>${metadata.title}</h1>
-    <p>جاري التحويل...</p>
-  </div>
+  <img src="${appUrl}/logo.svg" alt="Diviso" class="logo" onerror="this.style.display='none'">
+  <h1>${metadata.title}</h1>
+  <p>${metadata.description}</p>
+  <a href="${fullUrl}" class="cta-btn">${ctaText}</a>
+  <div class="footer">Diviso - قسّم بذكاء</div>
 </body>
 </html>`;
 }
