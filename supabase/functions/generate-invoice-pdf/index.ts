@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { qrcode } from "https://deno.land/x/qrcode@v2.0.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,8 +26,31 @@ function formatDate(dateStr: string): string {
   });
 }
 
+// Generate QR code image as base64 from TLV data
+async function generateQrCodeImage(tlvBase64: string): Promise<{ base64: string; isSvg: boolean }> {
+  try {
+    // The TLV base64 data is the content that should be encoded in the QR code
+    // Generate QR code as data URL using Deno-compatible library
+    const qrDataUrl = await qrcode(tlvBase64);
+    
+    // The result is a data URL like "data:image/gif;base64,..."
+    // Extract the base64 part and determine the format
+    if (qrDataUrl.includes('base64,')) {
+      const parts = qrDataUrl.split('base64,');
+      const base64 = parts[1];
+      const isSvg = qrDataUrl.includes('image/svg');
+      return { base64, isSvg };
+    }
+    
+    throw new Error('Unexpected QR code format');
+  } catch (error) {
+    console.error('Error generating QR code image:', error);
+    throw error;
+  }
+}
+
 // Generate a placeholder QR code as base64 for testing (only used when in draft/test mode)
-function generatePlaceholderQR(invoiceNumber: string): string {
+function generatePlaceholderQR(invoiceNumber: string): { base64: string; format: string } {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
     <rect width="150" height="150" fill="white"/>
     <rect x="10" y="10" width="30" height="30" fill="#333"/>
@@ -66,7 +90,7 @@ function generatePlaceholderQR(invoiceNumber: string): string {
   </svg>`;
   
   const base64 = btoa(unescape(encodeURIComponent(svg)));
-  return base64;
+  return { base64, format: 'svg+xml' };
 }
 
 // XML-RPC helper for Odoo
@@ -380,9 +404,10 @@ async function fetchQrFromOdoo(
 }
 
 // Generate HTML invoice template
-function generateInvoiceHtml(invoice: any, items: any[], qrCode: string | null, isPlaceholder: boolean): string {
+// qrCodeData contains the base64 string and format info
+function generateInvoiceHtml(invoice: any, items: any[], qrCodeData: { base64: string; format: string } | null, isPlaceholder: boolean): string {
   const isVatApplicable = invoice.vat_rate > 0;
-  const showQrCode = isVatApplicable && qrCode;
+  const showQrCode = isVatApplicable && qrCodeData;
 
   // Use the legal seller name
   const sellerName = SELLER_LEGAL_NAME;
@@ -729,13 +754,13 @@ function generateInvoiceHtml(invoice: any, items: any[], qrCode: string | null, 
       </div>
     </div>
 
-    ${showQrCode ? `
+    ${showQrCode && qrCodeData ? `
     <div class="qr-section">
       <div class="qr-title">
         رمز ZATCA للتحقق | ZATCA Verification QR Code
         ${isPlaceholder ? '<br><small style="color: #e67e22;">(نموذج تجريبي | Test Placeholder)</small>' : ''}
       </div>
-      <img class="qr-code" src="data:image/${isPlaceholder ? 'svg+xml' : 'png'};base64,${qrCode}" alt="QR Code" />
+      <img class="qr-code" src="data:image/${qrCodeData.format};base64,${qrCodeData.base64}" alt="QR Code" />
     </div>
     ` : ''}
 
@@ -795,11 +820,12 @@ serve(async (req) => {
 
     // Determine QR code to use
     const isVatApplicable = invoice.vat_rate > 0;
-    let qrCode = invoice.qr_base64;
+    let qrTlvData = invoice.qr_base64; // This is the TLV base64 data from ZATCA/Odoo
+    let qrCodeData: { base64: string; format: string } | null = null; // This will be the actual image data
     let isPlaceholder = false;
 
-    // If no QR code stored and VAT applies, try to fetch from Odoo
-    if (!qrCode && isVatApplicable) {
+    // If no QR TLV data stored and VAT applies, try to fetch from Odoo
+    if (!qrTlvData && isVatApplicable) {
       console.log('No QR code stored, attempting to fetch from Odoo...');
       console.log('Invoice Odoo data:', { 
         odoo_invoice_id: invoice.odoo_invoice_id, 
@@ -813,7 +839,7 @@ serve(async (req) => {
       );
       
       if (result.qrCode) {
-        qrCode = result.qrCode;
+        qrTlvData = result.qrCode;
         
         // Update the invoice with the fetched QR code and Odoo data
         const updateData: any = { 
@@ -843,16 +869,31 @@ serve(async (req) => {
             odooName: result.odooName 
           });
         }
-      } else {
-        // Use placeholder only as last resort (for testing)
-        console.log('Using placeholder QR code (Odoo QR not available)');
-        qrCode = generatePlaceholderQR(invoice.invoice_number);
-        isPlaceholder = true;
       }
     }
 
-    // Generate HTML with correct seller name
-    const html = generateInvoiceHtml(invoice, items || [], qrCode, isPlaceholder);
+    // Now generate the actual QR code image from the TLV data
+    if (qrTlvData && isVatApplicable) {
+      try {
+        console.log('Generating QR code image from TLV data, length:', qrTlvData.length);
+        const result = await generateQrCodeImage(qrTlvData);
+        qrCodeData = { base64: result.base64, format: result.isSvg ? 'svg+xml' : 'gif' };
+        console.log('QR code image generated successfully, format:', qrCodeData.format);
+      } catch (qrError) {
+        console.error('Failed to generate QR code image:', qrError);
+        // Fall back to placeholder
+        qrCodeData = generatePlaceholderQR(invoice.invoice_number);
+        isPlaceholder = true;
+      }
+    } else if (isVatApplicable) {
+      // No TLV data available, use placeholder
+      console.log('Using placeholder QR code (no TLV data available)');
+      qrCodeData = generatePlaceholderQR(invoice.invoice_number);
+      isPlaceholder = true;
+    }
+
+    // Generate HTML with correct seller name and QR code image
+    const html = generateInvoiceHtml(invoice, items || [], qrCodeData, isPlaceholder);
 
     // If only HTML is requested (for preview), return it directly
     if (return_html) {
