@@ -466,6 +466,9 @@ serve(async (req) => {
       const updateData: any = {
         qr_payload: qrData,
         qr_base64: qrData,
+        // Store Odoo invoice ID and name for future QR retrieval
+        odoo_invoice_id: invoice.id,
+        odoo_invoice_name: invoice.name, // Odoo format: INV/26/00001
         // Update VAT fields based on Saudi status
         vat_rate: vatRate,
         total_excl_vat: parseFloat(amountExclVat.toFixed(2)),
@@ -473,6 +476,8 @@ serve(async (req) => {
         total_incl_vat: parseFloat(amountInclVat.toFixed(2)),
         updated_at: new Date().toISOString(),
       };
+
+      console.log('Saving Odoo invoice data:', { odoo_id: invoice.id, odoo_name: invoice.name });
 
       // Find and update the local invoice
       let query = supabase.from('invoices').update(updateData);
@@ -487,7 +492,7 @@ serve(async (req) => {
       if (updateError) {
         console.warn('Failed to update local invoice:', updateError);
       } else {
-        console.log('Updated local invoice with correct VAT data (isSaudi:', isSaudi, ')');
+        console.log('Updated local invoice with Odoo data (id:', invoice.id, ', name:', invoice.name, ', isSaudi:', isSaudi, ')');
       }
     }
 
