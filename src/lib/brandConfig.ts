@@ -11,7 +11,7 @@ export const BRAND_CONFIG = {
   contact: {
     email: "support@diviso.app",
     phone: "+966 50 123 4567",
-    address: "مكة المكرمة، العوالي، ابراهيم الجفالي، 2437"
+    address: "شارع إبراهيم الجفالي، العوالي، مكة 24372"
   },
   company: {
     legalName: "مؤسسة تكامل البناء",

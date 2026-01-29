@@ -237,28 +237,66 @@ async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
       return null;
     }
 
+    console.log('Odoo authentication successful, uid:', uid);
     const objectUrl = `${odooUrl}/xmlrpc/2/object`;
 
-    // Search for invoice by reference or name
-    const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
-      odooDb, uid, odooApiKey,
-      'account.move', 'search_read',
-      [[['name', 'ilike', invoiceNumber]]],
-      { fields: ['id', 'name', 'state', 'l10n_sa_qr_code_str'], limit: 1 }
-    ]);
+    // Search for invoice by multiple fields: name, ref, or origin
+    // Try exact match first, then partial match
+    const searchDomains = [
+      [['name', '=', invoiceNumber]],
+      [['ref', '=', invoiceNumber]],
+      [['name', 'ilike', invoiceNumber]],
+      [['ref', 'ilike', invoiceNumber]],
+      [['invoice_origin', 'ilike', invoiceNumber]],
+    ];
 
-    if (invoices && invoices.length > 0) {
-      const qrCode = invoices[0].l10n_sa_qr_code_str;
-      if (qrCode) {
-        console.log('Found QR code from Odoo for invoice:', invoiceNumber);
-        return qrCode;
+    let invoice = null;
+    
+    for (const domain of searchDomains) {
+      console.log('Searching Odoo with domain:', JSON.stringify(domain));
+      const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
+        odooDb, uid, odooApiKey,
+        'account.move', 'search_read',
+        [domain],
+        { fields: ['id', 'name', 'ref', 'state', 'l10n_sa_qr_code_str', 'move_type'], limit: 5 }
+      ]);
+
+      console.log('Odoo search result:', JSON.stringify(invoices));
+
+      if (invoices && invoices.length > 0) {
+        // Find the first posted invoice (state = 'posted')
+        invoice = invoices.find((inv: any) => inv.state === 'posted') || invoices[0];
+        if (invoice) {
+          console.log('Found invoice in Odoo:', JSON.stringify({
+            id: invoice.id,
+            name: invoice.name,
+            ref: invoice.ref,
+            state: invoice.state,
+            has_qr: !!invoice.l10n_sa_qr_code_str
+          }));
+          break;
+        }
       }
     }
 
-    console.log('No QR code found in Odoo for invoice:', invoiceNumber);
+    if (invoice) {
+      if (invoice.state !== 'posted') {
+        console.log('Invoice found but not posted (state:', invoice.state, '). QR may not be available.');
+      }
+      
+      const qrCode = invoice.l10n_sa_qr_code_str;
+      if (qrCode && typeof qrCode === 'string' && qrCode.length > 10) {
+        console.log('Found valid QR code from Odoo for invoice:', invoiceNumber, 'Length:', qrCode.length);
+        return qrCode;
+      } else {
+        console.log('Invoice found but QR code is empty or invalid. State:', invoice.state);
+      }
+    }
+
+    console.log('No matching invoice found in Odoo for:', invoiceNumber);
     return null;
   } catch (error) {
-    console.warn('Error fetching QR from Odoo:', error.message);
+    console.error('Error fetching QR from Odoo:', error.message);
     return null;
   }
 }
