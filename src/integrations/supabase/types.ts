@@ -4733,6 +4733,10 @@ export type Database = {
         Args: { p_task_name: string; p_user_id: string }
         Returns: Json
       }
+      complete_subscription_purchase: {
+        Args: { p_payment_reference: string; p_purchase_id: string }
+        Returns: Json
+      }
       consume_credits: {
         Args: {
           p_action_type: string
