@@ -20,8 +20,8 @@ const crawlerPatterns = [
   'snapchat',
 ];
 
-// Page metadata map
-const pageMetadata: Record<string, { title: string; description: string }> = {
+// Page metadata map with optional custom image
+const pageMetadata: Record<string, { title: string; description: string; image?: string }> = {
   '/from': {
     title: 'استخدمت تطبيق بسيط للقسمة بين الأصدقاء',
     description: 'خصوصًا في الشعبنة، ريحنا من اللخبطة. اللي حاب يجرّبه 👇',
@@ -29,6 +29,7 @@ const pageMetadata: Record<string, { title: string; description: string }> = {
   '/launch': {
     title: 'القسمة دايمًا تلخبط؟ خلّها واضحة',
     description: 'تطبيق بسيط يخلي القسمة بين الأصدقاء عادلة بدون إحراج ولا نقاش',
+    image: '/og/launch-1200x630.png',
   },
 };
 
@@ -44,7 +45,9 @@ function generateOgHtml(path: string, fullUrl: string): string {
   };
 
   const appUrl = 'https://diviso.app';
-  const ogImage = `${appUrl}/og-image.png`;
+  const ogImage = metadata.image 
+    ? `${appUrl}${metadata.image}` 
+    : `${appUrl}/og-image.png`;
   
   // CTA button text based on path
   const ctaText = path === '/launch' ? 'جرّب الآن' : 'جرّب Diviso';
