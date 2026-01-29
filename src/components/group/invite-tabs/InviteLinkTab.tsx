@@ -23,7 +23,8 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSent }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
-  const [link, setLink] = useState("");
+  const [displayLink, setDisplayLink] = useState("");
+  const [shareLink, setShareLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [senderName, setSenderName] = useState("");
   const [linkInfo, setLinkInfo] = useState<{
@@ -73,14 +74,19 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
       if (error) throw error;
 
       const tokenData = data[0];
-      const url = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
-      setLink(url);
+      // Display link - clean URL for showing
+      const displayUrl = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
+      // Share link - Edge Function URL for social preview
+      const shareUrl = `https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=${tokenData.token}`;
+      
+      setDisplayLink(displayUrl);
+      setShareLink(shareUrl);
       setLinkInfo({
         maxUses: tokenData.max_uses,
         currentUses: 0,
         expiresAt: tokenData.expires_at
       });
-      onLinkGenerated(url);
+      onLinkGenerated(displayUrl);
       
       const maxUsesText = tokenData.max_uses === -1 ? "غير محدود" : `${tokenData.max_uses} مستخدمين`;
       const expiresAt = new Date(tokenData.expires_at);
@@ -106,15 +112,16 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
   };
 
   const copyLink = async () => {
-    if (!link) return;
-    await navigator.clipboard.writeText(link);
+    if (!shareLink) return;
+    // Copy shareLink (Edge Function URL) for social preview
+    await navigator.clipboard.writeText(shareLink);
     toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة إلى الحافظة." });
     // اعتبار نسخ الرابط كإرسال دعوة لتحديث مهمة الـ onboarding
     onInviteSent?.();
   };
 
-  const shareLink = async () => {
-    if (!link) return;
+  const shareInviteLink = async () => {
+    if (!shareLink) return;
     
     // حساب المدة المتبقية
     const hoursLeft = linkInfo 
@@ -128,7 +135,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
 
 📱 حمّل ديفيسو لتقسيم المصاريف بذكاء`;
 
-    const fullMessage = `${shareText}\n\n🔗 ${link}`;
+    const fullMessage = `${shareText}\n\n🔗 ${shareLink}`;
     
     try {
       // Native platform (Capacitor)
@@ -136,7 +143,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
         await Share.share({
           title: shareTitle,
           text: shareText,
-          url: link,
+          url: shareLink,
           dialogTitle: 'شارك رابط الدعوة'
         });
         toast({ title: "تمت المشاركة" });
@@ -144,13 +151,13 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
         return;
       }
       
-      // Web Share API - مع url منفصل لتوافقية أفضل
+      // Web Share API - use shareLink for social preview
       if (navigator.share) {
-        const shareData = { title: shareTitle, text: shareText, url: link };
+        const shareData = { title: shareTitle, text: shareText, url: shareLink };
         
         // التحقق من canShare إذا متوفر
         if (typeof navigator.canShare === 'function' && !navigator.canShare(shareData)) {
-          await navigator.share({ title: shareTitle, url: link });
+          await navigator.share({ title: shareTitle, url: shareLink });
         } else {
           await navigator.share(shareData);
         }
@@ -177,7 +184,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
   };
 
   const generateAndShare = async () => {
-    if (!link) {
+    if (!displayLink) {
       await generateLink();
     }
     // سيتم مشاركة الرابط بعد إنشائه عبر useEffect
@@ -185,7 +192,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
 
   return (
     <div className="space-y-4">
-      {!link ? (
+      {!displayLink ? (
         <div className="text-center space-y-4 py-4">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
             <Share2 className="w-8 h-8 text-primary" />
@@ -221,7 +228,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
             <Label>رابط الدعوة</Label>
             <div className="flex gap-2">
               <Input 
-                value={link} 
+                value={displayLink} 
                 readOnly 
                 className="text-xs"
               />
@@ -238,7 +245,7 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
           <Button 
             size="lg"
             className="w-full bg-primary hover:bg-primary/90"
-            onClick={shareLink}
+            onClick={shareInviteLink}
           >
             <Share2 className="w-4 h-4 ml-2" />
             شارك الرابط

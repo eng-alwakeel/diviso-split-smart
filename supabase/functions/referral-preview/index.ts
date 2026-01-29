@@ -5,28 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Common crawler User-Agents
-const crawlerPatterns = [
-  'whatsapp',
-  'facebookexternalhit',
-  'twitterbot',
-  'linkedinbot',
-  'telegrambot',
-  'slackbot',
-  'discordbot',
-  'googlebot',
-  'bingbot',
-  'applebot',
-  'facebot',
-  'pinterest',
-  'snapchat',
-];
-
-function isCrawler(userAgent: string): boolean {
-  const ua = userAgent.toLowerCase();
-  return crawlerPatterns.some(pattern => ua.includes(pattern));
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -34,11 +12,10 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const token = url.searchParams.get('token');
-    const userAgent = req.headers.get('user-agent') || '';
+    const code = url.searchParams.get('code');
 
-    if (!token) {
-      return new Response(JSON.stringify({ error: 'Token is required' }), {
+    if (!code) {
+      return new Response(JSON.stringify({ error: 'Code is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -48,48 +25,34 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch token data with group and creator info
-    const { data: tokenData, error } = await supabase
-      .from('group_join_tokens')
-      .select(`
-        token,
-        group_id,
-        created_by,
-        expires_at
-      `)
-      .eq('token', token)
+    // Fetch referral code owner
+    const { data: codeData, error } = await supabase
+      .from('user_referral_codes')
+      .select('user_id, referral_code')
+      .eq('referral_code', code.toUpperCase())
       .single();
 
-    if (error || !tokenData) {
-      console.error('Token not found:', error);
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    let inviterName = 'صديقك';
+
+    if (!error && codeData) {
+      // Fetch inviter profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name, name')
+        .eq('id', codeData.user_id)
+        .single();
+
+      if (profileData) {
+        inviterName = profileData.display_name || profileData.name || 'صديقك';
+      }
     }
 
-    // Fetch group details
-    const { data: groupData } = await supabase
-      .from('groups')
-      .select('name')
-      .eq('id', tokenData.group_id)
-      .single();
-
-    // Fetch creator profile
-    const { data: creatorData } = await supabase
-      .from('profiles')
-      .select('display_name, name')
-      .eq('id', tokenData.created_by)
-      .single();
-
-    const groupName = groupData?.name || 'مجموعة جديدة';
-    const senderName = creatorData?.display_name || creatorData?.name || 'صديقك';
     const appUrl = 'https://diviso.app';
-    const inviteUrl = `${appUrl}/i/${token}`;
+    const joinUrl = `${appUrl}/join/${code}`;
 
     // OG content according to spec
-    const ogTitle = `${senderName} يدعوك للانضمام لمجموعة "${groupName}"`;
-    const ogDescription = `قسّموا مصاريف "${groupName}" بينكم بوضوح وبدون إحراج.\nانضم الآن 👇`;
+    const ogTitle = 'تعال جرّب Diviso معي';
+    const ogDescription = 'نستخدمه عشان نقسّم المصاريف بسهولة وبدون مشاكل.\nسجّل من الرابط 👇';
     const ogImage = `${appUrl}/og-image.png`;
 
     // Always return HTML for both crawlers and users
@@ -106,7 +69,7 @@ Deno.serve(async (req) => {
   
   <!-- Open Graph / Facebook / WhatsApp -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="${inviteUrl}">
+  <meta property="og:url" content="${joinUrl}">
   <meta property="og:title" content="${ogTitle}">
   <meta property="og:description" content="${ogDescription}">
   <meta property="og:image" content="${ogImage}">
@@ -117,7 +80,7 @@ Deno.serve(async (req) => {
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="${inviteUrl}">
+  <meta name="twitter:url" content="${joinUrl}">
   <meta name="twitter:title" content="${ogTitle}">
   <meta name="twitter:description" content="${ogDescription}">
   <meta name="twitter:image" content="${ogImage}">
@@ -135,7 +98,7 @@ Deno.serve(async (req) => {
       align-items: center;
       min-height: 100vh;
       margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
       text-align: center;
       padding: 20px;
@@ -157,23 +120,34 @@ Deno.serve(async (req) => {
     }
     h1 {
       font-size: 1.5rem;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       font-weight: 700;
     }
-    .group-name {
-      font-size: 1.25rem;
-      opacity: 0.95;
-      margin-bottom: 16px;
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 8px;
     }
-    .sender {
+    .bonus {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      margin-bottom: 32px;
+    }
+    .bonus strong {
+      font-weight: 700;
+    }
+    .inviter {
       font-size: 1rem;
       opacity: 0.85;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .cta-button {
       display: inline-block;
       background: white;
-      color: #667eea;
+      color: #059669;
       font-size: 1.125rem;
       font-weight: 700;
       padding: 16px 48px;
@@ -199,11 +173,12 @@ Deno.serve(async (req) => {
 </head>
 <body>
   <div class="container">
-    <div class="logo">📊</div>
-    <h1>دعوة للانضمام</h1>
-    <p class="group-name">"${groupName}"</p>
-    <p class="sender">من ${senderName}</p>
-    <a href="${inviteUrl}" class="cta-button">انضم للمجموعة</a>
+    <div class="logo">🎁</div>
+    <h1>تعال جرّب Diviso معي</h1>
+    <p class="subtitle">نستخدمه عشان نقسّم المصاريف بسهولة</p>
+    <div class="bonus">🎉 احصل على <strong>7 أيام مجانية</strong></div>
+    <p class="inviter">دعوة من ${inviterName}</p>
+    <a href="${joinUrl}" class="cta-button">انضم الآن</a>
     <div class="footer">
       <span class="diviso-logo">Diviso</span> — قسّم المصاريف بذكاء
     </div>
@@ -220,7 +195,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in invite-preview:', error);
+    console.error('Error in referral-preview:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

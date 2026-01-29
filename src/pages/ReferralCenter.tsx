@@ -46,7 +46,8 @@ const ReferralCenter = () => {
     referrals, 
     referralCode, 
     loading: referralsLoading, 
-    getReferralLink
+    getReferralLink,
+    getShareableLink
   } = useReferrals();
 
   const { 
@@ -57,13 +58,15 @@ const ReferralCenter = () => {
   } = useReferralStats();
 
   const referralLink = getReferralLink();
+  const shareableLink = getShareableLink();
   const totalReferrals = referrals.length;
   const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
 
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   const handleCopy = async () => {
-    navigator.clipboard.writeText(referralLink);
+    // Copy shareableLink (Edge Function URL) for social preview
+    navigator.clipboard.writeText(shareableLink || referralLink || '');
     toast({
       title: t('toast.copied'),
       description: t('toast.copied_desc'),
@@ -71,10 +74,12 @@ const ReferralCenter = () => {
   };
 
   const handleShare = async () => {
+    // Use shareableLink (Edge Function URL) for social preview
+    const linkToShare = shareableLink || referralLink || '';
     const shareData = {
       title: t('invite.title'),
       text: t('invite.message', { code: referralCode || '' }),
-      url: referralLink
+      url: linkToShare
     };
 
     try {
@@ -103,14 +108,16 @@ const ReferralCenter = () => {
         description: t('toast.already_registered_desc', { name: contact.name }),
       });
     } else {
-      const shareText = `${t('invite.message', { code: referralCode || '' })}\n${referralLink}`;
+      // Use shareableLink (Edge Function URL) for social preview
+      const linkToShare = shareableLink || referralLink || '';
+      const shareText = `${t('invite.message', { code: referralCode || '' })}\n${linkToShare}`;
       
       try {
         if (navigator.share) {
           await navigator.share({
             title: t('invite.title'),
             text: shareText,
-            url: referralLink
+            url: linkToShare
           });
         } else {
           navigator.clipboard.writeText(shareText);

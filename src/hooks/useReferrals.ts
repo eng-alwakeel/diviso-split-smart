@@ -276,6 +276,12 @@ export function useReferrals() {
     return `${BRAND_CONFIG.url}/join/${referralCode}`;
   }, [referralCode]);
 
+  // Get shareable link (Edge Function URL for social preview)
+  const getShareableLink = useCallback(() => {
+    if (!referralCode) return null;
+    return `https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/referral-preview?code=${referralCode}`;
+  }, [referralCode]);
+
   const getSuccessRate = useCallback(() => {
     if (totalReferrals === 0) return 0;
     return Math.round((successfulReferrals / totalReferrals) * 100);
@@ -420,6 +426,7 @@ export function useReferrals() {
     updateReferral,
     deleteReferral,
     getReferralLink,
+    getShareableLink,
     getSuccessRate,
     getStatsBySource,
     refresh: () => {
