@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Legal seller name
+const SELLER_LEGAL_NAME = "مؤسسة تكامل البناء";
+
 // Format number to 2 decimal places
 function formatAmount(amount: number): string {
   return amount.toFixed(2);
@@ -22,10 +25,204 @@ function formatDate(dateStr: string): string {
   });
 }
 
+// XML-RPC helper for Odoo
+async function xmlRpcCall(url: string, method: string, params: any[]): Promise<any> {
+  const xmlBody = `<?xml version="1.0"?>
+<methodCall>
+  <methodName>${method}</methodName>
+  <params>
+    ${params.map(p => valueToXml(p)).join('\n    ')}
+  </params>
+</methodCall>`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml' },
+    body: xmlBody,
+  });
+
+  const text = await response.text();
+  
+  if (!response.ok) {
+    throw new Error(`XML-RPC request failed: ${response.status}`);
+  }
+
+  return parseXmlRpcResponse(text);
+}
+
+function valueToXml(value: any): string {
+  if (value === null || value === undefined) {
+    return '<param><value><boolean>0</boolean></value></param>';
+  }
+  if (typeof value === 'boolean') {
+    return `<param><value><boolean>${value ? 1 : 0}</boolean></value></param>`;
+  }
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return `<param><value><int>${value}</int></value></param>`;
+    }
+    return `<param><value><double>${value}</double></value></param>`;
+  }
+  if (typeof value === 'string') {
+    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<param><value><string>${escaped}</string></value></param>`;
+  }
+  if (Array.isArray(value)) {
+    const items = value.map(v => valueToXmlInner(v)).join('');
+    return `<param><value><array><data>${items}</data></array></value></param>`;
+  }
+  if (typeof value === 'object') {
+    const members = Object.entries(value)
+      .map(([k, v]) => `<member><name>${k}</name>${valueToXmlInner(v)}</member>`)
+      .join('');
+    return `<param><value><struct>${members}</struct></value></param>`;
+  }
+  return `<param><value><string>${String(value)}</string></value></param>`;
+}
+
+function valueToXmlInner(value: any): string {
+  if (value === null || value === undefined) {
+    return '<value><boolean>0</boolean></value>';
+  }
+  if (typeof value === 'boolean') {
+    return `<value><boolean>${value ? 1 : 0}</boolean></value>`;
+  }
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return `<value><int>${value}</int></value>`;
+    }
+    return `<value><double>${value}</double></value>`;
+  }
+  if (typeof value === 'string') {
+    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<value><string>${escaped}</string></value>`;
+  }
+  if (Array.isArray(value)) {
+    return `<value><array><data>${value.map(v => valueToXmlInner(v)).join('')}</data></array></value>`;
+  }
+  if (typeof value === 'object') {
+    const members = Object.entries(value)
+      .map(([k, v]) => `<member><name>${k}</name>${valueToXmlInner(v)}</member>`)
+      .join('');
+    return `<value><struct>${members}</struct></value>`;
+  }
+  return `<value><string>${String(value)}</string></value>`;
+}
+
+function parseXmlRpcResponse(xml: string): any {
+  const faultMatch = xml.match(/<fault>([\s\S]*?)<\/fault>/);
+  if (faultMatch) {
+    const faultString = xml.match(/<name>faultString<\/name>\s*<value>(?:<string>)?([\s\S]*?)(?:<\/string>)?<\/value>/);
+    throw new Error(`XML-RPC Fault: ${faultString?.[1] || 'Unknown error'}`);
+  }
+
+  const valueMatch = xml.match(/<params>\s*<param>\s*<value>([\s\S]*?)<\/value>\s*<\/param>\s*<\/params>/);
+  if (!valueMatch) return null;
+
+  return parseXmlValue(valueMatch[1]);
+}
+
+function parseXmlValue(xml: string): any {
+  xml = xml.trim();
+  
+  const intMatch = xml.match(/^<(?:int|i4)>([-\d]+)<\/(?:int|i4)>$/);
+  if (intMatch) return parseInt(intMatch[1], 10);
+
+  const doubleMatch = xml.match(/^<double>([-\d.]+)<\/double>$/);
+  if (doubleMatch) return parseFloat(doubleMatch[1]);
+
+  const boolMatch = xml.match(/^<boolean>([01])<\/boolean>$/);
+  if (boolMatch) return boolMatch[1] === '1';
+
+  const stringMatch = xml.match(/^<string>([\s\S]*?)<\/string>$/);
+  if (stringMatch) return stringMatch[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+  if (!xml.startsWith('<')) return xml;
+
+  if (xml.startsWith('<array>')) {
+    const dataMatch = xml.match(/^<array>\s*<data>([\s\S]*)<\/data>\s*<\/array>$/);
+    if (dataMatch) {
+      const values: any[] = [];
+      const content = dataMatch[1];
+      const valueRegex = /<value>([\s\S]*?)<\/value>/g;
+      let match;
+      while ((match = valueRegex.exec(content)) !== null) {
+        values.push(parseXmlValue(match[1]));
+      }
+      return values;
+    }
+  }
+
+  if (xml.startsWith('<struct>')) {
+    const obj: any = {};
+    const memberRegex = /<member>\s*<name>([\s\S]*?)<\/name>\s*<value>([\s\S]*?)<\/value>\s*<\/member>/g;
+    let match;
+    while ((match = memberRegex.exec(xml)) !== null) {
+      obj[match[1]] = parseXmlValue(match[2]);
+    }
+    return obj;
+  }
+
+  return xml;
+}
+
+// Fetch QR code from Odoo for a specific invoice
+async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
+  const odooUrl = Deno.env.get('ODOO_URL');
+  const odooDb = Deno.env.get('ODOO_DB');
+  const odooUsername = Deno.env.get('ODOO_USERNAME');
+  const odooApiKey = Deno.env.get('ODOO_API_KEY');
+
+  if (!odooUrl || !odooDb || !odooUsername || !odooApiKey) {
+    console.log('Odoo not configured, cannot fetch QR');
+    return null;
+  }
+
+  try {
+    console.log('Fetching QR code from Odoo for invoice:', invoiceNumber);
+    
+    // Authenticate with Odoo
+    const commonUrl = `${odooUrl}/xmlrpc/2/common`;
+    const uid = await xmlRpcCall(commonUrl, 'authenticate', [odooDb, odooUsername, odooApiKey, {}]);
+    
+    if (!uid) {
+      console.warn('Odoo authentication failed');
+      return null;
+    }
+
+    const objectUrl = `${odooUrl}/xmlrpc/2/object`;
+
+    // Search for invoice by reference or name
+    const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
+      odooDb, uid, odooApiKey,
+      'account.move', 'search_read',
+      [[['name', 'ilike', invoiceNumber]]],
+      { fields: ['id', 'name', 'state', 'l10n_sa_qr_code_str'], limit: 1 }
+    ]);
+
+    if (invoices && invoices.length > 0) {
+      const qrCode = invoices[0].l10n_sa_qr_code_str;
+      if (qrCode) {
+        console.log('Found QR code from Odoo for invoice:', invoiceNumber);
+        return qrCode;
+      }
+    }
+
+    console.log('No QR code found in Odoo for invoice:', invoiceNumber);
+    return null;
+  } catch (error) {
+    console.warn('Error fetching QR from Odoo:', error.message);
+    return null;
+  }
+}
+
 // Generate email HTML
-function generateEmailHtml(invoice: any, items: any[]): string {
+function generateEmailHtml(invoice: any, items: any[], qrBase64: string | null): string {
   const isVatApplicable = invoice.vat_rate > 0;
-  const showQrCode = isVatApplicable && invoice.qr_base64;
+  const showQrCode = isVatApplicable && qrBase64;
+
+  // Use legal seller name
+  const sellerName = SELLER_LEGAL_NAME;
 
   return `
 <!DOCTYPE html>
@@ -118,7 +315,7 @@ function generateEmailHtml(invoice: any, items: any[]): string {
       <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-top: 20px;">
         <h4 style="color: #6366f1; margin: 0 0 10px 0; font-size: 14px;">معلومات البائع | Seller Info</h4>
         <p style="margin: 0; color: #666; font-size: 13px;">
-          ${invoice.seller_legal_name}<br>
+          ${sellerName}<br>
           ${invoice.seller_vat_number ? `الرقم الضريبي: ${invoice.seller_vat_number}<br>` : ''}
           ${invoice.seller_address || ''}
         </p>
@@ -203,23 +400,44 @@ serve(async (req) => {
       console.warn('Failed to fetch invoice items:', itemsError);
     }
 
-    // Generate email HTML
-    const emailHtml = generateEmailHtml(invoice, items || []);
+    // Determine QR code to use
+    const isVatApplicable = invoice.vat_rate > 0;
+    let qrBase64 = invoice.qr_base64;
 
-    // Prepare email attachments
-    const attachments: any[] = [];
-    
-    // Add QR code as inline attachment if available
-    if (invoice.qr_base64 && invoice.vat_rate > 0) {
-      // QR code is base64 - we'll include it inline in the email
-      // For now, we include it as a data URL in the HTML directly
+    // If no QR code stored and VAT applies, try to fetch from Odoo
+    if (!qrBase64 && isVatApplicable) {
+      console.log('No QR code stored, attempting to fetch from Odoo...');
+      const odooQr = await fetchQrFromOdoo(invoice.invoice_number);
+      
+      if (odooQr) {
+        qrBase64 = odooQr;
+        
+        // Update the invoice with the fetched QR code
+        const { error: updateError } = await supabase
+          .from('invoices')
+          .update({ 
+            qr_base64: odooQr, 
+            qr_payload: odooQr,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', invoice_id);
+        
+        if (updateError) {
+          console.warn('Failed to save QR code to invoice:', updateError);
+        } else {
+          console.log('Saved QR code from Odoo to invoice');
+        }
+      }
     }
+
+    // Generate email HTML
+    const emailHtml = generateEmailHtml(invoice, items || [], qrBase64);
 
     // Send email
     console.log('Sending email to:', invoice.buyer_email);
     
     const emailResponse = await resend.emails.send({
-      from: 'Diviso <noreply@resend.dev>', // Update to your verified domain
+      from: 'Diviso <noreply@resend.dev>',
       to: [invoice.buyer_email],
       subject: `فاتورة ${invoice.invoice_number} | Invoice from Diviso`,
       html: emailHtml,
@@ -242,6 +460,7 @@ serve(async (req) => {
         message: 'Invoice email sent successfully',
         email_id: emailResponse.data?.id,
         sent_to: invoice.buyer_email,
+        qr_source: qrBase64 ? (invoice.qr_base64 ? 'stored' : 'odoo') : 'none',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

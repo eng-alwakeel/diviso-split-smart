@@ -6,6 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Legal seller name
+const SELLER_LEGAL_NAME = "مؤسسة تكامل البناء";
+const SELLER_LEGAL_NAME_EN = "Takamul Al-Bina Est.";
+
 // Format number to 2 decimal places
 function formatAmount(amount: number): string {
   return amount.toFixed(2);
@@ -21,10 +25,8 @@ function formatDate(dateStr: string): string {
   });
 }
 
-// Generate a placeholder QR code as base64 for testing
+// Generate a placeholder QR code as base64 for testing (only used when in draft/test mode)
 function generatePlaceholderQR(invoiceNumber: string): string {
-  // This is a simple SVG QR code placeholder encoded as base64
-  // In production, this would be replaced by actual ZATCA QR from Odoo
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
     <rect width="150" height="150" fill="white"/>
     <rect x="10" y="10" width="30" height="30" fill="#333"/>
@@ -63,18 +65,211 @@ function generatePlaceholderQR(invoiceNumber: string): string {
     <text x="75" y="85" font-size="6" text-anchor="middle" fill="#666">${invoiceNumber}</text>
   </svg>`;
   
-  // Convert SVG to base64
   const base64 = btoa(unescape(encodeURIComponent(svg)));
   return base64;
 }
 
+// XML-RPC helper for Odoo
+async function xmlRpcCall(url: string, method: string, params: any[]): Promise<any> {
+  const xmlBody = `<?xml version="1.0"?>
+<methodCall>
+  <methodName>${method}</methodName>
+  <params>
+    ${params.map(p => valueToXml(p)).join('\n    ')}
+  </params>
+</methodCall>`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml' },
+    body: xmlBody,
+  });
+
+  const text = await response.text();
+  
+  if (!response.ok) {
+    throw new Error(`XML-RPC request failed: ${response.status}`);
+  }
+
+  return parseXmlRpcResponse(text);
+}
+
+function valueToXml(value: any): string {
+  if (value === null || value === undefined) {
+    return '<param><value><boolean>0</boolean></value></param>';
+  }
+  if (typeof value === 'boolean') {
+    return `<param><value><boolean>${value ? 1 : 0}</boolean></value></param>`;
+  }
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return `<param><value><int>${value}</int></value></param>`;
+    }
+    return `<param><value><double>${value}</double></value></param>`;
+  }
+  if (typeof value === 'string') {
+    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<param><value><string>${escaped}</string></value></param>`;
+  }
+  if (Array.isArray(value)) {
+    const items = value.map(v => {
+      const inner = valueToXmlInner(v);
+      return inner;
+    }).join('');
+    return `<param><value><array><data>${items}</data></array></value></param>`;
+  }
+  if (typeof value === 'object') {
+    const members = Object.entries(value)
+      .map(([k, v]) => `<member><name>${k}</name>${valueToXmlInner(v)}</member>`)
+      .join('');
+    return `<param><value><struct>${members}</struct></value></param>`;
+  }
+  return `<param><value><string>${String(value)}</string></value></param>`;
+}
+
+function valueToXmlInner(value: any): string {
+  if (value === null || value === undefined) {
+    return '<value><boolean>0</boolean></value>';
+  }
+  if (typeof value === 'boolean') {
+    return `<value><boolean>${value ? 1 : 0}</boolean></value>`;
+  }
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      return `<value><int>${value}</int></value>`;
+    }
+    return `<value><double>${value}</double></value>`;
+  }
+  if (typeof value === 'string') {
+    const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<value><string>${escaped}</string></value>`;
+  }
+  if (Array.isArray(value)) {
+    return `<value><array><data>${value.map(v => valueToXmlInner(v)).join('')}</data></array></value>`;
+  }
+  if (typeof value === 'object') {
+    const members = Object.entries(value)
+      .map(([k, v]) => `<member><name>${k}</name>${valueToXmlInner(v)}</member>`)
+      .join('');
+    return `<value><struct>${members}</struct></value>`;
+  }
+  return `<value><string>${String(value)}</string></value>`;
+}
+
+function parseXmlRpcResponse(xml: string): any {
+  const faultMatch = xml.match(/<fault>([\s\S]*?)<\/fault>/);
+  if (faultMatch) {
+    const faultString = xml.match(/<name>faultString<\/name>\s*<value>(?:<string>)?([\s\S]*?)(?:<\/string>)?<\/value>/);
+    throw new Error(`XML-RPC Fault: ${faultString?.[1] || 'Unknown error'}`);
+  }
+
+  const valueMatch = xml.match(/<params>\s*<param>\s*<value>([\s\S]*?)<\/value>\s*<\/param>\s*<\/params>/);
+  if (!valueMatch) return null;
+
+  return parseXmlValue(valueMatch[1]);
+}
+
+function parseXmlValue(xml: string): any {
+  xml = xml.trim();
+  
+  const intMatch = xml.match(/^<(?:int|i4)>([-\d]+)<\/(?:int|i4)>$/);
+  if (intMatch) return parseInt(intMatch[1], 10);
+
+  const doubleMatch = xml.match(/^<double>([-\d.]+)<\/double>$/);
+  if (doubleMatch) return parseFloat(doubleMatch[1]);
+
+  const boolMatch = xml.match(/^<boolean>([01])<\/boolean>$/);
+  if (boolMatch) return boolMatch[1] === '1';
+
+  const stringMatch = xml.match(/^<string>([\s\S]*?)<\/string>$/);
+  if (stringMatch) return stringMatch[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+  if (!xml.startsWith('<')) return xml;
+
+  if (xml.startsWith('<array>')) {
+    const dataMatch = xml.match(/^<array>\s*<data>([\s\S]*)<\/data>\s*<\/array>$/);
+    if (dataMatch) {
+      const values: any[] = [];
+      const content = dataMatch[1];
+      const valueRegex = /<value>([\s\S]*?)<\/value>/g;
+      let match;
+      while ((match = valueRegex.exec(content)) !== null) {
+        values.push(parseXmlValue(match[1]));
+      }
+      return values;
+    }
+  }
+
+  if (xml.startsWith('<struct>')) {
+    const obj: any = {};
+    const memberRegex = /<member>\s*<name>([\s\S]*?)<\/name>\s*<value>([\s\S]*?)<\/value>\s*<\/member>/g;
+    let match;
+    while ((match = memberRegex.exec(xml)) !== null) {
+      obj[match[1]] = parseXmlValue(match[2]);
+    }
+    return obj;
+  }
+
+  return xml;
+}
+
+// Fetch QR code from Odoo for a specific invoice
+async function fetchQrFromOdoo(invoiceNumber: string): Promise<string | null> {
+  const odooUrl = Deno.env.get('ODOO_URL');
+  const odooDb = Deno.env.get('ODOO_DB');
+  const odooUsername = Deno.env.get('ODOO_USERNAME');
+  const odooApiKey = Deno.env.get('ODOO_API_KEY');
+
+  if (!odooUrl || !odooDb || !odooUsername || !odooApiKey) {
+    console.log('Odoo not configured, cannot fetch QR');
+    return null;
+  }
+
+  try {
+    console.log('Fetching QR code from Odoo for invoice:', invoiceNumber);
+    
+    // Authenticate with Odoo
+    const commonUrl = `${odooUrl}/xmlrpc/2/common`;
+    const uid = await xmlRpcCall(commonUrl, 'authenticate', [odooDb, odooUsername, odooApiKey, {}]);
+    
+    if (!uid) {
+      console.warn('Odoo authentication failed');
+      return null;
+    }
+
+    const objectUrl = `${odooUrl}/xmlrpc/2/object`;
+
+    // Search for invoice by reference or name
+    const invoices = await xmlRpcCall(objectUrl, 'execute_kw', [
+      odooDb, uid, odooApiKey,
+      'account.move', 'search_read',
+      [[['name', 'ilike', invoiceNumber]]],
+      { fields: ['id', 'name', 'state', 'l10n_sa_qr_code_str'], limit: 1 }
+    ]);
+
+    if (invoices && invoices.length > 0) {
+      const qrCode = invoices[0].l10n_sa_qr_code_str;
+      if (qrCode) {
+        console.log('Found QR code from Odoo for invoice:', invoiceNumber);
+        return qrCode;
+      }
+    }
+
+    console.log('No QR code found in Odoo for invoice:', invoiceNumber);
+    return null;
+  } catch (error) {
+    console.warn('Error fetching QR from Odoo:', error.message);
+    return null;
+  }
+}
+
 // Generate HTML invoice template
-function generateInvoiceHtml(invoice: any, items: any[]): string {
+function generateInvoiceHtml(invoice: any, items: any[], qrCode: string | null, isPlaceholder: boolean): string {
   const isVatApplicable = invoice.vat_rate > 0;
-  // Use actual QR code if available, otherwise generate placeholder for testing
-  const qrBase64 = invoice.qr_base64 || (isVatApplicable ? generatePlaceholderQR(invoice.invoice_number) : null);
-  const showQrCode = isVatApplicable && qrBase64;
-  const isPlaceholderQr = !invoice.qr_base64 && qrBase64;
+  const showQrCode = isVatApplicable && qrCode;
+
+  // Use the legal seller name
+  const sellerName = SELLER_LEGAL_NAME;
 
   return `
 <!DOCTYPE html>
@@ -328,7 +523,7 @@ function generateInvoiceHtml(invoice: any, items: any[]): string {
         </div>
         <div class="party-detail">
           <span class="party-label">الاسم | Name:</span>
-          <span class="party-value">${invoice.seller_legal_name}</span>
+          <span class="party-value">${sellerName}</span>
         </div>
         ${invoice.seller_vat_number ? `
         <div class="party-detail">
@@ -422,9 +617,9 @@ function generateInvoiceHtml(invoice: any, items: any[]): string {
     <div class="qr-section">
       <div class="qr-title">
         رمز ZATCA للتحقق | ZATCA Verification QR Code
-        ${isPlaceholderQr ? '<br><small style="color: #e67e22;">(نموذج تجريبي | Test Placeholder)</small>' : ''}
+        ${isPlaceholder ? '<br><small style="color: #e67e22;">(نموذج تجريبي | Test Placeholder)</small>' : ''}
       </div>
-      <img class="qr-code" src="data:image/${isPlaceholderQr ? 'svg+xml' : 'png'};base64,${qrBase64}" alt="QR Code" />
+      <img class="qr-code" src="data:image/${isPlaceholder ? 'svg+xml' : 'png'};base64,${qrCode}" alt="QR Code" />
     </div>
     ` : ''}
 
@@ -482,8 +677,44 @@ serve(async (req) => {
       console.warn('Failed to fetch invoice items:', itemsError);
     }
 
-    // Generate HTML
-    const html = generateInvoiceHtml(invoice, items || []);
+    // Determine QR code to use
+    const isVatApplicable = invoice.vat_rate > 0;
+    let qrCode = invoice.qr_base64;
+    let isPlaceholder = false;
+
+    // If no QR code stored and VAT applies, try to fetch from Odoo
+    if (!qrCode && isVatApplicable) {
+      console.log('No QR code stored, attempting to fetch from Odoo...');
+      const odooQr = await fetchQrFromOdoo(invoice.invoice_number);
+      
+      if (odooQr) {
+        qrCode = odooQr;
+        
+        // Update the invoice with the fetched QR code
+        const { error: updateError } = await supabase
+          .from('invoices')
+          .update({ 
+            qr_base64: odooQr, 
+            qr_payload: odooQr,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', invoice_id);
+        
+        if (updateError) {
+          console.warn('Failed to save QR code to invoice:', updateError);
+        } else {
+          console.log('Saved QR code from Odoo to invoice');
+        }
+      } else {
+        // Use placeholder only as last resort (for testing)
+        console.log('Using placeholder QR code (Odoo QR not available)');
+        qrCode = generatePlaceholderQR(invoice.invoice_number);
+        isPlaceholder = true;
+      }
+    }
+
+    // Generate HTML with correct seller name
+    const html = generateInvoiceHtml(invoice, items || [], qrCode, isPlaceholder);
 
     // If only HTML is requested (for preview), return it directly
     if (return_html) {
@@ -492,10 +723,6 @@ serve(async (req) => {
       });
     }
 
-    // For PDF generation, we return the HTML that can be converted client-side
-    // or use a PDF service. For now, we return HTML with instructions.
-    // In production, you might want to use a service like Puppeteer, wkhtmltopdf, etc.
-    
     // Store HTML in storage bucket for PDF conversion
     const fileName = `invoices/${invoice.user_id}/${invoice.invoice_number}.html`;
     
@@ -522,6 +749,7 @@ serve(async (req) => {
         invoice_number: invoice.invoice_number,
         html_url: urlData?.publicUrl,
         html_content: html,
+        qr_source: isPlaceholder ? 'placeholder' : (qrCode ? 'odoo' : 'none'),
         message: 'Invoice HTML generated successfully. Use browser print to PDF or a PDF service for conversion.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
