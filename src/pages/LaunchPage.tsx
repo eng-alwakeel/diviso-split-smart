@@ -34,11 +34,13 @@ const LaunchPage: React.FC = () => {
     }
   };
 
-  // Share Handler
+  // Share Handler - uses Edge Function URL for proper OG preview
   const handleShare = async () => {
+    const shareLink = `https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/og-handler?path=/launch`;
+    
     const shareText = `عشان ما نتوه في الحسابات والكسور المرة الجاية.. 🌚
 هذا التطبيق بيضبط لنا كل المصاريف ويقسمها بيننا بالملّي. حملوه وخلونا نترتب.
-الرابط: ${window.location.origin}/launch`;
+الرابط: ${shareLink}`;
 
     try {
       await navigator.clipboard.writeText(shareText);
