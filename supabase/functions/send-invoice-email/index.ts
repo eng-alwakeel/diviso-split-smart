@@ -109,6 +109,40 @@ function valueToXmlInner(value: any): string {
   return `<value><string>${String(value)}</string></value>`;
 }
 
+// Balanced tag extraction for nested XML structures
+function extractBalancedTag(xml: string, tagName: string, startPos: number = 0): { content: string; endPos: number } | null {
+  const openTag = `<${tagName}>`;
+  const closeTag = `</${tagName}>`;
+  
+  const start = xml.indexOf(openTag, startPos);
+  if (start === -1) return null;
+  
+  let depth = 1;
+  let pos = start + openTag.length;
+  
+  while (depth > 0 && pos < xml.length) {
+    const nextOpen = xml.indexOf(openTag, pos);
+    const nextClose = xml.indexOf(closeTag, pos);
+    
+    if (nextClose === -1) return null;
+    
+    if (nextOpen !== -1 && nextOpen < nextClose) {
+      depth++;
+      pos = nextOpen + openTag.length;
+    } else {
+      depth--;
+      if (depth === 0) {
+        return {
+          content: xml.substring(start + openTag.length, nextClose),
+          endPos: nextClose + closeTag.length
+        };
+      }
+      pos = nextClose + closeTag.length;
+    }
+  }
+  return null;
+}
+
 function parseXmlRpcResponse(xml: string): any {
   const faultMatch = xml.match(/<fault>([\s\S]*?)<\/fault>/);
   if (faultMatch) {
@@ -116,10 +150,13 @@ function parseXmlRpcResponse(xml: string): any {
     throw new Error(`XML-RPC Fault: ${faultString?.[1] || 'Unknown error'}`);
   }
 
-  const valueMatch = xml.match(/<params>\s*<param>\s*<value>([\s\S]*?)<\/value>\s*<\/param>\s*<\/params>/);
-  if (!valueMatch) return null;
+  const valueResult = extractBalancedTag(xml, 'value');
+  if (!valueResult) {
+    console.log('No value found in response');
+    return null;
+  }
 
-  return parseXmlValue(valueMatch[1]);
+  return parseXmlValue(valueResult.content);
 }
 
 function parseXmlValue(xml: string): any {
@@ -143,24 +180,40 @@ function parseXmlValue(xml: string): any {
     const dataMatch = xml.match(/^<array>\s*<data>([\s\S]*)<\/data>\s*<\/array>$/);
     if (dataMatch) {
       const values: any[] = [];
-      const content = dataMatch[1];
-      const valueRegex = /<value>([\s\S]*?)<\/value>/g;
-      let match;
-      while ((match = valueRegex.exec(content)) !== null) {
-        values.push(parseXmlValue(match[1]));
+      let content = dataMatch[1];
+      let pos = 0;
+      
+      while (pos < content.length) {
+        const valueResult = extractBalancedTag(content, 'value', pos);
+        if (!valueResult) break;
+        values.push(parseXmlValue(valueResult.content));
+        pos = valueResult.endPos;
       }
       return values;
     }
   }
 
   if (xml.startsWith('<struct>')) {
-    const obj: any = {};
-    const memberRegex = /<member>\s*<name>([\s\S]*?)<\/name>\s*<value>([\s\S]*?)<\/value>\s*<\/member>/g;
-    let match;
-    while ((match = memberRegex.exec(xml)) !== null) {
-      obj[match[1]] = parseXmlValue(match[2]);
+    const structMatch = xml.match(/^<struct>([\s\S]*)<\/struct>$/);
+    if (structMatch) {
+      const obj: any = {};
+      let content = structMatch[1];
+      let pos = 0;
+      
+      while (pos < content.length) {
+        const memberResult = extractBalancedTag(content, 'member', pos);
+        if (!memberResult) break;
+        
+        const nameMatch = memberResult.content.match(/<name>([\s\S]*?)<\/name>/);
+        const valueResult = extractBalancedTag(memberResult.content, 'value', 0);
+        
+        if (nameMatch && valueResult) {
+          obj[nameMatch[1]] = parseXmlValue(valueResult.content);
+        }
+        pos = memberResult.endPos;
+      }
+      return obj;
     }
-    return obj;
   }
 
   return xml;
