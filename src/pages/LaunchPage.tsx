@@ -63,7 +63,7 @@ const LaunchPage: React.FC = () => {
   }, []);
 
   // Handle experience completed
-  const handleExperienceCompleted = useCallback((durationSeconds: number, completionMode: 'balances_view' | 'timer') => {
+  const handleExperienceCompleted = useCallback((durationSeconds: number, completionMode: 'balances_view' | 'timer' | 'interaction') => {
     if (selectedScenario && !completedScenarios.has(selectedScenario)) {
       setExperienceCompleted(true);
       setCompletedScenarios(prev => new Set(prev).add(selectedScenario));

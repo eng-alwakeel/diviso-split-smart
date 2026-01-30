@@ -1,22 +1,21 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { X, Link2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DemoBalanceView } from './DemoBalanceView';
 import { shareExperience } from '@/lib/share';
 import { useToast } from '@/hooks/use-toast';
+import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 import { 
-  calculateBalances, 
-  getTotalExpenses, 
-  getPerPersonShare,
   formatAmount,
   type DemoScenario,
-  type ScenarioType 
+  type DemoExpense,
+  type MemberBalance 
 } from '@/data/demoScenarios';
 
 interface DemoExperienceProps {
   scenario: DemoScenario;
   onClose: () => void;
-  onCompleted: (durationSeconds: number, completionMode: 'balances_view' | 'timer') => void;
+  onCompleted: (durationSeconds: number, completionMode: 'balances_view' | 'timer' | 'interaction') => void;
   onSignup: () => void;
 }
 
@@ -27,18 +26,47 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   onSignup,
 }) => {
   const { toast } = useToast();
+  const { trackEvent } = useGoogleAnalytics();
   const [copied, setCopied] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  
+  // State for interactive expense modification
+  const [expenses, setExpenses] = useState<DemoExpense[]>(scenario.expenses);
+  const [hasInteracted, setHasInteracted] = useState(false);
   
   const balancesRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef<boolean>(false);
 
-  const balances = calculateBalances(scenario);
-  const totalExpenses = getTotalExpenses(scenario);
-  const perPerson = getPerPersonShare(scenario);
+  // Calculate balances dynamically based on current expenses state
+  const balances = useMemo((): MemberBalance[] => {
+    const totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const perPersonShare = totalExp / scenario.members.length;
 
-  const markCompleted = useCallback((mode: 'balances_view' | 'timer') => {
+    const calculated = scenario.members.map((member) => {
+      const paid = expenses
+        .filter((e) => e.paidById === member.id)
+        .reduce((sum, e) => sum + e.amount, 0);
+
+      return {
+        member,
+        paid,
+        owed: perPersonShare,
+        net: paid - perPersonShare,
+      };
+    });
+
+    return calculated.sort((a, b) => b.net - a.net);
+  }, [expenses, scenario.members]);
+
+  // Calculate totals dynamically
+  const totalExpenses = useMemo(() => 
+    expenses.reduce((sum, e) => sum + e.amount, 0), [expenses]);
+  
+  const perPerson = useMemo(() => 
+    totalExpenses / scenario.members.length, [totalExpenses, scenario.members.length]);
+
+  const markCompleted = useCallback((mode: 'balances_view' | 'timer' | 'interaction') => {
     if (completedRef.current) return;
     completedRef.current = true;
     setIsCompleted(true);
@@ -46,6 +74,27 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
     onCompleted(duration, mode);
   }, [onCompleted]);
+
+  // Handle payer change - the core interactive feature
+  const handlePayerChange = useCallback((expenseId: string, newPayerId: string) => {
+    // Update expenses state
+    setExpenses(prev => prev.map(exp => 
+      exp.id === expenseId ? { ...exp, paidById: newPayerId } : exp
+    ));
+    
+    // Track first interaction only and trigger completion
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      
+      trackEvent('demo_interaction', {
+        type: scenario.id,
+        interaction: 'change_paid_by',
+        expense_id: expenseId
+      });
+      
+      markCompleted('interaction');
+    }
+  }, [hasInteracted, scenario.id, trackEvent, markCompleted]);
 
   // Intersection Observer for balances section
   useEffect(() => {
@@ -95,11 +144,6 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     }
   };
 
-  // Get payer name for an expense
-  const getPayerName = (paidById: string): string => {
-    const member = scenario.members.find(m => m.id === paidById);
-    return member?.name || '';
-  };
 
   return (
     <div 
@@ -149,14 +193,14 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
           </div>
         </section>
 
-        {/* Expenses */}
+        {/* Expenses - Interactive */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
             <span>📝</span>
             <span>المصاريف</span>
           </h2>
           <div className="space-y-3">
-            {scenario.expenses.map((expense) => (
+            {expenses.map((expense) => (
               <div 
                 key={expense.id}
                 className="bg-card border border-border rounded-lg p-4"
@@ -166,9 +210,26 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                     <span className="text-2xl">{expense.icon}</span>
                     <div>
                       <p className="font-medium text-foreground">{expense.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        دفعها: {getPayerName(expense.paidById)}
-                      </p>
+                      
+                      {/* Interactive Payer Dropdown */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-muted-foreground">دفعها:</span>
+                        <select
+                          value={expense.paidById}
+                          onChange={(e) => handlePayerChange(expense.id, e.target.value)}
+                          className="text-sm bg-muted/50 border border-border rounded-md px-2 py-1 
+                                     text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50
+                                     cursor-pointer transition-all duration-200"
+                          dir="rtl"
+                        >
+                          {scenario.members.map(member => (
+                            <option key={member.id} value={member.id}>
+                              {member.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
                     </div>
                   </div>
                   <span className="font-bold text-foreground">

@@ -38,7 +38,7 @@ export const DemoBalanceView: React.FC<DemoBalanceViewProps> = ({ balances, curr
           <div 
             key={balance.member.id}
             className={cn(
-              "flex items-center justify-between p-3 rounded-lg",
+              "flex items-center justify-between p-3 rounded-lg transition-all duration-300",
               bgClass
             )}
           >
@@ -62,10 +62,10 @@ export const DemoBalanceView: React.FC<DemoBalanceViewProps> = ({ balances, curr
             
             {/* Balance */}
             <div className="flex items-center gap-2">
-              <span className={cn("text-sm font-medium", textClass)}>
+              <span className={cn("text-sm font-medium transition-all duration-300", textClass)}>
                 {isPositive ? 'له' : isZero ? 'متساوي' : 'عليه'}
               </span>
-              <span className={cn("font-bold", textClass)}>
+              <span className={cn("font-bold transition-all duration-300", textClass)}>
                 {isPositive && '+'}
                 {formatAmount(balance.net, currency)}
               </span>
