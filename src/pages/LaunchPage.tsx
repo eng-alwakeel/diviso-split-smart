@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
@@ -7,11 +8,18 @@ import { SEO } from '@/components/SEO';
 import { ExperienceCard } from '@/components/launch/ExperienceCard';
 import { DemoExperience } from '@/components/launch/DemoExperience';
 import { StickySignupBar } from '@/components/launch/StickySignupBar';
+import { Button } from '@/components/ui/button';
 import { 
-  DEMO_SCENARIOS, 
+  PRIMARY_SCENARIOS,
+  SECONDARY_SCENARIOS,
   getScenarioById,
   type ScenarioType 
 } from '@/data/demoScenarios';
+
+const VALID_SCENARIOS: ScenarioType[] = [
+  'travel', 'friends', 'housing',
+  'activities', 'desert', 'groups', 'family', 'carpool', 'events'
+];
 
 const LaunchPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +31,7 @@ const LaunchPage: React.FC = () => {
   const [showDemo, setShowDemo] = useState(false);
   const [experienceCompleted, setExperienceCompleted] = useState(false);
   const [completedScenarios, setCompletedScenarios] = useState<Set<ScenarioType>>(new Set());
+  const [showSecondary, setShowSecondary] = useState(false);
 
   // Track page view on mount
   useEffect(() => {
@@ -37,12 +46,20 @@ const LaunchPage: React.FC = () => {
   useEffect(() => {
     const demoParam = searchParams.get('demo') as ScenarioType | null;
     
-    if (demoParam && ['travel', 'friends', 'housing'].includes(demoParam)) {
+    if (demoParam && VALID_SCENARIOS.includes(demoParam)) {
       const scenario = getScenarioById(demoParam);
       if (scenario) {
+        // If it's a secondary scenario, show the secondary section
+        if (scenario.tier === 'secondary') {
+          setShowSecondary(true);
+        }
         setSelectedScenario(demoParam);
         setShowDemo(true);
-        trackEvent('experience_selected', { type: demoParam, auto_opened: true });
+        trackEvent('experience_selected', { 
+          type: demoParam, 
+          tier: scenario.tier,
+          auto_opened: true 
+        });
         trackEvent('experience_opened', { type: demoParam });
       }
     }
@@ -50,9 +67,12 @@ const LaunchPage: React.FC = () => {
 
   // Handle scenario selection
   const handleSelectScenario = useCallback((type: ScenarioType) => {
+    const scenario = getScenarioById(type);
+    const tier = scenario?.tier || 'primary';
+    
     setSelectedScenario(type);
     setShowDemo(true);
-    trackEvent('experience_selected', { type, auto_opened: false });
+    trackEvent('experience_selected', { type, tier, auto_opened: false });
     trackEvent('experience_opened', { type });
   }, [trackEvent]);
 
@@ -92,6 +112,12 @@ const LaunchPage: React.FC = () => {
     }
   }, [navigate, selectedScenario, trackEvent]);
 
+  // Handle show more click
+  const handleShowMore = useCallback(() => {
+    setShowSecondary(true);
+    trackEvent('show_more_clicked');
+  }, [trackEvent]);
+
   // Get the selected scenario object
   const activeScenario = selectedScenario ? getScenarioById(selectedScenario) : null;
 
@@ -127,16 +153,48 @@ const LaunchPage: React.FC = () => {
           وشوف كيف تنحسب القسمة بدون إحراج
         </p>
 
-        {/* Experience Cards */}
+        {/* Primary Experience Cards */}
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-4">
-          {DEMO_SCENARIOS.map((scenario) => (
+          {PRIMARY_SCENARIOS.map((scenario) => (
             <ExperienceCard
               key={scenario.id}
               scenario={scenario}
+              variant="primary"
               onSelect={() => handleSelectScenario(scenario.id)}
             />
           ))}
         </div>
+
+        {/* Show More Button */}
+        {!showSecondary && (
+          <Button
+            variant="ghost"
+            onClick={handleShowMore}
+            className="mt-8 text-muted-foreground hover:text-primary transition-colors"
+          >
+            عرض المزيد من التجارب
+            <ChevronDown className="h-4 w-4 mr-2" />
+          </Button>
+        )}
+
+        {/* Secondary Experiences - Expandable */}
+        {showSecondary && (
+          <div className="w-full max-w-3xl mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+            <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+              تجارب إضافية
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {SECONDARY_SCENARIOS.map((scenario) => (
+                <ExperienceCard
+                  key={scenario.id}
+                  scenario={scenario}
+                  variant="secondary"
+                  onSelect={() => handleSelectScenario(scenario.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Demo Experience Overlay */}

@@ -15,7 +15,7 @@ export interface DemoExpense {
 }
 
 export interface DemoScenario {
-  id: 'travel' | 'friends' | 'housing';
+  id: ScenarioType;
   icon: string;
   title: string;
   subtitle: string;
@@ -23,13 +23,18 @@ export interface DemoScenario {
   currency: string;
   members: DemoMember[];
   expenses: DemoExpense[];
+  tier: 'primary' | 'secondary';
 }
 
-export type ScenarioType = DemoScenario['id'];
+export type ScenarioType = 
+  | 'travel' | 'friends' | 'housing'  // Primary
+  | 'activities' | 'desert' | 'groups' | 'family' | 'carpool' | 'events';  // Secondary
 
 export const DEMO_SCENARIOS: DemoScenario[] = [
+  // ===== PRIMARY SCENARIOS =====
   {
     id: 'travel',
+    tier: 'primary',
     icon: '✈️',
     title: 'سفر',
     subtitle: 'رحلة مع أصحابك',
@@ -49,6 +54,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   },
   {
     id: 'friends',
+    tier: 'primary',
     icon: '🧑‍🤝‍🧑',
     title: 'طلعة أصدقاء',
     subtitle: 'مطعم – قهوة – بنزين',
@@ -68,6 +74,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   },
   {
     id: 'housing',
+    tier: 'primary',
     icon: '🏠',
     title: 'سكن مشترك',
     subtitle: 'إيجار – فواتير – مشتريات',
@@ -85,7 +92,133 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       { id: 'e3', description: 'مشتريات البيت', amount: 250, paidById: 'm3', icon: '🛒' },
     ],
   },
+  
+  // ===== SECONDARY SCENARIOS =====
+  {
+    id: 'activities',
+    tier: 'secondary',
+    icon: '🎯',
+    title: 'نشاط',
+    subtitle: 'بولينج – سينما – ألعاب',
+    groupName: 'شلة النشاط',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'راكان', avatar: 'ر' },
+      { id: 'm2', name: 'تركي', avatar: 'ت' },
+      { id: 'm3', name: 'بدر', avatar: 'ب' },
+      { id: 'm4', name: 'فهد', avatar: 'ف' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'بولينج', amount: 200, paidById: 'm1', icon: '🎳' },
+      { id: 'e2', description: 'سينما', amount: 160, paidById: 'm2', icon: '🎬' },
+      { id: 'e3', description: 'عشاء', amount: 280, paidById: 'm3', icon: '🍕' },
+    ],
+  },
+  {
+    id: 'desert',
+    tier: 'secondary',
+    icon: '🏕️',
+    title: 'رحلة بر',
+    subtitle: 'مخيم – أكل – معدات',
+    groupName: 'رحلة البر',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'سلمان', avatar: 'س' },
+      { id: 'm2', name: 'عبدالرحمن', avatar: 'ع' },
+      { id: 'm3', name: 'نواف', avatar: 'ن' },
+      { id: 'm4', name: 'مشاري', avatar: 'م' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'خيمة ومعدات', amount: 350, paidById: 'm1', icon: '⛺' },
+      { id: 'e2', description: 'لحم وأكل', amount: 400, paidById: 'm2', icon: '🥩' },
+      { id: 'e3', description: 'فحم وحطب', amount: 100, paidById: 'm3', icon: '🔥' },
+    ],
+  },
+  {
+    id: 'groups',
+    tier: 'secondary',
+    icon: '👥',
+    title: 'مجموعة',
+    subtitle: 'فعاليات أو اشتراك جماعي',
+    groupName: 'المجموعة',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'حسن', avatar: 'ح' },
+      { id: 'm2', name: 'علي', avatar: 'ع' },
+      { id: 'm3', name: 'حمد', avatar: 'ح' },
+      { id: 'm4', name: 'زياد', avatar: 'ز' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'اشتراك Netflix', amount: 60, paidById: 'm1', icon: '📺' },
+      { id: 'e2', description: 'حجز ملعب', amount: 200, paidById: 'm2', icon: '⚽' },
+      { id: 'e3', description: 'مشروبات', amount: 80, paidById: 'm3', icon: '🥤' },
+    ],
+  },
+  {
+    id: 'family',
+    tier: 'secondary',
+    icon: '👨‍👩‍👧',
+    title: 'عائلة',
+    subtitle: 'رحلة أو مصاريف عائلية',
+    groupName: 'العائلة',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'أبو محمد', avatar: 'أ' },
+      { id: 'm2', name: 'أبو خالد', avatar: 'أ' },
+      { id: 'm3', name: 'أبو سعود', avatar: 'أ' },
+      { id: 'm4', name: 'أبو عبدالله', avatar: 'أ' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'حجز شاليه', amount: 800, paidById: 'm1', icon: '🏖️' },
+      { id: 'e2', description: 'غداء', amount: 350, paidById: 'm2', icon: '🍖' },
+      { id: 'e3', description: 'ألعاب الأطفال', amount: 150, paidById: 'm3', icon: '🎢' },
+    ],
+  },
+  {
+    id: 'carpool',
+    tier: 'secondary',
+    icon: '🚗',
+    title: 'مشوار مشترك',
+    subtitle: 'بنزين – مواقف',
+    groupName: 'المشوار',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'وليد', avatar: 'و' },
+      { id: 'm2', name: 'طلال', avatar: 'ط' },
+      { id: 'm3', name: 'ياسر', avatar: 'ي' },
+      { id: 'm4', name: 'رائد', avatar: 'ر' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'بنزين', amount: 150, paidById: 'm1', icon: '⛽' },
+      { id: 'e2', description: 'موقف', amount: 30, paidById: 'm2', icon: '🅿️' },
+      { id: 'e3', description: 'غسيل سيارة', amount: 50, paidById: 'm1', icon: '🚿' },
+    ],
+  },
+  {
+    id: 'events',
+    tier: 'secondary',
+    icon: '🎉',
+    title: 'مناسبة',
+    subtitle: 'هدية – حجز – تجهيز',
+    groupName: 'المناسبة',
+    currency: 'ر.س',
+    members: [
+      { id: 'm1', name: 'باسل', avatar: 'ب' },
+      { id: 'm2', name: 'أنس', avatar: 'أ' },
+      { id: 'm3', name: 'عمار', avatar: 'ع' },
+      { id: 'm4', name: 'سامي', avatar: 'س' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'هدية', amount: 500, paidById: 'm1', icon: '🎁' },
+      { id: 'e2', description: 'كيك', amount: 200, paidById: 'm2', icon: '🎂' },
+      { id: 'e3', description: 'زينة', amount: 100, paidById: 'm3', icon: '🎈' },
+    ],
+  },
 ];
+
+// Helper: Filter by tier
+export const PRIMARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'primary');
+export const SECONDARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'secondary');
 
 export interface MemberBalance {
   member: DemoMember;
