@@ -131,7 +131,7 @@ const LaunchPage: React.FC = () => {
     }
   }, [selectedScenario, completedScenarios, trackEvent]);
 
-  // Handle signup CTA
+  // Handle signup CTA (from demo experience)
   const handleSignup = useCallback(async () => {
     trackEvent('signup_started', {
       source: 'launch',
@@ -147,6 +147,18 @@ const LaunchPage: React.FC = () => {
     }
   }, [navigate, selectedScenario, trackEvent]);
 
+  // Handle signup click from bottom section
+  const handleSignupClick = useCallback(() => {
+    trackEvent('launch_signup_clicked');
+    navigate('/auth?mode=signup&redirect=/launch');
+  }, [navigate, trackEvent]);
+
+  // Handle features click
+  const handleFeaturesClick = useCallback(() => {
+    trackEvent('launch_features_clicked');
+    navigate('/');
+  }, [navigate, trackEvent]);
+
   // Handle show more click
   const handleShowMore = useCallback(() => {
     setShowSecondary(true);
@@ -156,7 +168,7 @@ const LaunchPage: React.FC = () => {
   // Handle share page
   const handleSharePage = useCallback(async () => {
     const shareUrl = `${window.location.origin}/launch`;
-    const shareText = 'قسّم مصاريفك مع أصحابك بدون إحراج – جرب بنفسك';
+    const shareText = 'دايم القسمة تلخبط؟ خلّها واضحة 👇\nجرّب Diviso بدون تسجيل:';
 
     if (navigator.share) {
       try {
@@ -165,7 +177,7 @@ const LaunchPage: React.FC = () => {
           text: shareText,
           url: shareUrl,
         });
-        trackEvent('launch_page_shared', { method: 'native' });
+        trackEvent('launch_share_clicked', { method: 'native' });
         return;
       } catch (error) {
         if ((error as Error).name === 'AbortError') {
@@ -178,7 +190,7 @@ const LaunchPage: React.FC = () => {
     try {
       await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
       toast({ title: 'تم نسخ الرابط!' });
-      trackEvent('launch_page_shared', { method: 'clipboard' });
+      trackEvent('launch_share_clicked', { method: 'clipboard' });
     } catch (error) {
       console.error('Failed to copy:', error);
     }
@@ -226,15 +238,6 @@ const LaunchPage: React.FC = () => {
           اختر مثال وجرب بنفسك 👇
         </p>
 
-        {/* Share Button */}
-        <Button
-          variant="outline"
-          onClick={handleSharePage}
-          className="gap-2 mb-10"
-        >
-          <Link2 className="h-4 w-4" />
-          🔗 شارك مع أصحابك
-        </Button>
 
         {/* Primary Experience Cards */}
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -278,6 +281,38 @@ const LaunchPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Bottom Actions Section */}
+        <section className="w-full max-w-md mt-16 text-center space-y-6">
+          {/* Guidance Text */}
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            خلصت التجربة؟<br />
+            تقدر تسجّل، تشوف المميزات، أو تشارك الصفحة مع شلتك
+          </p>
+          
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            {/* Primary: Signup */}
+            <Button onClick={handleSignupClick}>
+              سجّل حساب جديد
+            </Button>
+            
+            {/* Secondary: Features */}
+            <Button variant="outline" onClick={handleFeaturesClick}>
+              شوف مميزات التطبيق
+            </Button>
+            
+            {/* Ghost: Share */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleSharePage}
+              aria-label="مشاركة"
+            >
+              <Link2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </section>
       </main>
 
       {/* Demo Experience Overlay */}
