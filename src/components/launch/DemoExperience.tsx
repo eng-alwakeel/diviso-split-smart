@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { X, Link2, Check } from 'lucide-react';
+import { X, Link2, Check, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DemoBalanceView } from './DemoBalanceView';
 import { shareExperience } from '@/lib/share';
@@ -38,6 +38,10 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   const startTimeRef = useRef<number>(Date.now());
   const completedRef = useRef<boolean>(false);
 
+  // Helper function to clamp values
+  const clamp = (value: number, min: number, max: number) => 
+    Math.max(min, Math.min(max, value));
+
   // Calculate balances dynamically based on current expenses state
   const balances = useMemo((): MemberBalance[] => {
     const totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -75,26 +79,43 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     onCompleted(duration, mode);
   }, [onCompleted]);
 
+  // Shared function to register first interaction
+  const registerInteraction = useCallback((
+    expenseId: string, 
+    type: 'change_paid_by' | 'change_amount'
+  ) => {
+    if (hasInteracted) return;
+    
+    setHasInteracted(true);
+    
+    trackEvent('demo_interaction', {
+      scenario: scenario.id,
+      interaction: type,
+      expense_id: expenseId,
+    });
+    
+    markCompleted('interaction');
+  }, [hasInteracted, scenario.id, trackEvent, markCompleted]);
+
   // Handle payer change - the core interactive feature
   const handlePayerChange = useCallback((expenseId: string, newPayerId: string) => {
-    // Update expenses state
     setExpenses(prev => prev.map(exp => 
       exp.id === expenseId ? { ...exp, paidById: newPayerId } : exp
     ));
     
-    // Track first interaction only and trigger completion
-    if (!hasInteracted) {
-      setHasInteracted(true);
-      
-      trackEvent('demo_interaction', {
-        type: scenario.id,
-        interaction: 'change_paid_by',
-        expense_id: expenseId
-      });
-      
-      markCompleted('interaction');
-    }
-  }, [hasInteracted, scenario.id, trackEvent, markCompleted]);
+    registerInteraction(expenseId, 'change_paid_by');
+  }, [registerInteraction]);
+
+  // Handle amount change (+/−)
+  const handleAmountChange = useCallback((expenseId: string, delta: number) => {
+    setExpenses(prev => prev.map(exp => 
+      exp.id === expenseId 
+        ? { ...exp, amount: clamp(exp.amount + delta, 10, 5000) }
+        : exp
+    ));
+    
+    registerInteraction(expenseId, 'change_amount');
+  }, [registerInteraction]);
 
   // Intersection Observer for balances section
   useEffect(() => {
@@ -232,9 +253,37 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                       
                     </div>
                   </div>
-                  <span className="font-bold text-foreground">
-                    {formatAmount(expense.amount, scenario.currency)}
-                  </span>
+                  
+                  {/* Amount with +/− buttons */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => handleAmountChange(expense.id, -10)}
+                      disabled={expense.amount <= 10}
+                      className="w-8 h-8 rounded-full bg-muted/70 hover:bg-muted 
+                                 flex items-center justify-center text-foreground
+                                 disabled:opacity-30 disabled:cursor-not-allowed
+                                 transition-all duration-200"
+                      aria-label="تقليل المبلغ"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    
+                    <span className="font-bold text-foreground min-w-[80px] text-center transition-all duration-200">
+                      {formatAmount(expense.amount, scenario.currency)}
+                    </span>
+                    
+                    <button
+                      onClick={() => handleAmountChange(expense.id, 10)}
+                      disabled={expense.amount >= 5000}
+                      className="w-8 h-8 rounded-full bg-muted/70 hover:bg-muted 
+                                 flex items-center justify-center text-foreground
+                                 disabled:opacity-30 disabled:cursor-not-allowed
+                                 transition-all duration-200"
+                      aria-label="زيادة المبلغ"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
