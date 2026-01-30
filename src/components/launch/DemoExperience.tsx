@@ -68,8 +68,9 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   // Handle navigation back to launch
   const handleBackToLaunch = useCallback(() => {
     trackEvent('back_to_launch_clicked', { from_mode: demoMode, scenario: scenario.id });
-    navigate('/launch');
-  }, [navigate, trackEvent, demoMode, scenario.id]);
+    onClose();           // إغلاق الـ Overlay أولاً
+    navigate('/launch'); // ثم التنقل للـ Hub
+  }, [navigate, trackEvent, demoMode, scenario.id, onClose]);
 
   // Handle navigation to features
   const handleViewFeatures = useCallback(() => {
