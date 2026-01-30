@@ -1,6 +1,6 @@
 // Share utility for the /launch page
 
-import type { ScenarioType } from '@/data/demoScenarios';
+import { getScenarioById, DEFAULT_SHARE_TEXT, type ScenarioType } from '@/data/demoScenarios';
 
 export interface ShareResult {
   success: boolean;
@@ -8,8 +8,10 @@ export interface ShareResult {
   error?: string;
 }
 
-const SHARE_MESSAGE = `الشعبنة حلوة… لين تجي القسمة 😅
-جرب المثال وشوف كم يطلع عليك:`;
+function getShareMessage(type: ScenarioType): string {
+  const scenario = getScenarioById(type);
+  return scenario?.shareText || DEFAULT_SHARE_TEXT;
+}
 
 export function buildShareUrl(
   type: ScenarioType,
@@ -27,18 +29,19 @@ export function buildShareUrl(
 
 export function getShareText(type: ScenarioType, channel: 'whatsapp' | 'social' = 'social'): string {
   const url = buildShareUrl(type, channel);
-  return `${SHARE_MESSAGE}\n${url}`;
+  const message = getShareMessage(type);
+  return `${message}\n${url}`;
 }
 
 export async function shareExperience(type: ScenarioType): Promise<ShareResult> {
   const url = buildShareUrl(type, 'social');
-  const text = SHARE_MESSAGE;
+  const text = getShareMessage(type);
 
   // Check if Web Share API is available
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'القسمة دايمًا تلخبط؟ خلّها واضحة',
+        title: 'Diviso – القسمة بدون إحراج',
         text: text,
         url: url,
       });

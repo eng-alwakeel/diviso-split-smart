@@ -5,6 +5,7 @@ import { DemoBalanceView } from './DemoBalanceView';
 import { shareExperience } from '@/lib/share';
 import { useToast } from '@/hooks/use-toast';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
+import { cn } from '@/lib/utils';
 import { 
   formatAmount,
   type DemoScenario,
@@ -214,6 +215,19 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
           </div>
         </section>
 
+        {/* Welcome Message - Disappears after first interaction */}
+        {!hasInteracted && (
+          <div className="text-center py-4 px-4 bg-primary/5 border border-primary/20 rounded-xl animate-in fade-in duration-500">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              أهلًا 👋
+              <br />
+              جرّب تغيّر مين دفع أو المبلغ
+              <br />
+              وشوف القسمة تتعدل مباشرة
+            </p>
+          </div>
+        )}
+
         {/* Expenses - Interactive */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
@@ -238,9 +252,12 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                         <select
                           value={expense.paidById}
                           onChange={(e) => handlePayerChange(expense.id, e.target.value)}
-                          className="text-sm bg-muted/50 border border-border rounded-md px-2 py-1 
-                                     text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50
-                                     cursor-pointer transition-all duration-200"
+                          className={cn(
+                            "text-sm bg-muted/50 border border-border rounded-md px-2 py-1",
+                            "text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50",
+                            "cursor-pointer transition-all duration-200",
+                            !hasInteracted && expense.id === expenses[0]?.id && "animate-pulse ring-2 ring-primary/30"
+                          )}
                           dir="rtl"
                         >
                           {scenario.members.map(member => (
