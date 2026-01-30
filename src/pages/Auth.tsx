@@ -486,10 +486,13 @@ const Auth = () => {
       return;
     }
     
-    // Check for mode=reset in query params (our custom redirect)
-    if (params.get("mode") === "reset") {
+    // Check for mode parameter in URL
+    const urlMode = params.get("mode");
+    if (urlMode === "reset") {
       setMode("reset-password");
       setAuthType("email");
+    } else if (urlMode === "signup") {
+      setMode("signup");
     }
   }, []);
 
