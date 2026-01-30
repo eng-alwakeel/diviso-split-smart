@@ -33,16 +33,65 @@ const pageMetadata: Record<string, { title: string; description: string; image?:
   },
 };
 
+// Scenario-specific metadata for ?demo= parameter
+const scenarioMetadata: Record<string, { title: string; description: string }> = {
+  travel: {
+    title: 'مسافرين مع بعض؟',
+    description: 'دايم واحد يدفع أكثر 😅 Diviso يقسم المصاريف بعدل ويطلع لكل واحد له أو عليه.',
+  },
+  friends: {
+    title: 'طلعة مطعم؟ قهوة؟ بنزين؟',
+    description: 'Diviso يخلي القسمة واضحة بدون نقاش.',
+  },
+  housing: {
+    title: 'إيجار، كهرباء، مشتريات؟',
+    description: 'Diviso ينظم السكن المشترك بعدل.',
+  },
+  activities: {
+    title: 'نشاط جماعي = مصاريف جماعية',
+    description: 'Diviso يقسمها بسهولة.',
+  },
+  desert: {
+    title: 'رحلة بر؟',
+    description: 'أكل وبنزين ومستلزمات. Diviso يحسبها عليكم بدون لخبطة.',
+  },
+  groups: {
+    title: 'أي مجموعة فيها أكثر من شخص',
+    description: 'Diviso يخلي الحساب عادل للجميع.',
+  },
+  family: {
+    title: 'مصاريف عائلية؟',
+    description: 'Diviso يخلي كل شيء واضح ومرتاح.',
+  },
+  carpool: {
+    title: 'مشوار وبنزين وقهوة؟',
+    description: 'Diviso يقسمها بسهولة.',
+  },
+  events: {
+    title: 'مناسبة أو عزيمة؟',
+    description: 'Diviso يطلع القسمة صح من أول مرة.',
+  },
+};
+
 function isCrawler(userAgent: string): boolean {
   const ua = userAgent.toLowerCase();
   return crawlerPatterns.some(pattern => ua.includes(pattern));
 }
 
-function generateOgHtml(path: string, fullUrl: string): string {
-  const metadata = pageMetadata[path] || {
+function generateOgHtml(path: string, fullUrl: string, demoType?: string): string {
+  let metadata = pageMetadata[path] || {
     title: 'Diviso | قسّم بذكاء، سافر براحة',
     description: 'قسّم المصاريف بين الأصدقاء والعائلة بسهولة',
   };
+
+  // Override with scenario-specific metadata if ?demo= exists for /launch
+  if (path === '/launch' && demoType && scenarioMetadata[demoType]) {
+    metadata = {
+      ...metadata,
+      title: scenarioMetadata[demoType].title,
+      description: scenarioMetadata[demoType].description,
+    };
+  }
 
   const appUrl = 'https://diviso.app';
   const ogImage = metadata.image 
@@ -173,11 +222,14 @@ Deno.serve(async (req) => {
       fullUrl += `?${utmParams.join('&')}`;
     }
 
+    // Get demo parameter for scenario-specific OG
+    const demoParam = url.searchParams.get('demo') || undefined;
+
     // Check if request is from a crawler
     if (isCrawler(userAgent)) {
-      console.log(`Crawler detected: ${userAgent.substring(0, 50)}... for path: ${path}`);
+      console.log(`Crawler detected: ${userAgent.substring(0, 50)}... for path: ${path}, demo: ${demoParam || 'none'}`);
       
-      const html = generateOgHtml(path, fullUrl);
+      const html = generateOgHtml(path, fullUrl, demoParam);
       
       return new Response(html, {
         headers: {

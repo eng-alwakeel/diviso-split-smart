@@ -24,7 +24,10 @@ export interface DemoScenario {
   members: DemoMember[];
   expenses: DemoExpense[];
   tier: 'primary' | 'secondary';
+  shareText: string;
 }
+
+export const DEFAULT_SHARE_TEXT = 'أي مشاركة فيها أكثر من شخص. Diviso ينظم المصاريف بدون إحراج.';
 
 export type ScenarioType = 
   | 'travel' | 'friends' | 'housing'  // Primary
@@ -40,6 +43,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'رحلة مع أصحابك',
     groupName: 'رحلة دبي',
     currency: 'ر.س',
+    shareText: 'مسافرين مع بعض؟ دايم واحد يدفع أكثر 😅 Diviso يقسم المصاريف بعدل ويطلع لكل واحد له أو عليه.',
     members: [
       { id: 'm1', name: 'أحمد', avatar: 'أ' },
       { id: 'm2', name: 'سعود', avatar: 'س' },
@@ -60,6 +64,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'مطعم – قهوة – بنزين',
     groupName: 'شلة الجمعة',
     currency: 'ر.س',
+    shareText: 'طلعة مطعم؟ قهوة؟ بنزين؟ Diviso يخلي القسمة واضحة بدون نقاش.',
     members: [
       { id: 'm1', name: 'محمد', avatar: 'م' },
       { id: 'm2', name: 'عبدالله', avatar: 'ع' },
@@ -80,6 +85,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'إيجار – فواتير – مشتريات',
     groupName: 'شقة الشباب',
     currency: 'ر.س',
+    shareText: 'إيجار، كهرباء، مشتريات؟ Diviso ينظم السكن المشترك بعدل.',
     members: [
       { id: 'm1', name: 'يوسف', avatar: 'ي' },
       { id: 'm2', name: 'عمر', avatar: 'ع' },
@@ -102,6 +108,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'بولينج – سينما – ألعاب',
     groupName: 'شلة النشاط',
     currency: 'ر.س',
+    shareText: 'نشاط جماعي = مصاريف جماعية. Diviso يقسمها بسهولة.',
     members: [
       { id: 'm1', name: 'راكان', avatar: 'ر' },
       { id: 'm2', name: 'تركي', avatar: 'ت' },
@@ -122,6 +129,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'مخيم – أكل – معدات',
     groupName: 'رحلة البر',
     currency: 'ر.س',
+    shareText: 'رحلة بر؟ أكل وبنزين ومستلزمات. Diviso يحسبها عليكم بدون لخبطة.',
     members: [
       { id: 'm1', name: 'سلمان', avatar: 'س' },
       { id: 'm2', name: 'عبدالرحمن', avatar: 'ع' },
@@ -142,6 +150,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'فعاليات أو اشتراك جماعي',
     groupName: 'المجموعة',
     currency: 'ر.س',
+    shareText: 'أي مجموعة فيها أكثر من شخص. Diviso يخلي الحساب عادل للجميع.',
     members: [
       { id: 'm1', name: 'حسن', avatar: 'ح' },
       { id: 'm2', name: 'علي', avatar: 'ع' },
@@ -162,6 +171,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'رحلة أو مصاريف عائلية',
     groupName: 'العائلة',
     currency: 'ر.س',
+    shareText: 'مصاريف عائلية؟ Diviso يخلي كل شيء واضح ومرتاح.',
     members: [
       { id: 'm1', name: 'أبو محمد', avatar: 'أ' },
       { id: 'm2', name: 'أبو خالد', avatar: 'أ' },
@@ -182,6 +192,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'بنزين – مواقف',
     groupName: 'المشوار',
     currency: 'ر.س',
+    shareText: 'مشوار وبنزين وقهوة؟ Diviso يقسمها بسهولة.',
     members: [
       { id: 'm1', name: 'وليد', avatar: 'و' },
       { id: 'm2', name: 'طلال', avatar: 'ط' },
@@ -202,6 +213,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     subtitle: 'هدية – حجز – تجهيز',
     groupName: 'المناسبة',
     currency: 'ر.س',
+    shareText: 'مناسبة أو عزيمة؟ Diviso يطلع القسمة صح من أول مرة.',
     members: [
       { id: 'm1', name: 'باسل', avatar: 'ب' },
       { id: 'm2', name: 'أنس', avatar: 'أ' },
