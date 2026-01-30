@@ -10,7 +10,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Mail, Phone, Gift, Check, X, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, Phone, Loader2, Eye, EyeOff } from "lucide-react";
 import { PrivacyPolicyCheckbox } from "@/components/ui/privacy-policy-checkbox";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { SEO } from "@/components/SEO";
@@ -47,10 +47,6 @@ const Auth = () => {
   const [emailResendCountdown, setEmailResendCountdown] = useState(0);
   const [canResendEmail, setCanResendEmail] = useState(true);
   
-  // Referral code states
-  const [referralCode, setReferralCode] = useState("");
-  const [referralValid, setReferralValid] = useState<boolean | null>(null);
-  const [checkingReferral, setCheckingReferral] = useState(false);
 
   // Countdown timer for resend OTP
   useEffect(() => {
@@ -76,41 +72,6 @@ const Auth = () => {
     }
   }, [emailResendCountdown, mode]);
 
-  // Validate referral code
-  const validateReferralCode = useCallback(async (code: string) => {
-    if (!code || code.length < 6) {
-      setReferralValid(null);
-      return;
-    }
-    
-    setCheckingReferral(true);
-    try {
-      const { data } = await supabase
-        .from("user_referral_codes")
-        .select("user_id")
-        .eq("referral_code", code.toUpperCase())
-        .maybeSingle();
-      
-      setReferralValid(!!data);
-    } catch {
-      setReferralValid(false);
-    } finally {
-      setCheckingReferral(false);
-    }
-  }, []);
-
-  // Debounced referral code validation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (referralCode) {
-        validateReferralCode(referralCode);
-      } else {
-        setReferralValid(null);
-      }
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [referralCode, validateReferralCode]);
 
   useEffect(() => {
     const location = window.location;
@@ -339,28 +300,6 @@ const Auth = () => {
       return;
     }
     
-    // If referral code is valid, process it
-    if (referralValid && referralCode && data?.user) {
-      try {
-        console.log('🎁 Processing referral code:', referralCode);
-        const { error: referralError } = await supabase.functions.invoke('process-referral-signup', {
-          body: {
-            userId: data.user.id,
-            referralCode: referralCode.toUpperCase(),
-            userPhone: authType === "phone" ? phone : "",
-            userName: name
-          }
-        });
-        
-        if (referralError) {
-          console.error('❌ Referral processing error:', referralError);
-        } else {
-          console.log('✅ Referral processed successfully');
-        }
-      } catch (err) {
-        console.error('❌ Error processing referral:', err);
-      }
-    }
     
     setLoading(false);
     
@@ -372,7 +311,7 @@ const Auth = () => {
       setCanResendEmail(false);
       toast({ 
         title: t('auth:toast.verify_email'), 
-        description: referralValid ? t('auth:toast.verify_email_referral') : t('auth:toast.verify_email_desc')
+        description: t('auth:toast.verify_email_desc')
       });
     } else {
       console.log('✅ Phone signup complete - sending OTP...');
@@ -391,12 +330,9 @@ const Auth = () => {
       setMode("verify");
       setResendCountdown(60);
       setCanResend(false);
-      const successMessage = referralValid
-        ? t('auth:toast.otp_sent_referral')
-        : t('auth:toast.otp_sent_desc');
       toast({ 
         title: t('auth:toast.otp_sent'), 
-        description: successMessage
+        description: t('auth:toast.otp_sent_desc')
       });
     }
   };
@@ -1003,47 +939,6 @@ const Auth = () => {
                 
                 {mode === "signup" && (
                   <>
-                    {/* Referral Code Input */}
-                    <div className="space-y-2 mt-4">
-                      <Label htmlFor="referralCode" className="flex items-center gap-2">
-                        <Gift className="h-4 w-4 text-primary" />
-                        {t('auth:fields.referral_code')}
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="referralCode"
-                          value={referralCode}
-                          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                          placeholder={t('auth:fields.referral_placeholder')}
-                          className="text-center uppercase tracking-widest pr-10"
-                          maxLength={8}
-                          dir="ltr"
-                        />
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                          {checkingReferral && (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                          {!checkingReferral && referralValid === true && (
-                            <Check className="h-4 w-4 text-green-500" />
-                          )}
-                          {!checkingReferral && referralValid === false && (
-                            <X className="h-4 w-4 text-destructive" />
-                          )}
-                        </div>
-                      </div>
-                      {referralValid === true && (
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <Check className="h-3 w-3" />
-                          {t('auth:messages.referral_valid')}
-                        </p>
-                      )}
-                      {referralValid === false && (
-                        <p className="text-xs text-destructive flex items-center gap-1">
-                          <X className="h-3 w-3" />
-                          {t('auth:messages.referral_invalid')}
-                        </p>
-                      )}
-                    </div>
                     
                     {/* Privacy Policy Checkbox */}
                     <div className="mt-4">
