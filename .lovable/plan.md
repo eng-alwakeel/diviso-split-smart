@@ -1,187 +1,467 @@
 
 
-# خطة: إضافة تغيير مبلغ المصروف (+/−) لصفحة /launch
+# خطة: توسيع تجارب صفحة /launch
 
 ## الهدف
-إضافة تفاعل ثانٍ: أزرار (+) و (−) بجانب كل مصروف لتغيير المبلغ فوريًا مع الحدود المحددة.
+إضافة 6 تجارب ثانوية قابلة للإظهار عبر زر "عرض المزيد" مع الحفاظ على التركيز والتحويل.
 
 ---
 
 ## الوضع الحالي
 
-| الميزة | الحالة |
+| العنصر | الحالة |
 |--------|--------|
-| تغيير "من دفع" (Dropdown) | ✅ موجود ويعمل |
-| إعادة حساب الأرصدة فوريًا | ✅ موجود |
-| تسجيل `demo_interaction` | ✅ موجود |
-| CTA بعد التفاعل | ✅ موجود |
-| Animation للأرقام | ✅ موجود |
-| **أزرار (+/−) لتغيير المبلغ** | ❌ غير موجود |
+| 3 تجارب أساسية (travel, friends, housing) | ✅ موجود |
+| DemoExperience تفاعلي | ✅ موجود |
+| تغيير الدافع + المبلغ | ✅ موجود |
+| CTA + Analytics | ✅ موجود |
+| **زر "عرض المزيد"** | ❌ غير موجود |
+| **6 تجارب إضافية** | ❌ غير موجود |
 
 ---
 
-## الملف الوحيد المطلوب تعديله
+## الملفات المطلوب تعديلها
 
 | الملف | التعديل |
 |-------|---------|
-| `src/components/launch/DemoExperience.tsx` | إضافة أزرار (+/−) + دالة `handleAmountChange` + دالة `registerInteraction` مشتركة |
-
-**ملاحظة:** `DemoBalanceView.tsx` و `LaunchPage.tsx` لا يحتاجان تعديل - كل شيء جاهز فيهما.
+| `src/data/demoScenarios.ts` | إضافة 6 سيناريوهات + `tier` property + تحديث Types |
+| `src/pages/LaunchPage.tsx` | إضافة زر "عرض المزيد" + حالة إظهار + تمرير tier للـ Analytics |
+| `src/components/launch/ExperienceCard.tsx` | دعم حجم ثانوي (`variant: 'primary' | 'secondary'`) |
 
 ---
 
-## التغييرات المطلوبة
+## 1. تعديل `demoScenarios.ts`
 
-### 1. إضافة دالة `clamp` للحد من القيم
+### A) تحديث Type لدعم التجارب الجديدة
 
 ```typescript
-const clamp = (value: number, min: number, max: number) => 
-  Math.max(min, Math.min(max, value));
+export interface DemoScenario {
+  id: ScenarioType;
+  icon: string;
+  title: string;
+  subtitle: string;
+  groupName: string;
+  currency: string;
+  members: DemoMember[];
+  expenses: DemoExpense[];
+  tier: 'primary' | 'secondary';
+}
+
+export type ScenarioType = 
+  | 'travel' | 'friends' | 'housing'  // Primary
+  | 'activities' | 'desert' | 'groups' | 'family' | 'carpool' | 'events';  // Secondary
 ```
 
-### 2. إنشاء دالة `registerInteraction` مشتركة
+### B) إضافة `tier: 'primary'` للتجارب الحالية
 
 ```typescript
-const registerInteraction = useCallback((
-  expenseId: string, 
-  type: 'change_paid_by' | 'change_amount'
-) => {
-  if (hasInteracted) return;
+{
+  id: 'travel',
+  tier: 'primary',
+  // ... باقي البيانات
+}
+```
+
+### C) إضافة 6 تجارب جديدة
+
+| id | icon | title | subtitle | groupName |
+|----|------|-------|----------|-----------|
+| `activities` | 🎯 | نشاط | بولينج – سينما – ألعاب | شلة النشاط |
+| `desert` | 🏕️ | رحلة بر | مخيم – أكل – معدات | رحلة البر |
+| `groups` | 👥 | مجموعة | فعاليات أو اشتراك جماعي | المجموعة |
+| `family` | 👨‍👩‍👧 | عائلة | رحلة أو مصاريف عائلية | العائلة |
+| `carpool` | 🚗 | مشوار مشترك | بنزين – مواقف | المشوار |
+| `events` | 🎉 | مناسبة | هدية – حجز – تجهيز | المناسبة |
+
+### D) إضافة Helper Functions
+
+```typescript
+export const PRIMARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'primary');
+export const SECONDARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'secondary');
+```
+
+---
+
+## 2. تعديل `LaunchPage.tsx`
+
+### A) إضافة State جديد
+
+```typescript
+const [showSecondary, setShowSecondary] = useState(false);
+```
+
+### B) استيراد التجارب المفلترة
+
+```typescript
+import { 
+  PRIMARY_SCENARIOS,
+  SECONDARY_SCENARIOS,
+  getScenarioById,
+  type ScenarioType 
+} from '@/data/demoScenarios';
+```
+
+### C) تحديث دعم Query Params
+
+```typescript
+// دعم جميع أنواع السيناريوهات في ?demo=
+const validScenarios = ['travel', 'friends', 'housing', 'activities', 'desert', 'groups', 'family', 'carpool', 'events'];
+
+if (demoParam && validScenarios.includes(demoParam)) {
+  // ...
+}
+```
+
+### D) تحديث Analytics لتشمل tier
+
+```typescript
+const handleSelectScenario = useCallback((type: ScenarioType) => {
+  const scenario = getScenarioById(type);
+  const tier = scenario?.tier || 'primary';
   
-  setHasInteracted(true);
-  
-  trackEvent('demo_interaction', {
-    scenario: scenario.id,
-    interaction: type,
-    expense_id: expenseId,
+  trackEvent('experience_selected', { 
+    type, 
+    tier,
+    auto_opened: false 
   });
-  
-  markCompleted('interaction');
-}, [hasInteracted, scenario.id, trackEvent, markCompleted]);
+  // ...
+}, [trackEvent]);
 ```
 
-### 3. تحديث `handlePayerChange` لاستخدام الدالة المشتركة
+### E) إضافة زر "عرض المزيد"
 
 ```typescript
-const handlePayerChange = useCallback((expenseId: string, newPayerId: string) => {
-  setExpenses(prev => prev.map(exp => 
-    exp.id === expenseId ? { ...exp, paidById: newPayerId } : exp
-  ));
-  
-  registerInteraction(expenseId, 'change_paid_by');
-}, [registerInteraction]);
+{/* زر عرض المزيد */}
+{!showSecondary && (
+  <Button
+    variant="ghost"
+    onClick={() => {
+      setShowSecondary(true);
+      trackEvent('show_more_clicked');
+    }}
+    className="mt-6 text-muted-foreground hover:text-primary"
+  >
+    <ChevronDown className="h-4 w-4 ml-2" />
+    عرض المزيد من التجارب
+  </Button>
+)}
 ```
 
-### 4. إضافة دالة `handleAmountChange`
+### F) عرض التجارب الإضافية (Collapsible)
 
 ```typescript
-const handleAmountChange = useCallback((expenseId: string, delta: number) => {
-  setExpenses(prev => prev.map(exp => 
-    exp.id === expenseId 
-      ? { ...exp, amount: clamp(exp.amount + delta, 10, 5000) }
-      : exp
-  ));
-  
-  registerInteraction(expenseId, 'change_amount');
-}, [registerInteraction]);
+{/* Secondary Experiences - Expandable */}
+{showSecondary && (
+  <div className="w-full max-w-3xl mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+    <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+      تجارب إضافية
+    </h2>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {SECONDARY_SCENARIOS.map((scenario) => (
+        <ExperienceCard
+          key={scenario.id}
+          scenario={scenario}
+          variant="secondary"
+          onSelect={() => handleSelectScenario(scenario.id)}
+        />
+      ))}
+    </div>
+  </div>
+)}
 ```
 
-### 5. تحديث UI المصروف
+---
 
-إضافة أزرار (+/−) بجانب المبلغ:
+## 3. تعديل `ExperienceCard.tsx`
+
+### A) إضافة Prop للحجم
+
+```typescript
+interface ExperienceCardProps {
+  scenario: DemoScenario;
+  onSelect: () => void;
+  variant?: 'primary' | 'secondary';
+}
+```
+
+### B) تعديل الـ UI حسب الـ variant
+
+```typescript
+export const ExperienceCard: React.FC<ExperienceCardProps> = ({ 
+  scenario, 
+  onSelect,
+  variant = 'primary'
+}) => {
+  const isPrimary = variant === 'primary';
+  
+  return (
+    <Card 
+      className={cn(
+        "bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg cursor-pointer group",
+        !isPrimary && "hover:shadow-md"
+      )}
+      onClick={onSelect}
+    >
+      <CardContent className={cn(
+        "flex flex-col items-center text-center gap-3",
+        isPrimary ? "p-6 gap-4" : "p-4 gap-2"
+      )}>
+        {/* Icon */}
+        <span 
+          className={cn("", isPrimary ? "text-5xl" : "text-3xl")} 
+          role="img" 
+          aria-label={scenario.title}
+        >
+          {scenario.icon}
+        </span>
+        
+        {/* Title */}
+        <h3 className={cn(
+          "font-bold text-foreground",
+          isPrimary ? "text-xl" : "text-base"
+        )}>
+          {scenario.title}
+        </h3>
+        
+        {/* Subtitle */}
+        <p className={cn(
+          "text-muted-foreground leading-relaxed",
+          isPrimary ? "text-sm" : "text-xs"
+        )}>
+          {scenario.subtitle}
+        </p>
+        
+        {/* CTA Button - Primary only */}
+        {isPrimary && (
+          <Button 
+            variant="outline"
+            className="mt-2 w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect();
+            }}
+          >
+            جرّب المثال
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+---
+
+## 4. بيانات التجارب الإضافية
+
+### activities (نشاط)
+
+```typescript
+{
+  id: 'activities',
+  tier: 'secondary',
+  icon: '🎯',
+  title: 'نشاط',
+  subtitle: 'بولينج – سينما – ألعاب',
+  groupName: 'شلة النشاط',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'راكان', avatar: 'ر' },
+    { id: 'm2', name: 'تركي', avatar: 'ت' },
+    { id: 'm3', name: 'بدر', avatar: 'ب' },
+    { id: 'm4', name: 'فهد', avatar: 'ف' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'بولينج', amount: 200, paidById: 'm1', icon: '🎳' },
+    { id: 'e2', description: 'سينما', amount: 160, paidById: 'm2', icon: '🎬' },
+    { id: 'e3', description: 'عشاء', amount: 280, paidById: 'm3', icon: '🍕' },
+  ],
+}
+```
+
+### desert (رحلة بر)
+
+```typescript
+{
+  id: 'desert',
+  tier: 'secondary',
+  icon: '🏕️',
+  title: 'رحلة بر',
+  subtitle: 'مخيم – أكل – معدات',
+  groupName: 'رحلة البر',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'سلمان', avatar: 'س' },
+    { id: 'm2', name: 'عبدالرحمن', avatar: 'ع' },
+    { id: 'm3', name: 'نواف', avatar: 'ن' },
+    { id: 'm4', name: 'مشاري', avatar: 'م' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'خيمة ومعدات', amount: 350, paidById: 'm1', icon: '⛺' },
+    { id: 'e2', description: 'لحم وأكل', amount: 400, paidById: 'm2', icon: '🥩' },
+    { id: 'e3', description: 'فحم وحطب', amount: 100, paidById: 'm3', icon: '🔥' },
+  ],
+}
+```
+
+### groups (مجموعة)
+
+```typescript
+{
+  id: 'groups',
+  tier: 'secondary',
+  icon: '👥',
+  title: 'مجموعة',
+  subtitle: 'فعاليات أو اشتراك جماعي',
+  groupName: 'المجموعة',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'حسن', avatar: 'ح' },
+    { id: 'm2', name: 'علي', avatar: 'ع' },
+    { id: 'm3', name: 'حمد', avatar: 'ح' },
+    { id: 'm4', name: 'زياد', avatar: 'ز' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'اشتراك Netflix', amount: 60, paidById: 'm1', icon: '📺' },
+    { id: 'e2', description: 'حجز ملعب', amount: 200, paidById: 'm2', icon: '⚽' },
+    { id: 'e3', description: 'مشروبات', amount: 80, paidById: 'm3', icon: '🥤' },
+  ],
+}
+```
+
+### family (عائلة)
+
+```typescript
+{
+  id: 'family',
+  tier: 'secondary',
+  icon: '👨‍👩‍👧',
+  title: 'عائلة',
+  subtitle: 'رحلة أو مصاريف عائلية',
+  groupName: 'العائلة',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'أبو محمد', avatar: 'أ' },
+    { id: 'm2', name: 'أبو خالد', avatar: 'أ' },
+    { id: 'm3', name: 'أبو سعود', avatar: 'أ' },
+    { id: 'm4', name: 'أبو عبدالله', avatar: 'أ' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'حجز شاليه', amount: 800, paidById: 'm1', icon: '🏖️' },
+    { id: 'e2', description: 'غداء', amount: 350, paidById: 'm2', icon: '🍖' },
+    { id: 'e3', description: 'ألعاب الأطفال', amount: 150, paidById: 'm3', icon: '🎢' },
+  ],
+}
+```
+
+### carpool (مشوار مشترك)
+
+```typescript
+{
+  id: 'carpool',
+  tier: 'secondary',
+  icon: '🚗',
+  title: 'مشوار مشترك',
+  subtitle: 'بنزين – مواقف',
+  groupName: 'المشوار',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'وليد', avatar: 'و' },
+    { id: 'm2', name: 'طلال', avatar: 'ط' },
+    { id: 'm3', name: 'ياسر', avatar: 'ي' },
+    { id: 'm4', name: 'رائد', avatar: 'ر' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'بنزين', amount: 150, paidById: 'm1', icon: '⛽' },
+    { id: 'e2', description: 'موقف', amount: 30, paidById: 'm2', icon: '🅿️' },
+    { id: 'e3', description: 'غسيل سيارة', amount: 50, paidById: 'm1', icon: '🚿' },
+  ],
+}
+```
+
+### events (مناسبة)
+
+```typescript
+{
+  id: 'events',
+  tier: 'secondary',
+  icon: '🎉',
+  title: 'مناسبة',
+  subtitle: 'هدية – حجز – تجهيز',
+  groupName: 'المناسبة',
+  currency: 'ر.س',
+  members: [
+    { id: 'm1', name: 'باسل', avatar: 'ب' },
+    { id: 'm2', name: 'أنس', avatar: 'أ' },
+    { id: 'm3', name: 'عمار', avatar: 'ع' },
+    { id: 'm4', name: 'سامي', avatar: 'س' },
+  ],
+  expenses: [
+    { id: 'e1', description: 'هدية', amount: 500, paidById: 'm1', icon: '🎁' },
+    { id: 'e2', description: 'كيك', amount: 200, paidById: 'm2', icon: '🎂' },
+    { id: 'e3', description: 'زينة', amount: 100, paidById: 'm3', icon: '🎈' },
+  ],
+}
+```
+
+---
+
+## 5. شكل الـ UI النهائي
 
 ```text
-┌─────────────────────────────────────────────┐
-│ 🏨 حجز الفندق                               │
-│                                             │
-│ دفعها: [ أحمد ▼ ]                           │
-│                                             │
-│        [−] 2,400 ر.س [+]                    │
-└─────────────────────────────────────────────┘
-```
-
-الكود:
-```typescript
-<div className="flex items-center gap-2">
-  <button
-    onClick={() => handleAmountChange(expense.id, -10)}
-    disabled={expense.amount <= 10}
-    className="w-8 h-8 rounded-full bg-muted/70 hover:bg-muted 
-               flex items-center justify-center text-foreground
-               disabled:opacity-30 disabled:cursor-not-allowed
-               transition-all duration-200"
-    aria-label="تقليل المبلغ"
-  >
-    <Minus className="h-4 w-4" />
-  </button>
-  
-  <span className="font-bold text-foreground min-w-[80px] text-center transition-all duration-200">
-    {formatAmount(expense.amount, scenario.currency)}
-  </span>
-  
-  <button
-    onClick={() => handleAmountChange(expense.id, 10)}
-    disabled={expense.amount >= 5000}
-    className="w-8 h-8 rounded-full bg-muted/70 hover:bg-muted 
-               flex items-center justify-center text-foreground
-               disabled:opacity-30 disabled:cursor-not-allowed
-               transition-all duration-200"
-    aria-label="زيادة المبلغ"
-  >
-    <Plus className="h-4 w-4" />
-  </button>
-</div>
+┌─────────────────────────────────────────────────┐
+│                    [Logo]                       │
+│                                                 │
+│           دايم واحد يدفع أكثر؟                  │
+│                                                 │
+│          اختر سيناريو وجرب بنفسك               │
+│       وشوف كيف تنحسب القسمة بدون إحراج          │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐         │
+│  │   ✈️    │  │  🧑‍🤝‍🧑  │  │   🏠    │         │
+│  │  سفر   │  │  طلعة  │  │  سكن   │         │
+│  │ رحلة.. │  │ مطعم.. │  │ إيجار..│         │
+│  │[جرّب]  │  │[جرّب]  │  │[جرّب]  │         │
+│  └─────────┘  └─────────┘  └─────────┘         │
+│                                                 │
+│         [ عرض المزيد من التجارب ↓ ]            │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│              تجارب إضافية                       │
+│  ┌───────┐  ┌───────┐  ┌───────┐               │
+│  │  🎯   │  │  🏕️   │  │  👥   │               │
+│  │ نشاط │  │رحلة بر│  │مجموعة│               │
+│  └───────┘  └───────┘  └───────┘               │
+│  ┌───────┐  ┌───────┐  ┌───────┐               │
+│  │ 👨‍👩‍👧  │  │  🚗   │  │  🎉   │               │
+│  │ عائلة│  │مشوار │  │مناسبة│               │
+│  └───────┘  └───────┘  └───────┘               │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## حدود المبالغ
-
-| الحد | القيمة |
-|------|--------|
-| الحد الأدنى | 10 ر.س |
-| الحد الأقصى | 5,000 ر.س |
-| مقدار التغيير | 10 ر.س لكل نقرة |
-
----
-
-## تدفق التفاعل
-
-```text
-1. المستخدم يفتح التجربة
-   
-2. يرى المصاريف مع:
-   - Dropdown "دفعها" ✅
-   - أزرار (+/−) للمبلغ ✨ جديد
-
-3. أي تفاعل (تغيير دافع أو مبلغ):
-   ↓
-   → الأرصدة تتغير فوراً
-   → [track: demo_interaction] (أول مرة فقط)
-   → CTA يظهر
-```
-
----
-
-## Analytics Events
+## 6. Analytics Events
 
 | Event | Parameters | متى |
 |-------|------------|-----|
-| `demo_interaction` | `scenario`, `interaction: 'change_amount'`, `expense_id` | أول تغيير مبلغ |
+| `show_more_clicked` | - | عند الضغط على "عرض المزيد" |
+| `experience_selected` | `type`, `tier`, `auto_opened` | عند اختيار أي تجربة |
 
 ---
 
-## معايير القبول
+## 7. معايير القبول
 
 | # | المعيار |
 |---|---------|
-| 1 | أزرار (+/−) تظهر بجانب كل مبلغ |
-| 2 | الضغط على (+) يزيد المبلغ بـ 10 ر.س |
-| 3 | الضغط على (−) يقلل المبلغ بـ 10 ر.س |
-| 4 | المبلغ لا يقل عن 10 ولا يزيد عن 5000 |
-| 5 | الأرصدة تتغير فوراً |
-| 6 | CTA يظهر بعد أول تفاعل |
-| 7 | الزر يكون معطل (disabled) عند الوصول للحد |
+| 1 | الصفحة تفتح بنفس السرعة ✔ |
+| 2 | أول ما يفتح المستخدم يشوف 3 تجارب فقط ✔ |
+| 3 | زر "عرض المزيد" يعمل بدون Reload ✔ |
+| 4 | أي تجربة إضافية تفتح DemoExperience ✔ |
+| 5 | CTA يظهر فقط بعد التفاعل ✔ |
+| 6 | البطاقات الثانوية أصغر بصريًا ✔ |
+| 7 | لا يوجد تشتيت أو كسر للتحويل ✔ |
 
 ---
 
@@ -189,7 +469,9 @@ const handleAmountChange = useCallback((expenseId: string, delta: number) => {
 
 | الملف | الأسطر | التعقيد |
 |-------|--------|---------|
-| `DemoExperience.tsx` | ~35 سطر إضافة/تعديل | متوسط |
+| `demoScenarios.ts` | ~120 سطر إضافة | متوسط |
+| `LaunchPage.tsx` | ~30 سطر تعديل | بسيط |
+| `ExperienceCard.tsx` | ~20 سطر تعديل | بسيط |
 
-**الوقت المتوقع:** 5-10 دقائق
+**الوقت المتوقع للتنفيذ:** 15-20 دقيقة
 
