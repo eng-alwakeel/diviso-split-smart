@@ -181,29 +181,29 @@ export const HeroSection = () => {
           ))}
         </div>
 
-        {/* Trust indicators with animated counters */}
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90">
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
-            <Users className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">
+        {/* Trust indicators with animated counters - min-height to prevent CLS */}
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90 min-h-[48px]">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
+            <Users className="w-5 h-5 text-primary flex-shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">
               +<AnimatedCounter end={10247} duration={2000} /> {t('hero.usersLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
-            <Receipt className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
+            <Receipt className="w-5 h-5 text-primary flex-shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">
               +<AnimatedCounter end={45000} duration={2500} /> {t('hero.expensesLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
+            <TrendingUp className="w-5 h-5 text-primary flex-shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">
               +<AnimatedCounter end={8500} duration={2200} /> {t('hero.groupsLabel')}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default">
-            <Shield className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">{t('hero.secure')}</span>
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
+            <Shield className="w-5 h-5 text-primary flex-shrink-0" />
+            <span className="text-sm font-medium whitespace-nowrap">{t('hero.secure')}</span>
           </div>
         </div>
       </div>

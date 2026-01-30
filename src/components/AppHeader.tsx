@@ -200,10 +200,10 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
 
           {/* Center: Logo */}
           <div
-            className="justify-self-center flex items-center gap-3 cursor-pointer"
+            className="justify-self-center flex items-center gap-3 cursor-pointer h-8"
             onClick={() => navigate(minimal ? '/' : '/dashboard')}
           >
-            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 w-auto" width={128} height={32} />
+            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 w-auto" width={128} height={32} style={{ aspectRatio: '128 / 32' }} />
           </div>
 
           {/* Right: Credits & Notifications - Hidden in minimal mode */}

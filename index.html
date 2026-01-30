@@ -3,44 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-N8L66CCR');</script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google Tag Manager (Secondary) -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-NXKCG8ZD');</script>
-    <!-- End Google Tag Manager (Secondary) -->
-
-    <!-- Google tag (gtag.js) - GA4 Direct -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HB3NHRL0GT"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-HB3NHRL0GT');
-    </script>
-    <!-- End Google tag -->
-
-    <!-- TikTok Pixel Code Start -->
-    <script>
-    !function (w, d, t) {
-      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-      var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-      ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-      ttq.load('D5SB5LJC77U7L31UJSK0');
-      ttq.page();
-    }(window, document, 'ttq');
-    </script>
-    <!-- TikTok Pixel Code End -->
-    
     <!-- Mobile-first viewport configuration -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
@@ -267,47 +229,38 @@
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
     <link rel="preconnect" href="https://sentry.avs.io" />
     
-    <!-- Readex Pro font - Using Google Fonts API for proper unicode ranges -->
+    <!-- Readex Pro font - Using Google Fonts API with font-display: optional -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600&display=optional" rel="stylesheet" />
 
     <!-- Moyasar Payment Gateway - Loaded dynamically when needed via src/lib/moyasarLoader.ts -->
     
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4156962854639409"
-         crossorigin="anonymous"></script>
-    
     <!-- Critical CSS Inline - Minimal styles for FCP -->
     <style>
+      /* Critical CSS for FCP - prevent layout shift */
       #root{min-height:100vh;background:#0a0a0b}
       body{margin:0;font-family:'Readex Pro',system-ui,-apple-system,sans-serif}
+      /* Reserve space for header to prevent CLS */
+      header{min-height:56px}
+      /* Font feature for tabular numbers */
+      .tabular-nums{font-variant-numeric:tabular-nums}
     </style>
 
   </head>
 
   <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N8L66CCR"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-
-    <!-- Google Tag Manager (noscript) - Secondary -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NXKCG8ZD"
-    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) - Secondary -->
-    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
     <script>
-      // Register service worker for caching
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker
             .register('/sw.js', { updateViaCache: 'none' })
             .then(async (registration) => {
               console.log('SW registered: ', registration);
-              // Force update check (and bypass HTTP cache)
               try {
                 await registration.update();
               } catch (e) {
@@ -320,7 +273,85 @@
         });
       }
     </script>
-    <!-- Travelpayouts Affiliate Tracking - Delayed 3s after load for performance -->
+    
+    <!-- Deferred Third-Party Scripts - Load after user interaction or 3s delay -->
+    <script>
+      (function() {
+        var loaded = false;
+        
+        function loadThirdPartyScripts() {
+          if (loaded) return;
+          loaded = true;
+          
+          // Remove event listeners after loading
+          document.removeEventListener('scroll', loadThirdPartyScripts);
+          document.removeEventListener('click', loadThirdPartyScripts);
+          document.removeEventListener('touchstart', loadThirdPartyScripts);
+          
+          // Google Tag Manager (Primary)
+          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer','GTM-N8L66CCR');
+          
+          // Google Tag Manager (Secondary)
+          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer','GTM-NXKCG8ZD');
+          
+          // GA4 Direct
+          var gaScript = document.createElement('script');
+          gaScript.async = true;
+          gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-HB3NHRL0GT';
+          document.head.appendChild(gaScript);
+          gaScript.onload = function() {
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', 'G-HB3NHRL0GT');
+          };
+          
+          // TikTok Pixel
+          !function (w, d, t) {
+            w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+            var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+            ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+            ttq.load('D5SB5LJC77U7L31UJSK0');
+            ttq.page();
+          }(window, document, 'ttq');
+          
+          // Google AdSense (defer even more - 5s after other scripts)
+          setTimeout(function() {
+            var adsScript = document.createElement('script');
+            adsScript.async = true;
+            adsScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4156962854639409';
+            adsScript.crossOrigin = 'anonymous';
+            document.head.appendChild(adsScript);
+          }, 2000);
+          
+          // GTM noscript fallback (append to body)
+          var noscript1 = document.createElement('noscript');
+          noscript1.innerHTML = '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N8L66CCR" height="0" width="0" style="display:none;visibility:hidden"></iframe>';
+          document.body.appendChild(noscript1);
+          
+          var noscript2 = document.createElement('noscript');
+          noscript2.innerHTML = '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NXKCG8ZD" height="0" width="0" style="display:none;visibility:hidden"></iframe>';
+          document.body.appendChild(noscript2);
+        }
+        
+        // Load on user interaction or after 3 seconds
+        document.addEventListener('scroll', loadThirdPartyScripts, { once: true, passive: true });
+        document.addEventListener('click', loadThirdPartyScripts, { once: true });
+        document.addEventListener('touchstart', loadThirdPartyScripts, { once: true, passive: true });
+        setTimeout(loadThirdPartyScripts, 3000);
+      })();
+    </script>
+    
+    <!-- Travelpayouts Affiliate Tracking - Delayed 5s after load for performance -->
     <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
       window.addEventListener('load', function() {
         setTimeout(function() {
@@ -328,7 +359,7 @@
           script.async = 1;
           script.src = 'https://emrld.ltd/NDg0MzE2.js?t=484316';
           document.head.appendChild(script);
-        }, 3000);
+        }, 5000);
       });
     </script>
   </body>

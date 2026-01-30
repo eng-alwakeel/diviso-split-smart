@@ -31,8 +31,8 @@ export const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} />
+              <div className="flex items-center gap-3 h-8">
+                <img src={appLogo} alt="شعار Diviso" className="h-8 w-auto" width={128} height={32} style={{ aspectRatio: '128 / 32' }} loading="lazy" />
               </div>
               <p className="text-sm font-medium text-muted-foreground/80">
                 {t('footer.slogan')}

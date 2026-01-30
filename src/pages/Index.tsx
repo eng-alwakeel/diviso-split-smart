@@ -16,14 +16,21 @@ const PricingSection = lazy(() => import("@/components/PricingSection").then(m =
 // Import non-lazy for above-the-fold
 import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
 
-// Properly sized skeleton to prevent layout shift
+// Properly sized skeleton to prevent layout shift - using containIntrinsicBlockSize for better CLS
 const BelowFoldSkeleton = () => (
-  <div style={{ minHeight: '2000px', contentVisibility: 'auto', containIntrinsicSize: '0 2000px' }}>
-    <div className="py-16 bg-gradient-to-b from-muted/30 to-background" style={{ minHeight: '500px' }} />
-    <div className="py-12 bg-muted/50" style={{ minHeight: '600px' }} />
-    <div className="py-16" style={{ minHeight: '400px' }} />
-    <div className="py-16" style={{ minHeight: '300px' }} />
-    <div className="py-16" style={{ minHeight: '500px' }} />
+  <div 
+    className="space-y-0"
+    style={{ 
+      minHeight: '2000px', 
+      contentVisibility: 'auto', 
+      containIntrinsicBlockSize: 'auto 2000px' 
+    }}
+  >
+    <div className="bg-gradient-to-b from-muted/30 to-background" style={{ height: '500px' }} />
+    <div className="bg-muted/50" style={{ height: '600px' }} />
+    <div style={{ height: '400px' }} />
+    <div style={{ height: '300px' }} />
+    <div className="bg-muted/50" style={{ height: '500px' }} />
   </div>
 );
 
