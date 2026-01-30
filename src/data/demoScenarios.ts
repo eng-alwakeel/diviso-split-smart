@@ -31,7 +31,7 @@ export const DEFAULT_SHARE_TEXT = 'أي مشاركة فيها أكثر من شخ
 
 export type ScenarioType = 
   | 'travel' | 'friends' | 'housing'  // Primary
-  | 'activities' | 'desert' | 'groups' | 'family' | 'carpool' | 'events';  // Secondary
+  | 'activities' | 'desert' | 'groups' | 'family' | 'carpool' | 'events' | 'friday';  // Secondary
 
 export const DEMO_SCENARIOS: DemoScenario[] = [
   // ===== PRIMARY SCENARIOS =====
@@ -224,6 +224,27 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       { id: 'e1', description: 'هدية', amount: 500, paidById: 'm1', icon: '🎁' },
       { id: 'e2', description: 'كيك', amount: 200, paidById: 'm2', icon: '🎂' },
       { id: 'e3', description: 'زينة', amount: 100, paidById: 'm3', icon: '🎈' },
+    ],
+  },
+  {
+    id: 'friday',
+    tier: 'secondary',
+    icon: '👬',
+    title: 'شلة الجمعة',
+    subtitle: 'طلعات – كشتات – قهوة',
+    groupName: 'شلة الجمعة',
+    currency: 'ر.س',
+    shareText: 'شلة الجمعة؟ Diviso يخلي القسمة بينكم عادلة بدون نقاش.',
+    members: [
+      { id: 'm1', name: 'عبدالعزيز', avatar: 'ع' },
+      { id: 'm2', name: 'فارس', avatar: 'ف' },
+      { id: 'm3', name: 'بندر', avatar: 'ب' },
+      { id: 'm4', name: 'ثامر', avatar: 'ث' },
+    ],
+    expenses: [
+      { id: 'e1', description: 'مطعم', amount: 320, paidById: 'm1', icon: '🍽️' },
+      { id: 'e2', description: 'قهوة', amount: 100, paidById: 'm2', icon: '☕' },
+      { id: 'e3', description: 'آيسكريم', amount: 60, paidById: 'm3', icon: '🍦' },
     ],
   },
 ];

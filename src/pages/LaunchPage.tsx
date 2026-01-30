@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Link2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
@@ -18,13 +19,14 @@ import {
 
 const VALID_SCENARIOS: ScenarioType[] = [
   'travel', 'friends', 'housing',
-  'activities', 'desert', 'groups', 'family', 'carpool', 'events'
+  'activities', 'desert', 'groups', 'family', 'carpool', 'events', 'friday'
 ];
 
 const LaunchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { trackWithUTM, trackEvent } = useGoogleAnalytics();
+  const { toast } = useToast();
 
   // State
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType | null>(null);
@@ -118,6 +120,37 @@ const LaunchPage: React.FC = () => {
     trackEvent('show_more_clicked');
   }, [trackEvent]);
 
+  // Handle share page
+  const handleSharePage = useCallback(async () => {
+    const shareUrl = `${window.location.origin}/launch`;
+    const shareText = 'قسّم مصاريفك مع أصحابك بدون إحراج – جرب بنفسك';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Diviso – القسمة بدون إحراج',
+          text: shareText,
+          url: shareUrl,
+        });
+        trackEvent('launch_page_shared', { method: 'native' });
+        return;
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') {
+          return; // User cancelled
+        }
+        // Fall through to clipboard
+      }
+    }
+    
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      toast({ title: 'تم نسخ الرابط!' });
+      trackEvent('launch_page_shared', { method: 'clipboard' });
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  }, [trackEvent, toast]);
+
   // Get the selected scenario object
   const activeScenario = selectedScenario ? getScenarioById(selectedScenario) : null;
 
@@ -144,14 +177,25 @@ const LaunchPage: React.FC = () => {
 
         {/* H1 Title */}
         <h1 className="text-3xl md:text-4xl font-bold text-center text-foreground mb-4 leading-tight">
-          دايم واحد يدفع أكثر؟
+          👋 أهلًا بك في Diviso
         </h1>
 
         {/* Description */}
-        <p className="text-lg text-muted-foreground text-center max-w-md mb-10 leading-relaxed">
-          اختر سيناريو وجرب بنفسك<br />
-          وشوف كيف تنحسب القسمة بدون إحراج
+        <p className="text-lg text-muted-foreground text-center max-w-md mb-6 leading-relaxed">
+          قسّم مصاريفك مع الناس اللي معك<br />
+          بدون لخبطة ولا إحراج.<br />
+          اختر مثال وجرب بنفسك 👇
         </p>
+
+        {/* Share Button */}
+        <Button
+          variant="outline"
+          onClick={handleSharePage}
+          className="gap-2 mb-10"
+        >
+          <Link2 className="h-4 w-4" />
+          🔗 شارك مع أصحابك
+        </Button>
 
         {/* Primary Experience Cards */}
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-4">

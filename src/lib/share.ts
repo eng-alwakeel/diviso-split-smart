@@ -67,3 +67,34 @@ export async function shareExperience(type: ScenarioType): Promise<ShareResult> 
     };
   }
 }
+
+export async function shareLaunchPage(): Promise<ShareResult> {
+  const shareUrl = `${window.location.origin}/launch`;
+  const shareText = 'قسّم مصاريفك مع أصحابك بدون إحراج – جرب بنفسك';
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Diviso – القسمة بدون إحراج',
+        text: shareText,
+        url: shareUrl,
+      });
+      return { success: true, method: 'native' };
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        return { success: false, method: 'native', error: 'cancelled' };
+      }
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+    return { success: true, method: 'clipboard' };
+  } catch (error) {
+    return { 
+      success: false, 
+      method: 'clipboard', 
+      error: (error as Error).message 
+    };
+  }
+}
