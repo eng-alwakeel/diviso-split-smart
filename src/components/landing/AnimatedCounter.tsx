@@ -65,12 +65,17 @@ export const AnimatedCounter = ({
     return num.toLocaleString('en-US');
   };
 
-  // Fixed width to prevent layout shift - show final number immediately, then animate
+  // Calculate fixed width based on final number length to prevent CLS
+  const digitCount = formatNumber(end).length;
+
   return (
     <span 
       ref={ref} 
-      className={`inline-block min-w-[3.5rem] text-center tabular-nums ${className}`}
-      style={{ fontVariantNumeric: 'tabular-nums' }}
+      className={`inline-block text-center ${className}`}
+      style={{ 
+        minWidth: `${digitCount}ch`,
+        fontVariantNumeric: 'tabular-nums'
+      }}
     >
       {prefix}{formatNumber(isVisible ? count : end)}{suffix}
     </span>

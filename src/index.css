@@ -196,6 +196,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-sans;
+    font-display: optional;
   }
 
   /* Mobile safe areas for notched devices */

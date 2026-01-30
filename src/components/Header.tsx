@@ -59,7 +59,7 @@ export const Header = () => {
 
           {/* Center: Logo */}
           <Link to="/" className="justify-self-center inline-flex flex-col items-center gap-1">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 h-8">
               <img 
                 src={appLogo} 
                 alt="شعار Diviso" 
@@ -69,9 +69,10 @@ export const Header = () => {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
+                style={{ aspectRatio: '128 / 32' }}
               />
             </div>
-            <span className="hidden md:block text-xs text-muted-foreground font-medium">
+            <span className="hidden md:block text-xs text-muted-foreground font-medium h-4">
               {t('header.slogan')}
             </span>
           </Link>
