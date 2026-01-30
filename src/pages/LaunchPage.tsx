@@ -22,6 +22,21 @@ const VALID_SCENARIOS: ScenarioType[] = [
   'activities', 'desert', 'groups', 'family', 'carpool', 'events', 'friday'
 ];
 
+// Campaign-specific page titles for GA4 tracking
+const CAMPAIGN_TITLES: Record<ScenarioType | 'main', string> = {
+  main: 'Diviso | قسّم المصاريف بذكاء',
+  travel: 'Diviso | حملة السفر ✈️',
+  friends: 'Diviso | حملة طلعة أصدقاء 🧑‍🤝‍🧑',
+  housing: 'Diviso | حملة السكن المشترك 🏠',
+  activities: 'Diviso | حملة الأنشطة 🎯',
+  desert: 'Diviso | حملة رحلة البر 🏕️',
+  groups: 'Diviso | حملة المجموعات 👥',
+  family: 'Diviso | حملة العائلة 👨‍👩‍👧',
+  carpool: 'Diviso | حملة المشوار المشترك 🚗',
+  events: 'Diviso | حملة المناسبات 🎉',
+  friday: 'Diviso | حملة شلة الجمعة 👬',
+};
+
 const LaunchPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -35,14 +50,32 @@ const LaunchPage: React.FC = () => {
   const [completedScenarios, setCompletedScenarios] = useState<Set<ScenarioType>>(new Set());
   const [showSecondary, setShowSecondary] = useState(false);
 
-  // Track page view on mount
+  // Track page view and set dynamic title for GA4 campaign tracking
   useEffect(() => {
-    const demoParam = searchParams.get('demo');
+    const demoParam = searchParams.get('demo') as ScenarioType | null;
+    const scenarioKey: ScenarioType | 'main' = (demoParam && VALID_SCENARIOS.includes(demoParam)) 
+      ? demoParam 
+      : 'main';
+    
+    // 1. Set dynamic page title for GA4 Pages & Screens report
+    const pageTitle = CAMPAIGN_TITLES[scenarioKey];
+    document.title = pageTitle;
+    
+    // 2. Track page view with UTM parameters
     trackWithUTM('launch_page_view', {
       page_path: '/launch',
+      page_title: pageTitle,
       demo: demoParam || undefined,
     });
-  }, [trackWithUTM, searchParams]);
+    
+    // 3. Send campaign_page_view event for custom reporting
+    trackEvent('campaign_page_view', {
+      campaign_type: 'launch',
+      scenario: scenarioKey,
+      page_title: pageTitle,
+    });
+    
+  }, [searchParams, trackWithUTM, trackEvent]);
 
   // Auto-open demo if ?demo= parameter exists
   useEffect(() => {
@@ -160,7 +193,13 @@ const LaunchPage: React.FC = () => {
       dir="rtl"
     >
       <SEO 
-        title="القسمة دايمًا تلخبط؟ خلّها واضحة"
+        title={(() => {
+          const demoParam = searchParams.get('demo') as ScenarioType | null;
+          const scenarioKey: ScenarioType | 'main' = (demoParam && VALID_SCENARIOS.includes(demoParam)) 
+            ? demoParam 
+            : 'main';
+          return CAMPAIGN_TITLES[scenarioKey].replace('Diviso | ', '');
+        })()}
         description="جرّب المثال وشوف القسمة قدامك بدون إحراج"
         ogImage="https://diviso.app/og/launch-1200x630.png"
         noIndex={false}
