@@ -1,9 +1,12 @@
 
 
-# خطة: توسيع تجارب صفحة /launch
+# خطة: تحسين تجربة الشير والترحيب + نصوص السيناريوهات في صفحة /launch
 
 ## الهدف
-إضافة 6 تجارب ثانوية قابلة للإظهار عبر زر "عرض المزيد" مع الحفاظ على التركيز والتحويل.
+تحسين تجربة الدخول من الروابط المشتركة عبر:
+1. إضافة ترحيب ذكي قصير قبل التفاعل
+2. ضبط نصوص مخصصة لكل سيناريو
+3. تحسين عرض المعاينة (Share Preview / OG)
 
 ---
 
@@ -11,12 +14,13 @@
 
 | العنصر | الحالة |
 |--------|--------|
-| 3 تجارب أساسية (travel, friends, housing) | ✅ موجود |
-| DemoExperience تفاعلي | ✅ موجود |
-| تغيير الدافع + المبلغ | ✅ موجود |
-| CTA + Analytics | ✅ موجود |
-| **زر "عرض المزيد"** | ❌ غير موجود |
-| **6 تجارب إضافية** | ❌ غير موجود |
+| DemoExperience تفاعلي (تغيير المبلغ + الدافع) | ✅ موجود ويعمل |
+| `hasInteracted` state | ✅ موجود (سطر 35) |
+| إعادة حساب الأرصدة فوراً | ✅ موجود |
+| **رسالة ترحيب** | ❌ غير موجود |
+| **نصوص مخصصة للسيناريوهات** | ❌ غير موجود |
+| **OG Tags ديناميكية حسب ?demo=** | ❌ جزئياً (ثابت لكل /launch) |
+| **نصوص شير مخصصة** | ❌ رسالة واحدة ثابتة |
 
 ---
 
@@ -24,15 +28,16 @@
 
 | الملف | التعديل |
 |-------|---------|
-| `src/data/demoScenarios.ts` | إضافة 6 سيناريوهات + `tier` property + تحديث Types |
-| `src/pages/LaunchPage.tsx` | إضافة زر "عرض المزيد" + حالة إظهار + تمرير tier للـ Analytics |
-| `src/components/launch/ExperienceCard.tsx` | دعم حجم ثانوي (`variant: 'primary' | 'secondary'`) |
+| `src/data/demoScenarios.ts` | إضافة `shareText` لكل سيناريو |
+| `src/components/launch/DemoExperience.tsx` | إضافة رسالة الترحيب + Pulse effect |
+| `src/lib/share.ts` | استخدام نص الشير المخصص لكل سيناريو |
+| `supabase/functions/og-handler/index.ts` | دعم OG Tags ديناميكية حسب `?demo=` |
 
 ---
 
 ## 1. تعديل `demoScenarios.ts`
 
-### A) تحديث Type لدعم التجارب الجديدة
+### A) إضافة `shareText` للـ Interface
 
 ```typescript
 export interface DemoScenario {
@@ -45,423 +50,261 @@ export interface DemoScenario {
   members: DemoMember[];
   expenses: DemoExpense[];
   tier: 'primary' | 'secondary';
-}
-
-export type ScenarioType = 
-  | 'travel' | 'friends' | 'housing'  // Primary
-  | 'activities' | 'desert' | 'groups' | 'family' | 'carpool' | 'events';  // Secondary
-```
-
-### B) إضافة `tier: 'primary'` للتجارب الحالية
-
-```typescript
-{
-  id: 'travel',
-  tier: 'primary',
-  // ... باقي البيانات
+  shareText: string;  // ← جديد
 }
 ```
 
-### C) إضافة 6 تجارب جديدة
+### B) إضافة نصوص مخصصة لكل سيناريو
 
-| id | icon | title | subtitle | groupName |
-|----|------|-------|----------|-----------|
-| `activities` | 🎯 | نشاط | بولينج – سينما – ألعاب | شلة النشاط |
-| `desert` | 🏕️ | رحلة بر | مخيم – أكل – معدات | رحلة البر |
-| `groups` | 👥 | مجموعة | فعاليات أو اشتراك جماعي | المجموعة |
-| `family` | 👨‍👩‍👧 | عائلة | رحلة أو مصاريف عائلية | العائلة |
-| `carpool` | 🚗 | مشوار مشترك | بنزين – مواقف | المشوار |
-| `events` | 🎉 | مناسبة | هدية – حجز – تجهيز | المناسبة |
+| السيناريو | النص |
+|-----------|------|
+| `travel` | مسافرين مع بعض؟ دايم واحد يدفع أكثر 😅 Diviso يقسم المصاريف بعدل ويطلع لكل واحد له أو عليه. |
+| `friends` | طلعة مطعم؟ قهوة؟ بنزين؟ Diviso يخلي القسمة واضحة بدون نقاش. |
+| `housing` | إيجار، كهرباء، مشتريات؟ Diviso ينظم السكن المشترك بعدل. |
+| `activities` | نشاط جماعي = مصاريف جماعية. Diviso يقسمها بسهولة. |
+| `desert` | رحلة بر؟ أكل وبنزين ومستلزمات. Diviso يحسبها عليكم بدون لخبطة. |
+| `groups` | أي مجموعة فيها أكثر من شخص. Diviso يخلي الحساب عادل للجميع. |
+| `family` | مصاريف عائلية؟ Diviso يخلي كل شيء واضح ومرتاح. |
+| `carpool` | مشوار وبنزين وقهوة؟ Diviso يقسمها بسهولة. |
+| `events` | مناسبة أو عزيمة؟ Diviso يطلع القسمة صح من أول مرة. |
 
-### D) إضافة Helper Functions
+### C) إضافة نص افتراضي لصفحة الاختيار
 
 ```typescript
-export const PRIMARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'primary');
-export const SECONDARY_SCENARIOS = DEMO_SCENARIOS.filter(s => s.tier === 'secondary');
+export const DEFAULT_SHARE_TEXT = 'أي مشاركة فيها أكثر من شخص. Diviso ينظم المصاريف بدون إحراج.';
 ```
 
 ---
 
-## 2. تعديل `LaunchPage.tsx`
+## 2. تعديل `DemoExperience.tsx`
 
-### A) إضافة State جديد
+### A) إضافة import لـ `cn`
 
 ```typescript
-const [showSecondary, setShowSecondary] = useState(false);
+import { cn } from '@/lib/utils';
 ```
 
-### B) استيراد التجارب المفلترة
+### B) إضافة رسالة الترحيب
+
+**المكان:** بعد قسم الأعضاء (سطر 215) وقبل قسم المصاريف (سطر 217)
 
 ```typescript
-import { 
-  PRIMARY_SCENARIOS,
-  SECONDARY_SCENARIOS,
-  getScenarioById,
-  type ScenarioType 
-} from '@/data/demoScenarios';
-```
-
-### C) تحديث دعم Query Params
-
-```typescript
-// دعم جميع أنواع السيناريوهات في ?demo=
-const validScenarios = ['travel', 'friends', 'housing', 'activities', 'desert', 'groups', 'family', 'carpool', 'events'];
-
-if (demoParam && validScenarios.includes(demoParam)) {
-  // ...
-}
-```
-
-### D) تحديث Analytics لتشمل tier
-
-```typescript
-const handleSelectScenario = useCallback((type: ScenarioType) => {
-  const scenario = getScenarioById(type);
-  const tier = scenario?.tier || 'primary';
-  
-  trackEvent('experience_selected', { 
-    type, 
-    tier,
-    auto_opened: false 
-  });
-  // ...
-}, [trackEvent]);
-```
-
-### E) إضافة زر "عرض المزيد"
-
-```typescript
-{/* زر عرض المزيد */}
-{!showSecondary && (
-  <Button
-    variant="ghost"
-    onClick={() => {
-      setShowSecondary(true);
-      trackEvent('show_more_clicked');
-    }}
-    className="mt-6 text-muted-foreground hover:text-primary"
-  >
-    <ChevronDown className="h-4 w-4 ml-2" />
-    عرض المزيد من التجارب
-  </Button>
-)}
-```
-
-### F) عرض التجارب الإضافية (Collapsible)
-
-```typescript
-{/* Secondary Experiences - Expandable */}
-{showSecondary && (
-  <div className="w-full max-w-3xl mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
-    <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
-      تجارب إضافية
-    </h2>
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-      {SECONDARY_SCENARIOS.map((scenario) => (
-        <ExperienceCard
-          key={scenario.id}
-          scenario={scenario}
-          variant="secondary"
-          onSelect={() => handleSelectScenario(scenario.id)}
-        />
-      ))}
-    </div>
+{/* Welcome Message - Disappears after first interaction */}
+{!hasInteracted && (
+  <div className="text-center py-4 px-4 bg-primary/5 border border-primary/20 rounded-xl animate-in fade-in duration-500">
+    <p className="text-sm text-muted-foreground leading-relaxed">
+      أهلًا 👋
+      <br />
+      جرّب تغيّر مين دفع أو المبلغ
+      <br />
+      وشوف القسمة تتعدل مباشرة
+    </p>
   </div>
 )}
 ```
 
----
+### C) إضافة Pulse effect على أول dropdown
 
-## 3. تعديل `ExperienceCard.tsx`
-
-### A) إضافة Prop للحجم
+تعديل الـ select في سطر 238-251:
 
 ```typescript
-interface ExperienceCardProps {
-  scenario: DemoScenario;
-  onSelect: () => void;
-  variant?: 'primary' | 'secondary';
+<select
+  value={expense.paidById}
+  onChange={(e) => handlePayerChange(expense.id, e.target.value)}
+  className={cn(
+    "text-sm bg-muted/50 border border-border rounded-md px-2 py-1",
+    "text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50",
+    "cursor-pointer transition-all duration-200",
+    !hasInteracted && expense.id === expenses[0]?.id && "animate-pulse ring-2 ring-primary/30"
+  )}
+  dir="rtl"
+>
+```
+
+---
+
+## 3. تعديل `share.ts`
+
+### A) استيراد الـ helper
+
+```typescript
+import { getScenarioById, DEFAULT_SHARE_TEXT, type ScenarioType } from '@/data/demoScenarios';
+```
+
+### B) تحديث دالة getShareText
+
+```typescript
+export function getShareMessage(type: ScenarioType): string {
+  const scenario = getScenarioById(type);
+  return scenario?.shareText || DEFAULT_SHARE_TEXT;
 }
 ```
 
-### B) تعديل الـ UI حسب الـ variant
+### C) تحديث shareExperience
 
 ```typescript
-export const ExperienceCard: React.FC<ExperienceCardProps> = ({ 
-  scenario, 
-  onSelect,
-  variant = 'primary'
-}) => {
-  const isPrimary = variant === 'primary';
-  
-  return (
-    <Card 
-      className={cn(
-        "bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg cursor-pointer group",
-        !isPrimary && "hover:shadow-md"
-      )}
-      onClick={onSelect}
-    >
-      <CardContent className={cn(
-        "flex flex-col items-center text-center gap-3",
-        isPrimary ? "p-6 gap-4" : "p-4 gap-2"
-      )}>
-        {/* Icon */}
-        <span 
-          className={cn("", isPrimary ? "text-5xl" : "text-3xl")} 
-          role="img" 
-          aria-label={scenario.title}
-        >
-          {scenario.icon}
-        </span>
-        
-        {/* Title */}
-        <h3 className={cn(
-          "font-bold text-foreground",
-          isPrimary ? "text-xl" : "text-base"
-        )}>
-          {scenario.title}
-        </h3>
-        
-        {/* Subtitle */}
-        <p className={cn(
-          "text-muted-foreground leading-relaxed",
-          isPrimary ? "text-sm" : "text-xs"
-        )}>
-          {scenario.subtitle}
-        </p>
-        
-        {/* CTA Button - Primary only */}
-        {isPrimary && (
-          <Button 
-            variant="outline"
-            className="mt-2 w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect();
-            }}
-          >
-            جرّب المثال
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
+export async function shareExperience(type: ScenarioType): Promise<ShareResult> {
+  const url = buildShareUrl(type, 'social');
+  const scenario = getScenarioById(type);
+  const text = scenario?.shareText || DEFAULT_SHARE_TEXT;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Diviso – القسمة بدون إحراج',
+        text: text,
+        url: url,
+      });
+      return { success: true, method: 'native' };
+    } catch (error) {
+      // ...
+    }
+  }
+  // ...
+}
+```
+
+---
+
+## 4. تعديل `og-handler/index.ts`
+
+### A) إضافة metadata لكل سيناريو
+
+```typescript
+const scenarioMetadata: Record<string, { title: string; description: string }> = {
+  travel: {
+    title: 'مسافرين مع بعض؟',
+    description: 'دايم واحد يدفع أكثر 😅 Diviso يقسم المصاريف بعدل ويطلع لكل واحد له أو عليه.',
+  },
+  friends: {
+    title: 'طلعة مطعم؟ قهوة؟ بنزين؟',
+    description: 'Diviso يخلي القسمة واضحة بدون نقاش.',
+  },
+  housing: {
+    title: 'إيجار، كهرباء، مشتريات؟',
+    description: 'Diviso ينظم السكن المشترك بعدل.',
+  },
+  activities: {
+    title: 'نشاط جماعي = مصاريف جماعية',
+    description: 'Diviso يقسمها بسهولة.',
+  },
+  desert: {
+    title: 'رحلة بر؟',
+    description: 'أكل وبنزين ومستلزمات. Diviso يحسبها عليكم بدون لخبطة.',
+  },
+  groups: {
+    title: 'أي مجموعة فيها أكثر من شخص',
+    description: 'Diviso يخلي الحساب عادل للجميع.',
+  },
+  family: {
+    title: 'مصاريف عائلية؟',
+    description: 'Diviso يخلي كل شيء واضح ومرتاح.',
+  },
+  carpool: {
+    title: 'مشوار وبنزين وقهوة؟',
+    description: 'Diviso يقسمها بسهولة.',
+  },
+  events: {
+    title: 'مناسبة أو عزيمة؟',
+    description: 'Diviso يطلع القسمة صح من أول مرة.',
+  },
 };
 ```
 
----
-
-## 4. بيانات التجارب الإضافية
-
-### activities (نشاط)
+### B) تحديث دالة generateOgHtml
 
 ```typescript
-{
-  id: 'activities',
-  tier: 'secondary',
-  icon: '🎯',
-  title: 'نشاط',
-  subtitle: 'بولينج – سينما – ألعاب',
-  groupName: 'شلة النشاط',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'راكان', avatar: 'ر' },
-    { id: 'm2', name: 'تركي', avatar: 'ت' },
-    { id: 'm3', name: 'بدر', avatar: 'ب' },
-    { id: 'm4', name: 'فهد', avatar: 'ف' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'بولينج', amount: 200, paidById: 'm1', icon: '🎳' },
-    { id: 'e2', description: 'سينما', amount: 160, paidById: 'm2', icon: '🎬' },
-    { id: 'e3', description: 'عشاء', amount: 280, paidById: 'm3', icon: '🍕' },
-  ],
+function generateOgHtml(path: string, fullUrl: string, demoType?: string): string {
+  let metadata = pageMetadata[path] || {
+    title: 'Diviso | قسّم بذكاء، سافر براحة',
+    description: 'قسّم المصاريف بين الأصدقاء والعائلة بسهولة',
+  };
+
+  // Override with scenario-specific metadata if ?demo= exists
+  if (path === '/launch' && demoType && scenarioMetadata[demoType]) {
+    metadata = {
+      ...metadata,
+      title: scenarioMetadata[demoType].title,
+      description: scenarioMetadata[demoType].description,
+    };
+  }
+
+  // ... rest of the function
 }
 ```
 
-### desert (رحلة بر)
+### C) تمرير demo parameter
 
 ```typescript
-{
-  id: 'desert',
-  tier: 'secondary',
-  icon: '🏕️',
-  title: 'رحلة بر',
-  subtitle: 'مخيم – أكل – معدات',
-  groupName: 'رحلة البر',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'سلمان', avatar: 'س' },
-    { id: 'm2', name: 'عبدالرحمن', avatar: 'ع' },
-    { id: 'm3', name: 'نواف', avatar: 'ن' },
-    { id: 'm4', name: 'مشاري', avatar: 'م' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'خيمة ومعدات', amount: 350, paidById: 'm1', icon: '⛺' },
-    { id: 'e2', description: 'لحم وأكل', amount: 400, paidById: 'm2', icon: '🥩' },
-    { id: 'e3', description: 'فحم وحطب', amount: 100, paidById: 'm3', icon: '🔥' },
-  ],
-}
-```
+// في Deno.serve
+const demoParam = url.searchParams.get('demo') || undefined;
 
-### groups (مجموعة)
-
-```typescript
-{
-  id: 'groups',
-  tier: 'secondary',
-  icon: '👥',
-  title: 'مجموعة',
-  subtitle: 'فعاليات أو اشتراك جماعي',
-  groupName: 'المجموعة',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'حسن', avatar: 'ح' },
-    { id: 'm2', name: 'علي', avatar: 'ع' },
-    { id: 'm3', name: 'حمد', avatar: 'ح' },
-    { id: 'm4', name: 'زياد', avatar: 'ز' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'اشتراك Netflix', amount: 60, paidById: 'm1', icon: '📺' },
-    { id: 'e2', description: 'حجز ملعب', amount: 200, paidById: 'm2', icon: '⚽' },
-    { id: 'e3', description: 'مشروبات', amount: 80, paidById: 'm3', icon: '🥤' },
-  ],
-}
-```
-
-### family (عائلة)
-
-```typescript
-{
-  id: 'family',
-  tier: 'secondary',
-  icon: '👨‍👩‍👧',
-  title: 'عائلة',
-  subtitle: 'رحلة أو مصاريف عائلية',
-  groupName: 'العائلة',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'أبو محمد', avatar: 'أ' },
-    { id: 'm2', name: 'أبو خالد', avatar: 'أ' },
-    { id: 'm3', name: 'أبو سعود', avatar: 'أ' },
-    { id: 'm4', name: 'أبو عبدالله', avatar: 'أ' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'حجز شاليه', amount: 800, paidById: 'm1', icon: '🏖️' },
-    { id: 'e2', description: 'غداء', amount: 350, paidById: 'm2', icon: '🍖' },
-    { id: 'e3', description: 'ألعاب الأطفال', amount: 150, paidById: 'm3', icon: '🎢' },
-  ],
-}
-```
-
-### carpool (مشوار مشترك)
-
-```typescript
-{
-  id: 'carpool',
-  tier: 'secondary',
-  icon: '🚗',
-  title: 'مشوار مشترك',
-  subtitle: 'بنزين – مواقف',
-  groupName: 'المشوار',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'وليد', avatar: 'و' },
-    { id: 'm2', name: 'طلال', avatar: 'ط' },
-    { id: 'm3', name: 'ياسر', avatar: 'ي' },
-    { id: 'm4', name: 'رائد', avatar: 'ر' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'بنزين', amount: 150, paidById: 'm1', icon: '⛽' },
-    { id: 'e2', description: 'موقف', amount: 30, paidById: 'm2', icon: '🅿️' },
-    { id: 'e3', description: 'غسيل سيارة', amount: 50, paidById: 'm1', icon: '🚿' },
-  ],
-}
-```
-
-### events (مناسبة)
-
-```typescript
-{
-  id: 'events',
-  tier: 'secondary',
-  icon: '🎉',
-  title: 'مناسبة',
-  subtitle: 'هدية – حجز – تجهيز',
-  groupName: 'المناسبة',
-  currency: 'ر.س',
-  members: [
-    { id: 'm1', name: 'باسل', avatar: 'ب' },
-    { id: 'm2', name: 'أنس', avatar: 'أ' },
-    { id: 'm3', name: 'عمار', avatar: 'ع' },
-    { id: 'm4', name: 'سامي', avatar: 'س' },
-  ],
-  expenses: [
-    { id: 'e1', description: 'هدية', amount: 500, paidById: 'm1', icon: '🎁' },
-    { id: 'e2', description: 'كيك', amount: 200, paidById: 'm2', icon: '🎂' },
-    { id: 'e3', description: 'زينة', amount: 100, paidById: 'm3', icon: '🎈' },
-  ],
-}
+// عند استدعاء generateOgHtml
+const html = generateOgHtml(path, fullUrl, demoParam);
 ```
 
 ---
 
-## 5. شكل الـ UI النهائي
+## شكل الـ UI النهائي
 
 ```text
-┌─────────────────────────────────────────────────┐
-│                    [Logo]                       │
-│                                                 │
-│           دايم واحد يدفع أكثر؟                  │
-│                                                 │
-│          اختر سيناريو وجرب بنفسك               │
-│       وشوف كيف تنحسب القسمة بدون إحراج          │
-│                                                 │
-├─────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐         │
-│  │   ✈️    │  │  🧑‍🤝‍🧑  │  │   🏠    │         │
-│  │  سفر   │  │  طلعة  │  │  سكن   │         │
-│  │ رحلة.. │  │ مطعم.. │  │ إيجار..│         │
-│  │[جرّب]  │  │[جرّب]  │  │[جرّب]  │         │
-│  └─────────┘  └─────────┘  └─────────┘         │
-│                                                 │
-│         [ عرض المزيد من التجارب ↓ ]            │
-│                                                 │
-├─────────────────────────────────────────────────┤
-│              تجارب إضافية                       │
-│  ┌───────┐  ┌───────┐  ┌───────┐               │
-│  │  🎯   │  │  🏕️   │  │  👥   │               │
-│  │ نشاط │  │رحلة بر│  │مجموعة│               │
-│  └───────┘  └───────┘  └───────┘               │
-│  ┌───────┐  ┌───────┐  ┌───────┐               │
-│  │ 👨‍👩‍👧  │  │  🚗   │  │  🎉   │               │
-│  │ عائلة│  │مشوار │  │مناسبة│               │
-│  └───────┘  └───────┘  └───────┘               │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│ [X]       ✈️ رحلة تركيا           [   ]    │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 👥 الأعضاء                                  │
+│ [أحمد] [سارة] [محمد] [نورة]                 │
+│                                             │
+│ ┌─────────────────────────────────────────┐ │
+│ │           أهلًا 👋                      │ │
+│ │   جرّب تغيّر مين دفع أو المبلغ          │ │
+│ │   وشوف القسمة تتعدل مباشرة              │ │
+│ └─────────────────────────────────────────┘ │
+│                                             │
+│ 📝 المصاريف                                 │
+│ ┌─────────────────────────────────────────┐ │
+│ │ 🏨 حجز الفندق                           │ │
+│ │ دفعها: [أحمد ▼] ← (pulse خفيف)          │ │
+│ │              [−] 2,400 ر.س [+]          │ │
+│ └─────────────────────────────────────────┘ │
+│                                             │
+└─────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. Analytics Events
+## سلوك الترحيب
 
-| Event | Parameters | متى |
-|-------|------------|-----|
-| `show_more_clicked` | - | عند الضغط على "عرض المزيد" |
-| `experience_selected` | `type`, `tier`, `auto_opened` | عند اختيار أي تجربة |
+| الحالة | الرسالة | Pulse |
+|--------|---------|-------|
+| قبل أي تفاعل | ✅ ظاهرة | ✅ يعمل |
+| بعد أول تفاعل (مبلغ/دافع) | ❌ تختفي | ❌ يتوقف |
+| لا يعود للظهور في نفس الجلسة | ✅ | ✅ |
 
 ---
 
-## 7. معايير القبول
+## Share Preview حسب السيناريو
+
+| الرابط | العنوان | الوصف |
+|--------|---------|-------|
+| `/launch?demo=travel` | مسافرين مع بعض؟ | دايم واحد يدفع أكثر 😅... |
+| `/launch?demo=friends` | طلعة مطعم؟ قهوة؟ بنزين؟ | Diviso يخلي القسمة واضحة... |
+| `/launch?demo=housing` | إيجار، كهرباء، مشتريات؟ | Diviso ينظم السكن... |
+| `/launch` (بدون demo) | القسمة دايمًا تلخبط؟ | تطبيق بسيط يخلي القسمة... |
+
+---
+
+## معايير القبول
 
 | # | المعيار |
 |---|---------|
-| 1 | الصفحة تفتح بنفس السرعة ✔ |
-| 2 | أول ما يفتح المستخدم يشوف 3 تجارب فقط ✔ |
-| 3 | زر "عرض المزيد" يعمل بدون Reload ✔ |
-| 4 | أي تجربة إضافية تفتح DemoExperience ✔ |
-| 5 | CTA يظهر فقط بعد التفاعل ✔ |
-| 6 | البطاقات الثانوية أصغر بصريًا ✔ |
-| 7 | لا يوجد تشتيت أو كسر للتحويل ✔ |
+| 1 | رسالة الترحيب تظهر فور فتح أي تجربة ✔ |
+| 2 | الترحيب يختفي عند أول تفاعل ✔ |
+| 3 | Pulse خفيف على أول dropdown ✔ |
+| 4 | كل سيناريو له نص شير مخصص ✔ |
+| 5 | OG Tags تتغير حسب ?demo= ✔ |
+| 6 | لا Modal ولا زر ولا شاشة إضافية ✔ |
+| 7 | لا تأثير على CTA أو التحويل ✔ |
 
 ---
 
@@ -469,9 +312,10 @@ export const ExperienceCard: React.FC<ExperienceCardProps> = ({
 
 | الملف | الأسطر | التعقيد |
 |-------|--------|---------|
-| `demoScenarios.ts` | ~120 سطر إضافة | متوسط |
-| `LaunchPage.tsx` | ~30 سطر تعديل | بسيط |
-| `ExperienceCard.tsx` | ~20 سطر تعديل | بسيط |
+| `demoScenarios.ts` | ~20 سطر تعديل | بسيط |
+| `DemoExperience.tsx` | ~15 سطر إضافة | بسيط |
+| `share.ts` | ~10 سطر تعديل | بسيط |
+| `og-handler/index.ts` | ~40 سطر إضافة | متوسط |
 
 **الوقت المتوقع للتنفيذ:** 15-20 دقيقة
 
