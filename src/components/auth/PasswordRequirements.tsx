@@ -13,16 +13,12 @@ interface PasswordRequirementsProps {
 
 export const validatePasswordRequirements = (password: string) => {
   return {
-    minLength: password.length >= 8,
-    hasUppercase: /[A-Z]/.test(password),
-    hasLowercase: /[a-z]/.test(password),
-    hasNumber: /[0-9]/.test(password),
+    minLength: password.length >= 6,
   };
 };
 
 export const isPasswordValid = (password: string): boolean => {
-  const reqs = validatePasswordRequirements(password);
-  return reqs.minLength && reqs.hasUppercase && reqs.hasLowercase && reqs.hasNumber;
+  return password.length >= 6;
 };
 
 export const PasswordRequirements = ({ password }: PasswordRequirementsProps) => {
@@ -31,9 +27,6 @@ export const PasswordRequirements = ({ password }: PasswordRequirementsProps) =>
 
   const requirements: PasswordRequirement[] = [
     { key: 'minLength', label: t('password_requirements.min_length'), met: validation.minLength },
-    { key: 'uppercase', label: t('password_requirements.uppercase'), met: validation.hasUppercase },
-    { key: 'lowercase', label: t('password_requirements.lowercase'), met: validation.hasLowercase },
-    { key: 'number', label: t('password_requirements.number'), met: validation.hasNumber },
   ];
 
   return (
@@ -44,11 +37,11 @@ export const PasswordRequirements = ({ password }: PasswordRequirementsProps) =>
       {requirements.map((req) => (
         <div key={req.key} className="flex items-center gap-2 text-xs">
           {req.met ? (
-            <Check className="h-3.5 w-3.5 text-green-500" />
+            <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
           ) : (
             <Circle className="h-3.5 w-3.5 text-muted-foreground" />
           )}
-          <span className={req.met ? 'text-green-600' : 'text-muted-foreground'}>
+          <span className={req.met ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}>
             {req.label}
           </span>
         </div>
