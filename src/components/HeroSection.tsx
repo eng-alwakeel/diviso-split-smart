@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Users, Receipt, CheckCircle, Shield, TrendingUp, ChevronDown, ShieldCheck } from "lucide-react";
+import { Users, Receipt, CheckCircle, ChevronDown, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { AnimatedCounter } from "./landing/AnimatedCounter";
 import { useEffect, useState } from "react";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 import { useFoundingProgram } from "@/hooks/useFoundingProgram";
@@ -199,31 +198,7 @@ export const HeroSection = () => {
           ))}
         </div>
 
-        {/* Trust indicators with animated counters - min-height to prevent CLS */}
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90 min-h-[48px]">
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
-            <Users className="w-5 h-5 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium whitespace-nowrap">
-              +<AnimatedCounter end={10247} duration={2000} /> {t('hero.usersLabel')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
-            <Receipt className="w-5 h-5 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium whitespace-nowrap">
-              +<AnimatedCounter end={45000} duration={2500} /> {t('hero.expensesLabel')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
-            <TrendingUp className="w-5 h-5 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium whitespace-nowrap">
-              +<AnimatedCounter end={8500} duration={2200} /> {t('hero.groupsLabel')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
-            <Shield className="w-5 h-5 text-primary flex-shrink-0" />
-            <span className="text-sm font-medium whitespace-nowrap">{t('hero.secure')}</span>
-          </div>
-        </div>
+        {/* Trust indicators - temporarily hidden */}
       </div>
 
       {/* Scroll Down Arrow - using CSS animation with will-change for performance */}
