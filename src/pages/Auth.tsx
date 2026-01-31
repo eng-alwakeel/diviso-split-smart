@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 import { SignupValueBanner } from "@/components/auth/SignupValueBanner";
 import { SocialProofText } from "@/components/auth/SocialProofText";
+import { trackGAEvent } from "@/hooks/useGoogleAnalytics";
 const Auth = () => {
   const { toast, dismiss } = useToast();
   const navigate = useNavigate();
@@ -83,8 +84,26 @@ const Auth = () => {
     const phoneInviteToken = localStorage.getItem('phoneInviteToken');
 
     // Listen first, then get existing session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
+        // Track signup completion for email/Google users (SIGNED_IN event after signup)
+        if (event === 'SIGNED_IN') {
+          const isGoogleUser = session.user.app_metadata?.provider === 'google';
+          const isEmailUser = session.user.app_metadata?.provider === 'email';
+          
+          // Only track signup_completed for new signups (created within last 60 seconds)
+          const createdAt = new Date(session.user.created_at).getTime();
+          const now = Date.now();
+          const isNewSignup = (now - createdAt) < 60000; // 60 seconds
+          
+          if (isNewSignup) {
+            trackGAEvent('signup_completed', {
+              method: isGoogleUser ? 'google' : isEmailUser ? 'email' : 'unknown',
+              source: params.get('redirect') || 'direct',
+            });
+          }
+        }
+
         if (joinToken) {
           localStorage.removeItem('joinToken');
           window.location.href = `/i/${joinToken}`;
@@ -380,6 +399,11 @@ const Auth = () => {
     if (error) {
       toast({ title: t('auth:toast.verify_error'), description: error.message, variant: "destructive" });
     } else {
+      // Track signup completion for phone users
+      trackGAEvent('signup_completed', {
+        method: 'phone',
+        source: new URLSearchParams(window.location.search).get('redirect') || 'direct',
+      });
       toast({ title: t('auth:toast.verify_success'), description: t('auth:toast.verify_success_desc') });
     }
   };

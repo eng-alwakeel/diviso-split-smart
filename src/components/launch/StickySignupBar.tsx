@@ -18,10 +18,15 @@ export const StickySignupBar: React.FC<StickySignupBarProps> = ({ visible, onSig
       dir="rtl"
     >
       <div className="max-w-md mx-auto flex flex-col items-center gap-3">
-        {/* Text */}
-        <p className="text-sm text-muted-foreground text-center">
-          تبغى تستخدمها مع شلتك؟
-        </p>
+        {/* Loss Aversion Text */}
+        <div className="text-center">
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+            ⚠️ جربت؟ لا تضيّع القسمة
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            سجّل مجانًا واحصل على 50 نقطة 🎁
+          </p>
+        </div>
         
         {/* CTA Button */}
         <Button 
