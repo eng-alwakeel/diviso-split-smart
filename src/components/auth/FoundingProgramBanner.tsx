@@ -30,11 +30,11 @@ export const FoundingProgramBanner = () => {
         </li>
         <li className="flex items-center gap-2">
           <Check className="h-4 w-4 text-amber-500 shrink-0" />
-          <span>{t('founding_program.badge')}</span>
+          <span>{t('founding_program.user_number')}</span>
         </li>
         <li className="flex items-center gap-2">
           <Check className="h-4 w-4 text-amber-500 shrink-0" />
-          <span>{t('founding_program.user_number')}</span>
+          <span>{t('founding_program.free_enhanced')}</span>
         </li>
       </ul>
       

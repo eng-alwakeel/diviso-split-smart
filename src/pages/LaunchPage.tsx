@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
+import { useFoundingProgram } from '@/hooks/useFoundingProgram';
 import { SEO } from '@/components/SEO';
 import { ExperienceCard } from '@/components/launch/ExperienceCard';
 import { DemoExperience } from '@/components/launch/DemoExperience';
@@ -42,6 +43,7 @@ const LaunchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { trackWithUTM, trackEvent } = useGoogleAnalytics();
   const { toast } = useToast();
+  const { remaining, isClosed } = useFoundingProgram();
 
   // State
   const [selectedScenario, setSelectedScenario] = useState<ScenarioType | null>(null);
@@ -284,6 +286,18 @@ const LaunchPage: React.FC = () => {
 
         {/* Bottom Actions Section */}
         <section className="w-full max-w-md mt-16 text-center space-y-6">
+          {/* Founding Program Banner */}
+          {!isClosed && (
+            <div className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10 border border-amber-400/30 rounded-xl p-4 text-center">
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                ⭐ انضم لبرنامج المستخدمين المؤسسين
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                متبقي {remaining} من 1000 مقعد
+              </p>
+            </div>
+          )}
+          
           {/* Guidance Text */}
           <p className="text-sm text-muted-foreground leading-relaxed">
             خلصت التجربة؟<br />

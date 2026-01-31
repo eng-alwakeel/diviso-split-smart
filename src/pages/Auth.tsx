@@ -599,9 +599,6 @@ const Auth = () => {
             {/* ==================== SIGNUP MODE ==================== */}
             {mode === "signup" && (
               <div className="space-y-4">
-                {/* Founding Program Banner */}
-                <FoundingProgramBanner />
-                
                 {/* Google Button - Primary CTA */}
                 <Button
                   variant="default"
@@ -620,6 +617,9 @@ const Auth = () => {
                   </svg>
                   {t('auth:buttons.google_login_fast')}
                 </Button>
+                
+                {/* Founding Program Banner - After Google Button */}
+                <FoundingProgramBanner />
                 
                 {/* Divider */}
                 <div className="relative my-4">
