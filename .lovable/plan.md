@@ -1,107 +1,61 @@
 
-# خطة: تصحيح دالة عداد المستخدمين المؤسسين
 
-## المشكلة الحالية
+# خطة: إزالة أرقام الإحصائيات مؤقتاً
 
-الدالة `get_founding_program_stats` تعد **جميع المستخدمين** في جدول `profiles`:
+## المطلوب
 
-```sql
-SELECT COUNT(*) INTO v_total FROM profiles;
-```
-
-هذا يعني أنه بعد تجاوز 1000 مستخدم، العداد سيظهر رقماً خاطئاً لأنه يحسب المستخدمين غير المؤسسين أيضاً.
-
----
-
-## الحل المطلوب
-
-تعديل الدالة لتعد فقط المستخدمين الذين لديهم `is_founding_user = true`:
-
-```sql
-SELECT COUNT(*) INTO v_founders_count 
-FROM profiles 
-WHERE is_founding_user = true;
-```
+إزالة الأرقام الثابتة (المستخدمين، المصاريف، المجموعات) من قسم Trust Indicators في الصفحة الرئيسية مؤقتاً.
 
 ---
 
 ## التغيير المطلوب
 
-### تحديث دالة `get_founding_program_stats`
+### ملف `HeroSection.tsx`
 
-**من:**
-```sql
-SELECT COUNT(*) INTO v_total FROM profiles;
-v_remaining := GREATEST(0, v_limit - v_total);
-```
+**حذف الأسطر 202-226** - قسم Trust indicators الكامل الذي يحتوي على:
+- `+10,247 مستخدم`
+- `+45,000 مصروف`
+- `+8,500 قروب`
+- `آمن ومشفر`
 
-**إلى:**
-```sql
-SELECT COUNT(*) INTO v_founders_count 
-FROM profiles 
-WHERE is_founding_user = true;
+---
 
-v_remaining := GREATEST(0, v_limit - v_founders_count);
-```
+## قبل التعديل (سطر 202-226)
 
-### الدالة الكاملة بعد التعديل:
-
-```sql
-CREATE OR REPLACE FUNCTION public.get_founding_program_stats()
-RETURNS JSON AS $$
-DECLARE
-  v_founders_count INTEGER;
-  v_limit INTEGER := 1000;
-  v_remaining INTEGER;
-  v_is_closed BOOLEAN;
-BEGIN
-  -- Count ONLY founding users (is_founding_user = true)
-  SELECT COUNT(*) INTO v_founders_count 
-  FROM profiles 
-  WHERE is_founding_user = true;
-  
-  -- Calculate remaining spots
-  v_remaining := GREATEST(0, v_limit - v_founders_count);
-  v_is_closed := (v_remaining = 0);
-  
-  RETURN json_build_object(
-    'total', v_founders_count,
-    'remaining', v_remaining,
-    'limit', v_limit,
-    'isClosed', v_is_closed
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+```tsx
+{/* Trust indicators with animated counters - min-height to prevent CLS */}
+<div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-white/90 min-h-[48px]">
+  <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-300 cursor-default h-10">
+    <Users className="w-5 h-5 text-primary flex-shrink-0" />
+    <span className="text-sm font-medium whitespace-nowrap">
+      +<AnimatedCounter end={10247} duration={2000} /> {t('hero.usersLabel')}
+    </span>
+  </div>
+  ...
+</div>
 ```
 
 ---
 
-## سيناريوهات الاختبار
+## بعد التعديل
 
-| الحالة | المتوقع |
-|--------|---------|
-| 55 مؤسس | `remaining = 945` |
-| 999 مؤسس | `remaining = 1` |
-| 1000 مؤسس | `remaining = 0`, `isClosed = true` |
-| 1001 مستخدم (1000 مؤسس + 1 عادي) | `remaining = 0` (يعد المؤسسين فقط) |
+```tsx
+{/* Trust indicators - temporarily hidden */}
+```
+
+حذف القسم بالكامل مع ترك تعليق للتذكير.
 
 ---
 
-## ملخص التغييرات
+## الملفات المتأثرة
 
 | الملف | التعديل |
 |-------|---------|
-| `supabase/migrations/` | تحديث دالة `get_founding_program_stats` |
+| `src/components/HeroSection.tsx` | حذف قسم Trust indicators (أسطر 202-226) |
 
 ---
 
-## معايير القبول
+## ملاحظة
 
-| # | المعيار |
-|---|---------|
-| 1 | العداد يعد فقط `is_founding_user = true` |
-| 2 | `remaining = 1000 - founders_count` |
-| 3 | لا يحسب المستخدمين العاديين بعد إغلاق البرنامج |
-| 4 | يختفي عند `remaining = 0` |
-| 5 | لا يمكن التلاعب به يدوياً |
+يمكن إزالة import غير المستخدم `AnimatedCounter` أيضاً لتنظيف الكود، لكن يمكن تركه إذا كنت تنوي إعادة الأرقام لاحقاً.
 
