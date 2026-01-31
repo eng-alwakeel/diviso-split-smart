@@ -9,6 +9,7 @@ import { FullDemoView } from './FullDemoView';
 import { shareExperience } from '@/lib/share';
 import { useToast } from '@/hooks/use-toast';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
+import { useFoundingProgram } from '@/hooks/useFoundingProgram';
 import type { DemoScenario } from '@/data/demoScenarios';
 
 interface DemoExperienceProps {
@@ -27,6 +28,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useGoogleAnalytics();
+  const { remaining, isClosed } = useFoundingProgram();
   
   const [copied, setCopied] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -175,17 +177,30 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
           />
         )}
 
-        {/* CTA Section - Loss Aversion + Social Proof - Only shows after completion */}
+        {/* CTA Section - Founding Program + Social Proof - Only shows after completion */}
         {isCompleted && (
           <section className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Loss Aversion Alert */}
+            {/* Founding Program or Loss Aversion Alert */}
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
-              <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                ⚠️ هذه القسمة مؤقتة
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                سجّل الآن مجانًا حتى لا تضيع واحصل على 50 نقطة 🎁
-              </p>
+              {!isClosed ? (
+                <>
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                    ⭐ احفظ هذه القسمة وانضم لبرنامج المستخدمين المؤسسين
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    متبقي {remaining} من 1000 مقعد
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                    ⚠️ هذه القسمة مؤقتة
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    سجّل الآن مجانًا حتى لا تضيع واحصل على 50 نقطة 🎁
+                  </p>
+                </>
+              )}
             </div>
             
             {/* Social Proof - Context Aware */}

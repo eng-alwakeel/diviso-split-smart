@@ -7,13 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock, Bell, BellOff } from "lucide-react";
+import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock, Bell, BellOff, Star } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
 import { EmailVerificationDialog } from "./EmailVerificationDialog";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
+import { FoundingBadge } from "@/components/ui/founding-badge";
 import { 
   isBrowserNotificationSupported, 
   getNotificationPermission, 
@@ -56,8 +59,20 @@ export function ProfileTab({
   logout,
   originalEmail = ""
 }: ProfileTabProps) {
-  const { t } = useTranslation(['settings']);
+  const { t } = useTranslation(['settings', 'auth']);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Get current user ID
+  const { data: userId } = useQuery({
+    queryKey: ['current-user-for-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id || null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  const { userNumber, isFoundingUser, lastActiveAt } = useFoundingUser(userId ?? undefined);
   
   // حالات الوضع
   const [isEditMode, setIsEditMode] = useState(false);
@@ -583,6 +598,43 @@ export function ProfileTab({
           )}
         </CardContent>
       </Card>
+
+      {/* Founding User Section */}
+      {isFoundingUser && userNumber && (
+        <Card className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10 border border-amber-400/30 rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              {t('auth:founding_program.title')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* رقم المستخدم */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{t('auth:founding_program.you_are_user')}</span>
+              <span className="text-2xl font-bold text-foreground">#{userNumber}</span>
+            </div>
+            
+            {/* الشارة */}
+            <div className="flex justify-center">
+              <FoundingBadge userNumber={userNumber} size="lg" />
+            </div>
+            
+            {/* النقاط الشهرية */}
+            <Separator />
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-foreground">{t('auth:founding_program.monthly_credits_section')}</h4>
+              <p className="text-sm text-muted-foreground">{t('auth:founding_program.monthly_credits_desc')}</p>
+              <p className="text-xs text-muted-foreground">{t('auth:founding_program.activity_requirement')}</p>
+              {lastActiveAt && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {t('auth:founding_program.last_activity')}: {new Date(lastActiveAt).toLocaleDateString('ar-SA')}
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* نافذة التحقق من الهاتف */}
       <PhoneVerificationDialog

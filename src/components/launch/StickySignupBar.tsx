@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useFoundingProgram } from '@/hooks/useFoundingProgram';
 
 interface StickySignupBarProps {
   visible: boolean;
@@ -8,6 +9,8 @@ interface StickySignupBarProps {
 }
 
 export const StickySignupBar: React.FC<StickySignupBarProps> = ({ visible, onSignup }) => {
+  const { remaining, isClosed } = useFoundingProgram();
+  
   return (
     <div 
       className={cn(
@@ -18,13 +21,16 @@ export const StickySignupBar: React.FC<StickySignupBarProps> = ({ visible, onSig
       dir="rtl"
     >
       <div className="max-w-md mx-auto flex flex-col items-center gap-3">
-        {/* Loss Aversion Text */}
+        {/* Founding Program or Loss Aversion Text */}
         <div className="text-center">
           <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-            ⚠️ جربت؟ لا تضيّع القسمة
+            {isClosed ? '⚠️ جربت؟ لا تضيّع القسمة' : '⭐ انضم لبرنامج المؤسسين قبل اكتماله'}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            سجّل مجانًا واحصل على 50 نقطة 🎁
+            {isClosed 
+              ? 'سجّل مجانًا واحصل على 50 نقطة 🎁'
+              : `متبقي ${remaining} من 1000 مقعد`
+            }
           </p>
         </div>
         
