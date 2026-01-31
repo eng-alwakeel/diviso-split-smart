@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronDown, Link2 } from 'lucide-react';
+import { ChevronDown, Link2, Gamepad2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 import { useFoundingProgram } from '@/hooks/useFoundingProgram';
+import { useGuestSession } from '@/hooks/useGuestSession';
+import { useGuestAnalytics } from '@/hooks/useGuestAnalytics';
 import { SEO } from '@/components/SEO';
 import { ExperienceCard } from '@/components/launch/ExperienceCard';
 import { DemoExperience } from '@/components/launch/DemoExperience';
@@ -43,6 +45,8 @@ const LaunchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { trackWithUTM, trackEvent } = useGoogleAnalytics();
   const { toast } = useToast();
+  const { isGuestMode } = useGuestSession();
+  const { trackSessionStarted } = useGuestAnalytics();
   const { remaining, isClosed } = useFoundingProgram();
 
   // State
@@ -101,6 +105,18 @@ const LaunchPage: React.FC = () => {
       }
     }
   }, [searchParams, trackEvent]);
+
+  // Handle "Try without registration" click
+  const handleTryWithoutRegistration = useCallback(() => {
+    trackSessionStarted();
+    trackEvent('guest_mode_started', { source: 'launch_cta' });
+    // Open first primary scenario
+    const firstScenario = PRIMARY_SCENARIOS[0];
+    if (firstScenario) {
+      setSelectedScenario(firstScenario.id);
+      setShowDemo(true);
+    }
+  }, [trackSessionStarted, trackEvent]);
 
   // Handle scenario selection
   const handleSelectScenario = useCallback((type: ScenarioType) => {
@@ -236,10 +252,42 @@ const LaunchPage: React.FC = () => {
         {/* Description */}
         <p className="text-lg text-muted-foreground text-center max-w-md mb-6 leading-relaxed">
           قسّم مصاريفك مع الناس اللي معك<br />
-          بدون لخبطة ولا إحراج.<br />
-          اختر مثال وجرب بنفسك 👇
+          بدون لخبطة ولا إحراج.
         </p>
 
+        {/* Primary CTAs - Guest Mode First */}
+        <div className="w-full max-w-md space-y-3 mb-8">
+          {/* Primary CTA: Try without registration */}
+          <Button
+            onClick={handleTryWithoutRegistration}
+            size="lg"
+            className="w-full h-14 text-lg font-bold gap-2 rounded-xl shadow-lg hover:shadow-xl transition-all"
+          >
+            <Gamepad2 className="h-5 w-5" />
+            جرّب بدون تسجيل
+          </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            مباشر، بدون بريد أو رقم
+          </p>
+          
+          {/* Secondary CTA: Sign up */}
+          <Button
+            variant="outline"
+            onClick={handleSignupClick}
+            size="lg"
+            className="w-full h-12 gap-2 rounded-xl"
+          >
+            <Sparkles className="h-4 w-4" />
+            سجّل واحفظ تجربتك
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 w-full max-w-md mb-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground">أو اختر تجربة</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
 
         {/* Primary Experience Cards */}
         <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -336,6 +384,11 @@ const LaunchPage: React.FC = () => {
           onClose={handleCloseDemo}
           onCompleted={handleExperienceCompleted}
           onSignup={handleSignup}
+          onTryAnother={() => {
+            // Close current demo and show scenario selection
+            setShowDemo(false);
+            setSelectedScenario(null);
+          }}
         />
       )}
 
