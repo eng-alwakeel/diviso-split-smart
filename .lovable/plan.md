@@ -1,91 +1,130 @@
 
+# خطة: إصلاح عداد برنامج المستخدمين المؤسسين
 
-# خطة: إضافة بانر برنامج المستخدمين المؤسسين في الصفحة الرئيسية
+## المشكلة
 
-## الموقع الحالي
+العداد يُظهر "متبقي 1000 من 1000" بدلاً من الرقم الحقيقي (945 متبقي من 55 مستخدم حالي).
 
-الصفحة الرئيسية `/` تحتوي على `HeroSection.tsx` مع الترتيب التالي:
-1. العنوان الرئيسي
-2. حالات الاستخدام (سفر، سكن مشترك...)
-3. الوصف
-4. **زر "ابدأ مجاناً"** ← نضيف البانر هنا
-5. شارة الأمان (آمن 100%)
+## السبب الجذري
 
----
+سياسات RLS على جدول `profiles` تتطلب تسجيل الدخول:
+- `Profiles are viewable by owner` → `id = auth.uid()`
+- جميع السياسات الأخرى تتطلب `auth.uid() IS NOT NULL`
 
-## التغيير المطلوب
+عندما يزور مستخدم غير مسجّل الصفحة الرئيسية، استعلام `SELECT id FROM profiles` يُرجع `count = 0` لأنه لا يملك صلاحية الوصول.
 
-إضافة بانر مصغّر لبرنامج المستخدمين المؤسسين **قبل** زر "ابدأ مجاناً" مباشرة.
+الـ hook يستخدم القيمة الافتراضية 1000 عند عدم وجود بيانات.
 
-```text
-┌─────────────────────────────────────────────┐
-│ Diviso ينظّم أي مشاركة بين أكثر من شخص     │
-│ سفر • سكن مشترك • طلعة أصدقاء • نشاط...   │
-│                                             │
-│ أي تجربة تشاركية...                        │
-├─────────────────────────────────────────────┤
-│ ⭐ برنامج المستخدمين المؤسسين              │  ← جديد
-│ متبقي X من 1000 مقعد                       │  ← جديد
-├─────────────────────────────────────────────┤
-│ [ابدأ مجاناً]                               │
-│ ✅ آمن 100%                                 │
-└─────────────────────────────────────────────┘
-```
+## الحل
+
+إنشاء RPC function باستخدام `SECURITY DEFINER` تُرجع عدد المستخدمين فقط (بدون بيانات حساسة).
 
 ---
 
-## الملف المعدّل
+## التغييرات المطلوبة
 
-**`src/components/HeroSection.tsx`**
+### 1. Database Migration
 
-### التغييرات:
+إنشاء function جديدة `get_founding_program_stats`:
 
-1. **إضافة استيراد:**
-```typescript
-import { useFoundingProgram } from "@/hooks/useFoundingProgram";
+```sql
+CREATE OR REPLACE FUNCTION public.get_founding_program_stats()
+RETURNS JSON AS $$
+DECLARE
+  v_total INTEGER;
+  v_limit INTEGER := 1000;
+  v_remaining INTEGER;
+  v_is_closed BOOLEAN;
+BEGIN
+  -- Get total count of users
+  SELECT COUNT(*) INTO v_total FROM profiles;
+  
+  -- Calculate remaining spots
+  v_remaining := GREATEST(0, v_limit - v_total);
+  v_is_closed := (v_remaining = 0);
+  
+  RETURN json_build_object(
+    'total', v_total,
+    'remaining', v_remaining,
+    'limit', v_limit,
+    'isClosed', v_is_closed
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Grant execute permission to anonymous and authenticated users
+GRANT EXECUTE ON FUNCTION public.get_founding_program_stats() TO anon;
+GRANT EXECUTE ON FUNCTION public.get_founding_program_stats() TO authenticated;
 ```
 
-2. **استخدام الـ hook:**
-```typescript
-const { remaining, isClosed } = useFoundingProgram();
-```
+---
 
-3. **إضافة البانر قبل زر CTA (قبل السطر 73):**
+### 2. تحديث useFoundingProgram.ts
+
 ```typescript
-{/* Founding Program Banner - before CTA */}
-{!isClosed && (
-  <div className="mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-amber-500/20 border border-amber-400/30 rounded-xl px-4 py-3 backdrop-blur-sm max-w-sm mx-auto lg:mx-0">
-    <p className="text-sm font-medium text-amber-300 flex items-center justify-center lg:justify-start gap-2">
-      <span>⭐</span>
-      <span>{isRTL ? 'برنامج المستخدمين المؤسسين' : 'Founding Users Program'}</span>
-    </p>
-    <p className="text-xs text-amber-200/80 mt-1 text-center lg:text-start">
-      {isRTL 
-        ? `متبقي ${remaining} من 1000 مقعد`
-        : `${remaining} of 1000 spots remaining`
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface FoundingProgramStats {
+  total: number;
+  remaining: number;
+  limit: number;
+  isClosed: boolean;
+  isLoading: boolean;
+}
+
+const FOUNDING_USERS_LIMIT = 1000;
+
+export function useFoundingProgram(): FoundingProgramStats {
+  const { data, isLoading } = useQuery({
+    queryKey: ['founding-program-stats'],
+    queryFn: async () => {
+      // Use RPC function that bypasses RLS
+      const { data, error } = await supabase
+        .rpc('get_founding_program_stats');
+      
+      if (error) {
+        console.error('Error fetching founding program stats:', error);
+        return { 
+          total: 0, 
+          remaining: FOUNDING_USERS_LIMIT, 
+          limit: FOUNDING_USERS_LIMIT, 
+          isClosed: false 
+        };
       }
-    </p>
-  </div>
-)}
+      
+      return data;
+    },
+    staleTime: 60 * 1000, // 1 minute
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return {
+    total: data?.total ?? 0,
+    remaining: data?.remaining ?? FOUNDING_USERS_LIMIT,
+    limit: data?.limit ?? FOUNDING_USERS_LIMIT,
+    isClosed: data?.isClosed ?? false,
+    isLoading
+  };
+}
 ```
 
 ---
 
-## التصميم
-
-- **الخلفية:** تدرج ذهبي شفاف `from-amber-500/20`
-- **الحدود:** ذهبي `border-amber-400/30`
-- **النص:** أبيض/ذهبي ليتناسب مع خلفية Hero الداكنة
-- **العرض:** محدود `max-w-sm` ليبقى مضغوطاً
-- **الاختفاء:** عند اكتمال 1000 مستخدم (`isClosed`)
-
----
-
-## ملخص التغييرات
+## ملخص الملفات
 
 | الملف | التعديل |
 |-------|---------|
-| `src/components/HeroSection.tsx` | إضافة بانر Founding Program قبل CTA |
+| `supabase/migrations/` | إضافة `get_founding_program_stats` function |
+| `src/hooks/useFoundingProgram.ts` | استخدام RPC بدل SELECT مباشر |
+
+---
+
+## النتيجة المتوقعة
+
+| قبل | بعد |
+|-----|-----|
+| متبقي 1000 من 1000 | متبقي 945 من 1000 |
 
 ---
 
@@ -93,9 +132,8 @@ const { remaining, isClosed } = useFoundingProgram();
 
 | # | المعيار |
 |---|---------|
-| 1 | البانر يظهر قبل زر "ابدأ مجاناً" |
-| 2 | يعرض "برنامج المستخدمين المؤسسين" مع العداد |
-| 3 | يختفي تلقائياً عند اكتمال 1000 مستخدم |
-| 4 | يدعم RTL/LTR |
-| 5 | التصميم متناسق مع خلفية Hero الداكنة |
+| 1 | العداد يُظهر الرقم الصحيح للمستخدم غير المسجّل |
+| 2 | العداد يُظهر الرقم الصحيح للمستخدم المسجّل |
+| 3 | لا يكشف بيانات حساسة (فقط العدد) |
+| 4 | يعمل على الصفحة الرئيسية وصفحة التسجيل |
 
