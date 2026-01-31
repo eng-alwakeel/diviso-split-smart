@@ -1,11 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface FoundingProgramStats {
+interface FoundingProgramStatsData {
   total: number;
   remaining: number;
   limit: number;
   isClosed: boolean;
+}
+
+interface FoundingProgramStats extends FoundingProgramStatsData {
   isLoading: boolean;
 }
 
@@ -14,22 +17,24 @@ const FOUNDING_USERS_LIMIT = 1000;
 export function useFoundingProgram(): FoundingProgramStats {
   const { data, isLoading } = useQuery({
     queryKey: ['founding-program-stats'],
-    queryFn: async () => {
-      // Get total count of users
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true });
+    queryFn: async (): Promise<FoundingProgramStatsData> => {
+      // Use RPC function that bypasses RLS
+      const { data, error } = await supabase
+        .rpc('get_founding_program_stats');
       
       if (error) {
         console.error('Error fetching founding program stats:', error);
-        return { total: 0, remaining: FOUNDING_USERS_LIMIT, limit: FOUNDING_USERS_LIMIT, isClosed: false };
+        return { 
+          total: 0, 
+          remaining: FOUNDING_USERS_LIMIT, 
+          limit: FOUNDING_USERS_LIMIT, 
+          isClosed: false 
+        };
       }
       
-      const total = count ?? 0;
-      const remaining = Math.max(0, FOUNDING_USERS_LIMIT - total);
-      const isClosed = remaining === 0;
-      
-      return { total, remaining, limit: FOUNDING_USERS_LIMIT, isClosed };
+      // Type assertion for the RPC response
+      const stats = data as unknown as FoundingProgramStatsData;
+      return stats;
     },
     staleTime: 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000, // 5 minutes
