@@ -2600,12 +2600,15 @@ export type Database = {
           id: string
           is_admin: boolean
           is_banned: boolean | null
+          is_founding_user: boolean | null
+          last_active_at: string | null
           last_admin_action_at: string | null
           name: string | null
           odoo_partner_id: number | null
           phone: string | null
           privacy_policy_accepted_at: string | null
           updated_at: string
+          user_number: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -2617,12 +2620,15 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_banned?: boolean | null
+          is_founding_user?: boolean | null
+          last_active_at?: string | null
           last_admin_action_at?: string | null
           name?: string | null
           odoo_partner_id?: number | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
           updated_at?: string
+          user_number?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -2634,12 +2640,15 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_banned?: boolean | null
+          is_founding_user?: boolean | null
+          last_active_at?: string | null
           last_admin_action_at?: string | null
           name?: string | null
           odoo_partner_id?: number | null
           phone?: string | null
           privacy_policy_accepted_at?: string | null
           updated_at?: string
+          user_number?: number | null
         }
         Relationships: []
       }
@@ -5167,7 +5176,12 @@ export type Database = {
         }
         Returns: Json
       }
-      grant_welcome_credits: { Args: { p_user_id: string }; Returns: Json }
+      grant_welcome_credits:
+        | { Args: { p_user_id: string }; Returns: Json }
+        | {
+            Args: { p_is_founding?: boolean; p_user_id: string }
+            Returns: Json
+          }
       has_any_permission: {
         Args: {
           _permissions: Database["public"]["Enums"]["permission_scope"][]
@@ -5246,6 +5260,7 @@ export type Database = {
       unarchive_group: { Args: { p_group_id: string }; Returns: boolean }
       update_daily_referral_analytics: { Args: never; Returns: number }
       update_expired_referrals: { Args: never; Returns: number }
+      update_user_activity: { Args: { p_user_id: string }; Returns: undefined }
       validate_family_invitation_token: {
         Args: { p_token: string }
         Returns: {

@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
+import { useActivityTracker } from "@/hooks/useActivityTracker";
 import { RoleAssignmentNotification } from "@/components/RoleAssignmentNotification";
 import { REDIRECTS } from "@/lib/redirects";
 
@@ -90,6 +91,9 @@ const AppRoutes: React.FC = () => {
   
   // Handle deep links
   useDeepLinks();
+  
+  // Track user activity for founding users monthly credits
+  useActivityTracker();
 
   // Track page views for SPA navigation (GTM/GA4)
   const location = useLocation();
