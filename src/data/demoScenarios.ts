@@ -25,6 +25,7 @@ export interface DemoScenario {
   expenses: DemoExpense[];
   tier: 'primary' | 'secondary';
   shareText: string;
+  socialProofText?: string; // Context-aware social proof text
 }
 
 export const DEFAULT_SHARE_TEXT = 'أي مشاركة فيها أكثر من شخص. Diviso ينظم المصاريف بدون إحراج.';
@@ -44,6 +45,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     groupName: 'رحلة دبي',
     currency: 'ر.س',
     shareText: 'مسافرين مع بعض؟ دايم واحد يدفع أكثر 😅 Diviso يقسم المصاريف بعدل ويطلع لكل واحد له أو عليه.',
+    socialProofText: 'أكثر من 1,000 رحلة تم تقسيم مصاريفها بـ Diviso',
     members: [
       { id: 'm1', name: 'أحمد', avatar: 'أ' },
       { id: 'm2', name: 'سعود', avatar: 'س' },
@@ -65,6 +67,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     groupName: 'شلة الجمعة',
     currency: 'ر.س',
     shareText: 'طلعة مطعم؟ قهوة؟ بنزين؟ Diviso يخلي القسمة واضحة بدون نقاش.',
+    socialProofText: 'آلاف الطلعات تم حسابها بعدل مع Diviso',
     members: [
       { id: 'm1', name: 'محمد', avatar: 'م' },
       { id: 'm2', name: 'عبدالله', avatar: 'ع' },
@@ -86,6 +89,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     groupName: 'شقة الشباب',
     currency: 'ر.س',
     shareText: 'إيجار، كهرباء، مشتريات؟ Diviso ينظم السكن المشترك بعدل.',
+    socialProofText: 'مئات الشقق المشتركة تستخدم Diviso يومياً',
     members: [
       { id: 'm1', name: 'يوسف', avatar: 'ي' },
       { id: 'm2', name: 'عمر', avatar: 'ع' },

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Link2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,9 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   const [copied, setCopied] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [demoMode, setDemoMode] = useState<DemoMode>('quick');
+  
+  // Track session start time for demo_abandoned event
+  const startTimeRef = useRef<number>(Date.now());
 
   // Handle mode change
   const handleModeChange = useCallback((mode: DemoMode) => {
@@ -65,12 +68,34 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     onCompleted(durationSeconds, 'interaction');
   }, [trackEvent, scenario.id, onCompleted]);
 
+  // Handle close with demo_abandoned tracking
+  const handleClose = useCallback(() => {
+    if (!isCompleted) {
+      trackEvent('demo_abandoned', {
+        scenario: scenario.id,
+        mode: demoMode,
+        duration_seconds: Math.round((Date.now() - startTimeRef.current) / 1000),
+      });
+    }
+    onClose();
+  }, [isCompleted, scenario.id, demoMode, trackEvent, onClose]);
+
+  // Handle signup with tracking
+  const handleSignupWithTracking = useCallback(() => {
+    trackEvent('signup_cta_clicked', {
+      scenario: scenario.id,
+      mode: demoMode,
+      source: 'demo_experience',
+    });
+    onSignup();
+  }, [trackEvent, scenario.id, demoMode, onSignup]);
+
   // Handle navigation back to launch
   const handleBackToLaunch = useCallback(() => {
     trackEvent('back_to_launch_clicked', { from_mode: demoMode, scenario: scenario.id });
-    onClose();           // إغلاق الـ Overlay أولاً
+    handleClose();       // Use handleClose for proper tracking
     navigate('/launch'); // ثم التنقل للـ Hub
-  }, [navigate, trackEvent, demoMode, scenario.id, onClose]);
+  }, [navigate, trackEvent, demoMode, scenario.id, handleClose]);
 
   // Handle navigation to features
   const handleViewFeatures = useCallback(() => {
@@ -106,7 +131,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between p-4 max-w-lg mx-auto">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-accent rounded-full transition-colors"
             aria-label="إغلاق"
           >
@@ -150,19 +175,27 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
           />
         )}
 
-        {/* CTA Section - Only shows after completion */}
+        {/* CTA Section - Loss Aversion + Social Proof - Only shows after completion */}
         {isCompleted && (
           <section className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* CTA Text */}
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                💾 تبغى تحفظ القسمة وتكمل عليها؟
+            {/* Loss Aversion Alert */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                ⚠️ هذه القسمة مؤقتة
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                سجّل الآن مجانًا حتى لا تضيع واحصل على 50 نقطة 🎁
               </p>
             </div>
             
+            {/* Social Proof - Context Aware */}
+            <p className="text-xs text-center text-muted-foreground">
+              {scenario.socialProofText || 'أكثر من 1,000 مستخدم حقيقي يثقون بـ Diviso'}
+            </p>
+            
             {/* Signup CTA */}
             <Button 
-              onClick={onSignup}
+              onClick={handleSignupWithTracking}
               size="lg"
               className="w-full text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
             >

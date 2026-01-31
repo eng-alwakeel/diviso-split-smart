@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
 import { Coins } from "lucide-react";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 
 const Welcome = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
+  const { trackEvent } = useGoogleAnalytics();
   
   useEffect(() => {
     // Auto-redirect if user visits directly without authentication
@@ -17,13 +19,23 @@ const Welcome = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate('/auth');
+      } else {
+        // Track welcome credits granted
+        trackEvent('welcome_credits_granted', {
+          user_id: session.user.id,
+          credits: 50,
+        });
       }
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, trackEvent]);
   
   const handleStart = () => {
     navigate('/create-group');
+  };
+
+  const handleTryDemo = () => {
+    navigate('/launch');
   };
 
   const handleSkip = () => {
@@ -59,14 +71,18 @@ const Welcome = () => {
             </p>
           </div>
           
-          {/* Next Step */}
+          {/* Next Step Question */}
           <p className="text-muted-foreground text-sm">
-            {t('welcome.next_step')}
+            {t('welcome.next_step_question')}
           </p>
           
+          {/* Two CTAs */}
           <div className="space-y-3">
             <Button onClick={handleStart} size="lg" className="w-full text-base">
-              {t('welcome.cta')}
+              {t('welcome.cta_create_group')}
+            </Button>
+            <Button onClick={handleTryDemo} variant="outline" size="lg" className="w-full text-base">
+              {t('welcome.cta_try_demo')}
             </Button>
             <Button onClick={handleSkip} variant="ghost" size="sm" className="w-full text-muted-foreground">
               {t('welcome.skip')}
