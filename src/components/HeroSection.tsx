@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { AnimatedCounter } from "./landing/AnimatedCounter";
 import { useEffect, useState } from "react";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
+import { useFoundingProgram } from "@/hooks/useFoundingProgram";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
   const { trackClickCTA } = useGoogleAnalytics();
+  const { remaining, isClosed } = useFoundingProgram();
   const isRTL = i18n.language === 'ar';
   const [showScrollArrow, setShowScrollArrow] = useState(true);
 
@@ -66,9 +68,25 @@ export const HeroSection = () => {
             </div>
 
             {/* Value Description */}
-            <p className="text-lg md:text-xl text-white/80 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
+            <p className="text-lg md:text-xl text-white/80 mb-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
               {t('hero.valueDesc')}
             </p>
+
+            {/* Founding Program Banner - before CTA */}
+            {!isClosed && (
+              <div className="mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-amber-500/20 border border-amber-400/30 rounded-xl px-4 py-3 backdrop-blur-sm max-w-sm mx-auto lg:mx-0">
+                <p className="text-sm font-medium text-amber-300 flex items-center justify-center lg:justify-start gap-2">
+                  <span>⭐</span>
+                  <span>{isRTL ? 'برنامج المستخدمين المؤسسين' : 'Founding Users Program'}</span>
+                </p>
+                <p className="text-xs text-amber-200/80 mt-1 text-center lg:text-start">
+                  {isRTL 
+                    ? `متبقي ${remaining} من 1000 مقعد`
+                    : `${remaining} of 1000 spots remaining`
+                  }
+                </p>
+              </div>
+            )}
 
             {/* CTA Button with Glow Effect */}
             <div className="mb-8">
