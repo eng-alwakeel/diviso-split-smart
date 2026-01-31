@@ -1,83 +1,313 @@
 
-# خطة: إصلاح زر "كل التجارب" في صفحات التجارب
+# خطة: تحسين صفحة إنشاء الحساب لتقليل الاحتكاك
 
-## المشكلة
+## الوضع الحالي
 
-عند الضغط على زر "← كل التجارب" في صفحة التجربة:
-- الزر يستدعي `navigate('/launch')` مباشرة
-- لكن الـ `showDemo` state يبقى `true`
-- النتيجة: لا يحدث شيء ظاهرياً
+### صفحة Auth.tsx
+| العنصر | الوضع الحالي | المشكلة |
+|--------|--------------|---------|
+| CTA التسجيل | "إنشاء حساب" فقط | لا يوضح أنه مجاني |
+| رسالة القيمة | غير موجودة | لا يعرف المستخدم ماذا سيحصل |
+| Social Proof | غير موجود | لا ثقة |
+| متطلبات كلمة المرور | 4 شروط صارمة | احتكاك عالي |
+| شاشة الترحيب | غير موجودة | لا وضوح بعد التسجيل |
 
-## السبب الجذري
-
-```typescript
-// DemoExperience.tsx - سطر 69-72
-const handleBackToLaunch = useCallback(() => {
-  trackEvent('back_to_launch_clicked', ...);
-  navigate('/launch');  // ❌ يغير URL فقط، لا يُغلق الـ Overlay
-}, ...);
-```
-
-## الحل
-
-تغيير `handleBackToLaunch` ليستخدم `onClose` (الذي يُحدّث الـ state) **ثم** `navigate`:
-
-```typescript
-// DemoExperience.tsx
-const handleBackToLaunch = useCallback(() => {
-  trackEvent('back_to_launch_clicked', { from_mode: demoMode, scenario: scenario.id });
-  onClose();              // 1. إغلاق الـ Overlay
-  navigate('/launch');    // 2. ثم التنقل للـ Hub
-}, [navigate, trackEvent, demoMode, scenario.id, onClose]);
-```
+### متطلبات كلمة المرور الحالية (PasswordRequirements.tsx)
+- 8 أحرف على الأقل
+- حرف كبير (A-Z)
+- حرف صغير (a-z)
+- رقم واحد على الأقل
 
 ---
 
-## الملفات المطلوب تعديلها
+## التغييرات المطلوبة
 
-| الملف | التعديل |
-|-------|---------|
-| `src/components/launch/DemoExperience.tsx` | إضافة `onClose()` قبل `navigate('/launch')` |
-
----
-
-## التغيير في الكود
-
-### DemoExperience.tsx - سطر 69-72
-
-**قبل:**
-```typescript
-const handleBackToLaunch = useCallback(() => {
-  trackEvent('back_to_launch_clicked', { from_mode: demoMode, scenario: scenario.id });
-  navigate('/launch');
-}, [navigate, trackEvent, demoMode, scenario.id]);
-```
-
-**بعد:**
-```typescript
-const handleBackToLaunch = useCallback(() => {
-  trackEvent('back_to_launch_clicked', { from_mode: demoMode, scenario: scenario.id });
-  onClose();           // إغلاق الـ Overlay أولاً
-  navigate('/launch'); // ثم التنقل للـ Hub
-}, [navigate, trackEvent, demoMode, scenario.id, onClose]);
-```
-
----
-
-## تدفق العمل بعد الإصلاح
+### 1. إضافة Value Proposition Banner (أعلى الفورم)
 
 ```text
-المستخدم في /launch?demo=travel
-       ↓
-يضغط "← كل التجارب"
-       ↓
-handleBackToLaunch()
-       ↓
-onClose() → showDemo=false, selectedScenario=null
-       ↓
-navigate('/launch')
-       ↓
-يظهر Hub صفحة /launch بشكل صحيح
+┌─────────────────────────────────────────┐
+│ 🎁 التسجيل مجاني تماماً                  │
+│                                          │
+│ ✓ 50 نقطة ترحيبية فوراً                  │
+│ ✓ بدون بطاقة ائتمان                     │
+│ ✓ بدون أي التزام                        │
+└─────────────────────────────────────────┘
+```
+
+### 2. تحديث نص زر التسجيل
+
+| قبل | بعد |
+|-----|-----|
+| "إنشاء حساب" | "إنشاء حساب مجاني" |
+
+### 3. إضافة Social Proof (تحت الفورم)
+
+```text
+┌─────────────────────────────────────────┐
+│ 👥 انضم لمستخدمين حقيقيين               │
+│    يستخدمون Diviso يومياً               │
+└─────────────────────────────────────────┘
+```
+
+### 4. تبسيط متطلبات كلمة المرور
+
+**الخيار المقترح:** تخفيف المتطلبات مع إبقاء الحد الأدنى للأمان
+
+| المتطلب | قبل | بعد |
+|---------|-----|-----|
+| الحد الأدنى | 8 أحرف | 6 أحرف |
+| حرف كبير | مطلوب | ❌ محذوف |
+| حرف صغير | مطلوب | ❌ محذوف |
+| رقم | مطلوب | ❌ محذوف |
+
+**ملاحظة:** Supabase لديه حد أدنى 6 أحرف افتراضياً. تبسيط الشروط يقلل الاحتكاك بشكل كبير.
+
+### 5. جعل Google Login أكثر بروزاً
+
+```text
+قبل:
+[Google] ثم ── أو ── ثم [Form]
+
+بعد:
+┌─────────────────────────────────────────┐
+│ [🔐 سجّل بحساب Google - الأسرع]         │  ← أكبر وأوضح
+│                                          │
+│           ─────── أو ───────             │
+│                                          │
+│ [Form fields - أصغر]                     │
+└─────────────────────────────────────────┘
+```
+
+### 6. إنشاء شاشة ترحيب بعد التسجيل (WelcomeScreen)
+
+```text
+┌─────────────────────────────────────────┐
+│                 🎉                       │
+│                                          │
+│         مرحباً بك في Diviso!            │
+│                                          │
+│ ┌─────────────────────────────────────┐ │
+│ │ 💰 رصيدك الحالي                      │ │
+│ │                                      │ │
+│ │      50 نقطة ترحيبية                 │ │
+│ │                                      │ │
+│ │ صالحة لمدة 7 أيام                    │ │
+│ └─────────────────────────────────────┘ │
+│                                          │
+│       ابدأ بإنشاء مجموعتك الأولى        │
+│                                          │
+│        [ ابدأ الآن 🚀 ]                  │
+│                                          │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## الملفات المطلوب إنشاءها/تعديلها
+
+| الملف | النوع | الوصف |
+|-------|-------|-------|
+| `src/pages/Auth.tsx` | تعديل | إضافة Value Banner + Social Proof + تحديث CTA |
+| `src/components/auth/PasswordRequirements.tsx` | تعديل | تبسيط الشروط |
+| `src/components/auth/SignupValueBanner.tsx` | جديد | رسالة القيمة |
+| `src/components/auth/SocialProofText.tsx` | جديد | Social Proof |
+| `src/pages/Welcome.tsx` | جديد | شاشة الترحيب |
+| `src/i18n/locales/ar/auth.json` | تعديل | إضافة الترجمات |
+| `src/i18n/locales/en/auth.json` | تعديل | إضافة الترجمات |
+| `src/App.tsx` | تعديل | إضافة route لـ /welcome |
+
+---
+
+## التفاصيل التقنية
+
+### 1. SignupValueBanner.tsx
+
+```typescript
+export const SignupValueBanner = () => {
+  const { t } = useTranslation('auth');
+  
+  return (
+    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Gift className="h-5 w-5 text-primary" />
+        <span className="font-semibold text-sm">{t('signup_value.title')}</span>
+      </div>
+      <ul className="space-y-2 text-sm text-muted-foreground">
+        <li className="flex items-center gap-2">
+          <Check className="h-4 w-4 text-green-500" />
+          {t('signup_value.points')}
+        </li>
+        <li className="flex items-center gap-2">
+          <Check className="h-4 w-4 text-green-500" />
+          {t('signup_value.no_card')}
+        </li>
+        <li className="flex items-center gap-2">
+          <Check className="h-4 w-4 text-green-500" />
+          {t('signup_value.no_commitment')}
+        </li>
+      </ul>
+    </div>
+  );
+};
+```
+
+### 2. تبسيط PasswordRequirements.tsx
+
+```typescript
+// قبل:
+export const validatePasswordRequirements = (password: string) => {
+  return {
+    minLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  };
+};
+
+export const isPasswordValid = (password: string): boolean => {
+  const reqs = validatePasswordRequirements(password);
+  return reqs.minLength && reqs.hasUppercase && reqs.hasLowercase && reqs.hasNumber;
+};
+
+// بعد:
+export const validatePasswordRequirements = (password: string) => {
+  return {
+    minLength: password.length >= 6,
+  };
+};
+
+export const isPasswordValid = (password: string): boolean => {
+  return password.length >= 6;
+};
+```
+
+### 3. Welcome.tsx - شاشة الترحيب
+
+```typescript
+const Welcome = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation('auth');
+  
+  useEffect(() => {
+    // Auto-redirect if user visits directly without registration
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) navigate('/auth');
+    };
+    checkAuth();
+  }, [navigate]);
+  
+  const handleStart = () => {
+    navigate('/create-group');
+  };
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <Card className="max-w-md w-full text-center">
+        <CardHeader>
+          <div className="text-5xl mb-4">🎉</div>
+          <CardTitle>{t('welcome.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Balance Card */}
+          <div className="bg-primary/10 rounded-xl p-6">
+            <p className="text-sm text-muted-foreground mb-2">
+              {t('welcome.balance_label')}
+            </p>
+            <p className="text-3xl font-bold text-primary">50</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('welcome.points_unit')}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t('welcome.validity')}
+            </p>
+          </div>
+          
+          {/* Next Step */}
+          <p className="text-muted-foreground">
+            {t('welcome.next_step')}
+          </p>
+          
+          <Button onClick={handleStart} size="lg" className="w-full">
+            {t('welcome.cta')}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+```
+
+### 4. تحديث Auth.tsx - Redirect بعد التسجيل
+
+```typescript
+// في onAuthStateChange أو بعد التحقق الناجح
+// بدلاً من:
+navigate("/dashboard");
+
+// يصبح:
+navigate("/welcome"); // للمستخدمين الجدد فقط
+```
+
+### 5. تحديث ملفات الترجمة
+
+```json
+// ar/auth.json - إضافات
+{
+  "buttons": {
+    "signup": "إنشاء حساب مجاني",
+    "google_login_fast": "سجّل بحساب Google - الأسرع"
+  },
+  "signup_value": {
+    "title": "التسجيل مجاني تماماً",
+    "points": "50 نقطة ترحيبية فوراً",
+    "no_card": "بدون بطاقة ائتمان",
+    "no_commitment": "بدون أي التزام"
+  },
+  "social_proof": {
+    "text": "انضم لمستخدمين حقيقيين يستخدمون Diviso يومياً"
+  },
+  "welcome": {
+    "title": "مرحباً بك في Diviso!",
+    "balance_label": "رصيدك الحالي",
+    "points_unit": "نقطة ترحيبية",
+    "validity": "صالحة لمدة 7 أيام",
+    "next_step": "ابدأ بإنشاء مجموعتك الأولى",
+    "cta": "ابدأ الآن 🚀"
+  },
+  "password_requirements": {
+    "title": "متطلبات كلمة المرور:",
+    "min_length": "6 أحرف على الأقل"
+  }
+}
+```
+
+---
+
+## تدفق المستخدم الجديد
+
+```text
+صفحة التسجيل
+     │
+     ├──→ يرى Value Banner (50 نقطة مجانية)
+     │
+     ├──→ يختار Google (الأسرع) أو Email/Phone
+     │
+     ├──→ يدخل كلمة مرور (6 أحرف فقط)
+     │
+     ├──→ يوافق على Privacy Policy
+     │
+     ├──→ يضغط "إنشاء حساب مجاني"
+     │
+     ▼
+شاشة الترحيب /welcome
+     │
+     ├──→ يرى الـ 50 نقطة
+     │
+     ├──→ يفهم الخطوة التالية
+     │
+     ▼
+     [ ابدأ الآن ] → /create-group
 ```
 
 ---
@@ -86,17 +316,24 @@ navigate('/launch')
 
 | # | المعيار |
 |---|---------|
-| 1 | زر "كل التجارب" يُغلق صفحة التجربة |
-| 2 | المستخدم يعود لصفحة `/launch` (Hub) |
-| 3 | الـ URL يتغير من `/launch?demo=X` إلى `/launch` |
-| 4 | Analytics event يُرسل بشكل صحيح |
+| 1 | Value Banner يظهر أعلى فورم التسجيل |
+| 2 | زر التسجيل نصه "إنشاء حساب مجاني" |
+| 3 | Social Proof يظهر أسفل الفورم |
+| 4 | متطلبات كلمة المرور مبسطة (6 أحرف فقط) |
+| 5 | Google Login أكثر بروزاً |
+| 6 | شاشة ترحيب تظهر بعد التسجيل الناجح |
+| 7 | الشاشة توضح الـ 50 نقطة والخطوة التالية |
+| 8 | زر "ابدأ الآن" يوجه لـ /create-group |
 
 ---
 
-## ملخص
+## ملخص التغييرات
 
-| العنصر | التفاصيل |
-|--------|----------|
-| ملفات معدلة | 1 |
-| أسطر معدلة | 2 |
-| الوقت المتوقع | 2 دقيقة |
+| العنصر | العدد |
+|--------|-------|
+| ملفات جديدة | 3 |
+| ملفات معدلة | 5 |
+| مكونات UI جديدة | 3 |
+| Routes جديدة | 1 |
+
+**الوقت المتوقع للتنفيذ:** 30-40 دقيقة
