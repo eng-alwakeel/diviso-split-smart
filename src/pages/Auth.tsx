@@ -27,7 +27,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { startTrial } = useSubscription();
   const { t } = useTranslation(['auth', 'common']);
-  const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password" | "email-sent">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "verify" | "forgot-password" | "reset-password" | "email-sent">("signup");
   const [authType, setAuthType] = useState<"email" | "phone">("email");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -51,6 +51,8 @@ const Auth = () => {
   
   // Signup other options collapsed state
   const [showOtherOptions, setShowOtherOptions] = useState(false);
+  // Login other options collapsed state
+  const [showLoginOptions, setShowLoginOptions] = useState(false);
   const [canResendEmail, setCanResendEmail] = useState(true);
   
 
@@ -520,9 +522,10 @@ const Auth = () => {
     if (urlMode === "reset") {
       setMode("reset-password");
       setAuthType("email");
-    } else if (urlMode === "signup") {
-      setMode("signup");
+    } else if (urlMode === "login") {
+      setMode("login");
     }
+    // Any other mode (including no mode) stays as signup (default)
   }, []);
 
   const handleUpdatePasswordFromEmail = async () => {
@@ -1010,112 +1013,187 @@ const Auth = () => {
               </>
             ) : mode === "login" ? (
               <>
-                <Tabs value={authType} onValueChange={(value) => setAuthType(value as "email" | "phone")} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="email" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      {t('auth:tabs.email')}
-                    </TabsTrigger>
-                    <TabsTrigger value="phone" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {t('auth:tabs.phone')}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="email" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">{t('auth:fields.email')}</Label>
-                      <Input 
-                        id="email" 
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        placeholder={t('auth:fields.email_placeholder')}
-                        dir="ltr"
-                        className="text-left"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">{t('auth:fields.password')}</Label>
-                      <div className="relative">
-                        <Input 
-                          id="password" 
-                          type={showPassword ? "text" : "password"} 
-                          value={password} 
-                          onChange={(e) => setPassword(e.target.value)} 
-                          placeholder={t('auth:fields.password_placeholder')}
-                          className="pl-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="link" 
-                      type="button"
-                      className="text-sm text-primary p-0 h-auto"
-                      onClick={() => setMode("forgot-password")}
-                    >
-                      {t('auth:buttons.forgot_password')}
-                    </Button>
-                  </TabsContent>
-                  
-                  <TabsContent value="phone" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">{t('auth:fields.phone')}</Label>
-                      <PhoneInputWithCountry
-                        value={phone}
-                        onChange={setPhone}
-                        placeholder={t('auth:fields.phone_placeholder')}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">{t('auth:fields.password')}</Label>
-                      <div className="relative">
-                        <Input 
-                          id="password" 
-                          type={showPassword ? "text" : "password"} 
-                          value={password} 
-                          onChange={(e) => setPassword(e.target.value)} 
-                          placeholder={t('auth:fields.password_placeholder')}
-                          className="pl-10"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="link" 
-                      type="button"
-                      className="text-sm text-primary p-0 h-auto"
-                      onClick={() => setMode("forgot-password")}
-                    >
-                      {t('auth:buttons.forgot_password')}
-                    </Button>
-                  </TabsContent>
-                </Tabs>
+                {/* قسم الطمأنة */}
+                <div className="bg-muted/50 rounded-xl p-4 mb-4 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    {t('auth:login_reassurance.message')}
+                  </p>
+                </div>
                 
-                <Button 
-                  className="w-full" 
-                  onClick={handleLogin} 
+                {/* Google Button - Primary */}
+                <Button
+                  variant="default"
+                  className="w-full h-14 text-base font-medium flex items-center justify-center gap-2"
+                  onClick={() => {
+                    trackGAEvent('login_google_clicked');
+                    handleGoogleLogin();
+                  }}
                   disabled={loading}
                 >
-                  {loading ? t('auth:loading.logging_in') : t('auth:buttons.login')}
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  {t('auth:buttons.google_login_fast')}
                 </Button>
+                
+                {/* Divider */}
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">{t('auth:messages.or')}</span>
+                  </div>
+                </div>
+                
+                {/* Other Login Options - Collapsible */}
+                <Collapsible 
+                  open={showLoginOptions} 
+                  onOpenChange={(open) => {
+                    setShowLoginOptions(open);
+                    if (open) {
+                      trackGAEvent('login_other_options_opened');
+                    }
+                  }}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                      {t('auth:buttons.other_login_options')}
+                      {showLoginOptions ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent className="space-y-4 mt-4">
+                    <Tabs value={authType} onValueChange={(value) => setAuthType(value as "email" | "phone")} className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="email" className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          {t('auth:tabs.email')}
+                        </TabsTrigger>
+                        <TabsTrigger value="phone" className="flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          {t('auth:tabs.phone')}
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="email" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">{t('auth:fields.email')}</Label>
+                          <Input 
+                            id="email" 
+                            type="email" 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                            placeholder={t('auth:fields.email_placeholder')}
+                            dir="ltr"
+                            className="text-left"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">{t('auth:fields.password')}</Label>
+                          <div className="relative">
+                            <Input 
+                              id="password" 
+                              type={showPassword ? "text" : "password"} 
+                              value={password} 
+                              onChange={(e) => setPassword(e.target.value)} 
+                              placeholder={t('auth:fields.password_placeholder')}
+                              className="pl-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="link" 
+                          type="button"
+                          className="text-sm text-primary p-0 h-auto"
+                          onClick={() => setMode("forgot-password")}
+                        >
+                          {t('auth:buttons.forgot_password')}
+                        </Button>
+                      </TabsContent>
+                      
+                      <TabsContent value="phone" className="space-y-4 mt-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">{t('auth:fields.phone')}</Label>
+                          <PhoneInputWithCountry
+                            value={phone}
+                            onChange={setPhone}
+                            placeholder={t('auth:fields.phone_placeholder')}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">{t('auth:fields.password')}</Label>
+                          <div className="relative">
+                            <Input 
+                              id="password" 
+                              type={showPassword ? "text" : "password"} 
+                              value={password} 
+                              onChange={(e) => setPassword(e.target.value)} 
+                              placeholder={t('auth:fields.password_placeholder')}
+                              className="pl-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="link" 
+                          type="button"
+                          className="text-sm text-primary p-0 h-auto"
+                          onClick={() => setMode("forgot-password")}
+                        >
+                          {t('auth:buttons.forgot_password')}
+                        </Button>
+                      </TabsContent>
+                    </Tabs>
+                    
+                    <Button 
+                      className="w-full" 
+                      onClick={handleLogin} 
+                      disabled={loading}
+                    >
+                      {loading ? t('auth:loading.logging_in') : t('auth:buttons.login')}
+                    </Button>
+                  </CollapsibleContent>
+                </Collapsible>
+                
+                {/* CTA للتحويل إلى Signup */}
+                <div className="pt-4 border-t mt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 text-primary border-primary/30 hover:bg-primary/5"
+                    onClick={() => {
+                      trackGAEvent('login_to_signup_cta_clicked');
+                      navigate('/auth?mode=signup&redirect=/create-group');
+                    }}
+                  >
+                    {t('auth:buttons.create_account_cta')}
+                  </Button>
+                </div>
+                
                 <p className="text-center text-sm">
                   {t('auth:buttons.no_account')}{" "}
                   <button
