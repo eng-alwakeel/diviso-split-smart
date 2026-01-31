@@ -65,6 +65,7 @@ const LazyUseCaseDetails = withLazyLoading(lazy(() => import("./pages/UseCaseDet
 const LazyLandingPage = withLazyLoading(lazy(() => import("./pages/LandingPage")));
 const LazyLaunchPage = withLazyLoading(lazy(() => import("./pages/LaunchPage")));
 const LazyInfluencerPage = withLazyLoading(lazy(() => import("./pages/InfluencerPage")));
+const LazyWelcome = withLazyLoading(lazy(() => import("./pages/Welcome")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -113,6 +114,7 @@ const AppRoutes: React.FC = () => {
         <Routes>
             <Route path="/auth" element={<LazyAuth />} />
             <Route path="/auth/verify" element={<EmailVerify />} />
+            <Route path="/welcome" element={<ProtectedRoute><LazyWelcome /></ProtectedRoute>} />
             <Route path="/" element={<LazyIndex />} />
             <Route path="/i/:code" element={<InviteRoute />} />
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
