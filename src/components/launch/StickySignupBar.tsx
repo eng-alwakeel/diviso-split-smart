@@ -29,7 +29,7 @@ export const StickySignupBar: React.FC<StickySignupBarProps> = ({ visible, onSig
           <p className="text-xs text-muted-foreground mt-1">
             {isClosed 
               ? 'سجّل مجانًا واحصل على 50 نقطة 🎁'
-              : `متبقي ${remaining} من 1000 مقعد`
+            : `⏳ متبقي ${remaining} من 1000 مقعد`
             }
           </p>
         </div>

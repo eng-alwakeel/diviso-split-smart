@@ -1,4 +1,4 @@
-import { Star, Check, Flame } from "lucide-react";
+import { Star, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useFoundingProgram } from "@/hooks/useFoundingProgram";
 import { Link } from "react-router-dom";
@@ -39,12 +39,11 @@ export const FoundingProgramBanner = () => {
       </ul>
       
       {/* Remaining Counter */}
-      <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400">
-        <Flame className="h-4 w-4" />
+      <div className="text-sm font-medium text-amber-600 dark:text-amber-400">
         {isLoading ? (
-          <span className="animate-pulse">...</span>
+          <span className="animate-pulse">⏳ ...</span>
         ) : (
-          <span>{t('founding_program.remaining', { remaining, limit })}</span>
+          <span>{t('founding_program.spots_remaining', { remaining })}</span>
         )}
       </div>
       
