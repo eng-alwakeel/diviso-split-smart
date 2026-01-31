@@ -293,7 +293,7 @@ const LaunchPage: React.FC = () => {
                 ⭐ انضم لبرنامج المستخدمين المؤسسين
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                متبقي {remaining} من 1000 مقعد
+                ⏳ متبقي {remaining} من 1000 مقعد
               </p>
             </div>
           )}

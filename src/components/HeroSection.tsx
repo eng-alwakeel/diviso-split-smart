@@ -81,8 +81,8 @@ export const HeroSection = () => {
                 </p>
                 <p className="text-xs text-amber-200/80 mt-1 text-center lg:text-start">
                   {isRTL 
-                    ? `متبقي ${remaining} من 1000 مقعد`
-                    : `${remaining} of 1000 spots remaining`
+                    ? `⏳ متبقي ${remaining} من 1000 مقعد`
+                    : `⏳ ${remaining} of 1000 spots remaining`
                   }
                 </p>
               </div>

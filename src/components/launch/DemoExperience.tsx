@@ -188,7 +188,7 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
                     ⭐ احفظ هذه القسمة وانضم لبرنامج المستخدمين المؤسسين
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    متبقي {remaining} من 1000 مقعد
+                    ⏳ متبقي {remaining} من 1000 مقعد
                   </p>
                 </>
               ) : (
