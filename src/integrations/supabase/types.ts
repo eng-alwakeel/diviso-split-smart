@@ -4908,6 +4908,7 @@ export type Database = {
           plan_type: string
         }[]
       }
+      get_founding_program_stats: { Args: never; Returns: Json }
       get_funnel_metrics: {
         Args: { p_days?: number }
         Returns: {
