@@ -20,6 +20,7 @@ import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 import { SignupValueBanner } from "@/components/auth/SignupValueBanner";
+import { FoundingProgramBanner } from "@/components/auth/FoundingProgramBanner";
 import { SocialProofText } from "@/components/auth/SocialProofText";
 import { trackGAEvent } from "@/hooks/useGoogleAnalytics";
 const Auth = () => {
@@ -598,8 +599,8 @@ const Auth = () => {
             {/* ==================== SIGNUP MODE ==================== */}
             {mode === "signup" && (
               <div className="space-y-4">
-                {/* Value Proposition Banner */}
-                <SignupValueBanner />
+                {/* Founding Program Banner */}
+                <FoundingProgramBanner />
                 
                 {/* Google Button - Primary CTA */}
                 <Button

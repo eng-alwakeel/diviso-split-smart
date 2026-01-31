@@ -62,6 +62,18 @@
     "governing_law": {
       "title": "8. Governing Law and Jurisdiction",
       "content": "These Terms & Conditions are governed by and construed in accordance with the laws of the Kingdom of Saudi Arabia."
+    },
+    "founding_program": {
+      "title": "9. Founding Users Program",
+      "intro": "This program applies to the first 1,000 registered users:",
+      "items": {
+        "eligibility": "The first 1,000 users benefit from the program",
+        "benefits": "100 welcome points + 50 monthly points with one login per month",
+        "activity_requirement": "Monthly login required for monthly credit eligibility",
+        "non_transferable": "Benefits are non-transferable and cannot be sold",
+        "lifetime_definition": "\"Lifetime\" means the duration the account remains active and compliant",
+        "termination": "The system reserves the right to suspend benefits upon misuse"
+      }
     }
   }
 }

@@ -1,9 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { AdminBadge } from "@/components/ui/admin-badge";
+import { FoundingBadge } from "@/components/ui/founding-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { cn } from "@/lib/utils";
 
 interface UserDisplayWithBadgesProps {
@@ -17,6 +19,7 @@ interface UserDisplayWithBadgesProps {
   };
   showAvatar?: boolean;
   showPlanBadge?: boolean;
+  showFoundingBadge?: boolean;
   avatarSize?: "sm" | "md" | "lg";
   badgeSize?: "sm" | "md" | "lg";
   className?: string;
@@ -28,6 +31,7 @@ export function UserDisplayWithBadges({
   user,
   showAvatar = true,
   showPlanBadge = true,
+  showFoundingBadge = true,
   avatarSize = "md",
   badgeSize = "sm",
   className,
@@ -37,6 +41,7 @@ export function UserDisplayWithBadges({
   const { badgeConfig: planBadgeConfig } = usePlanBadge();
   const { badgeConfig: adminBadgeConfig } = useAdminBadge();
   const { isAdmin: userIsAdmin } = useAdminCheck(user.id);
+  const { userNumber, isFoundingUser } = useFoundingUser(user.id);
 
   const avatarSizes = {
     sm: "h-6 w-6",
@@ -64,6 +69,13 @@ export function UserDisplayWithBadges({
           </span>
           
           <div className="flex items-center gap-1">
+            {showFoundingBadge && isFoundingUser && userNumber && (
+              <FoundingBadge 
+                userNumber={userNumber} 
+                size={badgeSize}
+              />
+            )}
+            
             {showAdminBadge && (
               <AdminBadge 
                 config={adminBadgeConfig} 
