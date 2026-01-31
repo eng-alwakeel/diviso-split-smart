@@ -1182,6 +1182,51 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_sessions: {
+        Row: {
+          converted_to_user_id: string | null
+          created_at: string | null
+          device_type: string | null
+          expenses_count: number | null
+          groups_created: number | null
+          id: string
+          last_activity_at: string | null
+          scenarios_tried: string[] | null
+          session_id: string
+          time_spent_seconds: number | null
+          utm_campaign: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          converted_to_user_id?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          expenses_count?: number | null
+          groups_created?: number | null
+          id?: string
+          last_activity_at?: string | null
+          scenarios_tried?: string[] | null
+          session_id: string
+          time_spent_seconds?: number | null
+          utm_campaign?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          converted_to_user_id?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          expenses_count?: number | null
+          groups_created?: number | null
+          id?: string
+          last_activity_at?: string | null
+          scenarios_tried?: string[] | null
+          session_id?: string
+          time_spent_seconds?: number | null
+          utm_campaign?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       email_verification_codes: {
         Row: {
           code: string
@@ -4897,6 +4942,7 @@ export type Database = {
           total_purchased: number
         }[]
       }
+      get_demo_stats: { Args: never; Returns: Json }
       get_family_quota_limits: {
         Args: { p_user_id: string }
         Returns: {

@@ -9,6 +9,7 @@ import { EnhancedPerformanceMonitor } from "@/components/performance/EnhancedPer
 import { withLazyLoading } from "@/components/LazyComponents";
 import { AdPreferencesProvider } from "@/contexts/AdPreferencesContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { GuestSessionProvider } from "@/contexts/GuestSessionContext";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { useNativeFeatures } from "@/hooks/useNativeFeatures";
 import { useDeepLinks } from "@/hooks/useDeepLinks";
@@ -183,9 +184,11 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AdPreferencesProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <GuestSessionProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </GuestSessionProvider>
         </AdPreferencesProvider>
       </LanguageProvider>
     </QueryClientProvider>
