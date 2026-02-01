@@ -6,14 +6,10 @@ import { DemoModeToggle, type DemoMode } from './DemoModeToggle';
 import { DemoNavigation } from './DemoNavigation';
 import { QuickDemoView } from './QuickDemoView';
 import { FullDemoView } from './FullDemoView';
-import { GuestModeBanner } from '@/components/guest/GuestModeBanner';
-import { GuestConversionPrompt } from '@/components/guest/GuestConversionPrompt';
 import { shareExperience } from '@/lib/share';
 import { useToast } from '@/hooks/use-toast';
 import { useGoogleAnalytics } from '@/hooks/useGoogleAnalytics';
 import { useFoundingProgram } from '@/hooks/useFoundingProgram';
-import { useGuestSession } from '@/hooks/useGuestSession';
-import { useGuestAnalytics } from '@/hooks/useGuestAnalytics';
 import type { DemoScenario } from '@/data/demoScenarios';
 
 interface DemoExperienceProps {
@@ -35,8 +31,6 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
   const { toast } = useToast();
   const { trackEvent } = useGoogleAnalytics();
   const { remaining, isClosed } = useFoundingProgram();
-  const { shouldShowConversionPrompt, isGuestMode } = useGuestSession();
-  const { trackScenarioCompleted, trackConversionClicked } = useGuestAnalytics();
   
   const [copied, setCopied] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -58,9 +52,8 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     completionMode: 'balances_view' | 'timer' | 'interaction'
   ) => {
     setIsCompleted(true);
-    trackScenarioCompleted(scenario.id, durationSeconds);
     onCompleted(durationSeconds, completionMode);
-  }, [onCompleted, trackScenarioCompleted, scenario.id]);
+  }, [onCompleted]);
 
   // Handle full demo completion
   const handleFullDemoCompleted = useCallback((
@@ -69,16 +62,14 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
     expensesCount: number
   ) => {
     setIsCompleted(true);
-    trackScenarioCompleted(scenario.id, durationSeconds);
     trackEvent('full_demo_completed', {
       scenario: scenario.id,
       duration_seconds: durationSeconds,
       members_count: membersCount,
       expenses_count: expensesCount,
     });
-    // Use 'interaction' as the completion mode for full demo
     onCompleted(durationSeconds, 'interaction');
-  }, [trackEvent, trackScenarioCompleted, scenario.id, onCompleted]);
+  }, [trackEvent, scenario.id, onCompleted]);
 
   // Handle close with demo_abandoned tracking
   const handleClose = useCallback(() => {
@@ -94,14 +85,13 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
 
   // Handle signup with tracking
   const handleSignupWithTracking = useCallback(() => {
-    trackConversionClicked(false);
     trackEvent('signup_cta_clicked', {
       scenario: scenario.id,
       mode: demoMode,
       source: 'demo_experience',
     });
     onSignup();
-  }, [trackEvent, trackConversionClicked, scenario.id, demoMode, onSignup]);
+  }, [trackEvent, scenario.id, demoMode, onSignup]);
 
   // Handle try another scenario
   const handleTryAnother = useCallback(() => {
@@ -150,8 +140,6 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
       className="fixed inset-0 z-50 bg-background overflow-y-auto"
       dir="rtl"
     >
-      {/* Guest Mode Banner - shows at top when in guest mode */}
-      {isGuestMode && <GuestModeBanner className="relative" />}
       
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -201,57 +189,50 @@ export const DemoExperience: React.FC<DemoExperienceProps> = ({
           />
         )}
 
-        {/* CTA Section - Smart Conversion Prompt - Only shows after completion */}
+        {/* CTA Section - Only shows after completion */}
         {isCompleted && (
           <section className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Check if should show smart conversion prompt */}
-            {shouldShowConversionPrompt() ? (
-              <GuestConversionPrompt onTryAnother={handleTryAnother} />
-            ) : (
-              <>
-                {/* Founding Program or Loss Aversion Alert */}
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
-                  {!isClosed ? (
-                    <>
-                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                        ⭐ احفظ هذه القسمة وانضم لبرنامج المستخدمين المؤسسين
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        ⏳ متبقي {remaining} من 1000 مقعد
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                        ⚠️ هذه القسمة مؤقتة
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        سجّل الآن مجانًا حتى لا تضيع واحصل على 50 نقطة 🎁
-                      </p>
-                    </>
-                  )}
-                </div>
-                
-                {/* Signup CTA */}
-                <Button 
-                  onClick={handleSignupWithTracking}
-                  size="lg"
-                  className="w-full text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  ابدأ مجموعتك الحين
-                </Button>
-                
-                {/* Try Another Button */}
-                <Button
-                  variant="ghost"
-                  onClick={handleTryAnother}
-                  className="w-full gap-2 text-muted-foreground hover:text-primary"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  جرّب سيناريو آخر
-                </Button>
-              </>
-            )}
+            {/* Founding Program or Loss Aversion Alert */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+              {!isClosed ? (
+                <>
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                    ⭐ احفظ هذه القسمة وانضم لبرنامج المستخدمين المؤسسين
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ⏳ متبقي {remaining} من 1000 مقعد
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                    ⚠️ هذه القسمة مؤقتة
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    سجّل الآن مجانًا حتى لا تضيع واحصل على 50 نقطة 🎁
+                  </p>
+                </>
+              )}
+            </div>
+            
+            {/* Signup CTA */}
+            <Button 
+              onClick={handleSignupWithTracking}
+              size="lg"
+              className="w-full text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              ابدأ مجموعتك الحين
+            </Button>
+            
+            {/* Try Another Button */}
+            <Button
+              variant="ghost"
+              onClick={handleTryAnother}
+              className="w-full gap-2 text-muted-foreground hover:text-primary"
+            >
+              <RotateCcw className="h-4 w-4" />
+              جرّب سيناريو آخر
+            </Button>
             
             {/* Share Button */}
             <button
