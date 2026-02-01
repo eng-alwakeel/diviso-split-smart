@@ -951,6 +951,13 @@ export type Database = {
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_notes_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices_user_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       credit_packages: {
@@ -2043,6 +2050,13 @@ export type Database = {
             referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices_user_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invoices: {
@@ -2158,6 +2172,13 @@ export type Database = {
             columns: ["original_invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices_user_view"
             referencedColumns: ["id"]
           },
         ]
@@ -4603,6 +4624,115 @@ export type Database = {
       }
     }
     Views: {
+      invoices_user_view: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string | null
+          credit_purchase_id: string | null
+          currency: string | null
+          id: string | null
+          invoice_number: string | null
+          invoice_type: string | null
+          issue_datetime: string | null
+          notes: string | null
+          original_invoice_id: string | null
+          payment_provider: string | null
+          payment_status: string | null
+          pdf_url: string | null
+          qr_base64: string | null
+          qr_payload: string | null
+          seller_address: string | null
+          seller_legal_name: string | null
+          subscription_id: string | null
+          total_excl_vat: number | null
+          total_incl_vat: number | null
+          total_vat: number | null
+          updated_at: string | null
+          user_id: string | null
+          vat_rate: number | null
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          credit_purchase_id?: string | null
+          currency?: string | null
+          id?: string | null
+          invoice_number?: string | null
+          invoice_type?: string | null
+          issue_datetime?: string | null
+          notes?: string | null
+          original_invoice_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          seller_address?: string | null
+          seller_legal_name?: string | null
+          subscription_id?: string | null
+          total_excl_vat?: number | null
+          total_incl_vat?: number | null
+          total_vat?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vat_rate?: number | null
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          credit_purchase_id?: string | null
+          currency?: string | null
+          id?: string | null
+          invoice_number?: string | null
+          invoice_type?: string | null
+          issue_datetime?: string | null
+          notes?: string | null
+          original_invoice_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
+          pdf_url?: string | null
+          qr_base64?: string | null
+          qr_payload?: string | null
+          seller_address?: string | null
+          seller_legal_name?: string | null
+          subscription_id?: string | null
+          total_excl_vat?: number | null
+          total_incl_vat?: number | null
+          total_vat?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          vat_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_credit_purchase_id_fkey"
+            columns: ["credit_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "credit_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices_user_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_budget_summary: {
         Row: {
           budget_id: string | null
