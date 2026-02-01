@@ -15,8 +15,6 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
-import { useFoundingUser } from "@/hooks/useFoundingUser";
-import { UserNumberBadge } from "@/components/ui/user-number-badge";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -47,19 +45,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
   const { currentLanguage, changeLanguage } = useLanguage();
   const [userProfile, setUserProfile] = useState<{ name?: string; avatar_url?: string; email?: string } | null>(null);
 
-  // Fetch userId for user number badge
-  const { data: userId } = useQuery({
-    queryKey: ['current-user-id'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session?.user?.id || null;
-    },
-    staleTime: Infinity,
-    gcTime: Infinity,
-    enabled: !minimal,
-  });
-
-  const { userNumber, isFoundingUser } = useFoundingUser(userId ?? undefined);
 
   const handleLanguageSwitch = () => {
     changeLanguage(currentLanguage === 'ar' ? 'en' : 'ar');
@@ -228,13 +213,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
             {!minimal && (
               <>
                 <CreditBalance compact />
-                {userNumber && (
-                  <UserNumberBadge 
-                    userNumber={userNumber} 
-                    isFoundingUser={isFoundingUser} 
-                    size="sm"
-                  />
-                )}
                 <NotificationBell />
               </>
             )}
