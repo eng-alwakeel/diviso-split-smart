@@ -68,7 +68,9 @@
     "notifications_disabled": "تم إيقاف إشعارات المتصفح",
     "notifications_active": "الإشعارات مفعّلة",
     "enable_notifications": "تفعيل الإشعارات",
-    "disable_notifications": "إيقاف الإشعارات"
+    "disable_notifications": "إيقاف الإشعارات",
+    "user_number": "رقمك التسلسلي",
+    "user_number_tooltip": "رقم تسجيلك في التطبيق #{{number}}"
   },
   "email_verification": {
     "title": "تأكيد البريد الإلكتروني",
