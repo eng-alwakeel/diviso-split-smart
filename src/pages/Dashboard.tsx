@@ -18,6 +18,8 @@ import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
+import { UserNumberBadge } from "@/components/ui/user-number-badge";
 
 // Lazy load heavy components for better initial load
 const DailyCheckInCard = lazy(() => import("@/components/dashboard/DailyCheckInCard"));
@@ -146,6 +148,9 @@ const Dashboard = React.memo(() => {
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
+  
+  // Founding user hook for user number badge
+  const { userNumber, isFoundingUser } = useFoundingUser(userId);
   
   // Coins hook
   const { addCoins } = useDivisoCoins();
@@ -323,9 +328,18 @@ const Dashboard = React.memo(() => {
         <div className="page-container space-y-6">
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">{t('dashboard:welcome')}</h1>
-              <p className="text-muted-foreground text-sm">{t('dashboard:subtitle')}</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-1">{t('dashboard:welcome')}</h1>
+                <p className="text-muted-foreground text-sm">{t('dashboard:subtitle')}</p>
+              </div>
+              {userNumber && (
+                <UserNumberBadge 
+                  userNumber={userNumber} 
+                  isFoundingUser={isFoundingUser} 
+                  size="md"
+                />
+              )}
             </div>
             <Button variant="ghost" size="sm" onClick={handleShowGuide} className="text-muted-foreground hover:text-foreground">
               <HelpCircle className="w-4 h-4 ml-2" />
