@@ -146,14 +146,15 @@ const OptimizedDashboard = React.memo(() => {
   const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   
-  // Get current user ID for founding user badge
+  // Get current user ID for founding user badge - using getSession for faster local cache access
   const { data: userId } = useQuery({
-    queryKey: ['current-user-for-dashboard'],
+    queryKey: ['current-user-id'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user?.id || null;
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user?.id || null;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: Infinity, // User ID doesn't change during session
+    gcTime: Infinity,
   });
   
   const { userNumber, isFoundingUser } = useFoundingUser(userId ?? undefined);
