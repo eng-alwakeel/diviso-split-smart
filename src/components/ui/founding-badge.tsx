@@ -4,7 +4,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/safe-tooltip";
 import { useTranslation } from "react-i18next";
 
 interface FoundingBadgeProps {
