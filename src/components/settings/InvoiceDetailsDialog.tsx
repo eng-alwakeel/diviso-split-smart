@@ -168,12 +168,6 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
               </div>
               <div className="space-y-1 text-sm">
                 <p className="font-medium text-foreground">{invoice.seller_legal_name}</p>
-                {invoice.seller_vat_number && (
-                  <p className="text-muted-foreground">
-                    {i18n.language === 'ar' ? 'الرقم الضريبي: ' : 'VAT: '}
-                    {invoice.seller_vat_number}
-                  </p>
-                )}
                 {invoice.seller_address && (
                   <p className="text-muted-foreground">{invoice.seller_address}</p>
                 )}
@@ -305,15 +299,6 @@ export function InvoiceDetailsDialog({ invoice, open, onOpenChange }: InvoiceDet
               {i18n.language === 'ar' ? 'مزود الدفع: ' : 'Payment Provider: '}
               <span className="text-foreground capitalize">{invoice.payment_provider}</span>
             </span>
-            {invoice.payment_txn_id && (
-              <>
-                <span>|</span>
-                <span>
-                  {i18n.language === 'ar' ? 'مرجع العملية: ' : 'Transaction ID: '}
-                  <span className="font-mono text-foreground">{invoice.payment_txn_id}</span>
-                </span>
-              </>
-            )}
           </div>
 
           {/* QR Code */}

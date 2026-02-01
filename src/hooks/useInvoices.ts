@@ -11,24 +11,24 @@ export interface Invoice {
   buyer_name: string | null;
   buyer_phone: string | null;
   seller_legal_name: string;
-  seller_vat_number: string | null;
   seller_address: string | null;
   payment_status: string;
   payment_provider: string | null;
-  payment_txn_id: string | null;
   currency: string;
   total_excl_vat: number;
   total_vat: number;
   total_incl_vat: number;
   vat_rate: number;
   qr_base64: string | null;
+  qr_payload: string | null;
   pdf_url: string | null;
   notes: string | null;
   issue_datetime: string;
   created_at: string;
-  // Odoo integration fields
-  odoo_invoice_id: number | null;
-  odoo_invoice_name: string | null;
+  updated_at: string | null;
+  subscription_id: string | null;
+  credit_purchase_id: string | null;
+  original_invoice_id: string | null;
   items?: InvoiceItem[];
 }
 
@@ -80,9 +80,9 @@ export function useInvoices() {
         return;
       }
 
-      // Fetch invoices
+      // Fetch invoices from secure view (excludes sensitive internal IDs)
       const { data: invoicesData, error: invoicesError } = await supabase
-        .from('invoices')
+        .from('invoices_user_view' as any)
         .select('*')
         .eq('user_id', user.id)
         .order('issue_datetime', { ascending: false });
@@ -91,14 +91,14 @@ export function useInvoices() {
 
       // Fetch invoice items for each invoice
       const invoicesWithItems: Invoice[] = [];
-      for (const invoice of (invoicesData || [])) {
+      for (const invoice of ((invoicesData as any[]) || [])) {
         const { data: items } = await supabase
           .from('invoice_items')
           .select('*')
           .eq('invoice_id', invoice.id);
 
         invoicesWithItems.push({
-          ...invoice,
+          ...(invoice as Invoice),
           items: items || []
         });
       }
@@ -130,8 +130,9 @@ export function useInvoices() {
 
   const getInvoiceById = async (invoiceId: string): Promise<Invoice | null> => {
     try {
+      // Use secure view to exclude sensitive internal IDs
       const { data: invoice, error: invoiceError } = await supabase
-        .from('invoices')
+        .from('invoices_user_view' as any)
         .select('*')
         .eq('id', invoiceId)
         .single();
@@ -144,7 +145,7 @@ export function useInvoices() {
         .eq('invoice_id', invoiceId);
 
       return {
-        ...invoice,
+        ...(invoice as unknown as Invoice),
         items: items || []
       };
     } catch (err: any) {
