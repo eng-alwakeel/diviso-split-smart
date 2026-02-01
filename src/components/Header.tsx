@@ -68,7 +68,6 @@ export const Header = () => {
                 height={32}
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
                 style={{ aspectRatio: '128 / 32' }}
               />
             </div>
