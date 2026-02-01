@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { FoundingBadge } from "@/components/ui/founding-badge";
+import { UserNumberBadge } from "@/components/ui/user-number-badge";
 import { 
   isBrowserNotificationSupported, 
   getNotificationPermission, 
@@ -300,8 +301,15 @@ export function ProfileTab({
             />
             
             <div className="text-center sm:text-start">
-              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2 justify-center sm:justify-start">
+              <h3 className="text-xl font-semibold text-foreground flex items-center gap-2 justify-center sm:justify-start flex-wrap">
                 {profile.name || t('settings:profile.default_user')}
+                {userNumber && (
+                  <UserNumberBadge 
+                    userNumber={userNumber} 
+                    isFoundingUser={isFoundingUser} 
+                    size="sm"
+                  />
+                )}
                 {isAdmin && (
                   <Badge variant="outline" className="border-primary text-primary bg-primary/10">
                     <Crown className="w-3 h-3 me-1" />

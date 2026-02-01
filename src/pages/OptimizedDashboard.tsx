@@ -8,7 +8,11 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppGuide } from "@/components/AppGuide";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { SmartPromotionBanner } from "@/components/promotions/SmartPromotionBanner";
+import { UserNumberBadge } from "@/components/ui/user-number-badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 
@@ -142,6 +146,18 @@ const OptimizedDashboard = React.memo(() => {
   const { data: adminData } = useAdminAuth();
   const [showGuide, setShowGuide] = useState(false);
   
+  // Get current user ID for founding user badge
+  const { data: userId } = useQuery({
+    queryKey: ['current-user-for-dashboard'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user?.id || null;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  const { userNumber, isFoundingUser } = useFoundingUser(userId ?? undefined);
+  
   const {
     myPaid,
     myOwed,
@@ -213,9 +229,18 @@ const OptimizedDashboard = React.memo(() => {
 
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
-            <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
+              <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
+            </div>
+            {userNumber && (
+              <UserNumberBadge 
+                userNumber={userNumber} 
+                isFoundingUser={isFoundingUser} 
+                size="md"
+              />
+            )}
           </div>
           <Button
             variant="ghost"

@@ -68,7 +68,9 @@
     "notifications_disabled": "Browser notifications disabled",
     "notifications_active": "Notifications are active",
     "enable_notifications": "Enable Notifications",
-    "disable_notifications": "Disable Notifications"
+    "disable_notifications": "Disable Notifications",
+    "user_number": "Your user number",
+    "user_number_tooltip": "Your registration number in the app #{{number}}"
   },
   "email_verification": {
     "title": "Email Verification",
