@@ -1,62 +1,95 @@
 
+# خطة إصلاح خطأ TooltipProvider
 
-# خطة إلغاء Guest Mode
+## المشكلة
+الخطأ `'Tooltip' must be used within 'TooltipProvider'` يحدث لأن بعض المكونات تستخدم Tooltip من `@/components/ui/tooltip` مباشرة بدون TooltipProvider.
 
-## الملفات المراد حذفها
+## المكونات المتأثرة
 
-| الملف | السبب |
-|-------|-------|
-| `src/contexts/GuestSessionContext.tsx` | Context الرئيسي للـ Guest Mode |
-| `src/hooks/useGuestSession.ts` | Hook للوصول للـ Context |
-| `src/hooks/useGuestAnalytics.ts` | تتبع إحصائيات الضيف |
-| `src/components/guest/GuestModeBanner.tsx` | شريط "أنت في وضع التجربة" |
-| `src/components/guest/GuestConversionPrompt.tsx` | رسالة التحويل الذكية |
-
----
-
-## الملفات المراد تعديلها
-
-### 1. `src/App.tsx`
-- إزالة import الـ `GuestSessionProvider`
-- إزالة الـ `<GuestSessionProvider>` wrapper من الـ App component
-
-### 2. `src/pages/LaunchPage.tsx`
-- إزالة imports:
-  - `useGuestSession`
-  - `useGuestAnalytics`
-  - `Gamepad2`
-- إزالة استخدام `isGuestMode` و `trackSessionStarted`
-- إزالة زر "جرّب بدون تسجيل" والنص التابع له
-- إزالة دالة `handleTryWithoutRegistration`
-- إرجاع الـ CTA الأساسي للتسجيل
-
-### 3. `src/components/launch/DemoExperience.tsx`
-- إزالة imports:
-  - `GuestModeBanner`
-  - `GuestConversionPrompt`
-  - `useGuestSession`
-  - `useGuestAnalytics`
-- إزالة الـ `GuestModeBanner` component
-- إزالة منطق `shouldShowConversionPrompt`
-- إزالة `GuestConversionPrompt` component
-- تبسيط CTA section
+| الملف | المشكلة |
+|-------|---------|
+| `src/components/ui/founding-badge.tsx` | يستورد من `tooltip` بدلاً من `safe-tooltip` |
+| `src/components/recommendations/PartnerBadge.tsx` | يستورد من `tooltip` + يضيف TooltipProvider زائد |
 
 ---
 
-## ملاحظة حول قاعدة البيانات
+## الحل
 
-جدول `demo_sessions` ودالة `get_demo_stats()` سيبقيان في قاعدة البيانات لأنهما:
-- لا يؤثران على الأداء
-- قد تحتاجهما لاحقاً
-- حذفهما يتطلب migration منفصل
+### 1. تعديل `src/components/ui/founding-badge.tsx`
 
-إذا أردت حذفهما أيضاً، أخبرني.
+**التغيير**: تحويل الاستيراد من `tooltip` إلى `safe-tooltip`
+
+```typescript
+// قبل (خطأ):
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// بعد (صحيح):
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/safe-tooltip";
+```
+
+### 2. تعديل `src/components/recommendations/PartnerBadge.tsx`
+
+**التغييرات**:
+1. تحويل الاستيراد من `tooltip` إلى `safe-tooltip`
+2. إزالة `TooltipProvider` من الاستيراد والكود
+
+```typescript
+// قبل (خطأ):
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,  // ❌ لا حاجة له
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// في الـ JSX:
+<TooltipProvider>  {/* ❌ زائد */}
+  <Tooltip>...</Tooltip>
+</TooltipProvider>
+
+// بعد (صحيح):
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/safe-tooltip";
+
+// في الـ JSX:
+<Tooltip>...</Tooltip>  {/* ✅ بدون wrapper */}
+```
 
 ---
 
-## النتيجة النهائية
+## لماذا `safe-tooltip`؟
 
-- صفحة `/launch` سترجع لوضعها السابق
-- زر التسجيل سيكون الـ CTA الأساسي
-- التجربة (Demo) ستبقى متاحة لكن بدون Guest Mode logic
+كما هو موثق في `TOOLTIP_GUIDE.md`:
 
+- `safe-tooltip` يغلف كل Tooltip بـ TooltipProvider خاص به
+- هذا يمنع أخطاء React Context
+- لا حاجة لـ TooltipProvider على مستوى التطبيق
+
+---
+
+## النتيجة المتوقعة
+
+- الصفحة الرئيسية ستعمل بدون أخطاء
+- جميع Tooltips ستعمل بشكل صحيح
+- لا حاجة لتغيير `App.tsx`
+
+---
+
+## ملاحظة تقنية
+
+المشروع يستخدم نمطين للـ Tooltip:
+1. **`tooltip.tsx`**: المكون الأساسي من Radix - يحتاج TooltipProvider
+2. **`safe-tooltip.tsx`**: wrapper يضيف provider تلقائياً - لا يحتاج شيء
+
+يجب استخدام `safe-tooltip` في جميع المكونات لتجنب هذه المشاكل.
