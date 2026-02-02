@@ -1,65 +1,69 @@
 
-# خطة إصلاح مشكلة رابط الدعوة
+# خطة إصلاح خطأ "structure of query does not match function result type"
 
-## المشكلة المكتشفة
-عند مشاركة رابط دعوة للمجموعة، يُرسل رابط الـ Edge Function:
+## المشكلة
+عند محاولة إنشاء رابط دعوة للمجموعة، يظهر الخطأ:
 ```
-https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=ABC
-```
-
-بدلاً من الرابط المباشر:
-```
-https://diviso.app/i/ABC
+تعذر إنشاء رابط الدعوة
+structure of query does not match function result type
 ```
 
-**النتيجة:** المستخدم يرى كود HTML خام (كما في الصورة) بدلاً من صفحة مُعالجة.
+## السبب
+في الـ migration الأخير، تم تعريف نوع الإرجاع للدالة `create_group_join_token` بشكل خاطئ:
 
----
+| العمود | نوعه في الجدول | نوعه في الدالة |
+|--------|----------------|----------------|
+| token | **uuid** | text ❌ |
+| expires_at | timestamp with time zone | timestamp with time zone ✓ |
+| max_uses | integer | integer ✓ |
 
 ## الحل
-
-### الاستراتيجية الجديدة
-- استخدام رابط التطبيق المباشر `diviso.app/i/TOKEN` للمشاركة
-- الاعتماد على `index.html` مع OG tags ثابتة للمعاينة الاجتماعية
-- إزالة الاعتماد على Edge Function URL للمشاركة
-
-### التغييرات المطلوبة
-
-#### الملف: `src/components/group/invite-tabs/InviteLinkTab.tsx`
-
-| السطر | قبل | بعد |
-|-------|-----|-----|
-| 78-83 | استخدام shareUrl مختلف عن displayUrl | استخدام displayUrl للمشاركة أيضاً |
-| 117 | نسخ shareLink | نسخ displayLink |
-| 139-156 | مشاركة shareLink | مشاركة displayLink |
-
-**التغييرات بالتفصيل:**
-
-```tsx
-// السطر 78-83 - حذف shareUrl واستخدام displayUrl فقط
-const displayUrl = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
-setDisplayLink(displayUrl);
-setShareLink(displayUrl); // نفس الرابط للعرض والمشاركة
-```
+تحديث دالة `create_group_join_token` لتُرجع `token` كنوع `uuid` بدلاً من `text`.
 
 ---
 
-## النتيجة المتوقعة
+## التغييرات التقنية
 
-### قبل
-```
-رابط المشاركة: https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=ABC
+### Migration جديد
 
-↓ عند الفتح
-[صفحة HTML خام تظهر كنص] ❌
-```
+```sql
+-- إصلاح نوع الإرجاع للدالة
+DROP FUNCTION IF EXISTS public.create_group_join_token(uuid, member_role, text);
 
-### بعد
-```
-رابط المشاركة: https://diviso.app/i/ABC
+CREATE OR REPLACE FUNCTION public.create_group_join_token(
+  p_group_id uuid, 
+  p_role member_role DEFAULT 'member'::member_role, 
+  p_link_type text DEFAULT 'general'::text
+)
+RETURNS TABLE(token uuid, expires_at timestamp with time zone, max_uses integer)
+--            ^^^^ uuid بدلاً من text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_max_uses integer;
+  v_token_record record;
+BEGIN
+  -- التحقق من صلاحية المستخدم
+  IF NOT public.is_group_admin(p_group_id) THEN
+    RAISE EXCEPTION 'admin_required' USING ERRCODE='28000';
+  END IF;
 
-↓ عند الفتح
-[انتقال مباشر للتطبيق وانضمام للمجموعة] ✓
+  -- دعوات غير محدودة
+  v_max_uses := -1;
+
+  -- إنشاء الرابط
+  INSERT INTO public.group_join_tokens (
+    group_id, role, created_by, max_uses, current_uses, link_type, expires_at
+  ) VALUES (
+    p_group_id, p_role, auth.uid(), v_max_uses, 0, p_link_type, now() + '1 day'::interval
+  )
+  RETURNING * INTO v_token_record;
+
+  RETURN QUERY SELECT v_token_record.token, v_token_record.expires_at, v_token_record.max_uses;
+END;
+$function$;
 ```
 
 ---
@@ -68,9 +72,11 @@ setShareLink(displayUrl); // نفس الرابط للعرض والمشاركة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/components/group/invite-tabs/InviteLinkTab.tsx` | استخدام رابط diviso.app مباشرة للمشاركة |
+| `supabase/migrations/` | إضافة migration لإصلاح نوع الإرجاع |
+| `src/integrations/supabase/types.ts` | تحديث تلقائي للأنواع |
 
 ---
 
-## ملاحظة تقنية
-المعاينة الاجتماعية (OG preview) لن تعمل بشكل ديناميكي (اسم المجموعة والمرسل) لكن الرابط سيعمل بشكل صحيح. يمكن تحسين المعاينة لاحقاً عبر إعداد proxy أو Cloudflare Worker.
+## النتيجة المتوقعة
+- إنشاء رابط الدعوة يعمل بنجاح
+- الرابط يظهر بشكل صحيح ويمكن مشاركته
