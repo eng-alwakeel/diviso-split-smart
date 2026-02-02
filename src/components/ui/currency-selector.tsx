@@ -48,8 +48,22 @@ export function CurrencySelector({
 
   const selectedCurrency = currencies.find(currency => currency.code === value)
 
+  // Sort currencies with SAR first, then by region
+  const sortedCurrencies = React.useMemo(() => {
+    return [...currencies].sort((a, b) => {
+      // SAR always first
+      if (a.code === 'SAR') return -1;
+      if (b.code === 'SAR') return 1;
+      // Then sort by region, then by code
+      const regionA = getRegion(a);
+      const regionB = getRegion(b);
+      if (regionA !== regionB) return regionA.localeCompare(regionB);
+      return a.code.localeCompare(b.code);
+    });
+  }, [currencies, getRegion]);
+
   // Group currencies by region
-  const groupedCurrencies = currencies.reduce((acc, currency) => {
+  const groupedCurrencies = sortedCurrencies.reduce((acc, currency) => {
     const region = getRegion(currency)
     if (!acc[region]) {
       acc[region] = [];
