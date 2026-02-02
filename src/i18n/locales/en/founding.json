@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "title": "Founding Users Program | Diviso",
+    "description": "Join the first 1000 users on Diviso and get 100 welcome points + 50 monthly points + permanent founder badge"
+  },
+  "hero": {
+    "badge": "Limited Exclusive Offer",
+    "title": "Founding Users Program",
+    "subtitle": "Join the first 1,000 users and get exclusive lifetime benefits",
+    "spotsRemaining": "{{count}} spots remaining",
+    "programClosed": "Program Closed",
+    "hurry": "Hurry before spots run out!"
+  },
+  "benefits": {
+    "title": "Your Exclusive Benefits",
+    "subtitle": "Get these benefits as soon as you sign up",
+    "welcome": {
+      "title": "100 Welcome Points",
+      "description": "Double the welcome points of regular users"
+    },
+    "monthly": {
+      "title": "50 Monthly Points",
+      "description": "Extra points every month as long as you're active"
+    },
+    "badge": {
+      "title": "Permanent Founder Badge",
+      "description": "A distinctive gold badge that always appears next to your name"
+    },
+    "number": {
+      "title": "Unique Sequential Number",
+      "description": "Your personal number showing when you joined the app"
+    }
+  },
+  "howItWorks": {
+    "title": "How to Join?",
+    "subtitle": "Just 4 simple steps",
+    "steps": {
+      "register": {
+        "title": "Create Account",
+        "description": "Sign up for free in less than a minute"
+      },
+      "number": {
+        "title": "Get Your Number",
+        "description": "You'll receive a unique sequential number showing your rank"
+      },
+      "points": {
+        "title": "Enjoy Points",
+        "description": "Get 100 welcome points + 50 points monthly"
+      },
+      "badge": {
+        "title": "Badge Forever",
+        "description": "Your founder badge stays with you for life"
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": {
+      "condition": {
+        "question": "What's the condition for monthly points?",
+        "answer": "You need to log in at least once during the month to receive the 50 points. If you don't log in during a specific month, you won't receive that month's points and they won't be compensated."
+      },
+      "lifetime": {
+        "question": "What does \"lifetime\" mean?",
+        "answer": "It means your founder badge and sequential number will stay with you forever as long as your account is active. Monthly points will continue as long as you use the app regularly."
+      },
+      "transfer": {
+        "question": "Can benefits be transferred to another account?",
+        "answer": "No, founding program benefits are tied to your original account and cannot be transferred or moved to any other account."
+      },
+      "limit": {
+        "question": "Why only 1,000 users?",
+        "answer": "We want to reward early supporters who believed in us from the start. These benefits are exclusive and won't be repeated after the limit is reached."
+      },
+      "verify": {
+        "question": "How do I know if I'm a founder?",
+        "answer": "A gold badge will appear next to your name in the dashboard and settings page, along with your unique sequential number."
+      }
+    }
+  },
+  "cta": {
+    "title": "Join Now for Free",
+    "subtitle": "Don't miss your chance to get exclusive lifetime benefits",
+    "button": "Sign Up Now 🚀",
+    "spotsLeft": "Only {{count}} spots left!",
+    "termsLink": "By signing up, you agree to our",
+    "termsText": "Terms & Conditions"
+  }
+}
