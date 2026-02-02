@@ -87,6 +87,21 @@ Deno.serve(async (req) => {
     const appUrl = 'https://diviso.app';
     const inviteUrl = `${appUrl}/i/${token}`;
 
+    // للمستخدمين العاديين: redirect مباشر للتطبيق
+    if (!isCrawler(userAgent)) {
+      console.log(`User redirect to: ${inviteUrl}`);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': inviteUrl,
+        },
+      });
+    }
+
+    // للـ crawlers: أرسل HTML مع OG tags
+    console.log(`Crawler detected: ${userAgent.substring(0, 50)}...`);
+
     // OG content according to spec
     const ogTitle = `${senderName} يدعوك للانضمام لمجموعة "${groupName}"`;
     const ogDescription = `قسّموا مصاريف "${groupName}" بينكم بوضوح وبدون إحراج.\nانضم الآن 👇`;
