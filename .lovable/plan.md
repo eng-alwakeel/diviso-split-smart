@@ -1,110 +1,65 @@
 
+# خطة إصلاح مشكلة رابط الدعوة
 
-# خطة إصلاح حوار الدعوة بعد إنشاء المجموعة
+## المشكلة المكتشفة
+عند مشاركة رابط دعوة للمجموعة، يُرسل رابط الـ Edge Function:
+```
+https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=ABC
+```
 
-## المشكلات المكتشفة
+بدلاً من الرابط المباشر:
+```
+https://diviso.app/i/ABC
+```
 
-### 1. لا يوجد زر تخطي واضح
-- الحوار يُفتح تلقائياً بعد إنشاء المجموعة
-- زر الإغلاق (X) موجود لكنه صغير وغير واضح في أعلى اليمين
-- المستخدم قد لا يريد دعوة أعضاء فوراً ويحتاج طريقة سهلة للتخطي
-
-### 2. التصميم غير مناسب للموبايل
-- عرض الحوار `sm:max-w-[500px]` لكن لا يوجد تحديد للعرض على شاشات الموبايل الصغيرة
-- المحتوى يمتد خارج حدود الشاشة (كما في الصورة المرفقة)
-- رمز QR كبير نسبياً (180px) للشاشات الصغيرة
-- التبويبات متزاحمة على الشاشات الصغيرة
+**النتيجة:** المستخدم يرى كود HTML خام (كما في الصورة) بدلاً من صفحة مُعالجة.
 
 ---
 
-## الحلول المقترحة
+## الحل
 
-### التغيير 1: إضافة زر "تخطي" واضح في أسفل الحوار
+### الاستراتيجية الجديدة
+- استخدام رابط التطبيق المباشر `diviso.app/i/TOKEN` للمشاركة
+- الاعتماد على `index.html` مع OG tags ثابتة للمعاينة الاجتماعية
+- إزالة الاعتماد على Edge Function URL للمشاركة
 
-**الملف:** `src/components/group/InviteManagementDialog.tsx`
+### التغييرات المطلوبة
 
-```tsx
-// إضافة DialogFooter مع زر تخطي
-<DialogFooter className="mt-4 pt-4 border-t">
-  <Button 
-    variant="ghost" 
-    onClick={() => onOpenChange(false)}
-    className="w-full sm:w-auto"
-  >
-    تخطي الآن
-  </Button>
-</DialogFooter>
-```
-
-### التغيير 2: تحسين تجاوب الحوار مع الموبايل
-
-**الملف:** `src/components/group/InviteManagementDialog.tsx`
-
-```tsx
-// تعديل DialogContent
-<DialogContent className="w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto mx-auto">
-
-// تصغير حجم QR على الموبايل
-<QRCodeDisplay size={140} />
-```
-
-### التغيير 3: تحسين التبويبات على الموبايل
-
-```tsx
-// جعل التبويبات تتناسب مع العرض
-<TabsList className="grid w-full grid-cols-3 gap-1">
-  <TabsTrigger className="text-[10px] sm:text-xs px-1 sm:px-2">
-```
-
----
-
-## التغييرات التفصيلية
-
-### الملف: `src/components/group/InviteManagementDialog.tsx`
+#### الملف: `src/components/group/invite-tabs/InviteLinkTab.tsx`
 
 | السطر | قبل | بعد |
 |-------|-----|-----|
-| 4 | (استيرادات) | إضافة `DialogFooter` للاستيرادات |
-| 80 | `sm:max-w-[500px] max-h-[90vh]` | `w-[95vw] max-w-[500px] max-h-[85vh]` |
-| 93-105 | التبويبات الحالية | تحسين الـ padding والـ font-size |
-| 126-129 | QR size={180} | QR size={140} مع responsive wrapper |
-| بعد 179 | لا يوجد | إضافة `DialogFooter` مع زر تخطي |
+| 78-83 | استخدام shareUrl مختلف عن displayUrl | استخدام displayUrl للمشاركة أيضاً |
+| 117 | نسخ shareLink | نسخ displayLink |
+| 139-156 | مشاركة shareLink | مشاركة displayLink |
+
+**التغييرات بالتفصيل:**
+
+```tsx
+// السطر 78-83 - حذف shareUrl واستخدام displayUrl فقط
+const displayUrl = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
+setDisplayLink(displayUrl);
+setShareLink(displayUrl); // نفس الرابط للعرض والمشاركة
+```
 
 ---
 
 ## النتيجة المتوقعة
 
-### قبل (الموبايل)
+### قبل
 ```
-+---------------------------+
-| [X]  دعوة أعضاء جدد      |
-| رابط | جهات اتصال | متابعة|  ← نص مقطوع
-|                           |
-| https://diviso.app/i/...  |  ← يخرج عن الشاشة
-|                           |
-|  [شارك الرابط]            |
-|                           |
-|     [QR كبير 180px]       |
-|                           |
-|  (لا يوجد زر تخطي واضح)   |
-+---------------------------+
+رابط المشاركة: https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=ABC
+
+↓ عند الفتح
+[صفحة HTML خام تظهر كنص] ❌
 ```
 
-### بعد (الموبايل)
+### بعد
 ```
-+---------------------------+
-| [X]  دعوة أعضاء جدد       |
-| رابط | جهات | متابعة      |  ← نص مختصر ✓
-|                            |
-| https://diviso.app/i/...   |  ← داخل الحدود ✓
-|                            |
-|  [شارك الرابط]             |
-|                            |
-|    [QR مناسب 140px]        |
-|                            |
-| ─────────────────────────  |
-|     [تخطي الآن]            |  ← زر واضح ✓
-+---------------------------+
+رابط المشاركة: https://diviso.app/i/ABC
+
+↓ عند الفتح
+[انتقال مباشر للتطبيق وانضمام للمجموعة] ✓
 ```
 
 ---
@@ -113,5 +68,9 @@
 
 | الملف | التغيير |
 |-------|---------|
-| `src/components/group/InviteManagementDialog.tsx` | إضافة زر تخطي + تحسين التجاوب للموبايل |
+| `src/components/group/invite-tabs/InviteLinkTab.tsx` | استخدام رابط diviso.app مباشرة للمشاركة |
 
+---
+
+## ملاحظة تقنية
+المعاينة الاجتماعية (OG preview) لن تعمل بشكل ديناميكي (اسم المجموعة والمرسل) لكن الرابط سيعمل بشكل صحيح. يمكن تحسين المعاينة لاحقاً عبر إعداد proxy أو Cloudflare Worker.
