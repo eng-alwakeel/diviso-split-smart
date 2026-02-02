@@ -46,12 +46,13 @@ export const Header = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
           {/* Left: Actions */}
-          <div className="justify-self-start flex items-center gap-2">
+          <div className="justify-self-start flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             <Button 
               variant="hero" 
               size="sm"
               onClick={handleLoginClick}
+              className="text-xs sm:text-sm px-2 sm:px-3 max-w-[120px] sm:max-w-none truncate"
             >
               {isLoggedIn ? t('header.dashboard') : t('header.login')}
             </Button>
@@ -63,7 +64,7 @@ export const Header = () => {
               <img 
                 src={appLogo} 
                 alt="شعار Diviso" 
-                className="h-8 w-auto" 
+                className="h-6 sm:h-8 w-auto"
                 width={128} 
                 height={32}
                 loading="eager"
