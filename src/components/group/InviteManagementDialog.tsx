@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -77,7 +78,7 @@ export const InviteManagementDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[85vh] overflow-y-auto mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
@@ -89,18 +90,18 @@ export const InviteManagementDialog = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="link" className="flex items-center gap-1 text-xs">
-              <Link className="w-3 h-3" />
-              رابط
+          <TabsList className="grid w-full grid-cols-3 gap-1">
+            <TabsTrigger value="link" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <Link className="w-3 h-3 shrink-0" />
+              <span className="truncate">رابط</span>
             </TabsTrigger>
-            <TabsTrigger value="contacts" className="flex items-center gap-1 text-xs">
-              <Users className="w-3 h-3" />
-              جهات الاتصال
+            <TabsTrigger value="contacts" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <Users className="w-3 h-3 shrink-0" />
+              <span className="truncate">جهات</span>
             </TabsTrigger>
-            <TabsTrigger value="tracking" className="flex items-center gap-1 text-xs">
-              <History className="w-3 h-3" />
-              المتابعة
+            <TabsTrigger value="tracking" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <History className="w-3 h-3 shrink-0" />
+              <span className="truncate">متابعة</span>
             </TabsTrigger>
           </TabsList>
 
@@ -125,8 +126,8 @@ export const InviteManagementDialog = ({
                       <div className="flex justify-center">
                         <QRCodeDisplay 
                           value={inviteLink} 
-                          size={180}
-                          className="border rounded-lg p-3 bg-background"
+                          size={140}
+                          className="border rounded-lg p-2 bg-background"
                         />
                       </div>
                       <p className="text-xs text-muted-foreground text-center">
@@ -177,6 +178,16 @@ export const InviteManagementDialog = ({
             </Card>
           </TabsContent>
         </Tabs>
+
+        <DialogFooter className="mt-4 pt-4 border-t border-border">
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="w-full text-muted-foreground"
+          >
+            تخطي الآن
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
