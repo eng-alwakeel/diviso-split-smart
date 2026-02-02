@@ -67,6 +67,7 @@ const LazyLandingPage = withLazyLoading(lazy(() => import("./pages/LandingPage")
 const LazyLaunchPage = withLazyLoading(lazy(() => import("./pages/LaunchPage")));
 const LazyInfluencerPage = withLazyLoading(lazy(() => import("./pages/InfluencerPage")));
 const LazyWelcome = withLazyLoading(lazy(() => import("./pages/Welcome")));
+const LazyFoundingProgram = withLazyLoading(lazy(() => import("./pages/FoundingProgram")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -137,6 +138,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/lp/:slug" element={<LazyLandingPage />} />
             <Route path="/launch" element={<LazyLaunchPage />} />
             <Route path="/from" element={<LazyInfluencerPage />} />
+            <Route path="/founding" element={<LazyFoundingProgram />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
