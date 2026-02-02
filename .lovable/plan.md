@@ -1,69 +1,89 @@
 
-# خطة إصلاح خطأ "structure of query does not match function result type"
+# خطة إصلاح Edge Function للدعوات
 
-## المشكلة
-عند محاولة إنشاء رابط دعوة للمجموعة، يظهر الخطأ:
+## المشكلة الحالية
+الرابط المُشارك يستخدم عنوان الـ Edge Function:
 ```
-تعذر إنشاء رابط الدعوة
-structure of query does not match function result type
+https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=...
 ```
 
-## السبب
-في الـ migration الأخير، تم تعريف نوع الإرجاع للدالة `create_group_join_token` بشكل خاطئ:
+عند فتحه في المتصفح يظهر HTML خام بدلاً من صفحة مُعالجة.
 
-| العمود | نوعه في الجدول | نوعه في الدالة |
-|--------|----------------|----------------|
-| token | **uuid** | text ❌ |
-| expires_at | timestamp with time zone | timestamp with time zone ✓ |
-| max_uses | integer | integer ✓ |
-
-## الحل
-تحديث دالة `create_group_join_token` لتُرجع `token` كنوع `uuid` بدلاً من `text`.
+**السبب:** الـ Edge Function يُرسل HTML لجميع الزوار بدون تمييز بين:
+- **Crawlers** (واتساب، فيسبوك) ← يحتاجون HTML مع OG tags
+- **المستخدمين** ← يحتاجون redirect للتطبيق
 
 ---
 
-## التغييرات التقنية
+## الحل
 
-### Migration جديد
+### التعديل على `supabase/functions/invite-preview/index.ts`
 
-```sql
--- إصلاح نوع الإرجاع للدالة
-DROP FUNCTION IF EXISTS public.create_group_join_token(uuid, member_role, text);
+إضافة منطق ذكي يفرق بين الزوار:
 
-CREATE OR REPLACE FUNCTION public.create_group_join_token(
-  p_group_id uuid, 
-  p_role member_role DEFAULT 'member'::member_role, 
-  p_link_type text DEFAULT 'general'::text
-)
-RETURNS TABLE(token uuid, expires_at timestamp with time zone, max_uses integer)
---            ^^^^ uuid بدلاً من text
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_max_uses integer;
-  v_token_record record;
-BEGIN
-  -- التحقق من صلاحية المستخدم
-  IF NOT public.is_group_admin(p_group_id) THEN
-    RAISE EXCEPTION 'admin_required' USING ERRCODE='28000';
-  END IF;
+```text
+┌─────────────────────────────────────────────────┐
+│           طلب وارد للـ Edge Function            │
+└────────────────────┬────────────────────────────┘
+                     │
+                     ▼
+           ┌─────────────────┐
+           │  فحص User-Agent  │
+           └────────┬────────┘
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+        ▼                       ▼
+┌───────────────┐       ┌───────────────┐
+│   Crawler?    │       │   مستخدم؟     │
+│ (واتساب، فيسبوك)│       │ (Safari، Chrome)│
+└───────┬───────┘       └───────┬───────┘
+        │                       │
+        ▼                       ▼
+┌───────────────┐       ┌───────────────┐
+│ أرسل HTML     │       │ 302 Redirect  │
+│ مع OG tags    │       │ إلى التطبيق   │
+└───────────────┘       └───────────────┘
+```
 
-  -- دعوات غير محدودة
-  v_max_uses := -1;
+### الكود المُحدَّث
 
-  -- إنشاء الرابط
-  INSERT INTO public.group_join_tokens (
-    group_id, role, created_by, max_uses, current_uses, link_type, expires_at
-  ) VALUES (
-    p_group_id, p_role, auth.uid(), v_max_uses, 0, p_link_type, now() + '1 day'::interval
-  )
-  RETURNING * INTO v_token_record;
+**إضافة بعد سطر 88 (بعد تعريف inviteUrl):**
 
-  RETURN QUERY SELECT v_token_record.token, v_token_record.expires_at, v_token_record.max_uses;
-END;
-$function$;
+```typescript
+// للمستخدمين العاديين: redirect مباشر للتطبيق
+if (!isCrawler(userAgent)) {
+  console.log(`User redirect to: ${inviteUrl}`);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      ...corsHeaders,
+      'Location': inviteUrl,
+    },
+  });
+}
+
+// للـ crawlers: أرسل HTML مع OG tags
+console.log(`Crawler detected: ${userAgent.substring(0, 50)}...`);
+```
+
+---
+
+## النتيجة المتوقعة
+
+### سيناريو 1: مشاركة عبر واتساب
+```
+1. واتساب يطلب الرابط → User-Agent: WhatsApp
+2. Edge Function يُرجع HTML مع OG tags
+3. واتساب يعرض المعاينة الجميلة ✓
+```
+
+### سيناريو 2: مستخدم يفتح الرابط
+```
+1. المستخدم ينقر الرابط → User-Agent: Safari/Chrome
+2. Edge Function يُرجع 302 Redirect
+3. المتصفح ينتقل لـ diviso.app/i/TOKEN ✓
+4. التطبيق يعالج الانضمام للمجموعة ✓
 ```
 
 ---
@@ -72,11 +92,9 @@ $function$;
 
 | الملف | التغيير |
 |-------|---------|
-| `supabase/migrations/` | إضافة migration لإصلاح نوع الإرجاع |
-| `src/integrations/supabase/types.ts` | تحديث تلقائي للأنواع |
+| `supabase/functions/invite-preview/index.ts` | إضافة redirect للمستخدمين العاديين |
 
 ---
 
-## النتيجة المتوقعة
-- إنشاء رابط الدعوة يعمل بنجاح
-- الرابط يظهر بشكل صحيح ويمكن مشاركته
+## ملاحظة
+هذا الإصلاح يجعل حتى الروابط القديمة (Edge Function URLs) تعمل بشكل صحيح - سيتم تحويل المستخدم تلقائياً للتطبيق.
