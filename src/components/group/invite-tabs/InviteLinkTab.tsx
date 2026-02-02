@@ -74,13 +74,11 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
       if (error) throw error;
 
       const tokenData = data[0];
-      // Display link - clean URL for showing
+      // Use direct app URL for both display and sharing
       const displayUrl = `${BRAND_CONFIG.url}/i/${tokenData.token}`;
-      // Share link - Edge Function URL for social preview
-      const shareUrl = `https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/invite-preview?token=${tokenData.token}`;
       
       setDisplayLink(displayUrl);
-      setShareLink(shareUrl);
+      setShareLink(displayUrl);
       setLinkInfo({
         maxUses: tokenData.max_uses,
         currentUses: 0,
