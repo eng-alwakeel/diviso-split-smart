@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, ArrowLeft, User, Coins, Globe, Bell, Shield, Save, RefreshCw, Sparkles, Receipt, CreditCard } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Coins, Globe, Bell, Shield, Save, RefreshCw, Receipt } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -23,7 +23,6 @@ import CreditsTab from "@/components/settings/CreditsTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
 import { RolesTab } from "@/components/settings/RolesTab";
 import { BillingTab } from "@/components/settings/BillingTab";
-import { SubscriptionSettingsTab } from "@/components/settings/SubscriptionSettingsTab";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 
@@ -294,14 +293,6 @@ const Settings = () => {
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.notifications')}</span>
             </TabsTrigger>
-            <TabsTrigger value="recommendations" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('recommendations:settings.title', 'توصيات')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="subscription" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('settings:tabs.subscription', 'الاشتراك')}</span>
-            </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <Receipt className="w-4 h-4" />
               <span className="hidden sm:inline">{t('settings:tabs.billing')}</span>
@@ -485,13 +476,13 @@ const Settings = () => {
                     onCheckedChange={(checked) => saveSettings({ weeklyReports: checked })}
                   />
                 </div>
+
+                {/* قسم التوصيات - مدمج */}
+                <div className="pt-4 border-t border-border/50">
+                  <RecommendationSettings />
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Subscription Tab */}
-          <TabsContent value="subscription" className="space-y-6">
-            <SubscriptionSettingsTab />
           </TabsContent>
 
           {/* Billing Tab */}
@@ -504,11 +495,6 @@ const Settings = () => {
             <SecurityTab
               deleteAccount={deleteAccount}
             />
-          </TabsContent>
-
-          {/* Recommendations Tab */}
-          <TabsContent value="recommendations" className="space-y-6">
-            <RecommendationSettings />
           </TabsContent>
 
           {/* Roles Tab */}

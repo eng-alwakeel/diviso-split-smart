@@ -23,6 +23,7 @@ import {
 import { useUsageCredits, CREDIT_COSTS } from "@/hooks/useUsageCredits";
 import { useDailyCheckin } from "@/hooks/useDailyCheckin";
 import { useRewardPoints } from "@/hooks/useRewardPoints";
+import SubscriptionCard from "./SubscriptionCard";
 
 const CreditsTab = memo(() => {
   const { t, i18n } = useTranslation("settings");
@@ -90,6 +91,9 @@ const CreditsTab = memo(() => {
           )}
         </CardContent>
       </Card>
+
+      {/* بطاقة الخطة الحالية - مدمجة */}
+      <SubscriptionCard />
 
       {/* المكافأة اليومية */}
       <Card className={!checkedInToday ? "border-green-500/30 bg-gradient-to-br from-green-500/5 to-green-500/10" : ""}>
