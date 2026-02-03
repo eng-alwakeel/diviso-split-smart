@@ -57,6 +57,15 @@ const Auth = () => {
   const [canResendEmail, setCanResendEmail] = useState(true);
   
 
+  // Read mode from URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlMode = params.get('mode');
+    if (urlMode === 'signup' || urlMode === 'login') {
+      setMode(urlMode);
+    }
+  }, []);
+
   // Countdown timer for resend OTP
   useEffect(() => {
     if (resendCountdown > 0) {
@@ -1186,7 +1195,7 @@ const Auth = () => {
                     className="w-full h-12 text-primary border-primary/30 hover:bg-primary/5"
                     onClick={() => {
                       trackGAEvent('login_to_signup_cta_clicked');
-                      navigate('/auth?mode=signup&redirect=/create-group');
+                      setMode("signup");
                     }}
                   >
                     {t('auth:buttons.create_account_cta')}
