@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Crown, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { Crown, Calendar, Clock, CheckCircle2, Sparkles } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { format } from "date-fns";
@@ -40,7 +40,7 @@ const SubscriptionCard = memo(() => {
   }
 
   const getStatusText = () => {
-    if (!subscription) return isRTL ? "مجاني" : "Free";
+    if (!subscription) return isRTL ? "غير مشترك" : "Not Subscribed";
     
     if (subscription.status === 'trialing') {
       return isTrialActive 
@@ -129,49 +129,70 @@ const SubscriptionCard = memo(() => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Status and Days Left */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-xs">{isRTL ? "الحالة" : "Status"}</span>
+        {isFreePlan ? (
+          /* Free User: Show upgrade promotion */
+          <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="font-medium text-sm">
+                {isRTL ? "ترقَّ للحصول على المزيد" : "Upgrade for more"}
+              </span>
             </div>
-            <Badge variant={getStatusVariant()} className="text-xs">
-              {hasActiveSubscription && <CheckCircle2 className="w-3 h-3 me-1" />}
-              {getStatusText()}
-            </Badge>
+            <p className="text-xs text-muted-foreground">
+              {isRTL 
+                ? "نقاط إضافية • تصنيف ذكي • أولوية الدعم"
+                : "Extra points • Smart classification • Priority support"
+              }
+            </p>
           </div>
-          
-          {hasActiveSubscription && daysLeft > 0 && (
-            <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
-              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-                <Calendar className="w-3.5 h-3.5" />
-                <span className="text-xs">{isRTL ? "متبقي" : "Remaining"}</span>
+        ) : (
+          /* Subscribed User: Show status grid and progress */
+          <>
+            {/* Status and Days Left */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-xs">{isRTL ? "الحالة" : "Status"}</span>
+                </div>
+                <Badge variant={getStatusVariant()} className="text-xs">
+                  {hasActiveSubscription && <CheckCircle2 className="w-3 h-3 me-1" />}
+                  {getStatusText()}
+                </Badge>
               </div>
-              <p className={`text-sm font-bold ${daysLeft <= 7 ? 'text-amber-500' : 'text-primary'}`}>
-                {daysLeft} {isRTL ? "يوم" : "days"}
-              </p>
+              
+              {hasActiveSubscription && daysLeft > 0 && (
+                <div className="p-3 rounded-lg bg-muted/50 border border-border/30">
+                  <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="text-xs">{isRTL ? "متبقي" : "Remaining"}</span>
+                  </div>
+                  <p className={`text-sm font-bold ${daysLeft <= 7 ? 'text-amber-500' : 'text-primary'}`}>
+                    {daysLeft} {isRTL ? "يوم" : "days"}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Progress Bar for Active Subscriptions */}
-        {hasActiveSubscription && daysLeft > 0 && (
-          <div className="space-y-1.5">
-            <Progress value={getProgressPercentage()} className="h-2" />
-            <p className="text-xs text-muted-foreground text-center">
-              {Math.round(getProgressPercentage())}% {isRTL ? "من الفترة" : "of period used"}
-            </p>
-          </div>
-        )}
+            {/* Progress Bar for Active Subscriptions */}
+            {hasActiveSubscription && daysLeft > 0 && (
+              <div className="space-y-1.5">
+                <Progress value={getProgressPercentage()} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">
+                  {Math.round(getProgressPercentage())}% {isRTL ? "من الفترة" : "of period used"}
+                </p>
+              </div>
+            )}
 
-        {/* Expiry Warning */}
-        {hasActiveSubscription && daysLeft <= 7 && daysLeft > 0 && (
-          <div className="p-2 rounded-lg bg-amber-500/10 text-center">
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              ⚠️ {isRTL ? `ينتهي خلال ${daysLeft} يوم` : `Expires in ${daysLeft} days`}
-            </p>
-          </div>
+            {/* Expiry Warning */}
+            {hasActiveSubscription && daysLeft <= 7 && daysLeft > 0 && (
+              <div className="p-2 rounded-lg bg-amber-500/10 text-center">
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  ⚠️ {isRTL ? `ينتهي خلال ${daysLeft} يوم` : `Expires in ${daysLeft} days`}
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Action Buttons */}
