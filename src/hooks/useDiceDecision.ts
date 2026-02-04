@@ -36,6 +36,7 @@ interface UseDiceDecisionReturn {
   
   // Smart suggestion
   suggestedDice: DiceType | null;
+  suggestionReason: string | null;
   isLoadingSuggestion: boolean;
   loadSuggestion: (context: DiceContext) => Promise<void>;
 }
@@ -55,6 +56,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
   
   // Smart suggestion state
   const [suggestedDice, setSuggestedDice] = useState<DiceType | null>(null);
+  const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
   const [isLoadingSuggestion, setIsLoadingSuggestion] = useState(false);
 
   // Select a dice type
@@ -228,6 +230,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     setHasRerolled(false);
     setShowFoodPrompt(false);
     setSuggestedDice(null);
+    setSuggestionReason(null);
   }, []);
 
   // Load smart suggestion from edge function
@@ -255,14 +258,20 @@ export function useDiceDecision(): UseDiceDecisionReturn {
         } else if (suggestedId === 'food') {
           setSuggestedDice(FOOD_DICE);
         }
+        // Set suggestion reason if provided
+        if (data?.reason) {
+          setSuggestionReason(data.reason);
+        }
       } else {
         // Fallback to activity dice
         setSuggestedDice(ACTIVITY_DICE);
+        setSuggestionReason(null);
       }
     } catch (error) {
       console.error('Error loading dice suggestion:', error);
       // Fallback to activity dice
       setSuggestedDice(ACTIVITY_DICE);
+      setSuggestionReason(null);
     } finally {
       setIsLoadingSuggestion(false);
     }
@@ -288,6 +297,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     
     // Smart suggestion
     suggestedDice,
+    suggestionReason,
     isLoadingSuggestion,
     loadSuggestion
   };
