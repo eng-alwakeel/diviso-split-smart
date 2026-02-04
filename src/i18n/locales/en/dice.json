@@ -39,7 +39,10 @@
     "text": "🎲 The dice decided: {{emoji}} {{label}}!\n\nLet the dice decide in Diviso",
     "copied": "Text copied!",
     "copied_btn": "Copied",
-    "copy": "Copy"
+    "copy": "Copy",
+    "native_title": "Dice Result",
+    "share_image": "Share as Image",
+    "native_share": "Share"
   },
   "dialog": {
     "title": "Let the Dice Decide",
@@ -55,5 +58,10 @@
     "description": "Quick decision with no arguments - let the dice choose what to do and eat",
     "heading": "Let the Dice Decide 🎲",
     "subheading": "Quick decision, no arguments!"
+  },
+  "suggestion": {
+    "smart_title": "Smart Suggestion",
+    "based_on_time": "Based on time",
+    "based_on_group": "Based on group type"
   }
 }

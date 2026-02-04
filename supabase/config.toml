@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.indexnow]
 verify_jwt = true
+
+[functions.suggest-dice]
+verify_jwt = false
