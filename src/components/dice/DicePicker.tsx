@@ -8,13 +8,15 @@ import { DiceType, DICE_TYPES } from "@/data/diceData";
 interface DicePickerProps {
   onSelect: (dice: DiceType) => void;
   suggestedDice?: DiceType | null;
+  suggestionReason?: string | null;
   availableDice?: DiceType[];
   className?: string;
 }
 
 export function DicePicker({ 
   onSelect, 
-  suggestedDice, 
+  suggestedDice,
+  suggestionReason,
   availableDice,
   className 
 }: DicePickerProps) {
@@ -74,14 +76,19 @@ export function DicePicker({
                         {name}
                       </h4>
                       {isSuggested && (
-                        <Badge variant="secondary" className="text-xs">
-                          {t('picker.suggested')}
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                          ✨ {t('picker.suggested')}
                         </Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       {description}
                     </p>
+                    {isSuggested && suggestionReason && (
+                      <p className="text-xs text-primary/70 mt-1 flex items-center gap-1">
+                        <span>💡</span> {suggestionReason}
+                      </p>
+                    )}
                   </div>
                   
                   {/* Arrow indicator */}

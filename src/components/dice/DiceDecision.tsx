@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import confetti from "canvas-confetti";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ export function DiceDecision({
     hasRerolled,
     showFoodPrompt,
     suggestedDice,
+    suggestionReason,
     isLoadingSuggestion,
     selectDice,
     rollDice,
@@ -83,6 +85,17 @@ export function DiceDecision({
     if (selectedDice) return 'ready';
     return 'picker';
   }, [showShare, result, dualResult, isRolling, selectedDice]);
+
+  // Trigger confetti on result
+  useEffect(() => {
+    if (currentState === 'result' && (result || dualResult)) {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    }
+  }, [currentState, result, dualResult]);
 
   // Get available dice based on group type
   const availableDice = useMemo(() => {
@@ -172,6 +185,7 @@ export function DiceDecision({
             <DicePicker
               onSelect={handleSelectDice}
               suggestedDice={suggestedDice}
+              suggestionReason={suggestionReason}
               availableDice={availableDice}
             />
           )}
