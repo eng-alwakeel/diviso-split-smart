@@ -4,7 +4,10 @@ import type { Json } from "@/integrations/supabase/types";
 type GroupNotificationType = 
   | "member_joined" 
   | "member_left" 
-  | "group_deleted";
+  | "group_deleted"
+  | "dice_posted"
+  | "dice_accepted"
+  | "dice_rerolled";
 
 interface NotificationPayload {
   group_name: string;
@@ -132,9 +135,60 @@ export function useGroupNotifications() {
     });
   };
 
+  /**
+   * Notify group members when dice decision is posted
+   */
+  const notifyDicePosted = async (
+    groupId: string,
+    groupName: string,
+    postedByUserId: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, postedByUserId);
+    
+    await sendNotifications(memberIds, "dice_posted", {
+      group_name: groupName,
+      group_id: groupId,
+    });
+  };
+
+  /**
+   * Notify group members when dice decision is accepted
+   */
+  const notifyDiceAccepted = async (
+    groupId: string,
+    groupName: string,
+    currentUserId: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, currentUserId);
+    
+    await sendNotifications(memberIds, "dice_accepted", {
+      group_name: groupName,
+      group_id: groupId,
+    });
+  };
+
+  /**
+   * Notify group members when dice is rerolled
+   */
+  const notifyDiceRerolled = async (
+    groupId: string,
+    groupName: string,
+    rerolledByUserId: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, rerolledByUserId);
+    
+    await sendNotifications(memberIds, "dice_rerolled", {
+      group_name: groupName,
+      group_id: groupId,
+    });
+  };
+
   return {
     notifyMemberJoined,
     notifyMemberLeft,
     notifyGroupDeleted,
+    notifyDicePosted,
+    notifyDiceAccepted,
+    notifyDiceRerolled,
   };
 }
