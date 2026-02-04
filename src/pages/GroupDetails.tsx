@@ -430,11 +430,6 @@ const GroupDetails = () => {
           />
         )}
 
-        {/* Dice Decision Suggestion */}
-        <GroupDiceSuggestion 
-          groupId={id}
-          groupType={group?.group_type}
-        />
         <div>
           <Button 
             variant="ghost" 
@@ -536,6 +531,12 @@ const GroupDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Dice Decision Suggestion - بعد بطاقة المجموعة */}
+        <GroupDiceSuggestion 
+          groupId={id}
+          groupType={group?.group_type}
+        />
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
