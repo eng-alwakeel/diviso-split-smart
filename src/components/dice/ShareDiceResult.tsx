@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { DiceResult, DualDiceResult } from "@/data/diceData";
-import { Copy, MessageCircle, Twitter, X } from "lucide-react";
+import { Copy, MessageCircle, Twitter, X, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { shareNative, isNativePlatform } from "@/lib/native";
+import { useAnalyticsEvents } from "@/hooks/useAnalyticsEvents";
 
 interface ShareDiceResultProps {
   result: DiceResult | null;
@@ -22,8 +24,10 @@ export function ShareDiceResult({
 }: ShareDiceResultProps) {
   const { t, i18n } = useTranslation('dice');
   const { toast } = useToast();
+  const { trackEvent } = useAnalyticsEvents();
   const isRTL = i18n.language === 'ar';
   const [copied, setCopied] = useState(false);
+  const isNative = isNativePlatform();
 
   const getShareText = () => {
     const appUrl = "https://diviso.app";
@@ -62,6 +66,7 @@ export function ShareDiceResult({
         title: t('share.copied'),
         duration: 2000
       });
+      trackEvent('dice_shared', { platform: 'copy' });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
@@ -71,11 +76,26 @@ export function ShareDiceResult({
   const handleWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
+    trackEvent('dice_shared', { platform: 'whatsapp' });
   };
 
   const handleTwitter = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
+    trackEvent('dice_shared', { platform: 'twitter' });
+  };
+
+  const handleNativeShare = async () => {
+    const success = await shareNative({
+      title: t('share.native_title'),
+      text: shareText,
+      url: 'https://diviso.app',
+      dialogTitle: t('share.title')
+    });
+    
+    if (success) {
+      trackEvent('dice_shared', { platform: 'native' });
+    }
   };
 
   return (
@@ -96,23 +116,34 @@ export function ShareDiceResult({
         </CardContent>
       </Card>
 
+      {/* Native Share Button (for mobile) */}
+      {isNative && (
+        <Button
+          className="w-full gap-2"
+          onClick={handleNativeShare}
+        >
+          <Share2 className="w-5 h-5" />
+          {t('share.native_share')}
+        </Button>
+      )}
+
       {/* Share Buttons */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className={cn("grid gap-3", isNative ? "grid-cols-3" : "grid-cols-3")}>
         <Button
           variant="outline"
-          className="flex-col h-auto py-4 gap-2 hover:bg-green-500/10 hover:border-green-500/50"
+          className="flex-col h-auto py-4 gap-2 hover:bg-accent hover:border-accent"
           onClick={handleWhatsApp}
         >
-          <MessageCircle className="w-6 h-6 text-green-500" />
+          <MessageCircle className="w-6 h-6 text-[hsl(142,70%,45%)]" />
           <span className="text-xs">WhatsApp</span>
         </Button>
         
         <Button
           variant="outline"
-          className="flex-col h-auto py-4 gap-2 hover:bg-blue-500/10 hover:border-blue-500/50"
+          className="flex-col h-auto py-4 gap-2 hover:bg-accent hover:border-accent"
           onClick={handleTwitter}
         >
-          <Twitter className="w-6 h-6 text-blue-500" />
+          <Twitter className="w-6 h-6 text-[hsl(203,89%,53%)]" />
           <span className="text-xs">Twitter</span>
         </Button>
         
@@ -120,11 +151,11 @@ export function ShareDiceResult({
           variant="outline"
           className={cn(
             "flex-col h-auto py-4 gap-2",
-            copied && "bg-green-500/10 border-green-500/50"
+            copied && "bg-accent border-accent"
           )}
           onClick={handleCopy}
         >
-          <Copy className={cn("w-6 h-6", copied ? "text-green-500" : "text-muted-foreground")} />
+          <Copy className={cn("w-6 h-6", copied ? "text-[hsl(142,70%,45%)]" : "text-muted-foreground")} />
           <span className="text-xs">{copied ? t('share.copied_btn') : t('share.copy')}</span>
         </Button>
       </div>
