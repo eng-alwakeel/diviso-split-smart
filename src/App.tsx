@@ -68,6 +68,7 @@ const LazyLaunchPage = withLazyLoading(lazy(() => import("./pages/LaunchPage")))
 const LazyInfluencerPage = withLazyLoading(lazy(() => import("./pages/InfluencerPage")));
 const LazyWelcome = withLazyLoading(lazy(() => import("./pages/Welcome")));
 const LazyFoundingProgram = withLazyLoading(lazy(() => import("./pages/FoundingProgram")));
+const LazyDiceDecisionPage = withLazyLoading(lazy(() => import("./pages/DiceDecisionPage")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -141,6 +142,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/founding" element={<LazyFoundingProgram />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id/invite" element={<ProtectedRoute><PageErrorBoundary><LazyGroupInvite /></PageErrorBoundary></ProtectedRoute>} />
