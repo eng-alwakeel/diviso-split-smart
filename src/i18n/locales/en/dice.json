@@ -1,11 +1,12 @@
 {
   "banner": {
     "title": "Can't decide? Let the dice choose",
-    "description": "Quick decision, no debates! 😅",
+    "description": "Quick decision, no arguments! 😅",
     "cta": "Roll the Dice 🎲"
   },
   "picker": {
-    "title": "Choose dice type",
+    "title": "Choose Dice Type",
+    "suggested": "Suggested",
     "activity": {
       "name": "Activity Dice",
       "description": "What to do?"
@@ -19,36 +20,40 @@
       "description": "Activity + Food in one tap"
     }
   },
-  "rolling": {
-    "title": "Rolling...",
-    "wait": "Wait for the result"
-  },
   "result": {
-    "title": "The dice has spoken!",
     "activity_label": "Activity",
     "food_label": "Food",
-    "accept": "Accept 👍",
-    "reroll": "Reroll 🔄",
-    "share": "Share 📤",
-    "continue_food": "Continue to pick food type? 🎲",
-    "split_now": "Split the cost now ➗",
-    "reroll_disabled": "Reroll used"
+    "accept": "Accept",
+    "reroll": "Reroll",
+    "share": "Share",
+    "continue_food": "Continue with food choice?",
+    "roll_food": "Roll Food Dice",
+    "reroll_used": "Reroll used",
+    "reroll_used_hint": "You've used your reroll - decision is final 😊"
   },
   "group": {
-    "suggestion_title": "Quick suggestion for the group 🎲",
-    "smart_suggestion": "Smart suggestion"
+    "suggestion_title": "🎲 Quick Suggestion"
   },
   "share": {
-    "title": "Share the decision",
-    "text": "🎲 The dice decided: {{emoji}} {{label}}!\n\nLet the dice decide for you in Diviso",
-    "dual_text": "🎲 The dice decided:\n🎯 Activity: {{activityEmoji}} {{activityLabel}}\n🍽️ Food: {{foodEmoji}} {{foodLabel}}\n\nLet the dice decide for you in Diviso",
+    "title": "Share Decision",
+    "text": "🎲 The dice decided: {{emoji}} {{label}}!\n\nLet the dice decide in Diviso",
     "copied": "Text copied!",
-    "whatsapp": "WhatsApp",
-    "twitter": "Twitter",
+    "copied_btn": "Copied",
     "copy": "Copy"
   },
+  "dialog": {
+    "title": "Let the Dice Decide",
+    "choose_dice": "Choose Dice Type",
+    "rolling": "Rolling",
+    "result": "Result"
+  },
+  "actions": {
+    "roll": "Roll the Dice"
+  },
   "page": {
-    "title": "Let the Dice Decide 🎲",
-    "subtitle": "Group decisions without the hassle"
+    "title": "Let the Dice Decide | Diviso",
+    "description": "Quick decision with no arguments - let the dice choose what to do and eat",
+    "heading": "Let the Dice Decide 🎲",
+    "subheading": "Quick decision, no arguments!"
   }
 }

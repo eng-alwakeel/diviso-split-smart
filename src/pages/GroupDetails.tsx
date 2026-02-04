@@ -69,6 +69,7 @@ import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { useTranslation } from "react-i18next";
+import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
 
 
 const GroupDetails = () => {
@@ -429,7 +430,11 @@ const GroupDetails = () => {
           />
         )}
 
-        {/* Header */}
+        {/* Dice Decision Suggestion */}
+        <GroupDiceSuggestion 
+          groupId={id}
+          groupType={group?.group_type}
+        />
         <div>
           <Button 
             variant="ghost" 

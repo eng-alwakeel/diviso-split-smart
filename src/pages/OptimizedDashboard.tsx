@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
+import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
@@ -227,6 +228,9 @@ const OptimizedDashboard = React.memo(() => {
 
         {/* Smart Promotion System */}
         <SmartPromotionBanner />
+
+        {/* Dice Decision Banner */}
+        <HomeDiceBanner />
 
         {/* Welcome Section */}
         <div className="flex items-center justify-between">
