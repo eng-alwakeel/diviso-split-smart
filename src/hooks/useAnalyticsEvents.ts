@@ -19,6 +19,15 @@ const EVENT_CATEGORIES: Record<string, EventCategory> = {
   daily_checkin: 'engagement',
   app_opened: 'engagement',
   
+  // Dice Decision events
+  dice_opened: 'engagement',
+  dice_rolled: 'engagement',
+  dice_dual_rolled: 'engagement',
+  dice_rerolled: 'engagement',
+  decision_accepted: 'engagement',
+  dice_shared: 'growth',
+  split_started_after_dice: 'engagement',
+  
   // Monetization events
   credits_spent: 'monetization',
   credits_granted: 'monetization',

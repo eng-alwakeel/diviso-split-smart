@@ -1,0 +1,54 @@
+{
+  "banner": {
+    "title": "Can't decide? Let the dice choose",
+    "description": "Quick decision, no debates! 😅",
+    "cta": "Roll the Dice 🎲"
+  },
+  "picker": {
+    "title": "Choose dice type",
+    "activity": {
+      "name": "Activity Dice",
+      "description": "What to do?"
+    },
+    "food": {
+      "name": "Food Dice",
+      "description": "What to eat?"
+    },
+    "quick": {
+      "name": "Quick Decision",
+      "description": "Activity + Food in one tap"
+    }
+  },
+  "rolling": {
+    "title": "Rolling...",
+    "wait": "Wait for the result"
+  },
+  "result": {
+    "title": "The dice has spoken!",
+    "activity_label": "Activity",
+    "food_label": "Food",
+    "accept": "Accept 👍",
+    "reroll": "Reroll 🔄",
+    "share": "Share 📤",
+    "continue_food": "Continue to pick food type? 🎲",
+    "split_now": "Split the cost now ➗",
+    "reroll_disabled": "Reroll used"
+  },
+  "group": {
+    "suggestion_title": "Quick suggestion for the group 🎲",
+    "smart_suggestion": "Smart suggestion"
+  },
+  "share": {
+    "title": "Share the decision",
+    "text": "🎲 The dice decided: {{emoji}} {{label}}!\n\nLet the dice decide for you in Diviso",
+    "dual_text": "🎲 The dice decided:\n🎯 Activity: {{activityEmoji}} {{activityLabel}}\n🍽️ Food: {{foodEmoji}} {{foodLabel}}\n\nLet the dice decide for you in Diviso",
+    "copied": "Text copied!",
+    "whatsapp": "WhatsApp",
+    "twitter": "Twitter",
+    "copy": "Copy"
+  },
+  "page": {
+    "title": "Let the Dice Decide 🎲",
+    "subtitle": "Group decisions without the hassle"
+  }
+}
