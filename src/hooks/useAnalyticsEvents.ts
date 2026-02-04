@@ -28,6 +28,13 @@ const EVENT_CATEGORIES: Record<string, EventCategory> = {
   dice_shared: 'growth',
   split_started_after_dice: 'engagement',
   
+  // Dice Chat events
+  dice_posted_to_chat: 'engagement',
+  dice_vote_cast: 'engagement',
+  dice_accepted_in_chat: 'engagement',
+  dice_rerolled_in_chat: 'engagement',
+  split_started_from_dice_chat: 'engagement',
+  
   // Monetization events
   credits_spent: 'monetization',
   credits_granted: 'monetization',

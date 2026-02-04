@@ -1234,6 +1234,60 @@ export type Database = {
         }
         Relationships: []
       }
+      dice_decisions: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          dice_type: string
+          group_id: string
+          id: string
+          rerolled_from: string | null
+          results: Json
+          status: string
+          votes: Json
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by: string
+          dice_type: string
+          group_id: string
+          id?: string
+          rerolled_from?: string | null
+          results?: Json
+          status?: string
+          votes?: Json
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          dice_type?: string
+          group_id?: string
+          id?: string
+          rerolled_from?: string | null
+          results?: Json
+          status?: string
+          votes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dice_decisions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dice_decisions_rerolled_from_fkey"
+            columns: ["rerolled_from"]
+            isOneToOne: false
+            referencedRelation: "dice_decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_verification_codes: {
         Row: {
           code: string
@@ -2217,25 +2271,38 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          dice_decision_id: string | null
           group_id: string
           id: string
+          message_type: string | null
           sender_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          dice_decision_id?: string | null
           group_id: string
           id?: string
+          message_type?: string | null
           sender_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          dice_decision_id?: string | null
           group_id?: string
           id?: string
+          message_type?: string | null
           sender_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_dice_decision_id_fkey"
+            columns: ["dice_decision_id"]
+            isOneToOne: false
+            referencedRelation: "dice_decisions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_group_id_fkey"
             columns: ["group_id"]

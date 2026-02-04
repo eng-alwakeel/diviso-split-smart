@@ -12,6 +12,8 @@ import { AdminBadge } from "@/components/ui/admin-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { messageSchema, safeValidateInput } from "@/lib/validation";
+import { ChatDiceButton } from "@/components/chat/ChatDiceButton";
+import { DiceDecisionMessage } from "@/components/chat/messages/DiceDecisionMessage";
 
 interface Message {
   id: string;
@@ -19,6 +21,8 @@ interface Message {
   created_at: string;
   sender_id: string;
   group_id: string;
+  message_type?: 'text' | 'dice_decision';
+  dice_decision_id?: string | null;
 }
 
 interface GroupChatProps {
@@ -181,7 +185,9 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
         ref={listRef}
       >
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} profiles={profiles} />
+          m.message_type === 'dice_decision' && m.dice_decision_id
+            ? <DiceDecisionMessage key={m.id} decisionId={m.dice_decision_id} groupId={groupId} />
+            : <MessageBubble key={m.id} message={m} profiles={profiles} />
         ))}
         {messages.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">{t('groups:chat_tab.no_messages', 'No messages yet.')}</p>
@@ -195,6 +201,7 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !sending && sendMessage()}
         />
+        <ChatDiceButton groupId={groupId} onDecisionCreated={scrollToBottom} />
         <Button onClick={sendMessage} variant="hero" disabled={sending}>
           <Send className="w-4 h-4" />
         </Button>
