@@ -13,7 +13,7 @@ export const ADSENSE_CONFIG = {
   slots: {
     // أضف slot IDs من لوحة Google AdSense
     banner: '',     // للبانر العلوي/السفلي
-    sidebar: '',    // للشريط الجانبي
+    sidebar: '2712217105',    // للشريط الجانبي (250x700)
     inFeed: '',     // للإعلانات داخل المحتوى
   }
 } as const;

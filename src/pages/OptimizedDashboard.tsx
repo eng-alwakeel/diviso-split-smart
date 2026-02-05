@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
+import { LeftSidebarAd } from "@/components/ads/LeftSidebarAd";
 import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -215,6 +216,9 @@ const OptimizedDashboard = React.memo(() => {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
+      
+      {/* Left Sidebar Ad - Desktop/Tablet only */}
+      <LeftSidebarAd />
       
       <div className="page-container space-y-6">
         {/* Quota Warning Banners */}
