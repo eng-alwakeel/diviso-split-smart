@@ -48,7 +48,16 @@
     "title": "Let the Dice Decide",
     "choose_dice": "Choose Dice Type",
     "rolling": "Rolling...",
-    "result": "Result"
+    "result": "Result",
+    "dice_deciding": "The dice is deciding...",
+    "lets_see": "Let's see what we get 🎲",
+    "dice_said": "The dice has spoken",
+    "dice_chose": "The dice chose"
+  },
+  "voting": {
+    "do_we_agree": "Do we agree on this?",
+    "agreed": "Agreed",
+    "of": "of"
   },
   "actions": {
     "roll": "Roll the Dice"
