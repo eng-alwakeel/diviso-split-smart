@@ -13,7 +13,7 @@
     },
     "food": {
       "name": "Food Dice",
-      "description": "What to eat?"
+      "description": "What to cook/eat today?"
     },
     "quick": {
       "name": "Quick Decision",
@@ -47,7 +47,7 @@
   "dialog": {
     "title": "Let the Dice Decide",
     "choose_dice": "Choose Dice Type",
-    "rolling": "Rolling",
+    "rolling": "Rolling...",
     "result": "Result"
   },
   "actions": {
@@ -66,10 +66,22 @@
   },
   "chat": {
     "dice_decided": "🎲 The Dice Decided!",
+    "group_decision": "Group Decision",
+    "quick_badge": "Quick",
+    "activity_badge": "Activity",
+    "food_badge": "Food",
+    "activity_tile": "Activity",
+    "food_tile": "Food",
+    "voters": "Agreed",
+    "of": "of",
+    "vote": "Vote",
+    "voted": "Voted ✓",
     "accepted": "Accepted",
     "rerolled": "Rerolled",
+    "reroll_done": "Rerolled",
+    "decision_accepted": "Decision Accepted",
+    "start_split": "Start Split",
     "votes_needed": "votes needed",
-    "voted": "Voted ✓",
     "split_now": "Split Now",
     "open_decision_exists_title": "Open Decision",
     "open_decision_exists": "There's an open decision... vote on it first 😅",

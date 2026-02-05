@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Dice5, ThumbsUp, RefreshCw, Divide, Loader2, CheckCircle2 } from 'lucide-react';
+import { Dice5, ThumbsUp, RefreshCw, Divide, Loader2, CheckCircle2, Share2, Zap, Target, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useDiceChatDecision } from '@/hooks/useDiceChatDecision';
 import { generateExpenseTitle } from '@/services/diceChatService';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
@@ -35,10 +37,19 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
 
   if (isLoading) {
     return (
-      <Card className="p-4 bg-muted/50 animate-pulse">
-        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>{t('common:loading')}</span>
+      <Card className="p-5 bg-card border-border/50 max-w-sm mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <div className="flex gap-3 mb-4">
+          <Skeleton className="flex-1 h-28 rounded-xl" />
+          <Skeleton className="flex-1 h-28 rounded-xl" />
+        </div>
+        <Skeleton className="h-2 w-full mb-3" />
+        <div className="flex gap-2">
+          <Skeleton className="flex-1 h-10" />
+          <Skeleton className="flex-1 h-10" />
         </div>
       </Card>
     );
@@ -53,6 +64,36 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
   const isRerolled = decision.status === 'rerolled';
   const voteCount = decision.votes?.length || 0;
   const lang = isRTL ? 'ar' : 'en';
+  const progressValue = threshold > 0 ? (voteCount / threshold) * 100 : 0;
+
+  // Determine dice type badge
+  const getDiceTypeBadge = () => {
+    switch (decision.dice_type) {
+      case 'quick':
+        return (
+          <Badge variant="secondary" className="bg-accent/20 border-accent/30 text-accent-foreground">
+            <Zap className="w-3 h-3 me-1" />
+            {t('dice:chat.quick_badge', 'قرار سريع')}
+          </Badge>
+        );
+      case 'activity':
+        return (
+          <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
+            <Target className="w-3 h-3 me-1" />
+            {t('dice:chat.activity_badge', 'نشاط')}
+          </Badge>
+        );
+      case 'food':
+        return (
+          <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
+            <UtensilsCrossed className="w-3 h-3 me-1" />
+            {t('dice:chat.food_badge', 'أكل')}
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
 
   const handleSplitNow = () => {
     const title = generateExpenseTitle(decision.results, lang);
@@ -63,56 +104,128 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
     navigate(`/add-expense?groupId=${groupId}&title=${encodeURIComponent(title)}`);
   };
 
+  const handleShare = async () => {
+    const resultsText = decision.results
+      .map(r => `${r.emoji} ${isRTL ? r.labelAr : r.labelEn}`)
+      .join(' + ');
+    
+    const shareText = t('dice:share.text', { emoji: '', label: resultsText });
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+      } catch (err) {
+        // User cancelled or error
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+    }
+  };
+
+  // Render result tile
+  const renderResultTile = (result: typeof decision.results[0], index: number) => {
+    const isActivity = index === 0 && decision.dice_type === 'quick';
+    const isFood = index === 1 || decision.dice_type === 'food';
+    
+    let tileLabel = '';
+    let tileIcon = '';
+    
+    if (decision.dice_type === 'quick') {
+      tileLabel = isActivity 
+        ? t('dice:chat.activity_tile', 'النشاط')
+        : t('dice:chat.food_tile', 'الأكل');
+      tileIcon = isActivity ? '🎯' : '🍽️';
+    }
+
+    return (
+      <div 
+        key={index}
+        className={cn(
+          "flex-1 bg-muted/50 rounded-xl border border-border/50 p-4 text-center",
+          decision.results.length === 1 && "max-w-[200px] mx-auto"
+        )}
+      >
+        {decision.dice_type === 'quick' && (
+          <p className="text-xs text-muted-foreground mb-2">
+            {tileIcon} {tileLabel}
+          </p>
+        )}
+        <span className="text-4xl block mb-2">{result.emoji}</span>
+        <p className="font-bold text-foreground">
+          {isRTL ? result.labelAr : result.labelEn}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <Card 
       className={cn(
-        "p-4 max-w-sm mx-auto transition-all",
+        "p-5 max-w-sm mx-auto transition-all border-border/50 relative",
         isAccepted && "border-primary/50 bg-primary/5",
         isRerolled && "opacity-60"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Dice5 className="w-5 h-5 text-primary" />
-          <span className="font-semibold">
-            {t('dice:chat.dice_decided', '🎲 النرد قرر!')}
+          <span className="font-semibold text-foreground">
+            {t('dice:chat.group_decision', 'قرار جماعي')}
           </span>
         </div>
-        {isAccepted && (
-          <Badge variant="default" className="bg-primary text-primary-foreground">
-            <CheckCircle2 className="w-3 h-3 ml-1" />
-            {t('dice:chat.accepted', 'معتمد')}
-          </Badge>
-        )}
-        {isRerolled && (
-          <Badge variant="secondary">
-            <RefreshCw className="w-3 h-3 ml-1" />
-            {t('dice:chat.rerolled', 'أُعيد')}
-          </Badge>
-        )}
+        {getDiceTypeBadge()}
       </div>
 
-      {/* Results */}
-      <div className="flex flex-col items-center gap-2 py-4 bg-gradient-to-br from-muted/50 to-muted rounded-lg mb-4">
-        {decision.results.map((result, index) => (
-          <div key={index} className="flex items-center gap-2 text-lg">
-            <span className="text-2xl">{result.emoji}</span>
-            <span className="font-medium">
-              {isRTL ? result.labelAr : result.labelEn}
+      {/* Status badges for accepted/rerolled */}
+      {isAccepted && (
+        <div className="flex items-center gap-2 mb-3 text-primary">
+          <CheckCircle2 className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            {t('dice:chat.decision_accepted', 'تم اعتماد القرار')}
+          </span>
+        </div>
+      )}
+      {isRerolled && (
+        <div className="flex items-center gap-2 mb-3 text-muted-foreground">
+          <RefreshCw className="w-4 h-4" />
+          <span className="text-sm">
+            {t('dice:chat.rerolled', 'أُعيد')}
+          </span>
+        </div>
+      )}
+
+      {/* Results Tiles */}
+      <div className={cn(
+        "flex gap-3 mb-4",
+        decision.results.length === 1 && "justify-center"
+      )}>
+        {decision.results.map((result, index) => renderResultTile(result, index))}
+      </div>
+
+      {/* Voting section - only show when open */}
+      {isOpen && (
+        <div className="mb-4">
+          {/* Voter text */}
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-muted-foreground">
+              {t('dice:chat.voters', 'موافقون')}: 
+              <span className="text-foreground font-medium mx-1">{voteCount}</span>
+              {t('dice:chat.of', 'من')}
+              <span className="text-foreground font-medium mx-1">{threshold}</span>
             </span>
           </div>
-        ))}
-      </div>
-
-      {/* Vote counter */}
-      {isOpen && (
-        <div className="text-center mb-3 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{voteCount}</span>
-          {' / '}
-          <span>{threshold}</span>
-          {' '}
-          {t('dice:chat.votes_needed', 'صوت مطلوب')}
+          
+          {/* Progress bar */}
+          <Progress 
+            value={progressValue} 
+            className="h-1.5"
+          />
+          
+          {/* Inline status hint */}
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            {t('dice:chat.vote_now', 'صوّتوا عليه الحين')}
+          </p>
         </div>
       )}
 
@@ -120,11 +233,15 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
       <div className="flex gap-2">
         {isOpen && (
           <>
+            {/* Primary Vote Button */}
             <Button
               onClick={vote}
               disabled={isVoting}
               variant={hasVoted ? 'default' : 'outline'}
-              className={cn("flex-1", hasVoted && "bg-primary hover:bg-primary/90")}
+              className={cn(
+                "flex-1",
+                hasVoted && "bg-primary text-primary-foreground hover:bg-primary/90"
+              )}
             >
               {isVoting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -133,18 +250,19 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
                   <ThumbsUp className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
                   {hasVoted 
                     ? t('dice:chat.voted', 'صوّتت ✓') 
-                    : t('dice:result.accept', 'اعتماد')
+                    : t('dice:chat.vote', 'صوّت')
                   }
                 </>
               )}
             </Button>
 
-            {canReroll && (
+            {/* Secondary Reroll Button */}
+            {canReroll ? (
               <Button
                 onClick={reroll}
                 disabled={isRerolling}
-                variant="outline"
-                className="flex-1"
+                variant="ghost"
+                className="flex-1 bg-muted/50 hover:bg-muted"
               >
                 {isRerolling ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -155,6 +273,15 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
                   </>
                 )}
               </Button>
+            ) : (
+              <Button
+                disabled
+                variant="ghost"
+                className="flex-1 bg-muted/30 text-muted-foreground cursor-not-allowed"
+              >
+                <RefreshCw className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
+                {t('dice:chat.reroll_done', 'تمت الإعادة')}
+              </Button>
             )}
           </>
         )}
@@ -162,20 +289,28 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
         {isAccepted && (
           <Button
             onClick={handleSplitNow}
-            variant="hero"
-            className="w-full"
+            variant="default"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Divide className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
-            {t('dice:chat.split_now', 'قسّم الآن')} ➗
+            {t('dice:chat.start_split', 'ابدأ التقسيم')} ➗
           </Button>
         )}
       </div>
 
-      {/* Reroll hint */}
-      {isOpen && !canReroll && (
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          {t('dice:result.reroll_used_hint')}
-        </p>
+      {/* Share button - icon only, bottom left */}
+      {!isRerolled && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleShare}
+          className={cn(
+            "absolute bottom-4 h-8 w-8 text-muted-foreground hover:text-foreground",
+            isRTL ? "left-4" : "right-4"
+          )}
+        >
+          <Share2 className="w-4 h-4" />
+        </Button>
       )}
     </Card>
   );

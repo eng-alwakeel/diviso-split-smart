@@ -15,6 +15,7 @@ import {
   DiceDecisionResult,
 } from '@/services/diceChatService';
 import { ACTIVITY_FACES, FOOD_FACES } from '@/data/diceData';
+import { cn } from '@/lib/utils';
 
 interface DiceChatSheetProps {
   groupId: string;
@@ -25,20 +26,28 @@ interface DiceChatSheetProps {
 
 type DiceChoice = 'quick' | 'activity' | 'food';
 
-const DICE_OPTIONS: { id: DiceChoice; icon: React.ReactNode; gradient: string }[] = [
-  { id: 'quick', icon: <Zap className="w-5 h-5" />, gradient: 'from-purple-500 to-pink-600' },
-  { id: 'activity', icon: <Target className="w-5 h-5" />, gradient: 'from-blue-500 to-indigo-600' },
-  { id: 'food', icon: <UtensilsCrossed className="w-5 h-5" />, gradient: 'from-orange-500 to-red-600' },
+interface DiceOption {
+  id: DiceChoice;
+  icon: React.ReactNode;
+  emoji: string;
+  isHighlighted?: boolean;
+}
+
+const DICE_OPTIONS: DiceOption[] = [
+  { id: 'food', icon: <UtensilsCrossed className="w-6 h-6" />, emoji: '🍽️' },
+  { id: 'activity', icon: <Target className="w-6 h-6" />, emoji: '🎯' },
+  { id: 'quick', icon: <Zap className="w-6 h-6" />, emoji: '⚡', isHighlighted: true },
 ];
 
 export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatSheetProps) {
-  const { t } = useTranslation(['dice', 'common']);
+  const { t, i18n } = useTranslation(['dice', 'common']);
   const { toast } = useToast();
   const { trackEvent } = useAnalyticsEvents();
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [selectedDice, setSelectedDice] = useState<DiceChoice>('quick');
   const [isRolling, setIsRolling] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const isRTL = i18n.language === 'ar';
 
   const handleRoll = async () => {
     if (isRolling) return;
@@ -94,11 +103,7 @@ export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatS
           group_id: groupId,
         });
         
-        toast({
-          title: t('dice:chat.decision_posted', 'تم نشر القرار! 🎲'),
-          description: t('dice:chat.vote_now', 'صوّتوا عليه الحين'),
-        });
-        
+        onClose();
         onSuccess?.();
       } else {
         throw new Error(result.error);
@@ -117,60 +122,71 @@ export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatS
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-2xl">
+      <SheetContent side="bottom" className="rounded-t-2xl bg-background border-border">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-center flex items-center justify-center gap-2">
+          <SheetTitle className="text-center flex items-center justify-center gap-2 text-foreground">
             <Dice5 className="w-6 h-6" />
             {t('dice:dialog.title', 'خلّ النرد يقرر')}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4 pb-4">
-          {/* Dice options */}
+        <div className="space-y-5 pb-4">
+          {/* Dice options - equal cards */}
           <div className="grid grid-cols-3 gap-3">
-            {DICE_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setSelectedDice(option.id)}
-                disabled={isRolling}
-                className={`
-                  p-4 rounded-xl border-2 transition-all
-                  ${selectedDice === option.id
-                    ? `border-primary bg-gradient-to-br ${option.gradient} text-white`
-                    : 'border-border bg-muted/50 hover:bg-muted'
-                  }
-                `}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  {option.icon}
-                  <span className="text-xs font-medium">
+            {DICE_OPTIONS.map((option) => {
+              const isSelected = selectedDice === option.id;
+              
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => setSelectedDice(option.id)}
+                  disabled={isRolling}
+                  className={cn(
+                    "p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-3",
+                    // Base styles
+                    "bg-muted/50 border-border/50",
+                    // Highlighted card (quick)
+                    option.isHighlighted && !isSelected && "bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20",
+                    // Selected state
+                    isSelected && "border-primary bg-primary/10",
+                    // Hover
+                    !isSelected && "hover:bg-muted"
+                  )}
+                >
+                  {/* Emoji */}
+                  <span className="text-3xl">{option.emoji}</span>
+                  
+                  {/* Name */}
+                  <span className={cn(
+                    "text-sm font-semibold text-center",
+                    isSelected ? "text-primary" : "text-foreground"
+                  )}>
                     {t(`dice:picker.${option.id}.name`)}
                   </span>
-                </div>
-              </button>
-            ))}
+                  
+                  {/* Description */}
+                  <span className="text-xs text-muted-foreground text-center leading-tight">
+                    {t(`dice:picker.${option.id}.description`)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-
-          {/* Description */}
-          <p className="text-center text-sm text-muted-foreground">
-            {t(`dice:picker.${selectedDice}.description`)}
-          </p>
 
           {/* Roll button */}
           <Button
             onClick={handleRoll}
             disabled={isRolling}
-            className="w-full h-14 text-lg bg-gradient-to-r from-primary to-primary/80"
-            variant="hero"
+            className="w-full h-14 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isRolling ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin ml-2" />
+                <Loader2 className={cn("w-5 h-5 animate-spin", isRTL ? "ml-2" : "mr-2")} />
                 {t('dice:dialog.rolling', 'جاري الرمي...')}
               </>
             ) : (
               <>
-                <Dice5 className="w-5 h-5 ml-2" />
+                <Dice5 className={cn("w-5 h-5", isRTL ? "ml-2" : "mr-2")} />
                 {t('dice:actions.roll', 'ارمِ النرد')} 🎲
               </>
             )}
