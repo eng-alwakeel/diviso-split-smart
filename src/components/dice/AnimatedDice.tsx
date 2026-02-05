@@ -1,101 +1,146 @@
 import { useState, useEffect } from 'react';
 import { DiceFace } from '@/data/diceData';
 import { cn } from '@/lib/utils';
+import { Dice5 } from 'lucide-react';
 
 interface AnimatedDiceProps {
   faces: DiceFace[];
   isRolling: boolean;
   resultFace?: DiceFace;
+  isRevealing?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 const sizeClasses = {
-  sm: 'w-16 h-16 text-2xl',
-  md: 'w-24 h-24 text-4xl',
-  lg: 'w-32 h-32 text-6xl'
+  sm: 'w-16 h-16',
+  md: 'w-24 h-24',
+  lg: 'w-32 h-32'
+};
+
+const iconSizes = {
+  sm: 'w-8 h-8',
+  md: 'w-12 h-12',
+  lg: 'w-16 h-16'
+};
+
+const emojiSizes = {
+  sm: 'text-2xl',
+  md: 'text-4xl',
+  lg: 'text-6xl'
 };
 
 export function AnimatedDice({ 
   faces, 
   isRolling, 
   resultFace, 
+  isRevealing = false,
   size = 'lg',
   className 
 }: AnimatedDiceProps) {
-  const [currentFaceIndex, setCurrentFaceIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
 
-  // Animate through faces while rolling
+  // Handle reveal transition
   useEffect(() => {
-    if (!isRolling) {
-      if (resultFace) {
-        setShowResult(true);
-      }
-      return;
+    if (isRevealing && resultFace) {
+      setShowResult(true);
+    } else if (isRolling) {
+      setShowResult(false);
     }
+  }, [isRevealing, isRolling, resultFace]);
 
-    setShowResult(false);
-    
-    // Rapidly cycle through faces during roll
-    const interval = setInterval(() => {
-      setCurrentFaceIndex(prev => (prev + 1) % Math.max(faces.length, 1));
-    }, 100);
+  // Rolling state - show dice icon with shake animation
+  if (isRolling && !isRevealing) {
+    return (
+      <div className={cn("relative", className)}>
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-2xl",
+            "bg-gradient-to-br from-card to-muted border-2 border-primary/30",
+            "shadow-lg animate-dice-shake",
+            sizeClasses[size]
+          )}
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          <Dice5 className={cn(iconSizes[size], "text-primary")} />
+          
+          {/* Rolling shimmer effect */}
+          <div className="absolute inset-0 rounded-2xl overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-shimmer" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    return () => clearInterval(interval);
-  }, [isRolling, faces.length, resultFace]);
+  // Revealing state - flip to show result on dice face
+  if (isRevealing && resultFace) {
+    return (
+      <div className={cn("relative", className)}>
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center rounded-2xl",
+            "bg-gradient-to-br from-card to-muted border-2 border-primary/40",
+            "shadow-elevated animate-dice-flip-reveal",
+            sizeClasses[size]
+          )}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            perspective: '1000px'
+          }}
+        >
+          <span className={cn(emojiSizes[size], "select-none")} role="img" aria-label={resultFace.labelEn}>
+            {resultFace.emoji}
+          </span>
+          
+          {/* Result glow effect */}
+          <div className="absolute -inset-2 rounded-2xl bg-primary/15 blur-xl -z-10" />
+        </div>
+      </div>
+    );
+  }
 
-  // Get current display face
-  const displayFace = showResult && resultFace 
-    ? resultFace 
-    : faces[currentFaceIndex] || faces[0];
+  // Result state - show the final face
+  if (showResult && resultFace) {
+    return (
+      <div className={cn("relative", className)}>
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center rounded-2xl",
+            "bg-gradient-to-br from-card to-muted border-2 border-primary/30",
+            "shadow-lg transition-all duration-300",
+            sizeClasses[size]
+          )}
+        >
+          <span className={cn(emojiSizes[size], "select-none")} role="img" aria-label={resultFace.labelEn}>
+            {resultFace.emoji}
+          </span>
+          
+          {/* Subtle glow */}
+          <div className="absolute -inset-1 rounded-2xl bg-primary/10 blur-md -z-10" />
+        </div>
+      </div>
+    );
+  }
 
+  // Idle state - show dice icon
+  const displayFace = faces[0];
+  
   if (!displayFace) {
     return null;
   }
 
   return (
-    <div 
-      className={cn(
-        "relative perspective-1000",
-        className
-      )}
-    >
+    <div className={cn("relative", className)}>
       <div
         className={cn(
-          "flex items-center justify-center rounded-xl bg-gradient-to-br from-card to-muted border-2 border-primary/20 shadow-lg transition-all duration-300",
-          sizeClasses[size],
-          isRolling && "animate-dice-roll",
-          showResult && "animate-dice-land"
+          "flex items-center justify-center rounded-2xl",
+          "bg-gradient-to-br from-card to-muted border-2 border-primary/20",
+          "shadow-lg transition-all duration-300 hover:border-primary/40",
+          sizeClasses[size]
         )}
-        style={{
-          transformStyle: 'preserve-3d',
-        }}
       >
-        {/* Dice face content */}
-        <div 
-          className={cn(
-            "flex flex-col items-center justify-center gap-1 transition-all duration-200",
-            isRolling && "opacity-70 scale-90",
-            showResult && "animate-scale-in"
-          )}
-        >
-          <span className="select-none" role="img" aria-label={displayFace.labelEn}>
-            {displayFace.emoji}
-          </span>
-        </div>
-
-        {/* Rolling shimmer effect */}
-        {isRolling && (
-          <div className="absolute inset-0 rounded-xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-          </div>
-        )}
-
-        {/* Result glow effect */}
-        {showResult && (
-          <div className="absolute -inset-1 rounded-xl bg-primary/20 blur-md -z-10 animate-pulse" />
-        )}
+        <Dice5 className={cn(iconSizes[size], "text-primary/70")} />
       </div>
     </div>
   );
@@ -104,6 +149,7 @@ export function AnimatedDice({
 // Dual dice display for quick mode
 interface DualAnimatedDiceProps {
   isRolling: boolean;
+  isRevealing?: boolean;
   activityFace?: DiceFace;
   foodFace?: DiceFace;
   activityFaces: DiceFace[];
@@ -113,6 +159,7 @@ interface DualAnimatedDiceProps {
 
 export function DualAnimatedDice({
   isRolling,
+  isRevealing = false,
   activityFace,
   foodFace,
   activityFaces,
@@ -126,6 +173,7 @@ export function DualAnimatedDice({
         <AnimatedDice
           faces={activityFaces}
           isRolling={isRolling}
+          isRevealing={isRevealing}
           resultFace={activityFace}
           size="md"
         />
@@ -135,6 +183,7 @@ export function DualAnimatedDice({
         <AnimatedDice
           faces={foodFaces}
           isRolling={isRolling}
+          isRevealing={isRevealing}
           resultFace={foodFace}
           size="md"
         />

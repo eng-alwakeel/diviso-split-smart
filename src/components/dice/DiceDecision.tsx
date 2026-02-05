@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import confetti from "canvas-confetti";
 import {
@@ -14,9 +14,9 @@ import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { DicePicker } from "./DicePicker";
 import { DiceResultDisplay } from "./DiceResult";
 import { ShareDiceResult } from "./ShareDiceResult";
-import { AnimatedDice } from "./AnimatedDice";
+import { AnimatedDice, DualAnimatedDice } from "./AnimatedDice";
 import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Dice5 } from "lucide-react";
 
 interface DiceDecisionProps {
   open: boolean;
@@ -26,7 +26,10 @@ interface DiceDecisionProps {
   initialDice?: DiceType;
 }
 
-type DiceState = 'picker' | 'ready' | 'rolling' | 'result' | 'share';
+type DiceState = 'picker' | 'ready' | 'rolling' | 'revealing' | 'result' | 'share';
+
+// Revealing duration in ms
+const REVEAL_DURATION = 600;
 
 export function DiceDecision({
   open,
@@ -38,6 +41,7 @@ export function DiceDecision({
   const { t, i18n } = useTranslation('dice');
   const isRTL = i18n.language === 'ar';
   const [showShare, setShowShare] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
 
   const {
     selectedDice,
@@ -80,25 +84,36 @@ export function DiceDecision({
     }
   }, [open, initialDice, selectDice]);
 
+  // Handle reveal animation when rolling completes
+  useEffect(() => {
+    if (!isRolling && (result || dualResult) && !isRevealing) {
+      // Trigger reveal animation
+      setIsRevealing(true);
+      
+      // After reveal animation, show full result
+      const timer = setTimeout(() => {
+        setIsRevealing(false);
+        // Trigger confetti after reveal
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }, REVEAL_DURATION);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isRolling, result, dualResult]);
+
   // Determine current state
   const currentState = useMemo((): DiceState => {
     if (showShare) return 'share';
+    if (isRevealing) return 'revealing';
     if (result || dualResult) return 'result';
     if (isRolling) return 'rolling';
     if (selectedDice) return 'ready';
     return 'picker';
-  }, [showShare, result, dualResult, isRolling, selectedDice]);
-
-  // Trigger confetti on result
-  useEffect(() => {
-    if (currentState === 'result' && (result || dualResult)) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    }
-  }, [currentState, result, dualResult]);
+  }, [showShare, isRevealing, result, dualResult, isRolling, selectedDice]);
 
   // Get available dice based on group type
   const availableDice = useMemo(() => {
@@ -106,42 +121,44 @@ export function DiceDecision({
   }, [groupType]);
 
   // Handle dialog close
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     reset();
     setShowShare(false);
+    setIsRevealing(false);
     onOpenChange(false);
-  };
+  }, [reset, onOpenChange]);
 
   // Handle dice selection
-  const handleSelectDice = (dice: DiceType) => {
+  const handleSelectDice = useCallback((dice: DiceType) => {
     selectDice(dice);
-  };
+  }, [selectDice]);
 
   // Handle roll
-  const handleRoll = async () => {
+  const handleRoll = useCallback(async () => {
     if (selectedDice?.id === 'quick') {
       await rollQuickDice();
     } else {
       await rollDice();
     }
-  };
+  }, [selectedDice, rollQuickDice, rollDice]);
 
   // Handle accept
-  const handleAccept = () => {
+  const handleAccept = useCallback(() => {
     acceptDecision();
     handleClose();
-  };
+  }, [acceptDecision, handleClose]);
 
   // Handle share
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     setShowShare(true);
-  };
+  }, []);
 
   // Handle back to picker
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     reset();
     setShowShare(false);
-  };
+    setIsRevealing(false);
+  }, [reset]);
 
   // Get dialog title based on state
   const getDialogTitle = () => {
@@ -151,7 +168,9 @@ export function DiceDecision({
       case 'ready':
         return isRTL ? selectedDice?.nameAr : selectedDice?.nameEn;
       case 'rolling':
-        return t('dialog.rolling');
+        return t('dialog.dice_deciding', { defaultValue: 'النرد يقرر...' });
+      case 'revealing':
+        return t('dialog.dice_said', { defaultValue: 'النرد قال كلمته' });
       case 'result':
         return t('dialog.result');
       case 'share':
@@ -176,7 +195,8 @@ export function DiceDecision({
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <DialogTitle className="flex-1">
+            <DialogTitle className="flex-1 flex items-center gap-2">
+              <span className="text-xl">🎲</span>
               {getDialogTitle()}
             </DialogTitle>
           </div>
@@ -195,14 +215,23 @@ export function DiceDecision({
 
           {/* Ready State - Show dice and roll button */}
           {currentState === 'ready' && selectedDice && (
-            <div className="space-y-6 text-center">
+            <div className="space-y-8 text-center">
               <div className="py-8">
-                <AnimatedDice
-                  faces={selectedDice.id === 'quick' ? ACTIVITY_DICE.faces : selectedDice.faces}
-                  isRolling={false}
-                  size="lg"
-                  className="mx-auto"
-                />
+                {selectedDice.id === 'quick' ? (
+                  <DualAnimatedDice
+                    isRolling={false}
+                    activityFaces={ACTIVITY_DICE.faces}
+                    foodFaces={FOOD_DICE.faces}
+                    className="mx-auto"
+                  />
+                ) : (
+                  <AnimatedDice
+                    faces={selectedDice.faces}
+                    isRolling={false}
+                    size="lg"
+                    className="mx-auto"
+                  />
+                )}
               </div>
               
               <p className="text-muted-foreground">
@@ -211,36 +240,26 @@ export function DiceDecision({
               
               <Button
                 size="lg"
-                className={cn(
-                  "w-full text-lg py-6",
-                  `bg-gradient-to-r ${selectedDice.color} hover:opacity-90`
-                )}
+                className="w-full text-lg py-6 gap-2"
                 onClick={handleRoll}
               >
-                🎲 {t('actions.roll')}
+                <Dice5 className="w-5 h-5" />
+                {t('dialog.lets_see', { defaultValue: 'خلّنا نشوف وش يطلع 🎲' })}
               </Button>
             </div>
           )}
 
-          {/* Rolling State */}
+          {/* Rolling State - Dice shaking */}
           {currentState === 'rolling' && (
-            <div className="py-12 text-center space-y-6">
-              {selectedDice?.id === 'quick' || dualResult ? (
-                // Dual dice rolling
-                <div className="flex justify-center gap-6">
-                  <AnimatedDice
-                    faces={ACTIVITY_DICE.faces}
-                    isRolling={true}
-                    size="md"
-                  />
-                  <AnimatedDice
-                    faces={FOOD_DICE.faces}
-                    isRolling={true}
-                    size="md"
-                  />
-                </div>
+            <div className="py-16 text-center space-y-8">
+              {selectedDice?.id === 'quick' ? (
+                <DualAnimatedDice
+                  isRolling={true}
+                  activityFaces={ACTIVITY_DICE.faces}
+                  foodFaces={FOOD_DICE.faces}
+                  className="mx-auto"
+                />
               ) : (
-                // Single dice rolling
                 <AnimatedDice
                   faces={selectedDice?.faces || ACTIVITY_DICE.faces}
                   isRolling={true}
@@ -249,8 +268,38 @@ export function DiceDecision({
                 />
               )}
               
-              <p className="text-muted-foreground animate-pulse">
-                {t('dialog.rolling')}...
+              <p className="text-lg text-muted-foreground animate-pulse">
+                {t('dialog.dice_deciding', { defaultValue: 'النرد يقرر...' })}
+              </p>
+            </div>
+          )}
+
+          {/* Revealing State - Dice flips to show result */}
+          {currentState === 'revealing' && (
+            <div className="py-16 text-center space-y-8">
+              {dualResult ? (
+                <DualAnimatedDice
+                  isRolling={false}
+                  isRevealing={true}
+                  activityFace={dualResult.activity.face}
+                  foodFace={dualResult.food.face}
+                  activityFaces={ACTIVITY_DICE.faces}
+                  foodFaces={FOOD_DICE.faces}
+                  className="mx-auto"
+                />
+              ) : result ? (
+                <AnimatedDice
+                  faces={selectedDice?.faces || ACTIVITY_DICE.faces}
+                  isRolling={false}
+                  isRevealing={true}
+                  resultFace={result.face}
+                  size="lg"
+                  className="mx-auto"
+                />
+              ) : null}
+              
+              <p className="text-lg font-medium text-foreground">
+                {t('dialog.dice_said', { defaultValue: 'النرد قال كلمته' })}
               </p>
             </div>
           )}
