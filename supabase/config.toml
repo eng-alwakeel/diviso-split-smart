@@ -89,3 +89,6 @@ verify_jwt = true
 
 [functions.suggest-dice]
 verify_jwt = false
+
+[functions.generate-dice-comment]
+verify_jwt = false

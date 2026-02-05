@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
 import { AppHeader } from "@/components/AppHeader";
@@ -11,6 +11,7 @@ import { ShareDiceResult } from "@/components/dice/ShareDiceResult";
 import { AnimatedDice } from "@/components/dice/AnimatedDice";
 import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
+import { useSmartDiceComment } from "@/hooks/useSmartDiceComment";
 import { ACTIVITY_DICE, FOOD_DICE, DiceType } from "@/data/diceData";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Home } from "lucide-react";
@@ -23,6 +24,9 @@ const DiceDecisionPage = () => {
   const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
   const [showShare, setShowShare] = useState(false);
+
+  // Smart comment hook
+  const { comment: smartComment, isLoading: isLoadingComment, generateComment, clearComment } = useSmartDiceComment();
 
   const {
     selectedDice,
@@ -53,13 +57,32 @@ const DiceDecisionPage = () => {
 
   const currentState = getCurrentState();
 
+  // Generate smart comment when result changes
+  useEffect(() => {
+    if (result && !smartComment) {
+      generateComment({
+        diceType: result.diceType.id,
+        resultLabel: result.face.labelEn,
+        resultLabelAr: result.face.labelAr,
+      });
+    } else if (dualResult && !smartComment) {
+      generateComment({
+        diceType: 'quick',
+        resultLabel: dualResult.activity.face.labelEn,
+        resultLabelAr: dualResult.activity.face.labelAr,
+      });
+    }
+  }, [result, dualResult, smartComment, generateComment]);
+
   // Handle dice selection
   const handleSelectDice = (dice: DiceType) => {
     selectDice(dice);
+    clearComment(); // Clear any previous comment
   };
 
   // Handle roll
   const handleRoll = async () => {
+    clearComment(); // Clear comment before new roll
     if (selectedDice?.id === 'quick') {
       await rollQuickDice();
     } else {
@@ -84,6 +107,7 @@ const DiceDecisionPage = () => {
       setShowShare(false);
     } else {
       reset();
+      clearComment();
     }
   };
 
@@ -207,6 +231,8 @@ const DiceDecisionPage = () => {
                 hasRerolled={hasRerolled}
                 showFoodPrompt={showFoodPrompt}
                 isRolling={isRolling}
+                smartComment={smartComment}
+                isLoadingComment={isLoadingComment}
                 onAccept={handleAccept}
                 onReroll={rerollDice}
                 onShare={handleShare}
