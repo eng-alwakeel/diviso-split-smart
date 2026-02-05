@@ -1,437 +1,294 @@
 
-# خطة تكامل النرد مع شات المجموعة
+# خطة تفعيل Google AdSense Offerwall عند الضغط على "شاهد إعلان"
 
-## نظرة عامة
+## ملخص المشكلة
 
-إضافة ميزة تفاعلية تسمح للمستخدمين برمي النرد داخل شات المجموعة، مع إمكانية التصويت والاعتماد الجماعي، ثم الانتقال مباشرة لتقسيم التكلفة.
+عند ضغط المستخدم على زر "شاهد إعلان" في `ZeroCreditsPaywall`، النظام الحالي يستخدم محاكاة (`setTimeout` لـ 3 ثواني) بدلاً من عرض إعلان فعلي من Google AdSense Offerwall.
 
----
+## الحالة الحالية
 
-## التغييرات في قاعدة البيانات
-
-### 1. جدول جديد: `dice_decisions`
-
-```sql
-CREATE TABLE public.dice_decisions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
-  created_by UUID NOT NULL REFERENCES auth.users(id),
-  dice_type TEXT NOT NULL CHECK (dice_type IN ('activity', 'food', 'quick')),
-  results JSONB NOT NULL, -- [{faceId, emoji, labelAr, labelEn}]
-  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'accepted', 'rerolled', 'expired')),
-  votes JSONB NOT NULL DEFAULT '[]'::JSONB, -- array of user_ids who voted
-  rerolled_from UUID REFERENCES public.dice_decisions(id), -- للربط مع القرار الأصلي
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  accepted_at TIMESTAMPTZ,
-  CONSTRAINT one_open_per_group UNIQUE (group_id, status) -- منع قرار مفتوح متعدد
-);
-```
-
-### 2. تعديل جدول `messages`
-
-إضافة عمود اختياري لربط الرسالة بقرار النرد:
-
-```sql
-ALTER TABLE public.messages 
-ADD COLUMN message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'dice_decision')),
-ADD COLUMN dice_decision_id UUID REFERENCES public.dice_decisions(id);
-```
-
-### 3. سياسات RLS
-
-```sql
--- قراءة: أعضاء المجموعة فقط
-CREATE POLICY "Members can view dice decisions" ON dice_decisions
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM group_members 
-      WHERE group_id = dice_decisions.group_id 
-      AND user_id = auth.uid()
-    )
-  );
-
--- إنشاء: أعضاء المجموعة فقط
-CREATE POLICY "Members can create dice decisions" ON dice_decisions
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM group_members 
-      WHERE group_id = dice_decisions.group_id 
-      AND user_id = auth.uid()
-    ) AND created_by = auth.uid()
-  );
-
--- تحديث: للتصويت وتغيير الحالة
-CREATE POLICY "Members can update dice decisions" ON dice_decisions
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM group_members 
-      WHERE group_id = dice_decisions.group_id 
-      AND user_id = auth.uid()
-    )
-  );
-```
+| المكون | الحالة |
+|--------|--------|
+| Google AdSense Script | ✅ مُحمّل في `index.html` |
+| Publisher ID | ✅ `ca-pub-4156962854639409` |
+| Offerwall Message | ✅ منشور في AdSense Console (Main - Arabic) |
+| `ZeroCreditsPaywall.tsx` | ⚠️ يستخدم محاكاة `setTimeout` |
+| `useRewardedAds.ts` | ✅ جاهز لإدارة الجلسات |
 
 ---
 
-## المكونات الجديدة
+## الحل: استخدام Google Offerwall API
 
-### 1. زر النرد في شريط الشات
+### كيف يعمل Google AdSense Offerwall:
 
-**الملف:** `src/components/chat/ChatDiceButton.tsx`
+1. **لا يوجد دالة `showOfferwall()` مباشرة** - Google يعرض الـ Offerwall تلقائياً بناءً على إعدادات Console
+2. **طريقة التفعيل**: إعادة تحميل الصفحة مع parameters خاصة أو استخدام `controlledMessagingFunction`
+3. **Custom Choice API**: للربط مع نظام النقاط الداخلي
 
-زر 🎲 بجانب زر الإرسال يفتح Bottom Sheet:
+---
+
+## الخطوات التقنية
+
+### 1. إنشاء خدمة AdSense Offerwall
+
+ملف جديد: `src/lib/adsenseOfferwall.ts`
 
 ```text
-┌─────────────────────────────────────────┐
-│  اكتب رسالة...          [🎲] [إرسال]   │
-└─────────────────────────────────────────┘
+الوظائف:
+├── triggerOfferwall() - فتح Offerwall
+├── initControlledMessaging() - التحكم بعرض الرسائل
+├── registerCustomChoice() - ربط مع نظام النقاط
+└── checkOfferwallStatus() - التحقق من حالة العرض
 ```
 
-### 2. Bottom Sheet لاختيار النرد
+**المحتوى:**
+- تعريف TypeScript types لـ `window.googlefc`
+- دالة `triggerOfferwall()` تفتح نافذة/iframe مع parameter `?fc=alwaysshow&fctype=monetization`
+- دالة `registerCustomChoice()` تربط زر الإعلان بنظام `claimRewardAsToken`
 
-**الملف:** `src/components/chat/DiceChatSheet.tsx`
+### 2. تعديل `ZeroCreditsPaywall.tsx`
+
+استبدال المحاكاة الحالية:
 
 ```text
-┌─────────────────────────────────────────┐
-│           خلّ النرد يقرر 🎲            │
-├─────────────────────────────────────────┤
-│  ⚡ قرار سريع (نشاط + أكل)              │
-│  🎯 نرد النشاط                          │
-│  🍽️ نرد الأكل                          │
-├─────────────────────────────────────────┤
-│        [ ارمِ الآن 🎲 ]                 │
-└─────────────────────────────────────────┘
+// الحالي (سطور 100-131)
+setTimeout(async () => {
+  // محاكاة...
+}, 3000);
+
+// الجديد
+import { triggerOfferwall, waitForOfferwallComplete } from '@/lib/adsenseOfferwall';
+
+const completed = await triggerOfferwall();
+if (completed) {
+  const result = await claimRewardAsToken(session.sessionId, actionName);
+  // ... باقي المنطق
+}
 ```
 
-### 3. بطاقة قرار النرد في الشات
+### 3. إضافة TypeScript Types
 
-**الملف:** `src/components/chat/messages/DiceDecisionMessage.tsx`
+ملف: `src/types/googlefc.d.ts`
 
 ```text
-┌─────────────────────────────────────────┐
-│  🎲 النرد قرر!                          │
-├─────────────────────────────────────────┤
-│           🏕️ هواء طلق / بر             │
-│           🍚 أكلة رز                     │
-├─────────────────────────────────────────┤
-│  2/5 موافق                              │
-│                                         │
-│  [👍 اعتماد]  [🔄 إعادة]               │
-│                                         │
-│  * ظهور [➗ قسّم الآن] بعد الاعتماد    │
-└─────────────────────────────────────────┘
-```
-
----
-
-## الملفات الجديدة والمعدلة
-
-| الملف | النوع | الوصف |
-|-------|-------|-------|
-| `src/components/chat/ChatDiceButton.tsx` | جديد | زر النرد في شريط الشات |
-| `src/components/chat/DiceChatSheet.tsx` | جديد | Bottom Sheet لاختيار ورمي النرد |
-| `src/components/chat/messages/DiceDecisionMessage.tsx` | جديد | عرض بطاقة القرار في الشات |
-| `src/services/diceChatService.ts` | جديد | خدمة التعامل مع قرارات النرد |
-| `src/hooks/useDiceChatDecision.ts` | جديد | Hook للتصويت والإدارة |
-| `src/components/group/GroupChat.tsx` | تعديل | إضافة زر النرد + عرض رسائل النرد |
-| `src/hooks/useGroupNotifications.ts` | تعديل | إضافة إشعارات النرد |
-| `src/i18n/locales/ar/dice.json` | تعديل | إضافة ترجمات الشات |
-| `src/i18n/locales/en/dice.json` | تعديل | إضافة ترجمات الشات |
-| `src/i18n/locales/ar/notifications.json` | تعديل | إضافة أنواع إشعارات النرد |
-| `src/hooks/useAnalyticsEvents.ts` | تعديل | إضافة أحداث جديدة |
-
----
-
-## خدمة إدارة قرارات النرد
-
-**الملف:** `src/services/diceChatService.ts`
-
-```typescript
-interface DiceChatService {
-  // إنشاء قرار جديد
-  createDecision(groupId: string, diceType: string, results: DiceFace[]): Promise<void>;
-  
-  // التصويت
-  vote(decisionId: string): Promise<void>;
-  removeVote(decisionId: string): Promise<void>;
-  
-  // إعادة الرمي
-  reroll(decisionId: string): Promise<void>;
-  
-  // التحقق من وجود قرار مفتوح
-  hasOpenDecision(groupId: string): Promise<boolean>;
-  
-  // الحصول على نسبة التصويت المطلوبة
-  getVoteThreshold(memberCount: number): number; // 60%
+interface Window {
+  googlefc?: {
+    MessageTypeEnum?: {
+      OFFERWALL: string;
+      GDPR_CONSENT: string;
+    };
+    controlledMessagingFunction?: (message: GoogleFcMessage) => Promise<void>;
+    offerwall?: {
+      customchoice?: {
+        registry?: CustomOfferwallChoice;
+        InitializeResponseEnum?: {...};
+      };
+    };
+  };
 }
 ```
 
----
+### 4. تسجيل Custom Choice (متقدم)
 
-## منطق التصويت والاعتماد
+لربط "شاهد إعلان" مع Offerwall بشكل كامل:
 
-### قواعد التصويت
-- كل عضو يصوّت مرة واحدة (toggle)
-- التصويت بالضغط على 👍
-- إلغاء التصويت بالضغط مرة ثانية
-
-### نسبة الاعتماد
-- **60%** من أعضاء المجموعة
-- مثال: 5 أعضاء = 3 أصوات مطلوبة
-
-### الاعتماد التلقائي
-```typescript
-function checkAutoAccept(votes: number, memberCount: number): boolean {
-  const threshold = Math.ceil(memberCount * 0.6);
-  return votes >= threshold;
-}
-```
-
-### قاعدة "قرار واحد مفتوح"
-- لا يُسمح بقرار جديد إذا وُجد قرار مفتوح
-- رسالة للمستخدم: "فيه قرار مفتوح... صوّتوا عليه أول 😅"
-
----
-
-## منطق إعادة الرمي
-
-**الخيار المُختار:** إعادة واحدة للبطاقة كلها
-
-- زر 🔄 يظهر لجميع الأعضاء
-- يعمل مرة واحدة فقط
-- عند الضغط:
-  1. `status = 'rerolled'` للقرار القديم
-  2. إنشاء قرار جديد مع `rerolled_from`
-  3. إرسال رسالة جديدة في الشات
-
----
-
-## الربط مع "قسّم الآن"
-
-بعد الاعتماد (`status = 'accepted'`):
-
-1. يظهر زر **➗ قسّم الآن**
-2. عند الضغط، ينتقل إلى `/add-expense`
-3. يملأ العنوان تلقائياً:
-
-```typescript
-function generateExpenseTitle(dualResult: DualDiceResult): string {
-  const activity = dualResult.activity.face.labelAr;
-  const food = dualResult.food.face.labelAr;
-  return `${activity} – ${food}`; // "مطعم – أكلة رز"
-}
-
-function generateSingleTitle(result: DiceResult): string {
-  return `طلعة – ${result.face.labelAr}`; // "طلعة – كافيه"
-}
-```
-
----
-
-## نظام الإشعارات
-
-### أنواع الإشعارات الجديدة
-
-| النوع | الرسالة |
-|-------|---------|
-| `dice_posted` | 🎲 قرار جديد في "{اسم المجموعة}" - صوّتوا واعتمدوا! |
-| `dice_accepted` | ✅ تم اعتماد القرار في "{اسم المجموعة}" |
-| `dice_rerolled` | 🔄 تم إعادة الرمي في "{اسم المجموعة}" |
-
-### إضافة للترجمات
-
-```json
-// notifications.json
-{
-  "types": {
-    "dice_posted": "🎲 قرار جديد في \"{{group}}\" - صوّتوا واعتمدوا!",
-    "dice_accepted": "✅ تم اعتماد القرار في \"{{group}}\"",
-    "dice_rerolled": "🔄 تم إعادة الرمي في \"{{group}}\""
-  },
-  "titles": {
-    "dice_posted": "قرار جديد 🎲",
-    "dice_accepted": "تم الاعتماد ✅",
-    "dice_rerolled": "إعادة الرمي 🔄"
+```text
+class DivisoOfferwallChoice {
+  async initialize(params) {
+    // تحقق إذا المستخدم لديه رصيد
+    const hasCredits = await checkUserCredits();
+    return hasCredits 
+      ? ACCESS_GRANTED 
+      : ACCESS_NOT_GRANTED;
+  }
+  
+  async show() {
+    // عرض الإعلان ومنح النقاط
+    const session = await createSession(...);
+    // انتظار مشاهدة الإعلان
+    const success = await waitForRewardedAd();
+    if (success) {
+      await claimRewardAsToken(session.sessionId);
+    }
+    return success;
   }
 }
 ```
 
 ---
 
-## أحداث Analytics الجديدة
+## الملفات المتأثرة
 
-| الحدث | الوصف |
-|-------|-------|
-| `dice_posted_to_chat` | نشر قرار في الشات |
-| `dice_vote_cast` | تصويت على قرار |
-| `dice_accepted_in_chat` | اعتماد قرار في الشات |
-| `dice_rerolled_in_chat` | إعادة رمي في الشات |
-| `split_started_from_dice_chat` | بدء تقسيم من قرار الشات |
+| الملف | النوع | التغيير |
+|-------|-------|---------|
+| `src/lib/adsenseOfferwall.ts` | جديد | خدمة التحكم بالـ Offerwall |
+| `src/types/googlefc.d.ts` | جديد | TypeScript types لـ Google FC |
+| `src/components/credits/ZeroCreditsPaywall.tsx` | تعديل | استدعاء Offerwall بدل المحاكاة |
+| `index.html` | تعديل | إضافة `controlledMessagingFunction` |
 
 ---
 
-## تعديل GroupChat.tsx
+## التفاصيل التقنية
 
-### التغييرات المطلوبة
+### محتوى `src/lib/adsenseOfferwall.ts`:
 
-1. **استيراد المكونات الجديدة:**
 ```typescript
-import { ChatDiceButton } from "@/components/chat/ChatDiceButton";
-import { DiceDecisionMessage } from "@/components/chat/messages/DiceDecisionMessage";
-```
+// Types for Google Funding Choices
+declare global {
+  interface Window {
+    googlefc?: GoogleFC;
+  }
+}
 
-2. **تحديث واجهة Message:**
-```typescript
-interface Message {
-  id: string;
-  content: string;
-  created_at: string;
-  sender_id: string;
-  group_id: string;
-  message_type: 'text' | 'dice_decision';
-  dice_decision_id?: string;
+interface GoogleFC {
+  controlledMessagingFunction?: (message: GoogleFCMessage) => void;
+  callbackQueue?: Array<() => void>;
+  MessageTypeEnum?: {
+    OFFERWALL: number;
+  };
+}
+
+// Trigger offerwall by opening monetization page
+export async function triggerOfferwall(): Promise<boolean> {
+  return new Promise((resolve) => {
+    // Open offerwall in current page with monetization trigger
+    const offerwallUrl = `${window.location.origin}/?fc=alwaysshow&fctype=monetization`;
+    
+    // Create hidden iframe or use popup
+    const iframe = document.createElement('iframe');
+    iframe.src = offerwallUrl;
+    iframe.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 99999;
+      border: none;
+      background: rgba(0,0,0,0.8);
+    `;
+    
+    // Listen for completion message
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'offerwall_complete') {
+        document.body.removeChild(iframe);
+        window.removeEventListener('message', handleMessage);
+        resolve(event.data.success);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    document.body.appendChild(iframe);
+    
+    // Timeout fallback
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+        window.removeEventListener('message', handleMessage);
+        resolve(false);
+      }
+    }, 60000); // 1 minute timeout
+  });
+}
+
+// Initialize controlled messaging for subscribers
+export function initControlledMessaging(isPaidUser: boolean): void {
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  
+  window.googlefc.callbackQueue.push(() => {
+    window.googlefc!.controlledMessagingFunction = (message) => {
+      if (isPaidUser) {
+        // Suppress offerwall for paid users
+        message.proceed(false);
+      } else {
+        message.proceed(true);
+      }
+    };
+  });
 }
 ```
 
-3. **تعديل عرض الرسائل:**
-```tsx
-{messages.map((m) => (
-  m.message_type === 'dice_decision' && m.dice_decision_id
-    ? <DiceDecisionMessage key={m.id} decisionId={m.dice_decision_id} groupId={groupId} />
-    : <MessageBubble key={m.id} message={m} profiles={profiles} />
-))}
-```
+### تعديل `ZeroCreditsPaywall.tsx` - دالة `handleWatchAd`:
 
-4. **إضافة زر النرد:**
-```tsx
-<div className="flex gap-2">
-  <Input ... />
-  <ChatDiceButton groupId={groupId} onDecisionCreated={scrollToBottom} />
-  <Button onClick={sendMessage} ...>
-    <Send />
-  </Button>
-</div>
+```typescript
+const handleWatchAd = async () => {
+  if (!actionName || isWatchingAd) return;
+  
+  setIsWatchingAd(true);
+  
+  try {
+    await logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
+    
+    const session = await createSession(actionName, requiredCredits);
+    if (!session) {
+      toast.error(isRTL ? 'غير مؤهل لمشاهدة الإعلان' : 'Not eligible');
+      setIsWatchingAd(false);
+      return;
+    }
+
+    toast.info(isRTL ? 'جاري فتح الإعلان...' : 'Opening ad...');
+    
+    // Trigger real AdSense Offerwall
+    const { triggerOfferwall } = await import('@/lib/adsenseOfferwall');
+    const completed = await triggerOfferwall();
+    
+    if (completed) {
+      await logRewardedComplete(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
+      
+      const result = await claimRewardAsToken(session.sessionId, actionName);
+      
+      if (result.success) {
+        await logRewardedClaim(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
+        toast.success(
+          isRTL 
+            ? `تم! يمكنك تنفيذ عملية واحدة خلال ${result.expiresInMinutes} دقيقة` 
+            : `Done! One action unlocked for ${result.expiresInMinutes} minutes`
+        );
+        setTimeout(() => onOpenChange(false), 1000);
+      } else {
+        toast.error(isRTL ? 'فشل في التفعيل' : 'Failed to unlock');
+      }
+    } else {
+      toast.warning(isRTL ? 'لم يكتمل الإعلان' : 'Ad not completed');
+      await updateSessionStatus(session.sessionId, 'failed');
+    }
+    
+    setIsWatchingAd(false);
+    await checkEligibility(actionName, requiredCredits);
+  } catch (error) {
+    console.error('Error watching ad:', error);
+    toast.error(isRTL ? 'حدث خطأ' : 'An error occurred');
+    setIsWatchingAd(false);
+  }
+};
 ```
 
 ---
 
-## تدفق العمل (Workflow)
+## ملاحظات مهمة
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│                    تدفق قرار النرد في الشات                     │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  [🎲] ← المستخدم يضغط زر النرد                                  │
-│    │                                                             │
-│    ▼                                                             │
-│  ┌─────────────────────┐                                         │
-│  │  هل يوجد قرار       │ ──نعم──► "فيه قرار مفتوح" ❌             │
-│  │  مفتوح؟             │                                         │
-│  └─────────────────────┘                                         │
-│    │ لا                                                          │
-│    ▼                                                             │
-│  ┌─────────────────────┐                                         │
-│  │  Bottom Sheet       │                                         │
-│  │  اختيار النرد       │                                         │
-│  └─────────────────────┘                                         │
-│    │                                                             │
-│    ▼                                                             │
-│  [ ارمِ الآن ] ← الرمي                                          │
-│    │                                                             │
-│    ▼                                                             │
-│  ┌─────────────────────┐                                         │
-│  │  إنشاء dice_decision│                                         │
-│  │  + message          │                                         │
-│  └─────────────────────┘                                         │
-│    │                                                             │
-│    ▼                                                             │
-│  [إشعار لأعضاء المجموعة] 🔔                                     │
-│    │                                                             │
-│    ▼                                                             │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │              بطاقة القرار في الشات                          │ │
-│  │  ┌─────────────────────────────────────────────────────┐    │ │
-│  │  │  🎲 النرد قرر!                                      │    │ │
-│  │  │  🏕️ هواء طلق  🍚 أكلة رز                            │    │ │
-│  │  │  0/5 موافق                                          │    │ │
-│  │  │  [👍 اعتماد]  [🔄 إعادة]                            │    │ │
-│  │  └─────────────────────────────────────────────────────┘    │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│    │                                                             │
-│    ├──► [👍] ← تصويت (toggle)                                   │
-│    │      │                                                      │
-│    │      ▼                                                      │
-│    │    votes >= 60%?                                           │
-│    │      │ نعم                                                  │
-│    │      ▼                                                      │
-│    │    status = 'accepted' + إشعار ✅                          │
-│    │      │                                                      │
-│    │      ▼                                                      │
-│    │    ┌───────────────────────────────────────────────┐       │
-│    │    │  ✅ تم الاعتماد!                              │       │
-│    │    │  [➗ قسّم الآن]                               │       │
-│    │    └───────────────────────────────────────────────┘       │
-│    │      │                                                      │
-│    │      ▼                                                      │
-│    │    /add-expense?title=...&groupId=...                      │
-│    │                                                             │
-│    └──► [🔄] ← إعادة الرمي (مرة واحدة)                          │
-│           │                                                      │
-│           ▼                                                      │
-│         status = 'rerolled'                                      │
-│         + إنشاء قرار جديد                                       │
-│         + إشعار 🔄                                              │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
-```
+1. **Google AdSense Offerwall** يعمل تلقائياً عند تحميل الصفحة إذا كان المستخدم غير مشترك
+2. **لا يمكن استدعاء Offerwall برمجياً بشكل مباشر** - الحل هو إعادة تحميل الصفحة مع parameters
+3. **للربط الكامل**: يجب استخدام Custom Choice API لإضافة خيار "شاهد إعلان" داخل Offerwall نفسه
+4. **الاختبار**: استخدم `?fc=alwaysshow` لاختبار ظهور Offerwall
+
+---
+
+## البديل الموصى به: Rewarded Web Interstitial
+
+بما أن AdSense Offerwall مصمم للـ paywalls على المحتوى وليس للـ in-app actions، قد يكون الأفضل:
+
+1. **استخدام Google Publisher Tag (GPT)** لعرض Rewarded Interstitial
+2. **أو الاستمرار بـ Paymentwall** الذي يدعم rewarded ads بشكل أفضل للتطبيقات
 
 ---
 
 ## خطوات التنفيذ
 
-### الخطوة 1: قاعدة البيانات
-1. إنشاء جدول `dice_decisions`
-2. تعديل جدول `messages`
-3. إضافة سياسات RLS
-4. تمكين Realtime
-
-### الخطوة 2: الخدمات والـ Hooks
-1. إنشاء `diceChatService.ts`
-2. إنشاء `useDiceChatDecision.ts`
-3. تحديث `useAnalyticsEvents.ts`
-4. تحديث `useGroupNotifications.ts`
-
-### الخطوة 3: المكونات
-1. إنشاء `ChatDiceButton.tsx`
-2. إنشاء `DiceChatSheet.tsx`
-3. إنشاء `DiceDecisionMessage.tsx`
-4. تعديل `GroupChat.tsx`
-
-### الخطوة 4: الترجمات
-1. تحديث `dice.json`
-2. تحديث `notifications.json`
-
-### الخطوة 5: الاختبار
-1. اختبار إنشاء قرار جديد
-2. اختبار التصويت والاعتماد التلقائي
-3. اختبار إعادة الرمي
-4. اختبار الإشعارات
-5. اختبار الربط مع AddExpense
-
----
-
-## ملاحظات تقنية
-
-### Realtime للتحديثات
-- الاشتراك في تغييرات `dice_decisions`
-- تحديث UI فوري عند التصويت
-
-### تحسين الأداء
-- استخدام `useMemo` للحسابات
-- تحميل البيانات عند الحاجة فقط
-
-### معالجة الأخطاء
-- رسائل واضحة للمستخدم
-- Fallback عند فشل العمليات
+1. ✅ إنشاء `src/lib/adsenseOfferwall.ts`
+2. ✅ إضافة TypeScript types
+3. ✅ تعديل `ZeroCreditsPaywall.tsx`
+4. ✅ إضافة controlled messaging في `index.html`
+5. 🔲 اختبار على الموقع المنشور
 
