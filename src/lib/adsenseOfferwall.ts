@@ -5,8 +5,6 @@
   * for rewarded ad experiences.
   */
  
- import '@/types/googlefc';
- 
  // Track offerwall state
  let offerwallActive = false;
  let offerwallResolver: ((success: boolean) => void) | null = null;
