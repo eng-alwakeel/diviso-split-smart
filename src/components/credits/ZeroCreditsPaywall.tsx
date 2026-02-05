@@ -11,7 +11,7 @@ import { useRewardedAds } from '@/hooks/useRewardedAds';
 import { useAdSettings } from '@/hooks/useAdSettings';
 import { useAdEventLogger } from '@/hooks/useAdEventLogger';
 import { AD_PLACEMENTS, AD_TYPES } from '@/lib/adPolicies';
-import { triggerOfferwall } from '@/lib/adsenseOfferwall';
+import { usePaymentwallTokens } from '@/hooks/usePaymentwallTokens';
 import { toast } from 'sonner';
 
 interface ZeroCreditsPaywallProps {
@@ -47,6 +47,9 @@ export function ZeroCreditsPaywall({
 
   const { isAdTypeEnabled, isPlacementEnabled } = useAdSettings();
   const { logRewardedStart, logRewardedComplete, logRewardedClaim } = useAdEventLogger();
+  
+  // Paymentwall tokens status
+  const { status: paywallStatus, loading: paywallLoading, refetch: refreshPaywallStatus } = usePaymentwallTokens();
 
   // Check if rewarded ads are enabled
   const rewardedEnabled = isAdTypeEnabled(AD_TYPES.REWARDED) && isPlacementEnabled(AD_PLACEMENTS.PAYWALL_REWARDED);
@@ -77,62 +80,19 @@ export function ZeroCreditsPaywall({
     navigate('/referral');
   };
 
-  const handleWatchAd = async () => {
-    if (!actionName || isWatchingAd) return;
+  // Navigate to Paymentwall Offerwall
+  const handleWatchAd = () => {
+    // Log the start event
+    logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
     
-    setIsWatchingAd(true);
-    
-    try {
-      // Log ad start
-      await logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
-      
-      const session = await createSession(actionName, requiredCredits);
-      if (!session) {
-        toast.error(isRTL ? 'غير مؤهل لمشاهدة الإعلان' : 'Not eligible to watch ad');
-        setIsWatchingAd(false);
-        return;
-      }
-
-      toast.info(isRTL ? 'جاري فتح الإعلان...' : 'Opening ad...');
-      
-      // Trigger real AdSense Offerwall
-      const completed = await triggerOfferwall();
-      
-      if (completed) {
-        // Log ad completion
-        await logRewardedComplete(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
-        
-        // Claim reward as one-time token
-        const result = await claimRewardAsToken(session.sessionId, actionName);
-        
-        if (result.success) {
-          // Log claim
-          await logRewardedClaim(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
-          
-          toast.success(
-            isRTL 
-              ? `تم! يمكنك تنفيذ عملية واحدة خلال ${result.expiresInMinutes} دقيقة` 
-              : `Done! You can perform one action within ${result.expiresInMinutes} minutes`
-          );
-          
-          setTimeout(() => onOpenChange(false), 1000);
-        } else {
-          toast.error(isRTL ? 'فشل في الحصول على التفعيل' : 'Failed to unlock action');
-        }
-      } else {
-        // Ad was not completed (user closed or timeout)
-        toast.warning(isRTL ? 'لم يكتمل الإعلان' : 'Ad not completed');
-        await updateSessionStatus(session.sessionId, 'failed');
-      }
-      
-      setIsWatchingAd(false);
-      await checkEligibility(actionName, requiredCredits);
-    } catch (error) {
-      console.error('Error watching ad:', error);
-      toast.error(isRTL ? 'حدث خطأ' : 'An error occurred');
-      setIsWatchingAd(false);
-    }
+    // Close dialog and navigate to offerwall
+    onOpenChange(false);
+    navigate('/offerwall');
   };
+  
+  // Check if user has available tokens from Paymentwall
+  const hasPaywallTokens = paywallStatus.available > 0;
+  const paywallDailyRemaining = paywallStatus.dailyLimit - paywallStatus.usedToday;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -247,53 +207,52 @@ export function ZeroCreditsPaywall({
           </Card>
 
           {/* Option 3: شاهد إعلان (عملية واحدة فقط) */}
-          {rewardedEnabled && eligibility?.adsEnabled && (
+          {rewardedEnabled && (
             <Card 
               className={`p-4 transition-all ${
-                eligibility?.canWatch && !isWatchingAd
-                  ? 'cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5' 
+                paywallDailyRemaining > 0
+                  ? 'cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5'
                   : 'opacity-60 cursor-not-allowed'
               }`}
-              onClick={eligibility?.canWatch && !isWatchingAd ? handleWatchAd : undefined}
+              onClick={paywallDailyRemaining > 0 ? handleWatchAd : undefined}
             >
               <div className="flex items-start gap-3">
                 <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                  <PlayCircle className={`h-6 w-6 text-blue-600 ${isWatchingAd ? 'animate-pulse' : ''}`} />
+                  <PlayCircle className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h4 className="font-semibold text-foreground">
-                      {isRTL ? 'شاهد إعلان وافتح عملية واحدة' : 'Watch Ad & Unlock One Action'}
+                      {isRTL ? 'أكمل عرض واحصل على عملية مجانية' : 'Complete Offer & Get Free Action'}
                     </h4>
+                    {hasPaywallTokens && (
+                      <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-0 text-xs">
+                        {isRTL ? `${paywallStatus.available} متاح` : `${paywallStatus.available} available`}
+                      </Badge>
+                    )}
                   </div>
                   
                   <p className="text-sm text-muted-foreground mb-1">
                     {isRTL 
-                      ? 'بدون نقاط — عملية واحدة فقط (30 دقيقة)' 
-                      : 'No credits — One action only (30 min)'
+                      ? 'أكمل عروضاً بسيطة واحصل على عمليات مجانية' 
+                      : 'Complete simple offers to earn free actions'
                     }
                   </p>
                   
-                  {/* Show remaining ads and cooldown */}
+                  {/* Show daily limit info */}
                   <div className="flex items-center gap-2 text-xs">
                     <span className="text-blue-600">
-                      {isRTL ? 'المتبقي اليوم: ' : 'Today: '}
-                      {eligibility?.remainingToday ?? 0}/{eligibility?.dailyCap ?? 2}
+                      {isRTL ? 'الحد اليومي: ' : 'Daily: '}
+                      {paywallStatus.usedToday}/{paywallStatus.dailyLimit}
                     </span>
                     
-                    {eligibility?.cooldownRemaining && eligibility.cooldownRemaining > 0 && (
+                    {paywallStatus.cooldownSeconds > 0 && (
                       <span className="text-orange-600 flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatCooldown(eligibility.cooldownRemaining)}
+                        {paywallStatus.cooldownSeconds}s
                       </span>
                     )}
                   </div>
-                  
-                  {isWatchingAd && (
-                    <p className="text-xs text-blue-600 mt-1 animate-pulse">
-                      {isRTL ? 'جاري مشاهدة الإعلان...' : 'Watching ad...'}
-                    </p>
-                  )}
                 </div>
               </div>
             </Card>
