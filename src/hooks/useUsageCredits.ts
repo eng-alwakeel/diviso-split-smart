@@ -49,6 +49,9 @@ export const CREDIT_COSTS = {
   // عمليات مميزة (5 نقاط)
   create_group: { type: 'create_group', cost: 5, nameAr: 'إنشاء مجموعة', nameEn: 'Create Group', gated: true },
   trip_planner: { type: 'trip_planner', cost: 5, nameAr: 'تخطيط رحلة', nameEn: 'Trip Planner', gated: true },
+  
+  // عملية النرد (1 نقطة)
+  roll_dice: { type: 'roll_dice', cost: 1, nameAr: 'رمي النرد', nameEn: 'Roll Dice', gated: true },
 } as const;
 
 export type CreditActionType = keyof typeof CREDIT_COSTS;
