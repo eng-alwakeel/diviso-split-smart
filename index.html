@@ -334,6 +334,10 @@
             adsScript.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4156962854639409';
             adsScript.crossOrigin = 'anonymous';
             document.head.appendChild(adsScript);
+            
+            // Initialize Google Funding Choices for Offerwall
+            window.googlefc = window.googlefc || {};
+            window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
           }, 2000);
           
           // GTM noscript fallback (append to body)

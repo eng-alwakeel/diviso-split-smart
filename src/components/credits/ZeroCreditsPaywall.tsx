@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +11,7 @@ import { useRewardedAds } from '@/hooks/useRewardedAds';
 import { useAdSettings } from '@/hooks/useAdSettings';
 import { useAdEventLogger } from '@/hooks/useAdEventLogger';
 import { AD_PLACEMENTS, AD_TYPES } from '@/lib/adPolicies';
+import { triggerOfferwall } from '@/lib/adsenseOfferwall';
 import { toast } from 'sonner';
 
 interface ZeroCreditsPaywallProps {
@@ -46,7 +41,8 @@ export function ZeroCreditsPaywall({
     checkEligibility,
     createSession,
     claimRewardAsToken,
-    formatCooldown
+    formatCooldown,
+    updateSessionStatus
   } = useRewardedAds();
 
   const { isAdTypeEnabled, isPlacementEnabled } = useAdSettings();
@@ -97,15 +93,16 @@ export function ZeroCreditsPaywall({
         return;
       }
 
-      // Simulate ad watching (in production, integrate with AdMob)
-      toast.info(isRTL ? 'جاري عرض الإعلان...' : 'Loading ad...');
+      toast.info(isRTL ? 'جاري فتح الإعلان...' : 'Opening ad...');
       
-      // Simulate ad completion after 3 seconds
-      setTimeout(async () => {
-        // Log completion
+      // Trigger real AdSense Offerwall
+      const completed = await triggerOfferwall();
+      
+      if (completed) {
+        // Log ad completion
         await logRewardedComplete(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
         
-        // Claim as one-time token instead of credits
+        // Claim reward as one-time token
         const result = await claimRewardAsToken(session.sessionId, actionName);
         
         if (result.success) {
@@ -118,17 +115,18 @@ export function ZeroCreditsPaywall({
               : `Done! You can perform one action within ${result.expiresInMinutes} minutes`
           );
           
-          // Close dialog - user can now proceed
           setTimeout(() => onOpenChange(false), 1000);
         } else {
           toast.error(isRTL ? 'فشل في الحصول على التفعيل' : 'Failed to unlock action');
         }
-        
-        setIsWatchingAd(false);
-        
-        // Refresh eligibility
-        await checkEligibility(actionName, requiredCredits);
-      }, 3000);
+      } else {
+        // Ad was not completed (user closed or timeout)
+        toast.warning(isRTL ? 'لم يكتمل الإعلان' : 'Ad not completed');
+        await updateSessionStatus(session.sessionId, 'failed');
+      }
+      
+      setIsWatchingAd(false);
+      await checkEligibility(actionName, requiredCredits);
     } catch (error) {
       console.error('Error watching ad:', error);
       toast.error(isRTL ? 'حدث خطأ' : 'An error occurred');
