@@ -1,26 +1,11 @@
- import { useState, useEffect, useCallback, useRef } from 'react';
+ import { useState, useEffect } from 'react';
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
  import { Button } from '@/components/ui/button';
  import { Badge } from '@/components/ui/badge';
- import { Gift, Loader2, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
+ import { Gift, Loader2, ArrowLeft, Clock } from 'lucide-react';
  import { supabase } from '@/integrations/supabase/client';
  import { usePaymentwallTokens } from '@/hooks/usePaymentwallTokens';
- import { useAdEventLogger } from '@/hooks/useAdEventLogger';
- import { AD_PLACEMENTS } from '@/lib/adPolicies';
  import { toast } from 'sonner';
- 
- declare global {
-   interface Window {
-     PWLocal?: {
-       init: (config: {
-         project_key: string;
-         widget: string;
-         uid: string;
-         onReward?: (reward: unknown) => void;
-       }) => void;
-     };
-   }
- }
  
  interface PaymentwallOfferwallDialogProps {
    open: boolean;
@@ -37,14 +22,11 @@
  }: PaymentwallOfferwallDialogProps) {
    const [userId, setUserId] = useState<string | null>(null);
    const [projectKey, setProjectKey] = useState<string | null>(null);
-   const [widgetLoaded, setWidgetLoaded] = useState(false);
-   const [widgetInitialized, setWidgetInitialized] = useState(false);
+   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
-   const widgetContainerRef = useRef<HTMLDivElement>(null);
    
    const { status: paywallStatus, refetch: refreshStatus } = usePaymentwallTokens();
-   const { logRewardedStart, logRewardedComplete } = useAdEventLogger();
  
    // Get user when dialog opens
    useEffect(() => {
@@ -84,67 +66,24 @@
      fetchProjectKey();
    }, [open, isRTL]);
  
-   // Load Paymentwall script
+   // Build iframe URL when we have project key and user
    useEffect(() => {
      if (!open || !projectKey) return;
- 
-     const existingScript = document.querySelector('script[src*="paymentwall.com"]');
-     if (existingScript) {
-       setWidgetLoaded(true);
-       return;
-     }
- 
-     const script = document.createElement('script');
-     script.src = 'https://api.paymentwall.com/api/pwlocal/';
-     script.async = true;
-     script.onload = () => setWidgetLoaded(true);
-     script.onerror = () => setError(isRTL ? 'فشل تحميل المكتبة' : 'Failed to load widget');
-     document.body.appendChild(script);
-   }, [open, projectKey, isRTL]);
- 
-   // Initialize widget
-   const initWidget = useCallback(() => {
-     if (!window.PWLocal || !projectKey || !widgetContainerRef.current) {
-       return;
-     }
- 
-     const uid = userId || `guest_${Date.now()}`;
      
-     // Log start event
-     logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
- 
-     try {
-       window.PWLocal.init({
-         project_key: projectKey,
-         widget: 'pw',
-         uid: uid,
-         onReward: (reward) => {
-           console.log('Paymentwall reward received:', reward);
-            logRewardedComplete(AD_PLACEMENTS.PAYWALL_REWARDED, 1);
-           refreshStatus();
-           toast.success(isRTL ? 'تم الحصول على المكافأة!' : 'Reward earned!');
-           onRewardEarned?.();
-         }
-       });
-       setWidgetInitialized(true);
-     } catch (err) {
-       console.error('Error initializing widget:', err);
-       setError(isRTL ? 'فشل تشغيل العروض' : 'Failed to initialize offers');
-     }
-   }, [projectKey, userId, isRTL, logRewardedStart, logRewardedComplete, refreshStatus, onRewardEarned]);
- 
-   // Auto-init when ready
-   useEffect(() => {
-     if (widgetLoaded && projectKey && !widgetInitialized && open) {
-       const timer = setTimeout(initWidget, 500);
-       return () => clearTimeout(timer);
-     }
-   }, [widgetLoaded, projectKey, widgetInitialized, open, initWidget]);
+     const uid = userId || `guest_${Date.now()}`;
+     // Build Paymentwall Offerwall widget URL (iframe-based)
+     const widgetUrl = new URL('https://api.paymentwall.com/api/offerwall/');
+     widgetUrl.searchParams.set('key', projectKey);
+     widgetUrl.searchParams.set('uid', uid);
+     widgetUrl.searchParams.set('widget', 'ow1_1');
+     
+     setIframeUrl(widgetUrl.toString());
+   }, [open, projectKey, userId]);
  
    // Reset state when dialog closes
    useEffect(() => {
      if (!open) {
-       setWidgetInitialized(false);
+       setIframeUrl(null);
        setError(null);
      }
    }, [open]);
@@ -211,20 +150,19 @@
                  {isRTL ? 'إعادة المحاولة' : 'Retry'}
                </Button>
              </div>
+           ) : iframeUrl ? (
+             <iframe
+               src={iframeUrl}
+               className="w-full h-[400px] rounded-lg border-0"
+               title="Paymentwall Offerwall"
+               allow="payment"
+             />
            ) : (
-             <div 
-               ref={widgetContainerRef}
-               id="paymentwall-offerwall-dialog"
-               className="min-h-[400px] bg-muted/10 rounded-lg"
-             >
-               {!widgetInitialized && (
-                 <div className="flex flex-col items-center justify-center h-[400px]">
-                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-                   <p className="text-sm text-muted-foreground">
-                     {isRTL ? 'جاري تحميل العروض...' : 'Loading offers...'}
-                   </p>
-                 </div>
-               )}
+             <div className="flex flex-col items-center justify-center h-[400px]">
+               <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+               <p className="text-sm text-muted-foreground">
+                 {isRTL ? 'جاري تحميل العروض...' : 'Loading offers...'}
+               </p>
              </div>
            )}
          </div>
