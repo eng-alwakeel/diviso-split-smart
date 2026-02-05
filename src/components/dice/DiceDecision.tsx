@@ -15,6 +15,7 @@ import { DicePicker } from "./DicePicker";
 import { DiceResultDisplay } from "./DiceResult";
 import { ShareDiceResult } from "./ShareDiceResult";
 import { AnimatedDice } from "./AnimatedDice";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { ArrowLeft } from "lucide-react";
 
 interface DiceDecisionProps {
@@ -45,6 +46,7 @@ export function DiceDecision({
     dualResult,
     hasRerolled,
     showFoodPrompt,
+    showPaywall,
     suggestedDice,
     suggestionReason,
     isLoadingSuggestion,
@@ -55,6 +57,7 @@ export function DiceDecision({
     acceptDecision,
     rerollDice,
     reset,
+    closePaywall,
     loadSuggestion
   } = useDiceDecision();
 
@@ -277,6 +280,14 @@ export function DiceDecision({
           )}
         </div>
       </DialogContent>
+
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={(open) => !open && closePaywall()}
+        actionName={t('actions.roll')}
+        requiredCredits={1}
+      />
     </Dialog>
   );
 }

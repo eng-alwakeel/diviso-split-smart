@@ -9,6 +9,7 @@ import { DicePicker } from "@/components/dice/DicePicker";
 import { DiceResultDisplay } from "@/components/dice/DiceResult";
 import { ShareDiceResult } from "@/components/dice/ShareDiceResult";
 import { AnimatedDice } from "@/components/dice/AnimatedDice";
+import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { ACTIVITY_DICE, FOOD_DICE, DiceType } from "@/data/diceData";
 import { cn } from "@/lib/utils";
@@ -30,13 +31,15 @@ const DiceDecisionPage = () => {
     dualResult,
     hasRerolled,
     showFoodPrompt,
+    showPaywall,
     selectDice,
     rollDice,
     rollQuickDice,
     rollFoodAfterActivity,
     acceptDecision,
     rerollDice,
-    reset
+    reset,
+    closePaywall
   } = useDiceDecision();
 
   // Determine current state
@@ -225,6 +228,14 @@ const DiceDecisionPage = () => {
 
       <div className="h-24" />
       <BottomNav />
+
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={(open) => !open && closePaywall()}
+        actionName={t('actions.roll')}
+        requiredCredits={1}
+      />
     </div>
   );
 };

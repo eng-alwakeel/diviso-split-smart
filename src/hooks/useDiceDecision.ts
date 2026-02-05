@@ -15,6 +15,7 @@ import {
 import { hapticImpact, hapticNotification } from '@/lib/native';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
 import { supabase } from '@/integrations/supabase/client';
+import { useUsageCredits } from '@/hooks/useUsageCredits';
 
 interface UseDiceDecisionReturn {
   // State
@@ -24,6 +25,7 @@ interface UseDiceDecisionReturn {
   dualResult: DualDiceResult | null;
   hasRerolled: boolean;
   showFoodPrompt: boolean;
+  showPaywall: boolean;
   
   // Actions
   selectDice: (type: DiceType) => void;
@@ -33,6 +35,7 @@ interface UseDiceDecisionReturn {
   acceptDecision: () => void;
   rerollDice: () => Promise<void>;
   reset: () => void;
+  closePaywall: () => void;
   
   // Smart suggestion
   suggestedDice: DiceType | null;
@@ -45,6 +48,7 @@ const ROLL_DURATION = 1500; // 1.5 seconds
 
 export function useDiceDecision(): UseDiceDecisionReturn {
   const { trackEvent } = useAnalyticsEvents();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   
   // State
   const [selectedDice, setSelectedDice] = useState<DiceType | null>(null);
@@ -53,11 +57,17 @@ export function useDiceDecision(): UseDiceDecisionReturn {
   const [dualResult, setDualResult] = useState<DualDiceResult | null>(null);
   const [hasRerolled, setHasRerolled] = useState(false);
   const [showFoodPrompt, setShowFoodPrompt] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   // Smart suggestion state
   const [suggestedDice, setSuggestedDice] = useState<DiceType | null>(null);
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
   const [isLoadingSuggestion, setIsLoadingSuggestion] = useState(false);
+
+  // Close paywall
+  const closePaywall = useCallback(() => {
+    setShowPaywall(false);
+  }, []);
 
   // Select a dice type
   const selectDice = useCallback((type: DiceType) => {
@@ -72,6 +82,13 @@ export function useDiceDecision(): UseDiceDecisionReturn {
   // Roll a single dice
   const rollDice = useCallback(async () => {
     if (!selectedDice || isRolling) return;
+    
+    // Check credits before rolling
+    const creditCheck = await checkCredits('roll_dice');
+    if (!creditCheck.canPerform) {
+      setShowPaywall(true);
+      return;
+    }
     
     setIsRolling(true);
     setShowFoodPrompt(false);
@@ -93,6 +110,9 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     setResult(newResult);
     setIsRolling(false);
     
+    // Consume credit after successful roll
+    await consumeCredits('roll_dice');
+    
     // Trigger success haptic
     await hapticNotification('success');
     
@@ -106,11 +126,18 @@ export function useDiceDecision(): UseDiceDecisionReturn {
       dice_type: selectedDice.id, 
       result_face: face.id 
     });
-  }, [selectedDice, isRolling, trackEvent]);
+  }, [selectedDice, isRolling, trackEvent, checkCredits, consumeCredits]);
 
   // Roll quick dice (dual roll)
   const rollQuickDice = useCallback(async () => {
     if (isRolling) return;
+    
+    // Check credits before rolling
+    const creditCheck = await checkCredits('roll_dice');
+    if (!creditCheck.canPerform) {
+      setShowPaywall(true);
+      return;
+    }
     
     setSelectedDice(null); // Clear single selection for quick mode
     setIsRolling(true);
@@ -142,6 +169,9 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     setDualResult(newDualResult);
     setIsRolling(false);
     
+    // Consume credit after successful roll
+    await consumeCredits('roll_dice');
+    
     // Trigger success haptic
     await hapticNotification('success');
     
@@ -150,7 +180,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
       activity_result: activityFace.id,
       food_result: foodFace.id
     });
-  }, [isRolling, trackEvent]);
+  }, [isRolling, trackEvent, checkCredits, consumeCredits]);
 
   // Roll food dice after activity (when restaurant is selected)
   const rollFoodAfterActivity = useCallback(async () => {
@@ -285,6 +315,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     dualResult,
     hasRerolled,
     showFoodPrompt,
+    showPaywall,
     
     // Actions
     selectDice,
@@ -294,6 +325,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     acceptDecision,
     rerollDice,
     reset,
+    closePaywall,
     
     // Smart suggestion
     suggestedDice,

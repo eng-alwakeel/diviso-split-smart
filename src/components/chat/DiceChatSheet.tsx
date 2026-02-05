@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { hapticImpact, hapticNotification } from '@/lib/native';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
+import { useUsageCredits } from '@/hooks/useUsageCredits';
+import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 import {
   createDecision,
   faceToResult,
@@ -33,11 +35,20 @@ export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatS
   const { t } = useTranslation(['dice', 'common']);
   const { toast } = useToast();
   const { trackEvent } = useAnalyticsEvents();
+  const { checkCredits, consumeCredits } = useUsageCredits();
   const [selectedDice, setSelectedDice] = useState<DiceChoice>('quick');
   const [isRolling, setIsRolling] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const handleRoll = async () => {
     if (isRolling) return;
+
+    // Check credits before rolling
+    const creditCheck = await checkCredits('roll_dice');
+    if (!creditCheck.canPerform) {
+      setShowPaywall(true);
+      return;
+    }
 
     setIsRolling(true);
     await hapticImpact('medium');
@@ -74,6 +85,9 @@ export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatS
       const result = await createDecision(groupId, selectedDice, results);
 
       if (result.success) {
+        // Consume credit after successful roll
+        await consumeCredits('roll_dice');
+        
         await hapticNotification('success');
         trackEvent('dice_posted_to_chat', {
           dice_type: selectedDice,
@@ -163,6 +177,14 @@ export function DiceChatSheet({ groupId, isOpen, onClose, onSuccess }: DiceChatS
           </Button>
         </div>
       </SheetContent>
+
+      {/* Zero Credits Paywall */}
+      <ZeroCreditsPaywall
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        actionName={t('dice:actions.roll', 'رمي النرد')}
+        requiredCredits={1}
+      />
     </Sheet>
   );
 }
