@@ -12,6 +12,7 @@ import { useAdSettings } from '@/hooks/useAdSettings';
 import { useAdEventLogger } from '@/hooks/useAdEventLogger';
 import { AD_PLACEMENTS, AD_TYPES } from '@/lib/adPolicies';
 import { usePaymentwallTokens } from '@/hooks/usePaymentwallTokens';
+ import { PaymentwallOfferwallDialog } from '@/components/ads/PaymentwallOfferwallDialog';
 import { toast } from 'sonner';
 
 interface ZeroCreditsPaywallProps {
@@ -34,6 +35,7 @@ export function ZeroCreditsPaywall({
   const isRTL = i18n.language === 'ar';
   const [isYearly, setIsYearly] = useState(true);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
+   const [showOfferwall, setShowOfferwall] = useState(false);
   
   const { 
     eligibility, 
@@ -80,15 +82,21 @@ export function ZeroCreditsPaywall({
     navigate('/referral');
   };
 
-  // Navigate to Paymentwall Offerwall
+   // Open Paymentwall Offerwall dialog
   const handleWatchAd = () => {
     // Log the start event
     logRewardedStart(AD_PLACEMENTS.PAYWALL_REWARDED);
     
-    // Close dialog and navigate to offerwall
-    onOpenChange(false);
-    navigate('/offerwall');
+     // Open the offerwall dialog instead of navigating
+     setShowOfferwall(true);
   };
+   
+   // Handle reward earned from offerwall
+   const handleRewardEarned = () => {
+     setShowOfferwall(false);
+     onOpenChange(false);
+     toast.success(isRTL ? 'تم الحصول على عملية مجانية!' : 'Free action earned!');
+   };
   
   // Check if user has available tokens from Paymentwall
   const hasPaywallTokens = paywallStatus.available > 0;
@@ -286,6 +294,14 @@ export function ZeroCreditsPaywall({
         <Button variant="ghost" className="w-full mt-2" onClick={() => onOpenChange(false)}>
           {t('common:cancel')}
         </Button>
+       
+       {/* Embedded Paymentwall Offerwall Dialog */}
+       <PaymentwallOfferwallDialog
+         open={showOfferwall}
+         onOpenChange={setShowOfferwall}
+         onRewardEarned={handleRewardEarned}
+         isRTL={isRTL}
+       />
       </DialogContent>
     </Dialog>
   );
