@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { DiceResult as DiceResultType, DualDiceResult } from "@/data/diceData";
 import { ThumbsUp, RotateCcw, Share2, Utensils, Divide } from "lucide-react";
@@ -18,6 +19,8 @@ interface DiceResultProps {
   voteThreshold?: number;
   hasVoted?: boolean;
   isAccepted?: boolean;
+  smartComment?: string | null;
+  isLoadingComment?: boolean;
   onAccept: () => void;
   onReroll: () => void;
   onShare: () => void;
@@ -56,6 +59,31 @@ function ResultTile({
   );
 }
 
+// Smart comment display component
+function SmartComment({ 
+  comment, 
+  isLoading 
+}: { 
+  comment?: string | null; 
+  isLoading?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center">
+        <Skeleton className="h-4 w-48" />
+      </div>
+    );
+  }
+
+  if (!comment) return null;
+
+  return (
+    <p className="text-center text-sm text-muted-foreground italic animate-in fade-in duration-500">
+      {comment}
+    </p>
+  );
+}
+
 export function DiceResultDisplay({
   result,
   dualResult,
@@ -66,6 +94,8 @@ export function DiceResultDisplay({
   voteThreshold = 2,
   hasVoted = false,
   isAccepted = false,
+  smartComment,
+  isLoadingComment,
   onAccept,
   onReroll,
   onShare,
@@ -111,6 +141,9 @@ export function DiceResultDisplay({
             typeLabel={t('chat.food_tile')}
           />
         </div>
+
+        {/* Smart Comment */}
+        <SmartComment comment={smartComment} isLoading={isLoadingComment} />
 
         {/* Voting Section */}
         {!isAccepted && (
@@ -218,6 +251,9 @@ export function DiceResultDisplay({
             <p className="text-xl font-bold text-foreground">{label}</p>
           </CardContent>
         </Card>
+
+        {/* Smart Comment */}
+        <SmartComment comment={smartComment} isLoading={isLoadingComment} />
 
         {/* Food Prompt - shows when restaurant is selected */}
         {showFoodPrompt && (

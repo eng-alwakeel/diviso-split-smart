@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Dice5, ThumbsUp, RefreshCw, Divide, Loader2, CheckCircle2, Share2, Zap, Target, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDiceChatDecision } from '@/hooks/useDiceChatDecision';
+import { useSmartDiceComment } from '@/hooks/useSmartDiceComment';
 import { generateExpenseTitle } from '@/services/diceChatService';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
 import { cn } from '@/lib/utils';
@@ -34,6 +36,22 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
     vote,
     reroll,
   } = useDiceChatDecision(decisionId, groupId);
+
+  // Smart comment hook
+  const { comment: smartComment, isLoading: isLoadingComment, generateComment } = useSmartDiceComment();
+
+  // Generate smart comment when decision loads
+  useEffect(() => {
+    if (decision && decision.results.length > 0 && !smartComment) {
+      const firstResult = decision.results[0];
+      generateComment({
+        diceType: decision.dice_type as 'activity' | 'food' | 'quick',
+        resultLabel: firstResult.labelEn,
+        resultLabelAr: firstResult.labelAr,
+        memberCount: memberCount,
+      });
+    }
+  }, [decision, smartComment, generateComment, memberCount]);
 
   if (isLoading) {
     return (
@@ -197,11 +215,24 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
 
       {/* Results Tiles */}
       <div className={cn(
-        "flex gap-3 mb-4",
+        "flex gap-3 mb-3",
         decision.results.length === 1 && "justify-center"
       )}>
         {decision.results.map((result, index) => renderResultTile(result, index))}
       </div>
+
+      {/* Smart Comment */}
+      {(smartComment || isLoadingComment) && (
+        <div className="mb-4 text-center">
+          {isLoadingComment ? (
+            <Skeleton className="h-4 w-40 mx-auto" />
+          ) : (
+            <p className="text-sm text-muted-foreground italic animate-in fade-in duration-500">
+              {smartComment}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Voting section - only show when open */}
       {isOpen && (
