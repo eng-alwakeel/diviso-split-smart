@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 import { LeftSidebarAd } from "@/components/ads/LeftSidebarAd";
+import { MobileFloatingAd } from "@/components/ads/MobileFloatingAd";
 import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -219,6 +220,9 @@ const OptimizedDashboard = React.memo(() => {
       
       {/* Left Sidebar Ad - Desktop/Tablet only */}
       <LeftSidebarAd />
+      
+      {/* Mobile Floating Ad - beside help button */}
+      <MobileFloatingAd />
       
       <div className="page-container space-y-6">
         {/* Quota Warning Banners */}
