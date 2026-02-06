@@ -34,11 +34,12 @@ export function useReferralStats(): ReferralStats {
         return;
       }
 
-      // Fetch referrals
+      // Fetch referrals - exclude group_invite to only count direct referrals
       const { data: referrals, error: referralsError } = await supabase
         .from('referrals')
         .select('id, invitee_name, invitee_phone, status, joined_at, created_at, bonus_applied')
         .eq('inviter_id', user.id)
+        .neq('referral_source', 'group_invite')
         .order('created_at', { ascending: false });
 
       if (referralsError) throw referralsError;
