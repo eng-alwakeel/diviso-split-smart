@@ -66,10 +66,12 @@ export const MemberCard = ({
   pendingAmount,
   currency = "ر.س",
   allBalances = [],
-  profiles = {}
+  profiles = {},
+  showReputation = false
 }: MemberCardProps) => {
   const { removeMember, removing } = useMemberActions();
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [miniProfileOpen, setMiniProfileOpen] = useState(false);
   
   const memberName = member.profile?.display_name || member.profile?.name || 'مستخدم';
   const isCurrentUser = member.user_id === currentUserId;
