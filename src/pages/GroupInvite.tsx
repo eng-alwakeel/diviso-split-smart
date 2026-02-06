@@ -55,6 +55,7 @@ const GroupInvite = () => {
   } | null>(null);
   const [activeTab, setActiveTab] = useState("link");
   const [existingMembers, setExistingMembers] = useState<string[]>([]);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   const id = rawId && rawId !== ":id" && isUUID(rawId) ? rawId : undefined;
   const { invites, loading: invitesLoading, fetchInvites } = useGroupInvites(id);
