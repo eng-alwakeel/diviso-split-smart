@@ -495,26 +495,40 @@ const GroupDetails = () => {
                   <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
                   تقرير
                 </Button>
-                <div className="w-full md:w-auto">
+                {!isGroupClosed && (
+                  <div className="w-full md:w-auto">
+                    <Button
+                      variant="hero"
+                      size="icon"
+                      className="w-10 h-10 md:hidden mx-auto"
+                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="sr-only">إضافة مصروف</span>
+                    </Button>
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="hidden md:inline-flex text-xs md:text-sm"
+                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    >
+                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                      إضافة مصروف
+                    </Button>
+                  </div>
+                )}
+                {/* Close Group Button - Admin/Owner only, active groups */}
+                {isAdmin && !isGroupClosed && (
                   <Button
-                    variant="hero"
-                    size="icon"
-                    className="w-10 h-10 md:hidden mx-auto"
-                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="sr-only">إضافة مصروف</span>
-                  </Button>
-                  <Button
-                    variant="hero"
+                    className="w-full md:w-auto text-xs md:text-sm"
+                    variant="outline"
                     size="sm"
-                    className="hidden md:inline-flex text-xs md:text-sm"
-                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    onClick={() => setCloseGroupDialogOpen(true)}
                   >
-                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                    إضافة مصروف
+                    <Lock className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                    إنهاء النشاط
                   </Button>
-                </div>
+                )}
                 <Button
                   className="w-full md:w-auto text-xs md:text-sm"
                   variant="outline"
