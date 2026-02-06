@@ -469,6 +469,12 @@ const GroupDetails = () => {
                         {getGroupTypeLabel(group.group_type)}
                       </Badge>
                     )}
+                    {isGroupClosed && (
+                      <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
+                        <Lock className="w-3 h-3 ml-1" />
+                        مغلقة
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mt-2 text-[11px] md:text-sm text-muted-foreground flex-wrap">
                     <span>{memberCount} {membersLabel(memberCount)}</span>
