@@ -1358,9 +1358,19 @@ const GroupDetails = () => {
         }}
         loading={closingGroup}
         groupName={group?.name}
-        onConfirm={handleLeaveGroup}
-        isLeaving={isLeavingGroup}
-      />
+      {/* Rating Sheet */}
+      {memberToRate && (
+        <RatingSheet
+          open={ratingSheetOpen}
+          onOpenChange={setRatingSheetOpen}
+          groupId={id!}
+          member={memberToRate}
+          onRatingSubmitted={() => {
+            setMemberToRate(null);
+            refetch();
+          }}
+        />
+      )}
       </div>
       </UnifiedAdLayout>
       

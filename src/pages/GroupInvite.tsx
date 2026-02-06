@@ -16,6 +16,7 @@ import { useGroupInvites } from "@/hooks/useGroupInvites";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { InviteContactsTab } from "@/components/group/invite-tabs/InviteContactsTab";
 import { InviteTrackingTab } from "@/components/group/invite-tabs/InviteTrackingTab";
+import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
 import { 
   ArrowRight, 
   Copy, 
