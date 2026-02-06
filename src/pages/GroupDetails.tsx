@@ -1344,6 +1344,23 @@ const GroupDetails = () => {
         onConfirm={handleLeaveGroup}
         isLeaving={isLeavingGroup}
       />
+
+      {/* Close Group Dialog */}
+      <CloseGroupDialog
+        open={closeGroupDialogOpen}
+        onOpenChange={setCloseGroupDialogOpen}
+        onConfirm={async () => {
+          const success = await closeGroup();
+          if (success) {
+            setCloseGroupDialogOpen(false);
+            refetch();
+          }
+        }}
+        loading={closingGroup}
+        groupName={group?.name}
+        onConfirm={handleLeaveGroup}
+        isLeaving={isLeavingGroup}
+      />
       </div>
       </UnifiedAdLayout>
       
