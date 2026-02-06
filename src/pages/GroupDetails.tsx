@@ -909,10 +909,12 @@ const GroupDetails = () => {
           <TabsContent value="members" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">الأعضاء</h2>
-              <Button variant="outline" onClick={() => setOpenInvite(true)}>
-                <UserPlus className="w-4 h-4 ml-2" />
-                دعوة عضو جديد
-              </Button>
+              {!isGroupClosed && (
+                <Button variant="outline" onClick={() => setOpenInvite(true)}>
+                  <UserPlus className="w-4 h-4 ml-2" />
+                  دعوة عضو جديد
+                </Button>
+              )}
             </div>
             
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
