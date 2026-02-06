@@ -162,6 +162,8 @@ const Settings = () => {
           name: profile.name,
           display_name: profile.name,
           phone: profile.phone,
+          city: profile.city || null,
+          bio: profile.bio || null,
           updated_at: new Date().toISOString()
         });
       

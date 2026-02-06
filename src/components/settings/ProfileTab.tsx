@@ -34,6 +34,8 @@ interface ProfileTabProps {
     avatar: string;
     avatarUrl: string;
     joinDate: string;
+    city?: string;
+    bio?: string;
   };
   setProfile: (profile: any) => void;
   validationErrors: Record<string, string>;
