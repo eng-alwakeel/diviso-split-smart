@@ -85,11 +85,15 @@ const GroupDetails = () => {
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
   
-  // Auto-open invite dialog if coming from group creation
+  // Auto-open invite dialog or profile completion if coming from group creation/join
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   useEffect(() => {
     if (searchParams.get('openInvite') === 'true') {
       setOpenInvite(true);
-      // Clear the URL parameter
+      window.history.replaceState({}, '', `/group/${rawId}`);
+    }
+    if (searchParams.get('showProfileCompletion') === 'true') {
+      setShowProfileCompletion(true);
       window.history.replaceState({}, '', `/group/${rawId}`);
     }
   }, [searchParams, rawId]);
