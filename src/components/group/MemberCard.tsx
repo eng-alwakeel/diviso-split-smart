@@ -51,6 +51,7 @@ interface MemberCardProps {
   currency?: string;
   allBalances?: Balance[];
   profiles?: Record<string, { display_name?: string | null; name?: string | null }>;
+  showReputation?: boolean;
 }
 
 export const MemberCard = ({ 
