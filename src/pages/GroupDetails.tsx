@@ -565,11 +565,54 @@ const GroupDetails = () => {
           </div>
         </div>
 
+        {/* Closed Group Banner + Pending Ratings */}
+        {isGroupClosed && (
+          <Card className="bg-amber-500/10 border-amber-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-amber-700">تم إغلاق هذه المجموعة</p>
+                  <p className="text-sm text-amber-600/80">لا يمكن إضافة مصاريف أو تعديل الأعضاء</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isGroupClosed && members.length > 0 && (
+          <PendingRatingsNotification
+            groupId={id!}
+            members={members.map(m => ({
+              user_id: m.user_id,
+              display_name: profiles[m.user_id]?.display_name,
+              name: profiles[m.user_id]?.name,
+            }))}
+            onStartRating={() => {
+              // Find first unrated member to start with
+              const firstMember = members.find(m => m.user_id !== currentUserId);
+              if (firstMember) {
+                setMemberToRate({
+                  user_id: firstMember.user_id,
+                  display_name: profiles[firstMember.user_id]?.display_name || null,
+                  name: profiles[firstMember.user_id]?.name || null,
+                  avatar_url: profiles[firstMember.user_id]?.avatar_url || null,
+                });
+                setRatingSheetOpen(true);
+              }
+            }}
+          />
+        )}
+
         {/* Dice Decision Suggestion - بعد بطاقة المجموعة */}
-        <GroupDiceSuggestion 
-          groupId={id}
-          groupType={group?.group_type}
-        />
+        {!isGroupClosed && (
+          <GroupDiceSuggestion 
+            groupId={id}
+            groupType={group?.group_type}
+          />
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
