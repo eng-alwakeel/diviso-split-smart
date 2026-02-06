@@ -67,9 +67,14 @@ import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
+import { CloseGroupDialog } from "@/components/group/CloseGroupDialog";
+import { PendingRatingsNotification } from "@/components/group/PendingRatingsNotification";
+import { RatingSheet } from "@/components/group/RatingSheet";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
+import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
 import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
+import { Lock } from "lucide-react";
 
 
 const GroupDetails = () => {
