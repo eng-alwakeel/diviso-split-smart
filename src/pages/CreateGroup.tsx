@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useReferralProgress } from '@/hooks/useReferralProgress';
 import { useUsageCredits } from '@/hooks/useUsageCredits';
 import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
+import { ProfileCompletionSheet } from '@/components/profile/ProfileCompletionSheet';
 
 const CreateGroup = () => {
   const navigate = useNavigate();
