@@ -75,6 +75,7 @@ import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
 import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
 import { Lock } from "lucide-react";
+import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
 
 
 const GroupDetails = () => {
