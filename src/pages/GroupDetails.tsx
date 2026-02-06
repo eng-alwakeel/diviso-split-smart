@@ -67,9 +67,14 @@ import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
+import { CloseGroupDialog } from "@/components/group/CloseGroupDialog";
+import { PendingRatingsNotification } from "@/components/group/PendingRatingsNotification";
+import { RatingSheet } from "@/components/group/RatingSheet";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
+import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
 import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
+import { Lock } from "lucide-react";
 
 
 const GroupDetails = () => {
@@ -112,8 +117,13 @@ const GroupDetails = () => {
   // Delete/Leave group state
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
   const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
+  const [closeGroupDialogOpen, setCloseGroupDialogOpen] = useState(false);
   const [isDeletingGroup, setIsDeletingGroup] = useState(false);
   const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+  
+  // Rating state
+  const [ratingSheetOpen, setRatingSheetOpen] = useState(false);
+  const [memberToRate, setMemberToRate] = useState<any>(null);
   
   const { t } = useTranslation(['groups', 'common']);
   const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
@@ -121,6 +131,8 @@ const GroupDetails = () => {
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
   const id = rawId && rawId !== ":id" && isValidUUID(rawId) ? rawId : undefined;
+
+  const { closeGroup, closing: closingGroup } = useGroupStatus(id);
 
   useEffect(() => {
     if (rawId && (rawId === ":id" || !isValidUUID(rawId))) {

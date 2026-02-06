@@ -3,10 +3,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Crown, UserMinus, TrendingUp, TrendingDown, ArrowRight, Settings } from "lucide-react";
+import { Shield, Crown, UserMinus, TrendingUp, TrendingDown, ArrowRight, Settings, Star } from "lucide-react";
 import { useMemberActions } from "@/hooks/useMemberActions";
 import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 import { MemberRoleDialog } from "./MemberRoleDialog";
+import { MemberMiniProfile } from "./MemberMiniProfile";
 
 interface Profile {
   id: string;
@@ -50,6 +51,7 @@ interface MemberCardProps {
   currency?: string;
   allBalances?: Balance[];
   profiles?: Record<string, { display_name?: string | null; name?: string | null }>;
+  showReputation?: boolean;
 }
 
 export const MemberCard = ({ 
@@ -64,10 +66,12 @@ export const MemberCard = ({
   pendingAmount,
   currency = "ر.س",
   allBalances = [],
-  profiles = {}
+  profiles = {},
+  showReputation = false
 }: MemberCardProps) => {
   const { removeMember, removing } = useMemberActions();
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [miniProfileOpen, setMiniProfileOpen] = useState(false);
   
   const memberName = member.profile?.display_name || member.profile?.name || 'مستخدم';
   const isCurrentUser = member.user_id === currentUserId;
@@ -156,9 +160,12 @@ export const MemberCard = ({
 
   return (
     <>
-      <div className="flex flex-col gap-3 p-4 rounded-lg bg-card border border-border">
+      <div 
+        className="flex flex-col gap-3 p-4 rounded-lg bg-card border border-border cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={() => setMiniProfileOpen(true)}
+      >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
             <UserDisplayWithBadges
               user={{
                 id: member.user_id,
@@ -185,7 +192,7 @@ export const MemberCard = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             {/* Role Edit Button */}
             {canEditRole && (
               <Button
@@ -296,6 +303,14 @@ export const MemberCard = ({
         groupId={groupId}
         member={member}
         onUpdated={onMemberRemoved}
+      />
+
+      {/* Mini Profile Dialog */}
+      <MemberMiniProfile
+        open={miniProfileOpen}
+        onOpenChange={setMiniProfileOpen}
+        memberId={member.user_id}
+        groupId={groupId}
       />
     </>
   );

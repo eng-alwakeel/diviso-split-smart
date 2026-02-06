@@ -1807,6 +1807,7 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1817,6 +1818,7 @@ export type Database = {
           id?: string
           name: string
           owner_id: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1827,6 +1829,7 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2266,6 +2269,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      member_ratings: {
+        Row: {
+          cooperation: number
+          created_at: string | null
+          financial_commitment: number
+          group_id: string
+          id: string
+          internal_comment: string | null
+          rated_user_id: string
+          rater_id: string
+          time_commitment: number
+        }
+        Insert: {
+          cooperation: number
+          created_at?: string | null
+          financial_commitment: number
+          group_id: string
+          id?: string
+          internal_comment?: string | null
+          rated_user_id: string
+          rater_id: string
+          time_commitment: number
+        }
+        Update: {
+          cooperation?: number
+          created_at?: string | null
+          financial_commitment?: number
+          group_id?: string
+          id?: string
+          internal_comment?: string | null
+          rated_user_id?: string
+          rater_id?: string
+          time_commitment?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_ratings_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -2728,6 +2775,8 @@ export type Database = {
           ban_reason: string | null
           banned_by: string | null
           banned_until: string | null
+          bio: string | null
+          city: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -2748,6 +2797,8 @@ export type Database = {
           ban_reason?: string | null
           banned_by?: string | null
           banned_until?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string
           display_name?: string | null
           id: string
@@ -2768,6 +2819,8 @@ export type Database = {
           ban_reason?: string | null
           banned_by?: string | null
           banned_until?: string | null
+          bio?: string | null
+          city?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -4512,6 +4565,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_reputation: {
+        Row: {
+          average_rating: number | null
+          completed_activities: number | null
+          id: string
+          total_ratings: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          average_rating?: number | null
+          completed_activities?: number | null
+          id?: string
+          total_ratings?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          average_rating?: number | null
+          completed_activities?: number | null
+          id?: string
+          total_ratings?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -5464,7 +5544,10 @@ export type Database = {
       }
       is_family_owner: { Args: { p_user_id: string }; Returns: boolean }
       is_group_admin: { Args: { p_group_id: string }; Returns: boolean }
-      is_group_member: { Args: { p_group_id: string }; Returns: boolean }
+      is_group_closed: { Args: { _group_id: string }; Returns: boolean }
+      is_group_member:
+        | { Args: { _group_id: string; _user_id: string }; Returns: boolean }
+        | { Args: { p_group_id: string }; Returns: boolean }
       is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
       join_group_with_token: { Args: { p_token: string }; Returns: string }
       log_security_event: {

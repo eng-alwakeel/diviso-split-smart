@@ -58,7 +58,9 @@ const Settings = () => {
     phone: "",
     avatar: "",
     avatarUrl: "",
-    joinDate: ""
+    joinDate: "",
+    city: "",
+    bio: ""
   });
   
   // تتبع الإيميل الأصلي للتحقق من التغيير
@@ -83,7 +85,9 @@ const Settings = () => {
             phone: profileData.phone || "",
             avatar: profileData.name?.charAt(0) || profileData.display_name?.charAt(0) || user.email?.charAt(0) || t('common:user.default_initial'),
             avatarUrl: profileData.avatar_url || "",
-            joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')
+            joinDate: new Date(user.created_at).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US'),
+            city: profileData.city || "",
+            bio: profileData.bio || ""
           });
           setOriginalEmail(currentEmail);
         }
@@ -158,6 +162,8 @@ const Settings = () => {
           name: profile.name,
           display_name: profile.name,
           phone: profile.phone,
+          city: profile.city || null,
+          bio: profile.bio || null,
           updated_at: new Date().toISOString()
         });
       
