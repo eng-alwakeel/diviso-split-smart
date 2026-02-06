@@ -160,9 +160,12 @@ export const MemberCard = ({
 
   return (
     <>
-      <div className="flex flex-col gap-3 p-4 rounded-lg bg-card border border-border">
+      <div 
+        className="flex flex-col gap-3 p-4 rounded-lg bg-card border border-border cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={() => setMiniProfileOpen(true)}
+      >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
             <UserDisplayWithBadges
               user={{
                 id: member.user_id,
