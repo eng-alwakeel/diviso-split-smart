@@ -731,10 +731,12 @@ const GroupDetails = () => {
           <TabsContent value="expenses" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">المصاريف</h2>
-              <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة مصروف جديد
-              </Button>
+              {!isGroupClosed && (
+                <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة مصروف جديد
+                </Button>
+              )}
             </div>
 
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
