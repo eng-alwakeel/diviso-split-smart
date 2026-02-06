@@ -10,6 +10,7 @@ type GroupRow = {
   created_at: string | null;
   group_type?: string;
   currency: string;
+  status?: 'active' | 'closed';
 };
 
 type MemberRow = {
