@@ -16,6 +16,7 @@ import { useGroupInvites } from "@/hooks/useGroupInvites";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { InviteContactsTab } from "@/components/group/invite-tabs/InviteContactsTab";
 import { InviteTrackingTab } from "@/components/group/invite-tabs/InviteTrackingTab";
+import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
 import { 
   ArrowRight, 
   Copy, 
@@ -54,6 +55,7 @@ const GroupInvite = () => {
   } | null>(null);
   const [activeTab, setActiveTab] = useState("link");
   const [existingMembers, setExistingMembers] = useState<string[]>([]);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   const id = rawId && rawId !== ":id" && isUUID(rawId) ? rawId : undefined;
   const { invites, loading: invitesLoading, fetchInvites } = useGroupInvites(id);
@@ -438,6 +440,12 @@ ${link}
       </div>
 
       <BottomNav />
+      
+      {/* Profile Completion Sheet */}
+      <ProfileCompletionSheet
+        open={showProfileCompletion}
+        onOpenChange={setShowProfileCompletion}
+      />
     </div>
   );
 };

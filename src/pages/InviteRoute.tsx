@@ -61,7 +61,7 @@ const InviteRoute = () => {
             title: t('groups:messages.joined_success'), 
             description: t('groups:messages.added_to_group') 
           });
-          navigate(`/group/${data}`);
+          navigate(`/group/${data}?showProfileCompletion=true`);
         } else {
           toast({ 
             variant: 'destructive', 

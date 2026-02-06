@@ -75,6 +75,7 @@ import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
 import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
 import { Lock } from "lucide-react";
+import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
 
 
 const GroupDetails = () => {
@@ -85,11 +86,15 @@ const GroupDetails = () => {
   const [activeTab, setActiveTab] = useState("expenses");
   const [openInvite, setOpenInvite] = useState(false);
   
-  // Auto-open invite dialog if coming from group creation
+  // Auto-open invite dialog or profile completion if coming from group creation/join
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   useEffect(() => {
     if (searchParams.get('openInvite') === 'true') {
       setOpenInvite(true);
-      // Clear the URL parameter
+      window.history.replaceState({}, '', `/group/${rawId}`);
+    }
+    if (searchParams.get('showProfileCompletion') === 'true') {
+      setShowProfileCompletion(true);
       window.history.replaceState({}, '', `/group/${rawId}`);
     }
   }, [searchParams, rawId]);
@@ -142,6 +147,7 @@ const GroupDetails = () => {
   }, [rawId, navigate, toast]);
 
   const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch } = useGroupData(id);
+  const isGroupClosed = group?.status === 'closed';
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
   const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id));
@@ -468,6 +474,12 @@ const GroupDetails = () => {
                         {getGroupTypeLabel(group.group_type)}
                       </Badge>
                     )}
+                    {isGroupClosed && (
+                      <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
+                        <Lock className="w-3 h-3 ml-1" />
+                        مغلقة
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mt-2 text-[11px] md:text-sm text-muted-foreground flex-wrap">
                     <span>{memberCount} {membersLabel(memberCount)}</span>
@@ -488,26 +500,40 @@ const GroupDetails = () => {
                   <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
                   تقرير
                 </Button>
-                <div className="w-full md:w-auto">
+                {!isGroupClosed && (
+                  <div className="w-full md:w-auto">
+                    <Button
+                      variant="hero"
+                      size="icon"
+                      className="w-10 h-10 md:hidden mx-auto"
+                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span className="sr-only">إضافة مصروف</span>
+                    </Button>
+                    <Button
+                      variant="hero"
+                      size="sm"
+                      className="hidden md:inline-flex text-xs md:text-sm"
+                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    >
+                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                      إضافة مصروف
+                    </Button>
+                  </div>
+                )}
+                {/* Close Group Button - Admin/Owner only, active groups */}
+                {isAdmin && !isGroupClosed && (
                   <Button
-                    variant="hero"
-                    size="icon"
-                    className="w-10 h-10 md:hidden mx-auto"
-                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="sr-only">إضافة مصروف</span>
-                  </Button>
-                  <Button
-                    variant="hero"
+                    className="w-full md:w-auto text-xs md:text-sm"
+                    variant="outline"
                     size="sm"
-                    className="hidden md:inline-flex text-xs md:text-sm"
-                    onClick={() => navigate(`/add-expense?groupId=${id}`)}
+                    onClick={() => setCloseGroupDialogOpen(true)}
                   >
-                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                    إضافة مصروف
+                    <Lock className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
+                    إنهاء النشاط
                   </Button>
-                </div>
+                )}
                 <Button
                   className="w-full md:w-auto text-xs md:text-sm"
                   variant="outline"
@@ -544,11 +570,54 @@ const GroupDetails = () => {
           </div>
         </div>
 
+        {/* Closed Group Banner + Pending Ratings */}
+        {isGroupClosed && (
+          <Card className="bg-amber-500/10 border-amber-500/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-amber-700">تم إغلاق هذه المجموعة</p>
+                  <p className="text-sm text-amber-600/80">لا يمكن إضافة مصاريف أو تعديل الأعضاء</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isGroupClosed && members.length > 0 && (
+          <PendingRatingsNotification
+            groupId={id!}
+            members={members.map(m => ({
+              user_id: m.user_id,
+              display_name: profiles[m.user_id]?.display_name,
+              name: profiles[m.user_id]?.name,
+            }))}
+            onStartRating={() => {
+              // Find first unrated member to start with
+              const firstMember = members.find(m => m.user_id !== currentUserId);
+              if (firstMember) {
+                setMemberToRate({
+                  user_id: firstMember.user_id,
+                  display_name: profiles[firstMember.user_id]?.display_name || null,
+                  name: profiles[firstMember.user_id]?.name || null,
+                  avatar_url: profiles[firstMember.user_id]?.avatar_url || null,
+                });
+                setRatingSheetOpen(true);
+              }
+            }}
+          />
+        )}
+
         {/* Dice Decision Suggestion - بعد بطاقة المجموعة */}
-        <GroupDiceSuggestion 
-          groupId={id}
-          groupType={group?.group_type}
-        />
+        {!isGroupClosed && (
+          <GroupDiceSuggestion 
+            groupId={id}
+            groupType={group?.group_type}
+          />
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -667,10 +736,12 @@ const GroupDetails = () => {
           <TabsContent value="expenses" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">المصاريف</h2>
-              <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة مصروف جديد
-              </Button>
+              {!isGroupClosed && (
+                <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
+                  <Plus className="w-4 h-4 ml-2" />
+                  إضافة مصروف جديد
+                </Button>
+              )}
             </div>
 
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
@@ -843,10 +914,12 @@ const GroupDetails = () => {
           <TabsContent value="members" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">الأعضاء</h2>
-              <Button variant="outline" onClick={() => setOpenInvite(true)}>
-                <UserPlus className="w-4 h-4 ml-2" />
-                دعوة عضو جديد
-              </Button>
+              {!isGroupClosed && (
+                <Button variant="outline" onClick={() => setOpenInvite(true)}>
+                  <UserPlus className="w-4 h-4 ml-2" />
+                  دعوة عضو جديد
+                </Button>
+              )}
             </div>
             
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
@@ -1276,11 +1349,45 @@ const GroupDetails = () => {
         onConfirm={handleLeaveGroup}
         isLeaving={isLeavingGroup}
       />
+
+      {/* Close Group Dialog */}
+      <CloseGroupDialog
+        open={closeGroupDialogOpen}
+        onOpenChange={setCloseGroupDialogOpen}
+        onConfirm={async () => {
+          const success = await closeGroup();
+          if (success) {
+            setCloseGroupDialogOpen(false);
+            refetch();
+          }
+        }}
+        loading={closingGroup}
+        groupName={group?.name}
+      />
+      {/* Rating Sheet */}
+      {memberToRate && (
+        <RatingSheet
+          open={ratingSheetOpen}
+          onOpenChange={setRatingSheetOpen}
+          groupId={id!}
+          member={memberToRate}
+          onRatingSubmitted={() => {
+            setMemberToRate(null);
+            refetch();
+          }}
+        />
+      )}
       </div>
       </UnifiedAdLayout>
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
+      
+      {/* Profile Completion Sheet - shown after joining */}
+      <ProfileCompletionSheet
+        open={showProfileCompletion}
+        onOpenChange={setShowProfileCompletion}
+      />
     </div>
   );
 };
