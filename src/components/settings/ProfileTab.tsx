@@ -500,6 +500,61 @@ export function ProfileTab({
               )}
             </div>
 
+            {/* المدينة */}
+            <div className="space-y-2">
+              <Label htmlFor="city" className="text-foreground">
+                {t('settings:profile.city', 'المدينة')}
+                <span className="text-muted-foreground text-xs ms-1">({t('settings:profile.optional', 'اختياري')})</span>
+              </Label>
+              {isEditMode ? (
+                <Input
+                  id="city"
+                  value={profile.city || ''}
+                  onChange={(e) => setProfile({...profile, city: e.target.value})}
+                  placeholder={t('settings:profile.city_placeholder', 'مثال: الرياض')}
+                  className="bg-background/50 border-border text-foreground"
+                />
+              ) : (
+                <div className="p-3 bg-background/30 border border-border rounded-md text-foreground">
+                  {profile.city || '-'}
+                </div>
+              )}
+            </div>
+
+            {/* النبذة */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="bio" className="text-foreground flex items-center justify-between">
+                <span>
+                  {t('settings:profile.bio', 'نبذة قصيرة')}
+                  <span className="text-muted-foreground text-xs ms-1">({t('settings:profile.optional', 'اختياري')})</span>
+                </span>
+                {isEditMode && (
+                  <span className="text-xs text-muted-foreground">
+                    {(profile.bio?.length || 0)}/120
+                  </span>
+                )}
+              </Label>
+              {isEditMode ? (
+                <Textarea
+                  id="bio"
+                  value={profile.bio || ''}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 120) {
+                      setProfile({...profile, bio: e.target.value});
+                    }
+                  }}
+                  placeholder={t('settings:profile.bio_placeholder', 'اكتب نبذة قصيرة عنك...')}
+                  className="bg-background/50 border-border text-foreground resize-none"
+                  rows={2}
+                  maxLength={120}
+                />
+              ) : (
+                <div className="p-3 bg-background/30 border border-border rounded-md text-foreground min-h-[60px]">
+                  {profile.bio || '-'}
+                </div>
+              )}
+            </div>
+
             {/* تاريخ الانضمام */}
             <div className="space-y-2">
               <Label className="text-foreground">{t('settings:profile.join_date')}</Label>
