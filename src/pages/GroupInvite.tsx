@@ -440,6 +440,12 @@ ${link}
       </div>
 
       <BottomNav />
+      
+      {/* Profile Completion Sheet */}
+      <ProfileCompletionSheet
+        open={showProfileCompletion}
+        onOpenChange={setShowProfileCompletion}
+      />
     </div>
   );
 };
