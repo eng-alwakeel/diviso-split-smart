@@ -1382,6 +1382,12 @@ const GroupDetails = () => {
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
+      
+      {/* Profile Completion Sheet - shown after joining */}
+      <ProfileCompletionSheet
+        open={showProfileCompletion}
+        onOpenChange={setShowProfileCompletion}
+      />
     </div>
   );
 };
