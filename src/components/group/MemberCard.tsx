@@ -192,7 +192,7 @@ export const MemberCard = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             {/* Role Edit Button */}
             {canEditRole && (
               <Button
