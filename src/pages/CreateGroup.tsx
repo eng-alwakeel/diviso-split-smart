@@ -131,8 +131,13 @@ const CreateGroup = () => {
         description: t('groups:messages.group_created_success', { name: groupData.name })
       });
       
-      // Navigate to group page with openInvite flag
-      navigate(`/group/${groupId}?openInvite=true`);
+      // Show profile completion sheet before navigating
+      setShowProfileCompletion(true);
+      
+      // Navigate to group page with openInvite flag after a short delay
+      setTimeout(() => {
+        navigate(`/group/${groupId}?openInvite=true`);
+      }, 500);
     } catch (e: any) {
       console.error('Error creating group:', e);
       toast({ title: t('groups:messages.creation_failed'), description: e.message, variant: 'destructive' });
