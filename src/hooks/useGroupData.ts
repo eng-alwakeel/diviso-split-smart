@@ -151,7 +151,7 @@ export const useGroupData = (groupId?: string) => {
         // 1) المجموعة
         supabase
           .from("groups")
-          .select("id, name, owner_id, created_at, group_type, currency")
+          .select("id, name, owner_id, created_at, group_type, currency, status")
           .eq("id", groupId)
           .maybeSingle(),
         
