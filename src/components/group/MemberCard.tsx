@@ -304,6 +304,14 @@ export const MemberCard = ({
         member={member}
         onUpdated={onMemberRemoved}
       />
+
+      {/* Mini Profile Dialog */}
+      <MemberMiniProfile
+        open={miniProfileOpen}
+        onOpenChange={setMiniProfileOpen}
+        memberId={member.user_id}
+        groupId={groupId}
+      />
     </>
   );
 };

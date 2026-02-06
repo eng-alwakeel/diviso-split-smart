@@ -276,6 +276,12 @@ const CreateGroup = () => {
         onOpenChange={setShowInsufficientDialog}
         actionName="create_group"
       />
+      
+      {/* Profile Completion Sheet */}
+      <ProfileCompletionSheet
+        open={showProfileCompletion}
+        onOpenChange={setShowProfileCompletion}
+      />
     </div>
   );
 };
