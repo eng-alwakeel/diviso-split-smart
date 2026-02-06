@@ -3,10 +3,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Crown, UserMinus, TrendingUp, TrendingDown, ArrowRight, Settings } from "lucide-react";
+import { Shield, Crown, UserMinus, TrendingUp, TrendingDown, ArrowRight, Settings, Star } from "lucide-react";
 import { useMemberActions } from "@/hooks/useMemberActions";
 import { UserDisplayWithBadges } from "@/components/ui/user-display-with-badges";
 import { MemberRoleDialog } from "./MemberRoleDialog";
+import { MemberMiniProfile } from "./MemberMiniProfile";
 
 interface Profile {
   id: string;
