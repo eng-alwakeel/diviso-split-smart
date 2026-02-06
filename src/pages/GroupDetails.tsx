@@ -1358,6 +1358,7 @@ const GroupDetails = () => {
         }}
         loading={closingGroup}
         groupName={group?.name}
+      />
       {/* Rating Sheet */}
       {memberToRate && (
         <RatingSheet
