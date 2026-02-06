@@ -36,6 +36,7 @@ const CreateGroup = () => {
   const { checkCredits, consumeCredits } = useUsageCredits();
   const [loading, setLoading] = useState(false);
   const [showInsufficientDialog, setShowInsufficientDialog] = useState(false);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [hasEnoughCredits, setHasEnoughCredits] = useState<boolean | null>(null);
   const [creditCheckResult, setCreditCheckResult] = useState({ currentBalance: 0, requiredCredits: 5 });
   const [groupData, setGroupData] = useState({
