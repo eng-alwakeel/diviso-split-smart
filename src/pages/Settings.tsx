@@ -58,7 +58,9 @@ const Settings = () => {
     phone: "",
     avatar: "",
     avatarUrl: "",
-    joinDate: ""
+    joinDate: "",
+    city: "",
+    bio: ""
   });
   
   // تتبع الإيميل الأصلي للتحقق من التغيير
