@@ -2240,6 +2240,51 @@ export type Database = {
           },
         ]
       }
+      known_contacts: {
+        Row: {
+          contact_user_id: string
+          created_at: string
+          id: string
+          last_interaction_at: string
+          shared_groups_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_user_id: string
+          created_at?: string
+          id?: string
+          last_interaction_at?: string
+          shared_groups_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_user_id?: string
+          created_at?: string
+          id?: string
+          last_interaction_at?: string
+          shared_groups_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "known_contacts_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "known_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lifetime_offer_tracking: {
         Row: {
           created_at: string
@@ -4950,6 +4995,10 @@ export type Database = {
         }
         Returns: Json
       }
+      add_member_to_group: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: string
+      }
       add_reward_points: {
         Args: {
           p_amount: number
@@ -5319,6 +5368,18 @@ export type Database = {
           referral_signup_rate: number
           referral_signups: number
           total_invites_sent: number
+        }[]
+      }
+      get_known_contacts: {
+        Args: { p_exclude_user_ids?: string[] }
+        Returns: {
+          avatar_url: string
+          contact_user_id: string
+          display_name: string
+          id: string
+          last_interaction_at: string
+          name: string
+          shared_groups_count: number
         }[]
       }
       get_monthly_stats:

@@ -410,5 +410,21 @@
   "create_first": "Create your first group",
   "search_currency": "Search currency...",
   "no_currency_found": "No currency found.",
-  "currency_other": "Other"
+  "currency_other": "Other",
+  "known_people": {
+    "title": "People You Know",
+    "tab_label": "People",
+    "subtitle": "Add people you've been in groups with before",
+    "shared_groups_one": "Shared 1 group",
+    "shared_groups_other": "Shared {{count}} groups",
+    "add": "Add",
+    "adding": "Adding...",
+    "added": "Added!",
+    "added_desc": "{{name}} has been added to the group",
+    "add_failed": "Failed to add",
+    "empty_title": "No previous contacts",
+    "empty_desc": "Use invite link or contacts to invite new members",
+    "search_placeholder": "Search by name...",
+    "already_member": "Already a member"
+  }
 }
