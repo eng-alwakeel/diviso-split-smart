@@ -34,6 +34,8 @@ export const NotificationBell = () => {
       navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'new_message' && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}?tab=chat`);
+    } else if (notification.type === 'balance_due') {
+      navigate('/notifications');
     }
   };
 
@@ -70,6 +72,12 @@ export const NotificationBell = () => {
         return t('types.referral_joined', { 
           name: payload.invitee_name, 
           days: payload.reward_days 
+        });
+      case 'balance_due':
+        return t('types.balance_due', {
+          amount: payload.amount_due,
+          currency: payload.currency,
+          group: payload.group_name
         });
       default:
         return t('types.new_notification');

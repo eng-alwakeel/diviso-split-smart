@@ -576,6 +576,84 @@ export type Database = {
           },
         ]
       }
+      balance_notifications: {
+        Row: {
+          amount_due: number
+          created_at: string
+          currency: string
+          expense_id: string
+          group_id: string
+          id: string
+          notification_id: string | null
+          payer_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_due: number
+          created_at?: string
+          currency?: string
+          expense_id: string
+          group_id: string
+          id?: string
+          notification_id?: string | null
+          payer_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_due?: number
+          created_at?: string
+          currency?: string
+          expense_id?: string
+          group_id?: string
+          id?: string
+          notification_id?: string | null
+          payer_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_notifications_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_notifications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_notifications_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_notifications_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_categories: {
         Row: {
           allocated_amount: number
@@ -5231,6 +5309,23 @@ export type Database = {
           total_available: number
         }[]
       }
+      get_balance_notification_details: {
+        Args: { p_balance_notification_id: string }
+        Returns: {
+          amount_due: number
+          created_at: string
+          currency: string
+          expense_amount: number
+          expense_date: string
+          expense_description: string
+          group_id: string
+          group_name: string
+          id: string
+          payer_avatar_url: string
+          payer_name: string
+          status: string
+        }[]
+      }
       get_balance_summary: {
         Args: { p_group_id: string }
         Returns: {
@@ -5618,6 +5713,10 @@ export type Database = {
       log_suspicious_referral: {
         Args: { p_phone: string; p_reason: string; p_user_id: string }
         Returns: undefined
+      }
+      mark_balance_as_paid: {
+        Args: { p_balance_notification_id: string }
+        Returns: boolean
       }
       process_daily_checkin: {
         Args: { p_reward_type: string; p_reward_value: Json; p_user_id: string }

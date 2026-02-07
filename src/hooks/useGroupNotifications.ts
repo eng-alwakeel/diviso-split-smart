@@ -7,7 +7,8 @@ type GroupNotificationType =
   | "group_deleted"
   | "dice_posted"
   | "dice_accepted"
-  | "dice_rerolled";
+  | "dice_rerolled"
+  | "balance_due";
 
 interface NotificationPayload {
   group_name: string;

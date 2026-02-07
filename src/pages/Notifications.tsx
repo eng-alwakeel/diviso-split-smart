@@ -17,11 +17,14 @@ import { Bell, CheckCheck, Archive, Trash2, MoreVertical } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { BalanceDetailsSheet } from '@/components/notifications/BalanceDetailsSheet';
 
 export default function Notifications() {
   const { t } = useTranslation('common');
   const { isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState('active');
+  const [showBalanceSheet, setShowBalanceSheet] = useState(false);
+  const [selectedBalanceId, setSelectedBalanceId] = useState<string | null>(null);
   const { 
     notifications, 
     archivedNotifications, 
@@ -42,6 +45,14 @@ export default function Notifications() {
     }
 
     if (notification.type === 'group_invite') {
+      return;
+    } else if (notification.type === 'balance_due') {
+      // Open balance details sheet
+      const balanceNotifId = notification.payload?.balance_notification_id;
+      if (balanceNotifId) {
+        setSelectedBalanceId(balanceNotifId);
+        setShowBalanceSheet(true);
+      }
       return;
     } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
       navigate('/referral-center');
@@ -83,6 +94,8 @@ export default function Notifications() {
         return '👋';
       case 'group_deleted':
         return '🗑️';
+      case 'balance_due':
+        return '💸';
       default:
         return '🔔';
     }
@@ -121,6 +134,8 @@ export default function Notifications() {
         return t('notifications:types.member_left', { name: payload.member_name, group: payload.group_name });
       case 'group_deleted':
         return t('notifications:types.group_deleted', { name: payload.deleted_by_name, group: payload.group_name });
+      case 'balance_due':
+        return t('notifications:types.balance_due', { amount: payload.amount_due, currency: payload.currency, group: payload.group_name });
       default:
         return t('notifications:types.new_notification');
     }
@@ -385,6 +400,13 @@ export default function Notifications() {
 
       <div className="h-32 lg:hidden" />
       <BottomNav />
+
+      <BalanceDetailsSheet
+        open={showBalanceSheet}
+        onOpenChange={setShowBalanceSheet}
+        balanceNotificationId={selectedBalanceId}
+        onPaid={refetch}
+      />
     </div>
   );
 }

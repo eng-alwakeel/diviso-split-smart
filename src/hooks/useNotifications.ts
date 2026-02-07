@@ -116,6 +116,12 @@ export const useNotifications = (includeArchived = false) => {
         return payload.message_ar || t('descriptions.referral_compensation', { 
           points: payload.total_points 
         });
+      case 'balance_due':
+        return t('descriptions.balance_due', {
+          amount: payload.amount_due,
+          currency: payload.currency,
+          group: payload.group_name
+        });
       default:
         return t('descriptions.default');
     }
