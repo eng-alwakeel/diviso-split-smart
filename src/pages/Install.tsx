@@ -2,14 +2,16 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
+import { ShareInstallButton } from "@/components/pwa/ShareInstallButton";
 import { Download } from "lucide-react";
 
 const Install = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="تثبيت Diviso | Install Diviso"
-        description="ثبّت تطبيق Diviso على جهازك لتجربة أسرع وأسهل في إدارة المصاريف المشتركة."
+        title="ثبّت Diviso على جوالك"
+        description="قسّم المصاريف مع أصحابك بسهولة، وافتح التطبيق مباشرة من شاشة الجوال."
+        ogImage="https://diviso.app/og/install-1200x630.png"
       />
       <Header />
 
@@ -25,8 +27,12 @@ const Install = () => {
             ثبّت التطبيق عشان تفتحه بسرعة من الشاشة الرئيسية، بدون ما تفتح المتصفح كل مرة.
           </p>
 
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto space-y-3">
             <InstallWidget where="home" />
+            <ShareInstallButton />
+            <p className="text-xs text-muted-foreground">
+              أرسل الرابط لشخص ثاني أو افتحه على جهازك الثاني.
+            </p>
           </div>
         </section>
 

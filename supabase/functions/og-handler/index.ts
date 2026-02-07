@@ -31,6 +31,11 @@ const pageMetadata: Record<string, { title: string; description: string; image?:
     description: 'قسّم مصاريف السفر، الطلعات، والسكن مع أصحابك بسهولة وبدون إحراج.',
     image: '/og/launch-1200x630.png',
   },
+  '/install': {
+    title: 'ثبّت Diviso على جوالك',
+    description: 'قسّم المصاريف مع أصحابك بسهولة، وافتح التطبيق مباشرة من شاشة الجوال.',
+    image: '/og/install-1200x630.png',
+  },
 };
 
 // Scenario-specific metadata for ?demo= parameter
