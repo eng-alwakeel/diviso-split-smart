@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useGroupInviteActions } from '@/hooks/useGroupInviteActions';
 import { formatDistanceToNow } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { ar, enUS } from 'date-fns/locale';
 import { Users, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +32,10 @@ interface GroupInviteCardProps {
 
 export const GroupInviteCard = ({ notification, onUpdate }: GroupInviteCardProps) => {
   const { acceptInvite, rejectInvite, loading } = useGroupInviteActions();
+  const { t } = useTranslation('groups');
+  const { isRTL } = useLanguage();
   const { payload } = notification;
+  const dateLocale = isRTL ? ar : enUS;
 
   const handleAccept = async () => {
     const result = await acceptInvite(notification.id, payload.invite_id);
@@ -63,10 +68,13 @@ export const GroupInviteCard = ({ notification, onUpdate }: GroupInviteCardProps
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="font-medium leading-tight">
-                دعوة انضمام لمجموعة
+                {t('known_people.invite_notification_title')}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {payload.inviter_name} دعاك للانضمام إلى مجموعة "{payload.group_name}"
+                {t('known_people.invite_notification_desc', {
+                  name: payload.inviter_name,
+                  group: payload.group_name,
+                })}
               </p>
             </div>
             {!isRead && (
@@ -79,14 +87,11 @@ export const GroupInviteCard = ({ notification, onUpdate }: GroupInviteCardProps
               <Badge variant="secondary" className="text-xs">
                 {payload.group_name}
               </Badge>
-              <Badge variant="outline" className="text-xs">
-                {payload.invited_role === 'admin' ? 'مدير' : 'عضو'}
-              </Badge>
             </div>
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(notification.created_at), {
                 addSuffix: true,
-                locale: ar,
+                locale: dateLocale,
               })}
             </span>
           </div>
@@ -99,7 +104,7 @@ export const GroupInviteCard = ({ notification, onUpdate }: GroupInviteCardProps
               size="sm"
             >
               <Check className="w-4 h-4" />
-              قبول الدعوة
+              {t('known_people.accept_invite')}
             </Button>
             
             <AlertDialog>
@@ -111,20 +116,24 @@ export const GroupInviteCard = ({ notification, onUpdate }: GroupInviteCardProps
                   size="sm"
                 >
                   <X className="w-4 h-4" />
-                  رفض
+                  {t('known_people.decline_invite')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>رفض دعوة الانضمام؟</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    {t('known_people.decline_confirm_title')}
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    هل أنت متأكد من رفض دعوة الانضمام لمجموعة "{payload.group_name}"؟ لن تتمكن من التراجع عن هذا القرار.
+                    {t('known_people.decline_confirm_desc', {
+                      group: payload.group_name,
+                    })}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  <AlertDialogCancel>{t('back')}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleReject}>
-                    رفض الدعوة
+                    {t('known_people.decline_confirm_action')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

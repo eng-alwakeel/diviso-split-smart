@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserPlus, Search, Users2, Check } from "lucide-react";
+import { Send, Search, Users2, Check, Clock } from "lucide-react";
 
 interface KnownPeopleTabProps {
   groupId: string | undefined;
@@ -16,7 +16,14 @@ interface KnownPeopleTabProps {
 export const KnownPeopleTab = ({ groupId, existingMembers, onMemberAdded }: KnownPeopleTabProps) => {
   const { t } = useTranslation("groups");
   const [searchQuery, setSearchQuery] = useState("");
-  const { contacts, isLoading, addMember, addingUserId, isAdding } = useKnownContacts(groupId, existingMembers);
+  const {
+    contacts,
+    isLoading,
+    pendingInviteUserIds,
+    sendInvite,
+    sendingUserId,
+    isSending,
+  } = useKnownContacts(groupId, existingMembers);
 
   const filteredContacts = contacts.filter((contact) => {
     if (!searchQuery.trim()) return true;
@@ -87,7 +94,8 @@ export const KnownPeopleTab = ({ groupId, existingMembers, onMemberAdded }: Know
       <div className="space-y-1 max-h-[300px] overflow-y-auto">
         {filteredContacts.map((contact) => {
           const name = getContactName(contact);
-          const isCurrentlyAdding = isAdding && addingUserId === contact.contact_user_id;
+          const isCurrentlySending = isSending && sendingUserId === contact.contact_user_id;
+          const isPending = pendingInviteUserIds.includes(contact.contact_user_id);
 
           return (
             <div
@@ -108,28 +116,40 @@ export const KnownPeopleTab = ({ groupId, existingMembers, onMemberAdded }: Know
                 </p>
               </div>
 
-              <Button
-                size="sm"
-                variant="outline"
-                className="shrink-0 h-8 gap-1 text-xs"
-                disabled={isCurrentlyAdding}
-                onClick={() => {
-                  addMember(contact.contact_user_id);
-                  onMemberAdded?.();
-                }}
-              >
-                {isCurrentlyAdding ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    {t("known_people.adding")}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-3.5 h-3.5" />
-                    {t("known_people.add")}
-                  </>
-                )}
-              </Button>
+              {isPending ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 h-8 gap-1 text-xs pointer-events-none"
+                  disabled
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  {t("known_people.invite_pending")}
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0 h-8 gap-1 text-xs"
+                  disabled={isCurrentlySending}
+                  onClick={() => {
+                    sendInvite(contact.contact_user_id);
+                    onMemberAdded?.();
+                  }}
+                >
+                  {isCurrentlySending ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      {t("known_people.sending")}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      {t("known_people.send_invite")}
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           );
         })}

@@ -58,9 +58,20 @@ export const useNotifications = (includeArchived = false) => {
           group: payload.group_name 
         });
       case 'group_invite':
-        return t('descriptions.group_invite', { 
+      case 'group_invite_request':
+        return t('descriptions.group_invite_request', { 
           inviter: payload.inviter_name, 
           group: payload.group_name 
+        });
+      case 'group_invite_accepted':
+        return t('descriptions.group_invite_accepted', {
+          name: payload.member_name,
+          group: payload.group_name
+        });
+      case 'group_invite_declined':
+        return t('descriptions.group_invite_declined', {
+          name: payload.member_name,
+          group: payload.group_name
         });
       case 'referral_joined':
       case 'referral_completed':
