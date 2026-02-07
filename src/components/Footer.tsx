@@ -7,7 +7,8 @@ import {
   FileText,
   Facebook,
   Linkedin,
-  Youtube
+  Youtube,
+  Smartphone
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { BrandedDiviso } from "@/components/ui/branded-diviso";
@@ -49,6 +50,10 @@ export const Footer = () => {
             <div className="space-y-3 text-muted-foreground">
               <Link to="/how-it-works" className="block hover:text-foreground transition-colors text-sm">
                 {t('footer.howItWorks')}
+              </Link>
+              <Link to="/install" className="flex items-center gap-2 hover:text-foreground transition-colors text-sm">
+                <Smartphone className="w-4 h-4" />
+                {t('footer.installApp')}
               </Link>
               <Link to="/faq" className="block hover:text-foreground transition-colors text-sm">
                 {t('footer.faq')}
