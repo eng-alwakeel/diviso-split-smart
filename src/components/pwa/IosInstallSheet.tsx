@@ -1,3 +1,4 @@
+import { useTranslation, Trans } from "react-i18next";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Share, Plus, X } from "lucide-react";
@@ -8,13 +9,15 @@ interface IosInstallSheetProps {
 }
 
 export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
+  const { t } = useTranslation("install");
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="bg-card border-border">
         <DrawerHeader className="text-center">
           <div className="flex items-center justify-between">
             <DrawerTitle className="text-lg font-bold text-foreground">
-              تثبيت Diviso على الآيفون
+              {t("ios.title")}
             </DrawerTitle>
             <DrawerClose asChild>
               <Button variant="ghost" size="icon" className="text-muted-foreground">
@@ -32,10 +35,14 @@ export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
             </div>
             <div>
               <p className="font-medium text-foreground">
-                افتح الموقع من <span className="text-primary font-bold">Safari</span>
+                <Trans
+                  i18nKey="ios.step1Title"
+                  ns="install"
+                  components={{ bold: <span className="text-primary font-bold" /> }}
+                />
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                إذا كنت داخل واتساب أو إنستغرام، اضغط "Open in Safari" أولاً.
+                {t("ios.step1Desc")}
               </p>
             </div>
           </div>
@@ -46,10 +53,10 @@ export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
               2
             </div>
             <div className="flex items-center gap-2">
-              <p className="font-medium text-foreground">اضغط زر</p>
+              <p className="font-medium text-foreground">{t("ios.step2")}</p>
               <div className="inline-flex items-center gap-1 bg-muted/50 rounded-md px-2 py-1">
                 <Share className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">المشاركة</span>
+                <span className="text-sm font-medium text-foreground">{t("ios.step2Label")}</span>
               </div>
             </div>
           </div>
@@ -60,10 +67,10 @@ export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
               3
             </div>
             <div className="flex items-center gap-2">
-              <p className="font-medium text-foreground">اختر</p>
+              <p className="font-medium text-foreground">{t("ios.step3")}</p>
               <div className="inline-flex items-center gap-1 bg-muted/50 rounded-md px-2 py-1">
                 <Plus className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Add to Home Screen</span>
+                <span className="text-sm font-medium text-foreground">{t("ios.step3Label")}</span>
               </div>
             </div>
           </div>
@@ -74,7 +81,11 @@ export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
               4
             </div>
             <p className="font-medium text-foreground">
-              اضغط <span className="text-primary font-bold">Add</span> وخلاص! 🎉
+              <Trans
+                i18nKey="ios.step4"
+                ns="install"
+                components={{ bold: <span className="text-primary font-bold" /> }}
+              />
             </p>
           </div>
 
@@ -83,7 +94,7 @@ export function IosInstallSheet({ open, onOpenChange }: IosInstallSheetProps) {
             className="w-full mt-4"
             onClick={() => onOpenChange(false)}
           >
-            فهمت، شكراً
+            {t("ios.doneButton")}
           </Button>
         </div>
       </DrawerContent>
