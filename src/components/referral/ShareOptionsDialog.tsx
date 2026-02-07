@@ -148,7 +148,11 @@ export const ShareOptionsDialog = ({
                     </p>
                   </div>
 
-                  <QRCodeDisplay value={referralLink} size={250} />
+                  <QRCodeDisplay 
+                    value={referralLink} 
+                    size={280}
+                    shortUrl={referralLink?.replace('https://', '') || ''}
+                  />
 
                   <div className="w-full">
                     <h4 className="text-sm font-medium mb-3 text-center">

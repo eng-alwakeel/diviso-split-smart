@@ -273,7 +273,7 @@ export function useReferrals() {
 
   const getReferralLink = useCallback(() => {
     if (!referralCode) return null;
-    return `${BRAND_CONFIG.url}/join/${referralCode}`;
+    return `${BRAND_CONFIG.url}/j/${referralCode}`;
   }, [referralCode]);
 
   // Get shareable link (Edge Function URL for social preview)

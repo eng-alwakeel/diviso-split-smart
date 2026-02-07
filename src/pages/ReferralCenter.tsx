@@ -237,8 +237,9 @@ const ReferralCenter = () => {
             <div className="flex justify-center">
               <QRCodeDisplay 
                 value={referralLink} 
-                size={180}
+                size={220}
                 showActions={true}
+                shortUrl={referralLink?.replace('https://', '') || ''}
               />
             </div>
 

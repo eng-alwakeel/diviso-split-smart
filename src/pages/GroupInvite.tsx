@@ -388,8 +388,8 @@ ${link}
                     <div className="flex justify-center pt-4">
                       <QRCodeDisplay 
                         value={link} 
-                        size={200}
-                        className="bg-white p-4 rounded-xl"
+                        size={240}
+                        shortUrl={link?.replace('https://', '') || ''}
                       />
                     </div>
 

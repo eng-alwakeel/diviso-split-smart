@@ -126,6 +126,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/i/:code" element={<InviteRoute />} />
             <Route path="/invite-phone/:token" element={<PhoneInviteRoute />} />
             <Route path="/join/:referralCode" element={<LazyReferralSignup />} />
+            <Route path="/j/:referralCode" element={<LazyReferralSignup />} />
             <Route path="/privacy-policy" element={<LazyPrivacyPolicy />} />
             <Route path="/refund-policy" element={<LazyRefundPolicy />} />
             <Route path="/terms" element={<LazyTermsConditions />} />

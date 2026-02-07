@@ -11,12 +11,82 @@ interface QRCodeDisplayProps {
   size?: number;
   className?: string;
   showActions?: boolean;
+  shortUrl?: string;
 }
 
-export function QRCodeDisplay({ value, size = 200, className = "", showActions = true }: QRCodeDisplayProps) {
+// Brand QR config (Version A) — for in-app display only
+function createBrandQR(size: number, value: string) {
+  return new QRCodeStyling({
+    width: size,
+    height: size,
+    data: value,
+    image: "/favicon.png",
+    dotsOptions: {
+      color: "#1A1C1E",
+      type: "square"
+    },
+    cornersSquareOptions: {
+      color: "#1A1C1E",
+      type: "square"
+    },
+    cornersDotOptions: {
+      color: "#1A1C1E",
+      type: "square"
+    },
+    backgroundOptions: {
+      color: "#ffffff"
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 6,
+      imageSize: 0.2,
+      hideBackgroundDots: true
+    },
+    qrOptions: {
+      errorCorrectionLevel: 'H'
+    }
+  });
+}
+
+// Functional QR config (Version B) — for download/share, high contrast
+function createFunctionalQR(value: string) {
+  return new QRCodeStyling({
+    width: 1024,
+    height: 1024,
+    data: value,
+    dotsOptions: {
+      color: "#000000",
+      type: "square"
+    },
+    cornersSquareOptions: {
+      color: "#000000",
+      type: "square"
+    },
+    cornersDotOptions: {
+      color: "#000000",
+      type: "square"
+    },
+    backgroundOptions: {
+      color: "#ffffff"
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 0,
+      imageSize: 0,
+      hideBackgroundDots: true
+    },
+    qrOptions: {
+      errorCorrectionLevel: 'H'
+    }
+  });
+}
+
+export function QRCodeDisplay({ value, size = 200, className = "", showActions = true, shortUrl }: QRCodeDisplayProps) {
   const { t } = useTranslation('referral');
-  const qrRef = useRef<HTMLDivElement>(null);
-  const qrCodeRef = useRef<QRCodeStyling | null>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const functionalRef = useRef<HTMLDivElement>(null);
+  const brandQrRef = useRef<QRCodeStyling | null>(null);
+  const functionalQrRef = useRef<QRCodeStyling | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
 
@@ -31,49 +101,22 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     setError('');
 
     try {
-      // Brand color: hsl(73 66% 71%) = #C8F169
-      // Darker version for QR readability: hsl(73 66% 35%) ≈ #6B8A1F
-      const qrMainColor = "#6B8A1F"; // Darker brand color for readability
-      const qrCornerColor = "#5A7519"; // Even darker for corners
-      
-      // Create QR code instance
-      const qrCode = new QRCodeStyling({
-        width: size,
-        height: size,
-        data: value,
-        image: "/favicon.png",
-        dotsOptions: {
-          color: qrMainColor,
-          type: "rounded"
-        },
-        cornersSquareOptions: {
-          color: qrCornerColor,
-          type: "extra-rounded"
-        },
-        cornersDotOptions: {
-          color: qrMainColor,
-          type: "dot"
-        },
-        backgroundOptions: {
-          color: "#ffffff"
-        },
-        imageOptions: {
-          crossOrigin: "anonymous",
-          margin: 6,
-          imageSize: 0.3,
-          hideBackgroundDots: true
-        },
-        qrOptions: {
-          errorCorrectionLevel: 'H'
-        }
-      });
+      // Version A: Brand (display)
+      const brandQr = createBrandQR(size, value);
+      brandQrRef.current = brandQr;
 
-      qrCodeRef.current = qrCode;
+      if (brandRef.current) {
+        brandRef.current.innerHTML = '';
+        brandQr.append(brandRef.current);
+      }
 
-      // Clear and append
-      if (qrRef.current) {
-        qrRef.current.innerHTML = '';
-        qrCode.append(qrRef.current);
+      // Version B: Functional (download/share) — hidden
+      const funcQr = createFunctionalQR(value);
+      functionalQrRef.current = funcQr;
+
+      if (functionalRef.current) {
+        functionalRef.current.innerHTML = '';
+        funcQr.append(functionalRef.current);
       }
 
       setIsLoading(false);
@@ -84,11 +127,12 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     }
   }, [value, size, t]);
 
+  // Download always uses Functional (Version B)
   const downloadQRCode = async () => {
-    if (!qrCodeRef.current) return;
+    if (!functionalQrRef.current) return;
 
     try {
-      await qrCodeRef.current.download({
+      await functionalQrRef.current.download({
         name: "diviso-qr-code",
         extension: "png"
       });
@@ -99,31 +143,31 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     }
   };
 
+  // Share always uses Functional (Version B)
   const shareQRCode = async () => {
-    if (!qrCodeRef.current) return;
+    if (!functionalQrRef.current) return;
 
     try {
-      const rawData = await qrCodeRef.current.getRawData('png');
+      const rawData = await functionalQrRef.current.getRawData('png');
       if (!rawData) {
         toast.error(t('qr.prepare_error'));
         return;
       }
 
-      // Convert to Blob if it's a Buffer
       let blob: Blob;
       if (rawData instanceof Blob) {
         blob = rawData;
-      } else if (Buffer.isBuffer(rawData)) {
-        blob = new Blob([new Uint8Array(rawData)], { type: 'image/png' });
+      } else if (rawData instanceof ArrayBuffer) {
+        blob = new Blob([rawData], { type: 'image/png' });
       } else {
-        blob = new Blob([rawData as ArrayBuffer], { type: 'image/png' });
+        blob = new Blob([new Uint8Array(rawData as unknown as ArrayBuffer)], { type: 'image/png' });
       }
       const file = new File([blob], 'diviso-qr-code.png', { type: 'image/png' });
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: t('qr.title'),
-          text: t('qr.share_text'),
+          text: t('qr.scan_to_join_group'),
           files: [file],
         });
       } else {
@@ -144,35 +188,38 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
     setError('');
     setIsLoading(true);
     
-    if (qrCodeRef.current && qrRef.current) {
-      qrRef.current.innerHTML = '';
-      qrCodeRef.current.append(qrRef.current);
+    if (brandQrRef.current && brandRef.current) {
+      brandRef.current.innerHTML = '';
+      brandQrRef.current.append(brandRef.current);
     }
     
     setIsLoading(false);
   };
 
   return (
-    <div className={`flex flex-col items-center space-y-4 ${className}`}>
-      {/* QR Container with frame */}
-      <div className="relative bg-gradient-to-br from-primary/5 to-primary/10 p-4 rounded-2xl border border-primary/20 shadow-lg">
+    <div className={`flex flex-col items-center space-y-3 ${className}`}>
+      {/* Hidden functional QR for download/share */}
+      <div ref={functionalRef} className="hidden" aria-hidden="true" />
+
+      {/* Brand QR Container */}
+      <div className="relative bg-card p-3 rounded-xl border border-border shadow-sm">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-2xl z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-xl z-10">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         )}
         
         {error ? (
-          <div className="flex flex-col items-center justify-center p-8 text-center bg-background rounded-xl">
+          <div className="flex flex-col items-center justify-center p-8 text-center bg-background rounded-lg">
             <p className="text-destructive text-sm mb-2">{error}</p>
             <Button onClick={retryGeneration} variant="outline" size="sm">
               {t('qr.retry')}
             </Button>
           </div>
         ) : (
-          <div className="bg-white p-3 rounded-xl shadow-inner">
+          <div className="bg-white p-2 rounded-lg">
             <div 
-              ref={qrRef} 
+              ref={brandRef} 
               className="flex items-center justify-center"
               style={{ minHeight: size, minWidth: size }}
             />
@@ -181,13 +228,18 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
 
         {/* Bottom text */}
         {!error && (
-          <div className="mt-3 text-center space-y-1">
-            <p className="text-sm font-medium text-foreground">
-              {t('qr.scan_to_join')}
+          <div className="mt-2 text-center space-y-0.5">
+            <p className="text-sm font-semibold text-foreground">
+              {t('qr.join_group')}
             </p>
             <p className="text-xs text-muted-foreground">
-              www.diviso.app
+              {t('qr.scan_instruction')}
             </p>
+            {shortUrl && (
+              <p className="text-[11px] font-mono text-muted-foreground/70 mt-1">
+                {shortUrl}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -234,17 +286,22 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
                 <DialogTitle className="text-center">{t('qr.title')}</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col items-center p-4 space-y-4">
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 rounded-2xl border border-primary/20">
-                  <div className="bg-white p-4 rounded-xl shadow-inner">
+                <div className="bg-card p-4 rounded-xl border border-border">
+                  <div className="bg-white p-3 rounded-lg">
                     <QRCodeLarge value={value} size={280} />
                   </div>
-                  <div className="mt-4 text-center space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                      {t('qr.scan_to_join')}
+                  <div className="mt-3 text-center space-y-0.5">
+                    <p className="text-sm font-semibold text-foreground">
+                      {t('qr.join_group')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      www.diviso.app
+                      {t('qr.scan_instruction')}
                     </p>
+                    {shortUrl && (
+                      <p className="text-[11px] font-mono text-muted-foreground/70 mt-1">
+                        {shortUrl}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -266,49 +323,14 @@ export function QRCodeDisplay({ value, size = 200, className = "", showActions =
   );
 }
 
-// Separate component for large QR in dialog
+// Separate component for large QR in dialog — uses Brand styling
 function QRCodeLarge({ value, size }: { value: string; size: number }) {
   const qrRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!value?.trim() || !qrRef.current) return;
 
-    // Brand color: hsl(73 66% 71%) = #C8F169
-    // Darker version for QR readability: hsl(73 66% 35%) ≈ #6B8A1F
-    const qrMainColor = "#6B8A1F";
-    const qrCornerColor = "#5A7519";
-    
-    const qrCode = new QRCodeStyling({
-      width: size,
-      height: size,
-      data: value,
-      image: "/favicon.png",
-      dotsOptions: {
-        color: qrMainColor,
-        type: "rounded"
-      },
-      cornersSquareOptions: {
-        color: qrCornerColor,
-        type: "extra-rounded"
-      },
-      cornersDotOptions: {
-        color: qrMainColor,
-        type: "dot"
-      },
-      backgroundOptions: {
-        color: "#ffffff"
-      },
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: 8,
-        imageSize: 0.3,
-        hideBackgroundDots: true
-      },
-      qrOptions: {
-        errorCorrectionLevel: 'H'
-      }
-    });
-
+    const qrCode = createBrandQR(size, value);
     qrRef.current.innerHTML = '';
     qrCode.append(qrRef.current);
   }, [value, size]);
