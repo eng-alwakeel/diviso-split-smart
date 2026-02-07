@@ -410,5 +410,21 @@
   "create_first": "أنشئ مجموعتك الأولى",
   "search_currency": "ابحث عن العملة...",
   "no_currency_found": "لم يتم العثور على عملة.",
-  "currency_other": "أخرى"
+  "currency_other": "أخرى",
+  "known_people": {
+    "title": "أشخاص تعرفهم",
+    "tab_label": "أشخاص",
+    "subtitle": "أضف أشخاصاً سبق أن كانوا معك في مجموعات سابقة",
+    "shared_groups_one": "مشتركون في مجموعة واحدة",
+    "shared_groups_other": "مشتركون في {{count}} مجموعات",
+    "add": "إضافة",
+    "adding": "جاري الإضافة...",
+    "added": "تمت الإضافة!",
+    "added_desc": "تمت إضافة {{name}} للمجموعة",
+    "add_failed": "تعذرت الإضافة",
+    "empty_title": "لا يوجد أشخاص سابقين",
+    "empty_desc": "استخدم رابط الدعوة أو جهات الاتصال لدعوة أعضاء جدد",
+    "search_placeholder": "ابحث بالاسم...",
+    "already_member": "عضو بالفعل"
+  }
 }

@@ -10,10 +10,13 @@ import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { InviteLinkTab } from "@/components/group/invite-tabs/InviteLinkTab";
 import { InviteContactsTab } from "@/components/group/invite-tabs/InviteContactsTab";
 import { InviteTrackingTab } from "@/components/group/invite-tabs/InviteTrackingTab";
+import { KnownPeopleTab } from "@/components/group/invite-tabs/KnownPeopleTab";
 import { useGroupInvites } from "@/hooks/useGroupInvites";
+import { useTranslation } from "react-i18next";
 import { 
   Link, 
   Users, 
+  UserCheck,
   History,
   QrCode
 } from "lucide-react";
@@ -34,8 +37,9 @@ export const InviteManagementDialog = ({
   existingMembers = [] 
 }: InviteManagementDialogProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation("groups");
   const { invites, loading, fetchInvites } = useGroupInvites(groupId);
-  const [activeTab, setActiveTab] = useState("link");
+  const [activeTab, setActiveTab] = useState("known");
   const [inviteLink, setInviteLink] = useState("");
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export const InviteManagementDialog = ({
   useEffect(() => {
     if (!open) {
       setInviteLink("");
-      setActiveTab("link");
+      setActiveTab("known");
     }
   }, [open]);
 
@@ -90,7 +94,11 @@ export const InviteManagementDialog = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1">
+          <TabsList className="grid w-full grid-cols-4 gap-1">
+            <TabsTrigger value="known" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <UserCheck className="w-3 h-3 shrink-0" />
+              <span className="truncate">{t("known_people.tab_label")}</span>
+            </TabsTrigger>
             <TabsTrigger value="link" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
               <Link className="w-3 h-3 shrink-0" />
               <span className="truncate">رابط</span>
@@ -104,6 +112,25 @@ export const InviteManagementDialog = ({
               <span className="truncate">متابعة</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="known" className="space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <UserCheck className="w-4 h-4" />
+                  {t("known_people.title")}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">{t("known_people.subtitle")}</p>
+              </CardHeader>
+              <CardContent>
+                <KnownPeopleTab
+                  groupId={groupId}
+                  existingMembers={existingMembers}
+                  onMemberAdded={fetchInvites}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="link" className="space-y-4">
             <Card>
