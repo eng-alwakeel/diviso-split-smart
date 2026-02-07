@@ -69,6 +69,7 @@ const LazyInfluencerPage = withLazyLoading(lazy(() => import("./pages/Influencer
 const LazyWelcome = withLazyLoading(lazy(() => import("./pages/Welcome")));
 const LazyFoundingProgram = withLazyLoading(lazy(() => import("./pages/FoundingProgram")));
 const LazyDiceDecisionPage = withLazyLoading(lazy(() => import("./pages/DiceDecisionPage")));
+const LazyInstall = withLazyLoading(lazy(() => import("./pages/Install")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -140,6 +141,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/launch" element={<LazyLaunchPage />} />
             <Route path="/from" element={<LazyInfluencerPage />} />
             <Route path="/founding" element={<LazyFoundingProgram />} />
+            <Route path="/install" element={<LazyInstall />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />

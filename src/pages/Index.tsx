@@ -15,6 +15,7 @@ const PricingSection = lazy(() => import("@/components/PricingSection").then(m =
 
 // Import non-lazy for above-the-fold
 import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
+import { InstallWidget } from "@/components/pwa/InstallWidget";
 
 // Properly sized skeleton to prevent layout shift - using containIntrinsicBlockSize for better CLS
 const BelowFoldSkeleton = () => (
@@ -82,6 +83,11 @@ const Index = () => {
       
       {/* Above the fold - not lazy */}
       <InteractiveSplitDemo />
+      
+      {/* PWA Install Prompt */}
+      <div className="page-container !py-0 !pb-0">
+        <InstallWidget where="home" />
+      </div>
       
       {/* Below the fold - consolidated lazy loading */}
       <Suspense fallback={<BelowFoldSkeleton />}>
