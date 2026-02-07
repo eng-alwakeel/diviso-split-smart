@@ -1,0 +1,60 @@
+{
+  "page": {
+    "seoTitle": "Install Diviso on your phone",
+    "seoDescription": "Split expenses with friends easily, and open the app directly from your home screen.",
+    "title": "Install Diviso on your device",
+    "subtitle": "Install the app to open it quickly from your home screen, without opening the browser every time.",
+    "shareHint": "Send the link to someone else or open it on your other device.",
+    "benefits": {
+      "faster": "Faster",
+      "fasterDesc": "Opens instantly without loading",
+      "appLike": "App-like",
+      "appLikeDesc": "Full screen without the browser bar",
+      "notifications": "Notifications",
+      "notificationsDesc": "Get expense alerts"
+    }
+  },
+  "widget": {
+    "home": {
+      "title": "Install Diviso — faster for you",
+      "subtitle": "Install the app to quickly access your groups like any other app."
+    },
+    "faq": {
+      "title": "How do I install Diviso?",
+      "subtitle": "Installing the app makes it easier to access and gives a better mobile experience."
+    },
+    "settings": {
+      "title": "Install the app",
+      "subtitle": "If you haven't installed it, you can do it now with one tap."
+    },
+    "appHome": {
+      "title": "Install Diviso for faster sessions",
+      "subtitle": "It'll open faster and feel like a native app on your device."
+    }
+  },
+  "prompt": {
+    "installButton": "Install App",
+    "dismissLabel": "Dismiss",
+    "inAppWarning": "To install on iPhone: open the link from <bold>Safari</bold> (not from WhatsApp/Instagram).",
+    "safari": "Safari"
+  },
+  "share": {
+    "buttonText": "Share install link",
+    "shareTitle": "Install Diviso on your phone",
+    "shareText": "Split expenses with friends easily, and open the app directly from your home screen without a browser.",
+    "copiedToast": "Install link copied ✅",
+    "copyPrompt": "Copy the install link:",
+    "ariaLabel": "Share Diviso install link"
+  },
+  "ios": {
+    "title": "Install Diviso on iPhone",
+    "step1Title": "Open the website from <bold>Safari</bold>",
+    "step1Desc": "If you're inside WhatsApp or Instagram, tap \"Open in Safari\" first.",
+    "step2": "Tap the",
+    "step2Label": "Share",
+    "step3": "Choose",
+    "step3Label": "Add to Home Screen",
+    "step4": "Tap <bold>Add</bold> and you're done! 🎉",
+    "doneButton": "Got it, thanks"
+  }
+}

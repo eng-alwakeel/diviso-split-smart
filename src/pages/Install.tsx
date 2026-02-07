@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
@@ -6,11 +7,19 @@ import { ShareInstallButton } from "@/components/pwa/ShareInstallButton";
 import { Download } from "lucide-react";
 
 const Install = () => {
+  const { t } = useTranslation("install");
+
+  const benefits = [
+    { emoji: "⚡", title: t("page.benefits.faster"), desc: t("page.benefits.fasterDesc") },
+    { emoji: "📱", title: t("page.benefits.appLike"), desc: t("page.benefits.appLikeDesc") },
+    { emoji: "🔔", title: t("page.benefits.notifications"), desc: t("page.benefits.notificationsDesc") },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="ثبّت Diviso على جوالك"
-        description="قسّم المصاريف مع أصحابك بسهولة، وافتح التطبيق مباشرة من شاشة الجوال."
+        title={t("page.seoTitle")}
+        description={t("page.seoDescription")}
         ogImage="https://diviso.app/og/install-1200x630.png"
       />
       <Header />
@@ -21,17 +30,17 @@ const Install = () => {
             <Download className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            ثبّت Diviso على جهازك
+            {t("page.title")}
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-            ثبّت التطبيق عشان تفتحه بسرعة من الشاشة الرئيسية، بدون ما تفتح المتصفح كل مرة.
+            {t("page.subtitle")}
           </p>
 
           <div className="max-w-md mx-auto space-y-3">
             <InstallWidget where="home" />
             <ShareInstallButton />
             <p className="text-xs text-muted-foreground">
-              أرسل الرابط لشخص ثاني أو افتحه على جهازك الثاني.
+              {t("page.shareHint")}
             </p>
           </div>
         </section>
@@ -39,11 +48,7 @@ const Install = () => {
         {/* Benefits */}
         <section className="max-w-2xl mx-auto pb-16">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { emoji: "⚡", title: "أسرع", desc: "يفتح فوري بدون تحميل" },
-              { emoji: "📱", title: "مثل التطبيق", desc: "شاشة كاملة بدون شريط المتصفح" },
-              { emoji: "🔔", title: "إشعارات", desc: "تصلك تنبيهات المصاريف" },
-            ].map((item) => (
+            {benefits.map((item) => (
               <div key={item.title} className="unified-card p-4 text-center">
                 <div className="text-3xl mb-2">{item.emoji}</div>
                 <p className="font-semibold text-foreground text-sm">{item.title}</p>

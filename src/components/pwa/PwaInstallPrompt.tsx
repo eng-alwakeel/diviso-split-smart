@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Download, X, ExternalLink } from "lucide-react";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
@@ -11,6 +12,7 @@ interface PwaInstallPromptProps {
 }
 
 export function PwaInstallPrompt({ variant = "primary", title, subtitle }: PwaInstallPromptProps) {
+  const { t } = useTranslation("install");
   const {
     isIOS,
     isSafariOnIOS,
@@ -56,7 +58,7 @@ export function PwaInstallPrompt({ variant = "primary", title, subtitle }: PwaIn
           <button
             onClick={dismiss}
             className="flex-shrink-0 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            aria-label="إخفاء"
+            aria-label={t("prompt.dismissLabel")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -66,7 +68,11 @@ export function PwaInstallPrompt({ variant = "primary", title, subtitle }: PwaIn
           <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning/10 border border-warning/20 p-3">
             <ExternalLink className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
             <p className="text-xs text-foreground/80">
-              للتثبيت على الآيفون: افتح الرابط من <span className="font-bold text-primary">Safari</span> (مو من داخل واتساب/إنستغرام).
+              <Trans
+                i18nKey="prompt.inAppWarning"
+                ns="install"
+                components={{ bold: <span className="font-bold text-primary" /> }}
+              />
             </p>
           </div>
         )}
@@ -79,7 +85,7 @@ export function PwaInstallPrompt({ variant = "primary", title, subtitle }: PwaIn
             className="w-full"
           >
             <Download className="w-4 h-4 me-2" />
-            تثبيت التطبيق
+            {t("prompt.installButton")}
           </Button>
         </div>
       </div>
