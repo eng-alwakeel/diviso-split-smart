@@ -2,61 +2,29 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export const useGroupInviteActions = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation('groups');
 
+  /**
+   * Accept a group_invite_request via the respond_group_invite RPC
+   */
   const acceptInvite = async (notificationId: string, inviteId: string) => {
     setLoading(true);
     try {
-      // Update invite status to accepted
-      const { error: inviteError } = await supabase
-        .from('invites')
-        .update({ 
-          status: 'accepted',
-          accepted_by: (await supabase.auth.getUser()).data.user?.id,
-          accepted_at: new Date().toISOString()
-        })
-        .eq('id', inviteId);
+      const { data, error } = await supabase.rpc('respond_group_invite', {
+        p_invite_id: inviteId,
+        p_response: 'accept',
+      });
 
-      if (inviteError) throw inviteError;
+      if (error) throw error;
 
-      // Get invite details to add user to group
-      const { data: invite, error: fetchError } = await supabase
-        .from('invites')
-        .select('group_id, invited_role')
-        .eq('id', inviteId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const currentUserId = (await supabase.auth.getUser()).data.user?.id;
-
-      // Add user to group members
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: invite.group_id,
-          user_id: currentUserId,
-          role: invite.invited_role
-        });
-
-      if (memberError) throw memberError;
-
-      // Update referral record with invited_user_id if exists (for group invites)
-      if (currentUserId) {
-        await supabase
-          .from('referrals')
-          .update({ 
-            invited_user_id: currentUserId,
-            status: 'joined',
-            joined_at: new Date().toISOString()
-          })
-          .eq('group_id', invite.group_id)
-          .is('invited_user_id', null);
-      }
+      const result = data as any;
+      if (result?.error) throw new Error(result.error);
 
       // Mark notification as read
       await supabase
@@ -64,20 +32,28 @@ export const useGroupInviteActions = () => {
         .update({ read_at: new Date().toISOString() })
         .eq('id', notificationId);
 
+      // Get group_id from invite to navigate
+      const { data: inviteData } = await supabase
+        .from('group_invites')
+        .select('group_id')
+        .eq('id', inviteId)
+        .single();
+
       toast({
-        title: 'تم قبول الدعوة',
-        description: 'تم انضمامك للمجموعة بنجاح',
+        title: t('known_people.invite_accepted'),
+        description: t('known_people.invite_accepted_desc'),
       });
 
-      // Navigate to the group
-      navigate(`/group/${invite.group_id}`);
+      if (inviteData?.group_id) {
+        navigate(`/group/${inviteData.group_id}`);
+      }
 
       return { success: true };
     } catch (error) {
       console.error('Error accepting invite:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في قبول الدعوة',
+        title: t('error'),
+        description: t('known_people.accept_failed'),
         variant: 'destructive',
       });
       return { success: false };
@@ -86,18 +62,21 @@ export const useGroupInviteActions = () => {
     }
   };
 
+  /**
+   * Decline a group_invite_request via the respond_group_invite RPC
+   */
   const rejectInvite = async (notificationId: string, inviteId: string) => {
     setLoading(true);
     try {
-      // Update invite status to rejected
-      const { error: inviteError } = await supabase
-        .from('invites')
-        .update({ 
-          status: 'revoked',
-        })
-        .eq('id', inviteId);
+      const { data, error } = await supabase.rpc('respond_group_invite', {
+        p_invite_id: inviteId,
+        p_response: 'decline',
+      });
 
-      if (inviteError) throw inviteError;
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.error) throw new Error(result.error);
 
       // Mark notification as read
       await supabase
@@ -106,16 +85,50 @@ export const useGroupInviteActions = () => {
         .eq('id', notificationId);
 
       toast({
-        title: 'تم رفض الدعوة',
-        description: 'تم رفض دعوة الانضمام للمجموعة',
+        title: t('known_people.invite_declined'),
+        description: t('known_people.invite_declined_desc'),
       });
 
       return { success: true };
     } catch (error) {
-      console.error('Error rejecting invite:', error);
+      console.error('Error declining invite:', error);
       toast({
-        title: 'خطأ',
-        description: 'فشل في رفض الدعوة',
+        title: t('error'),
+        description: t('known_people.decline_failed'),
+        variant: 'destructive',
+      });
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Cancel a pending invite (inviter/admin only)
+   */
+  const cancelInvite = async (inviteId: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('cancel_group_invite', {
+        p_invite_id: inviteId,
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.error) throw new Error(result.error);
+
+      toast({
+        title: t('known_people.invite_canceled'),
+        description: t('known_people.invite_canceled_desc'),
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error canceling invite:', error);
+      toast({
+        title: t('error'),
+        description: t('known_people.cancel_failed'),
         variant: 'destructive',
       });
       return { success: false };
@@ -127,6 +140,7 @@ export const useGroupInviteActions = () => {
   return {
     acceptInvite,
     rejectInvite,
-    loading
+    cancelInvite,
+    loading,
   };
 };

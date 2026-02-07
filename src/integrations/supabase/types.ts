@@ -1781,6 +1781,61 @@ export type Database = {
         }
         Relationships: []
       }
+      group_invites: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          invited_by_user_id: string
+          invited_user_id: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          invited_by_user_id: string
+          invited_user_id: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          invited_by_user_id?: string
+          invited_user_id?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_invites_invited_by_user_id_fkey"
+            columns: ["invited_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_invites_invited_user_id_fkey"
+            columns: ["invited_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_join_tokens: {
         Row: {
           created_at: string
@@ -5132,6 +5187,7 @@ export type Database = {
         Args: { p_action_type: string; p_user_id: string }
         Returns: Json
       }
+      cancel_group_invite: { Args: { p_invite_id: string }; Returns: Json }
       check_and_create_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -5492,6 +5548,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_pending_group_invites: {
+        Args: { p_group_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          invited_by_name: string
+          invited_by_user_id: string
+          invited_user_avatar: string
+          invited_user_id: string
+          invited_user_name: string
+          status: string
+        }[]
+      }
       get_profit_loss_summary: {
         Args: { p_group_id: string }
         Returns: {
@@ -5730,7 +5799,15 @@ export type Database = {
         Args: { p_group_id: string }
         Returns: number
       }
+      respond_group_invite: {
+        Args: { p_invite_id: string; p_response: string }
+        Returns: Json
+      }
       seed_demo_for_user: { Args: never; Returns: string }
+      send_group_invite: {
+        Args: { p_group_id: string; p_invited_user_id: string }
+        Returns: Json
+      }
       share_achievement: {
         Args: { p_achievement_id: string; p_platform: string }
         Returns: Json

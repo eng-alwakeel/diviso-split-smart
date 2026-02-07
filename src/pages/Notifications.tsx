@@ -44,7 +44,12 @@ export default function Notifications() {
       markAsRead(notification.id);
     }
 
-    if (notification.type === 'group_invite') {
+    if (notification.type === 'group_invite' || notification.type === 'group_invite_request') {
+      return;
+    } else if (notification.type === 'group_invite_accepted' || notification.type === 'group_invite_declined') {
+      if (notification.payload?.group_id) {
+        navigate(`/group/${notification.payload.group_id}`);
+      }
       return;
     } else if (notification.type === 'balance_due') {
       // Open balance details sheet
@@ -74,7 +79,12 @@ export default function Notifications() {
       case 'new_message':
         return '💬';
       case 'group_invite':
+      case 'group_invite_request':
         return '👥';
+      case 'group_invite_accepted':
+        return '✅';
+      case 'group_invite_declined':
+        return '💬';
       case 'referral_joined':
       case 'referral_completed':
         return '🎉';
@@ -114,7 +124,12 @@ export default function Notifications() {
       case 'new_message':
         return t('notifications:types.new_message', { name: payload.sender_name, content: payload.content });
       case 'group_invite':
-        return t('notifications:types.group_invite', { group: payload.group_name });
+      case 'group_invite_request':
+        return t('notifications:types.group_invite_request', { name: payload.inviter_name, group: payload.group_name });
+      case 'group_invite_accepted':
+        return t('notifications:types.group_invite_accepted', { name: payload.member_name, group: payload.group_name });
+      case 'group_invite_declined':
+        return t('notifications:types.group_invite_declined', { name: payload.member_name, group: payload.group_name });
       case 'referral_joined':
       case 'referral_completed':
         return t('notifications:types.referral_joined', { name: payload.invitee_name, days: payload.reward_days });
@@ -252,7 +267,7 @@ export default function Notifications() {
             ) : (
               <div className="space-y-2">
                 {notifications.map((notification) => (
-                  notification.type === 'group_invite' ? (
+                  (notification.type === 'group_invite' || notification.type === 'group_invite_request') ? (
                     <GroupInviteCard
                       key={notification.id}
                       notification={notification}

@@ -24,7 +24,6 @@ export const useKnownContacts = (groupId: string | undefined, existingMemberIds:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // Exclude current user + existing members
       const excludeIds = [user.id, ...existingMemberIds];
 
       const { data, error } = await supabase.rpc("get_known_contacts", {
@@ -41,34 +40,52 @@ export const useKnownContacts = (groupId: string | undefined, existingMemberIds:
     enabled: !!groupId,
   });
 
-  const addMemberMutation = useMutation({
+  // Fetch pending invites for this group to show "invite sent" state
+  const { data: pendingInviteUserIds = [] } = useQuery({
+    queryKey: ["pending-group-invites-ids", groupId],
+    queryFn: async () => {
+      if (!groupId) return [];
+      const { data, error } = await supabase.rpc("get_pending_group_invites", {
+        p_group_id: groupId,
+      });
+      if (error) {
+        console.error("Error fetching pending invites:", error);
+        return [];
+      }
+      return (data || []).map((inv: any) => inv.invited_user_id as string);
+    },
+    enabled: !!groupId,
+  });
+
+  const sendInviteMutation = useMutation({
     mutationFn: async (userId: string) => {
       if (!groupId) throw new Error("No group ID");
 
-      const { data, error } = await supabase.rpc("add_member_to_group", {
+      const { data, error } = await supabase.rpc("send_group_invite", {
         p_group_id: groupId,
-        p_user_id: userId,
+        p_invited_user_id: userId,
       });
 
       if (error) throw error;
-      if (typeof data === "string" && data.startsWith("error:")) {
-        throw new Error(data);
+
+      const result = data as any;
+      if (result?.error) {
+        throw new Error(result.error);
       }
 
-      return { userId, result: data };
+      return { userId, result };
     },
     onSuccess: (result) => {
       const contact = contacts.find((c) => c.contact_user_id === result.userId);
       const contactName = contact?.display_name || contact?.name || "";
 
       toast({
-        title: t("known_people.added"),
-        description: t("known_people.added_desc", { name: contactName }),
+        title: t("known_people.invite_sent"),
+        description: t("known_people.invite_sent_desc", { name: contactName }),
       });
 
-      // Invalidate queries to refresh member lists
-      queryClient.invalidateQueries({ queryKey: ["known-contacts"] });
-      queryClient.invalidateQueries({ queryKey: ["group-members"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-group-invites-ids"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-group-invites"] });
     },
     onError: (error: Error) => {
       const message = error.message;
@@ -76,10 +93,16 @@ export const useKnownContacts = (groupId: string | undefined, existingMemberIds:
 
       if (message.includes("already_member")) {
         description = t("known_people.already_member");
+      } else if (message.includes("already_invited")) {
+        description = t("known_people.already_invited");
+      } else if (message.includes("rate_limited")) {
+        description = t("known_people.rate_limited");
+      } else if (message.includes("not_authorized")) {
+        description = t("known_people.not_authorized");
       }
 
       toast({
-        title: t("known_people.add_failed"),
+        title: t("known_people.invite_failed"),
         description,
         variant: "destructive",
       });
@@ -90,8 +113,9 @@ export const useKnownContacts = (groupId: string | undefined, existingMemberIds:
     contacts,
     isLoading,
     refetch,
-    addMember: addMemberMutation.mutate,
-    addingUserId: addMemberMutation.variables as string | undefined,
-    isAdding: addMemberMutation.isPending,
+    pendingInviteUserIds,
+    sendInvite: sendInviteMutation.mutate,
+    sendingUserId: sendInviteMutation.variables as string | undefined,
+    isSending: sendInviteMutation.isPending,
   };
 };

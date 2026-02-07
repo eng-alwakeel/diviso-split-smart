@@ -37,6 +37,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
 import { useToast } from "@/hooks/use-toast";
 import { InviteManagementDialog } from "@/components/group/InviteManagementDialog";
+import { PendingInvitesSection } from "@/components/group/PendingInvitesSection";
 import { useOnlinePresence } from "@/hooks/useOnlinePresence";
 import { GroupChat } from "@/components/group/GroupChat";
 import { supabase } from "@/integrations/supabase/client";
@@ -921,6 +922,9 @@ const GroupDetails = () => {
                 </Button>
               )}
             </div>
+
+            {/* Pending Invites Section */}
+            <PendingInvitesSection groupId={id} isAdmin={isAdmin || isOwner} />
             
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}

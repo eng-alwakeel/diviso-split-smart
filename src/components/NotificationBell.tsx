@@ -26,8 +26,11 @@ export const NotificationBell = () => {
     }
 
     // Navigate based on notification type
-    if (notification.type === 'group_invite') {
+    if (notification.type === 'group_invite' || notification.type === 'group_invite_request') {
       navigate('/notifications');
+    } else if (notification.type === 'group_invite_accepted' || notification.type === 'group_invite_declined') {
+      if (notification.payload?.group_id) navigate(`/group/${notification.payload.group_id}`);
+      else navigate('/notifications');
     } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
       navigate('/referral-center');
     } else if (notification.type.includes('expense') && notification.payload.group_id) {
@@ -66,7 +69,12 @@ export const NotificationBell = () => {
           content 
         });
       case 'group_invite':
-        return t('types.group_invite', { group: payload.group_name });
+      case 'group_invite_request':
+        return t('types.group_invite_request', { name: payload.inviter_name, group: payload.group_name });
+      case 'group_invite_accepted':
+        return t('types.group_invite_accepted', { name: payload.member_name, group: payload.group_name });
+      case 'group_invite_declined':
+        return t('types.group_invite_declined', { name: payload.member_name, group: payload.group_name });
       case 'referral_joined':
       case 'referral_completed':
         return t('types.referral_joined', { 
