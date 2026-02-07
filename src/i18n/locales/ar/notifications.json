@@ -31,6 +31,7 @@
     "member_left": "👋 {{name}} غادر \"{{group}}\"",
     "group_deleted": "🗑️ {{name}} حذف \"{{group}}\"",
     "new_notification": "إشعار جديد",
+    "balance_due": "💸 عليك {{amount}} {{currency}} في مجموعة {{group}}",
     "dice_posted": "🎲 قرار جديد في \"{{group}}\" - صوّتوا واعتمدوا!",
     "dice_accepted": "✅ تم اعتماد القرار في \"{{group}}\"",
     "dice_rerolled": "🔄 تم إعادة الرمي في \"{{group}}\""
@@ -54,6 +55,7 @@
     "dice_posted": "قرار جديد 🎲",
     "dice_accepted": "تم الاعتماد ✅",
     "dice_rerolled": "إعادة الرمي 🔄",
+    "balance_due": "مبلغ مستحق 💸",
     "default": "إشعار جديد"
   },
   "descriptions": {
@@ -71,7 +73,22 @@
     "member_joined": "{{name}} انضم إلى مجموعة \"{{group}}\"",
     "member_left": "{{name}} غادر مجموعة \"{{group}}\"",
     "group_deleted": "{{name}} حذف مجموعة \"{{group}}\"",
+    "balance_due": "عليك {{amount}} {{currency}} في مجموعة {{group}}",
     "default": "إشعار جديد"
+  },
+  "balance_details": {
+    "title": "مبلغ مستحق",
+    "amount_label": "عليك",
+    "for_label": "لصالح",
+    "reason_label": "بسبب",
+    "date_label": "بتاريخ",
+    "group_label": "المجموعة",
+    "mark_paid": "تم الدفع",
+    "marking_paid": "جاري التحديث...",
+    "paid_success": "تم تسجيل الدفع",
+    "paid_success_desc": "تم إقرار الدفع بنجاح",
+    "already_paid": "تم الإقرار ✅",
+    "view_details": "عرض التفاصيل"
   },
   "toasts": {
     "error": "خطأ",

@@ -30,7 +30,8 @@
     "member_joined": "👋 {{name}} joined \"{{group}}\"",
     "member_left": "👋 {{name}} left \"{{group}}\"",
     "group_deleted": "🗑️ {{name}} deleted \"{{group}}\"",
-    "new_notification": "New notification"
+    "new_notification": "New notification",
+    "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}"
   },
   "titles": {
     "expense_created": "New Expense",
@@ -48,6 +49,7 @@
     "member_joined": "New Member 👋",
     "member_left": "Member Left 👋",
     "group_deleted": "Group Deleted 🗑️",
+    "balance_due": "Outstanding Balance 💸",
     "default": "New Notification"
   },
   "descriptions": {
@@ -65,7 +67,22 @@
     "member_joined": "{{name}} joined group \"{{group}}\"",
     "member_left": "{{name}} left group \"{{group}}\"",
     "group_deleted": "{{name}} deleted group \"{{group}}\"",
+    "balance_due": "You owe {{amount}} {{currency}} in {{group}}",
     "default": "New notification"
+  },
+  "balance_details": {
+    "title": "Outstanding Balance",
+    "amount_label": "You owe",
+    "for_label": "To",
+    "reason_label": "For",
+    "date_label": "Date",
+    "group_label": "Group",
+    "mark_paid": "Mark as Paid",
+    "marking_paid": "Updating...",
+    "paid_success": "Payment Recorded",
+    "paid_success_desc": "Payment has been recorded successfully",
+    "already_paid": "Paid ✅",
+    "view_details": "View Details"
   },
   "toasts": {
     "error": "Error",

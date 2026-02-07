@@ -41,6 +41,7 @@ import { useRecommendations } from "@/hooks/useRecommendations";
 import { useReferralProgress } from "@/hooks/useReferralProgress";
 import { useUsageCredits, CreditActionType } from "@/hooks/useUsageCredits";
 import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
+import { useBalanceNotification } from '@/hooks/useBalanceNotification';
 
 interface UserGroup {
   id: string;
@@ -62,6 +63,7 @@ const AddExpense = () => {
   const { suggestCategories, enhanceReceiptOCR, loading: aiLoading } = useAISuggestions();
   const { mutateAsync: checkBudgetWarnings } = useBudgetWarnings();
   const { notifyFirstUsage } = useReferralProgress();
+  const { sendBalanceNotifications } = useBalanceNotification();
   
   // Form state
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
@@ -591,6 +593,33 @@ const AddExpense = () => {
           variant: "destructive",
         });
         return;
+      }
+
+      // Send balance notifications to members who owe money
+      try {
+        // Get current user's display name for notification
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('display_name, name')
+          .eq('id', user.id)
+          .single();
+        const payerName = profileData?.display_name || profileData?.name || 'مستخدم';
+
+        await sendBalanceNotifications(
+          {
+            id: expense.id,
+            description: expense.description,
+            currency: expense.currency,
+            amount: expense.amount,
+          },
+          validatedSplits,
+          { id: selectedGroup.id, name: selectedGroup.name },
+          user.id,
+          payerName
+        );
+      } catch (balanceError) {
+        console.error('Error sending balance notifications:', balanceError);
+        // Non-critical, don't block the expense creation flow
       }
 
       // Upload receipts if any
