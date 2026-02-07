@@ -60,11 +60,11 @@ export const Header = () => {
 
           {/* Center: Logo */}
           <Link to="/" className="justify-self-center inline-flex flex-col items-center gap-1">
-            <div className="flex items-center gap-3 h-8">
+            <div className="flex items-center gap-3 h-10">
               <img 
                 src={appLogo} 
                 alt="شعار Diviso" 
-                className="h-6 sm:h-8 w-auto"
+                className="h-8 sm:h-10 w-auto"
                 width={128} 
                 height={32}
                 loading="eager"
@@ -107,7 +107,7 @@ export const Header = () => {
                 <div className="flex flex-col h-full py-6">
                   {/* Logo */}
                   <div className="flex items-center justify-between mb-8 px-2">
-                    <img src={appLogo} alt="Diviso" className="h-8 w-auto" width={128} height={32} loading="lazy" />
+                    <img src={appLogo} alt="Diviso" className="h-10 w-auto" width={128} height={32} loading="lazy" />
                     <SheetClose asChild>
                       <Button variant="ghost" size="icon">
                         <X className="w-5 h-5" />
