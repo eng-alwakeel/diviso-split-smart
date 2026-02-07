@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Camera, Save, User, Crown, LogOut, Shield, Mail, Pencil, X, Check, CheckCircle2, Clock, Bell, BellOff, Star } from "lucide-react";
 import { PhoneVerificationDialog } from "./PhoneVerificationDialog";
+import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { EmailVerificationDialog } from "./EmailVerificationDialog";
 import { ImageCropDialog } from "./ImageCropDialog";
 import { useTranslation } from "react-i18next";
@@ -442,46 +443,39 @@ export function ProfileTab({
               </Label>
               {isEditMode ? (
                 <>
-                  <div className="flex gap-2">
-                    <Input
-                      id="phone"
-                      value={profile.phone}
-                      onChange={(e) => {
-                        const newPhone = e.target.value;
-                        setProfile({...profile, phone: newPhone});
-                        setPhoneVerified(false);
-                        if (validationErrors.phone) {
-                          setValidationErrors((prev: Record<string, string>) => ({...prev, phone: ""}));
-                        }
-                      }}
-                      className={`text-left bg-background/50 border-border text-foreground flex-1 ${
-                        validationErrors.phone ? 'border-destructive' : ''
-                      }`}
-                      dir="ltr"
-                      placeholder={t('settings:profile.phone_placeholder')}
-                    />
-                    {hasPhoneChanged && (
-                      <Button
-                        variant={phoneVerified ? "outline" : "secondary"}
-                        size="sm"
-                        onClick={handleVerifyPhone}
-                        disabled={phoneVerified}
-                        className="shrink-0"
-                      >
-                        {phoneVerified ? (
-                          <>
-                            <Check className="w-4 h-4 me-1" />
-                            {t('settings:profile.verified')}
-                          </>
-                        ) : (
-                          <>
-                            <Shield className="w-4 h-4 me-1" />
-                            {t('settings:profile.verify_phone')}
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                  <PhoneInputWithCountry
+                    value={profile.phone}
+                    onChange={(newPhone) => {
+                      setProfile({...profile, phone: newPhone});
+                      setPhoneVerified(false);
+                      if (validationErrors.phone) {
+                        setValidationErrors((prev: Record<string, string>) => ({...prev, phone: ""}));
+                      }
+                    }}
+                    placeholder="501234567"
+                    disabled={!isEditMode}
+                  />
+                  {hasPhoneChanged && (
+                    <Button
+                      variant={phoneVerified ? "outline" : "secondary"}
+                      size="sm"
+                      onClick={handleVerifyPhone}
+                      disabled={phoneVerified}
+                      className="w-full"
+                    >
+                      {phoneVerified ? (
+                        <>
+                          <Check className="w-4 h-4 me-1" />
+                          {t('settings:profile.verified')}
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="w-4 h-4 me-1" />
+                          {t('settings:profile.verify_phone')}
+                        </>
+                      )}
+                    </Button>
+                  )}
                   {validationErrors.phone && (
                     <p className="text-xs text-destructive">{validationErrors.phone}</p>
                   )}
