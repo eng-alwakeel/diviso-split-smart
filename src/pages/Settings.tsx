@@ -30,6 +30,7 @@ import { RecommendationSettings } from "@/components/recommendations/Recommendat
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Crown } from "lucide-react";
+import { InstallWidget } from "@/components/pwa/InstallWidget";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -279,6 +280,8 @@ const Settings = () => {
             <p className="text-muted-foreground">{t('settings:description')}</p>
           </div>
 
+          {/* PWA Install Widget */}
+          <InstallWidget where="settings" />
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

@@ -16,6 +16,7 @@ import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
 import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
+import { InstallWidget } from "@/components/pwa/InstallWidget";
 
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -350,6 +351,9 @@ const Dashboard = React.memo(() => {
 
           {/* Onboarding Progress Card - Priority for new users */}
           <OnboardingProgress />
+
+          {/* PWA Install Widget */}
+          <InstallWidget where="appHome" />
 
           {/* Dice Decision Banner */}
           <HomeDiceBanner />

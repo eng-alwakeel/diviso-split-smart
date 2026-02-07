@@ -27,6 +27,7 @@ import {
   Sparkles,
   MessageSquare
 } from 'lucide-react';
+import { InstallWidget } from '@/components/pwa/InstallWidget';
 
 const FAQ = () => {
   const { t, i18n } = useTranslation('faq');
@@ -259,6 +260,11 @@ const FAQ = () => {
               </div>
             </div>
           </section>
+
+          {/* PWA Install Widget */}
+          <div className="max-w-xl lg:max-w-3xl mx-auto mb-8">
+            <InstallWidget where="faq" />
+          </div>
 
           {/* Contact CTA */}
           <section className="text-center py-12 mb-8">
