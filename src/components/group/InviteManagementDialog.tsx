@@ -126,13 +126,10 @@ export const InviteManagementDialog = ({
                       <div className="flex justify-center">
                         <QRCodeDisplay 
                           value={inviteLink} 
-                          size={140}
-                          className="border rounded-lg p-2 bg-background"
+                          size={180}
+                          showActions={false}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        يمكن مسح الرمز للانضمام مباشرة
-                      </p>
                     </div>
                   </>
                 )}
