@@ -90,5 +90,49 @@
     "success": "Plan status updated",
     "error": "Failed to update status"
   },
-  "coming_soon": "Coming soon in the next phase"
+  "coming_soon": "Coming soon in the next phase",
+  "suggestions": {
+    "generate_btn": "🤖 Suggest for us",
+    "generating": "Generating...",
+    "generated_success": "Suggestions generated successfully",
+    "generate_error": "Failed to generate suggestions",
+    "rate_limited": "Please wait",
+    "rate_limited_desc": "You can generate once every 10 minutes",
+    "to_vote": "Make a vote",
+    "empty": "No suggestions yet",
+    "empty_desc": "Press the button above to get smart suggestions",
+    "categories": {
+      "stay": "Accommodation",
+      "transport": "Transport",
+      "food": "Food",
+      "activities": "Activities",
+      "other": "Other"
+    }
+  },
+  "votes": {
+    "create_btn": "New Vote",
+    "create_title": "Create Vote",
+    "create_desc": "Create a vote for members to choose from",
+    "vote_title": "Vote Title",
+    "vote_title_placeholder": "e.g., Where should we stay?",
+    "options_label": "Options",
+    "option": "Option",
+    "add_option": "Add option",
+    "create_confirm": "Create Vote",
+    "creating": "Creating...",
+    "created_success": "Vote created",
+    "create_error": "Failed to create vote",
+    "voted_success": "Your vote has been recorded",
+    "vote_error": "Failed to vote",
+    "closed_success": "Vote closed",
+    "close_error": "Failed to close vote",
+    "close_btn": "Close",
+    "open_votes": "Open votes",
+    "closed_votes": "Closed votes",
+    "status_open": "Open",
+    "status_closed": "Closed",
+    "total_votes": "{{count}} votes",
+    "empty": "No votes yet",
+    "empty_desc": "Create a vote to coordinate with members"
+  }
 }
