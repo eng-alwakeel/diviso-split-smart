@@ -1271,7 +1271,10 @@ export type Database = {
         Row: {
           computed_at: string | null
           days_since_last_action: number | null
+          dice_locked_at: string | null
+          dice_of_the_day: string | null
           last_action_at: string | null
+          last_daily_notification_at: string | null
           last_group_event: Json | null
           motivational_message: string | null
           streak_count: number | null
@@ -1282,7 +1285,10 @@ export type Database = {
         Insert: {
           computed_at?: string | null
           days_since_last_action?: number | null
+          dice_locked_at?: string | null
+          dice_of_the_day?: string | null
           last_action_at?: string | null
+          last_daily_notification_at?: string | null
           last_group_event?: Json | null
           motivational_message?: string | null
           streak_count?: number | null
@@ -1293,7 +1299,10 @@ export type Database = {
         Update: {
           computed_at?: string | null
           days_since_last_action?: number | null
+          dice_locked_at?: string | null
+          dice_of_the_day?: string | null
           last_action_at?: string | null
+          last_daily_notification_at?: string | null
           last_group_event?: Json | null
           motivational_message?: string | null
           streak_count?: number | null
@@ -5773,6 +5782,7 @@ export type Database = {
         Args: { p_payment_reference: string; p_purchase_id: string }
         Returns: Json
       }
+      compute_all_daily_hubs: { Args: never; Returns: Json }
       compute_daily_hub: { Args: { p_user_id: string }; Returns: Json }
       consume_credits: {
         Args: {
@@ -6351,6 +6361,7 @@ export type Database = {
         Returns: Json
       }
       seed_demo_for_user: { Args: never; Returns: string }
+      send_daily_engagement_notifications: { Args: never; Returns: Json }
       send_group_invite: {
         Args: { p_group_id: string; p_invited_user_id: string }
         Returns: Json

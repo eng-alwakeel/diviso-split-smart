@@ -8,6 +8,8 @@ interface ActiveUserStateProps {
 }
 
 export function ActiveUserState({ data }: ActiveUserStateProps) {
+  const diceType = data.dice_of_the_day || data.suggested_dice_type;
+
   return (
     <div className="space-y-3">
       <StreakDisplay count={data.streak_count} />
@@ -16,7 +18,10 @@ export function ActiveUserState({ data }: ActiveUserStateProps) {
         <GroupEventCard event={data.last_group_event} />
       )}
 
-      <DailyDiceCard suggestedType={data.suggested_dice_type} />
+      <DailyDiceCard
+        suggestedType={diceType}
+        lockedDate={data.dice_locked_at}
+      />
 
       {data.motivational_message && (
         <p className="text-sm text-muted-foreground text-center py-1">
