@@ -29,7 +29,7 @@ import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { UserNumberBadge } from "@/components/ui/user-number-badge";
 
 // Lazy load heavy components for better initial load
-const DailyCheckInCard = lazy(() => import("@/components/dashboard/DailyCheckInCard"));
+const DailyRewardCardCompact = lazy(() => import("@/components/dashboard/DailyRewardCardCompact").then(m => ({ default: m.DailyRewardCardCompact })));
 const CreditBalanceCard = lazy(() => import("@/components/credits/CreditBalanceCard").then(m => ({ default: m.CreditBalanceCard })));
 const ShareableAchievementCard = lazy(() => import("@/components/achievements/ShareableAchievementCard").then(m => ({ default: m.ShareableAchievementCard })));
 const AchievementPopup = lazy(() => import("@/components/achievements/AchievementPopup").then(m => ({ default: m.AchievementPopup })));
@@ -403,6 +403,13 @@ const Dashboard = React.memo(() => {
             <BalanceStatusCard netBalance={netBalance} />
           )}
 
+          {/* Daily Reward Card Compact (daily_hub + reengagement) */}
+          {dashboardMode.showDailyRewardCard && (
+            <Suspense fallback={<CardSkeleton />}>
+              <DailyRewardCardCompact />
+            </Suspense>
+          )}
+
           {/* Recent Group Activity (daily_hub only) */}
           {dashboardMode.showRecentActivity && (
             <RecentGroupActivityCard
@@ -413,10 +420,6 @@ const Dashboard = React.memo(() => {
           {/* Daily Hub extras */}
           {mode === 'daily_hub' && (
             <>
-              <Suspense fallback={<CardSkeleton />}>
-                <DailyCheckInCard />
-              </Suspense>
-
               <Suspense fallback={<CardSkeleton />}>
                 <CreditBalanceCard />
               </Suspense>
