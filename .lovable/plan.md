@@ -1,445 +1,336 @@
 
-# اعادة بناء الصفحة الرئيسية الذكية (Smart Dashboard)
+# مطابقة Dashboard مع Pseudo-Code المطلوب
 
 ## ملخص
 
-اعادة هيكلة الـ Dashboard بالكامل ليعمل بثلاثة أوضاع ذكية:
-- **Onboarding Mode**: مستخدم جديد (عدة < 5/5 وأقل من 7 أيام من التسجيل)
-- **Daily Hub Mode**: مستخدم مكتمل الاعداد (5/5 أو مضى 7 أيام)
-- **Re-engagement Mode**: مستخدم غير نشط (آخر نشاط > 7 أيام)
+مطابقة منطق الصفحة الرئيسية مع الـ Pseudo-Code المقدم. هناك 7 فروقات رئيسية بين التنفيذ الحالي والمنطق المطلوب يجب تصحيحها.
 
 ---
 
-## الوضع الحالي (المشاكل)
+## الفروقات بين الحالي والمطلوب
 
-| المشكلة | التفصيل |
-|---------|--------|
-| الصفحة مزدحمة | 12+ مكون ظاهر: DailyHub, Onboarding, InstallWidget, HomeDiceBanner, StatsGrid, DailyCheckIn, CreditBalance, AdBanner, Achievement, MonthlyWrap, SmartPromotion, QuickActions |
-| لا تمييز بين الأوضاع | كل المستخدمين يرون نفس الصفحة |
-| تكرار بين المكونات | HomeDiceBanner و DailyDiceCard يؤديان نفس الغرض |
-| 6 إجراءات سريعة | تشمل خطط، إحالات، إعدادات (تشتيت) |
-| لا Daily Focus Card | لا يجيب على "وش أسوي اليوم؟" |
-| لا ربط بالخطط | كرت التخطيط غير موجود |
-| الإحصائيات دائما مفتوحة | لا قابلية طي |
-
----
-
-## 1. قاعدة البيانات
-
-### تعديل على `useOnboarding` hook فقط (بدون migration)
-
-الـ `onboarding_tasks` table يحتوي على `created_at` -- يمكن حساب عمر الحساب منه.
-الـ `profiles` table يحتوي على `created_at` و `last_active_at` -- يمكن حساب النشاط.
-
-لا حاجة لـ migration جديد.
+| # | النقطة | الحالي | المطلوب (Pseudo-Code) |
+|---|--------|--------|----------------------|
+| 1 | Session Hint | غير موجود | `action` / `done` / `curiosity` يتحكم بنبرة الكرت |
+| 2 | عرض النرد | يختفي كليا في Onboarding | يظهر إذا `onboardingTasksCompleted >= 2` |
+| 3 | SmartPlanCard | يظهر دائما في Daily Hub (مع/بدون خطة) | يظهر فقط إذا `hasActivePlan` |
+| 4 | MiniActivityFeed | يظهر في Daily Hub فقط | يظهر في Daily Hub **و** Re-engagement |
+| 5 | CTA في Re-engagement | يوجه لـ `/my-groups` | يوجه لـ `/dice` (النرد) |
+| 6 | حالة "يومك تمام" | تعتمد على `netBalance ~= 0` | تعتمد على `daysSinceLastActivity <= 1` (sessionHint = done) |
+| 7 | Last Action Memory | غير موجود | `lastActionHint` يعرض آخر فعل ذي معنى |
 
 ---
 
-## 2. منطق تحديد الحالة (User Mode Logic)
-
-### Hook جديد: `src/hooks/useDashboardMode.ts`
-
-يجمع البيانات من `useOnboarding` و `useDailyHub` ويحدد الوضع:
-
-```text
-type DashboardMode = 'onboarding' | 'daily_hub' | 'reengagement';
-
-المنطق:
-1. جلب onboarding data (tasks completed + created_at)
-2. جلب profiles.created_at و last_active_at
-3. حساب daysSinceRegistration و daysSinceLastAction
-
-if (completedTasks < 5 AND daysSinceRegistration <= 7 AND !rewardClaimed):
-  mode = 'onboarding'
-elif (daysSinceLastAction > 7):
-  mode = 'reengagement'
-else:
-  mode = 'daily_hub'
-```
-
-يرجع:
-- `mode`: الوضع الحالي
-- `onboardingData`: بيانات العدة (tasks, progress, nextTask)
-- `hubData`: بيانات Daily Hub
-- `activePlan`: أول خطة نشطة (status = 'active')
-- `isLoading`
-
----
-
-## 3. ملفات جديدة
+## 1. الملفات المعدلة
 
 ### `src/hooks/useDashboardMode.ts`
 
-Hook رئيسي يحدد وضع الـ Dashboard ويجمع كل البيانات اللازمة:
-- يستدعي `useOnboarding`
-- يستدعي `useDailyHub`
-- يجلب `profiles.created_at` و `last_active_at`
-- يجلب أول خطة نشطة من `plans` (status = 'active', أقرب start_date)
-- يحدد الوضع حسب المنطق أعلاه
+**التعديلات:**
+
+A) اضافة `SessionHint` type ومنطقه:
+```text
+export type SessionHint = 'action' | 'done' | 'curiosity';
+```
+
+المنطق:
+```text
+if mode === 'daily':
+  if hasActivePlan → sessionHint = 'action'
+  elif daysSinceLastActivity <= 1 → sessionHint = 'done'
+  else → sessionHint = 'curiosity'
+
+if mode === 'reengagement':
+  sessionHint = 'curiosity'
+
+if mode === 'onboarding':
+  sessionHint = 'action'
+```
+
+B) اضافة `lastMeaningfulAction` من `user_action_log`:
+```text
+جلب آخر سجل من user_action_log حيث action_type in ('add_expense', 'dice_roll', 'create_group')
+```
+
+C) اضافة `hasActivePlan` (boolean مشتق من activePlan !== null)
+
+D) اضافة `showDice` المحسوب:
+```text
+showDice = mode !== 'onboarding' || completedCount >= 2
+```
+
+E) اضافة `showSmartPlanCard` المحسوب:
+```text
+showSmartPlanCard = mode === 'daily_hub' && activePlan !== null
+```
+
+F) اضافة `showMiniFeed` المحسوب:
+```text
+showMiniFeed = mode === 'daily_hub' || mode === 'reengagement'
+```
+
+G) اضافة `showStats` المحسوب:
+```text
+showStats = mode === 'daily_hub'
+```
+
+**الـ Interface الجديد:**
+```text
+export interface DashboardModeData {
+  ...الحقول الموجودة...
+  // جديد
+  sessionHint: SessionHint;
+  lastMeaningfulAction: string | null;
+  lastActionHint: string | null;
+  hasActivePlan: boolean;
+  // Display flags
+  showOnboardingChecklist: boolean;
+  showDailyFocus: boolean;  // دائما true
+  showSmartPlanCard: boolean;
+  showDice: boolean;
+  showMiniFeed: boolean;
+  showStats: boolean;
+}
+```
 
 ### `src/components/dashboard/DailyFocusCard.tsx`
 
-كرت واحد أعلى الصفحة يجيب على "وش أسوي اليوم؟":
+**التعديلات:**
 
-**في وضع Onboarding:**
+A) اضافة props جديدة:
 ```text
-+------------------------------------------+
-|  👋 أول خطوة اليوم                       |
-|  "خلّينا نضيف أول مصروف"                 |
-|  [➕ أضف مصروف]           (CTA واحد)     |
-+------------------------------------------+
-```
-يعرض المهمة التالية غير المكتملة من العدة فقط.
-
-**في وضع Daily Hub (مع خطة نشطة):**
-```text
-+------------------------------------------+
-|  🟢 خلّينا نكمّل خطتك                    |
-|  رحلة الشمال – باقي 3 أيام              |
-|  [➕ أضف مصروف للخطة]     (CTA واحد)     |
-+------------------------------------------+
+interface DailyFocusCardProps {
+  mode: DashboardMode;
+  sessionHint?: SessionHint;
+  lastActionHint?: string | null;
+  nextTask?: OnboardingTask | null;
+  activePlan?: ActivePlan | null;
+  netBalance?: number;              // يبقى كـ fallback
+  daysSinceLastAction?: number;
+}
 ```
 
-**في وضع Daily Hub (بدون خطة):**
+B) تغيير منطق Daily Hub:
 ```text
-+------------------------------------------+
-|  ✋ خلّينا نبدأ اليوم بخطوة خفيفة        |
-|  [نفّذ خطوة الآن]          (CTA واحد)     |
-+------------------------------------------+
+الحالي:
+  if activePlan → كرت الخطة
+  elif netBalance ~= 0 → "يومك تمام"
+  else → "خطوة خفيفة"
+
+الجديد:
+  if sessionHint === 'action' && activePlan → كرت الخطة (CTA: أضف مصروف للخطة)
+  elif sessionHint === 'done' → "جاهزين ليوم جديد" + "يومك تمام" (بدون CTA)
+  elif sessionHint === 'curiosity' → "خطوة بسيطة اليوم تفرق" (CTA: أضف مصروف)
 ```
 
-**في وضع Daily Hub (مستخدم متوازن - لا ديون):**
+C) تغيير Re-engagement CTA:
 ```text
-+------------------------------------------+
-|  ✅ يومك تمام                            |
-|  ما عليك شي اليوم                        |
-+------------------------------------------+
+الحالي: navigate('/my-groups') + "ارجع بخطوة بسيطة"
+الجديد: navigate('/dice') + "ارمِ النرد" (primaryCTA = dice)
 ```
 
-**في وضع Re-engagement:**
+D) تغيير نص Re-engagement:
 ```text
-+------------------------------------------+
-|  ⏰ صار لك {{days}} يوم بعيد              |
-|  [ارجع بخطوة بسيطة]       (CTA واحد)     |
-+------------------------------------------+
+الحالي: "صار لك X يوم بعيد"
+الجديد: "طولت الغيبة 👀" + "خلّينا نرجعها بخطوة بسيطة"
 ```
 
-### `src/components/dashboard/SmartPlanCard.tsx`
-
-كرت التخطيط الذكي (يظهر فقط في Daily Hub):
-
-**خطة نشطة موجودة:**
+E) عرض `lastActionHint` (اختياري):
 ```text
-+------------------------------------------+
-|  🗓️ خطتك الحالية                        |
-|  رحلة الشمال | ⏳ باقي 3 أيام            |
-|  [عرض الخطة]                             |
-+------------------------------------------+
+إذا lastActionHint موجود:
+  عرض سطر صغير (text-xs text-muted-foreground) أسفل العنوان الرئيسي
 ```
 
-**لا توجد خطة:**
-```text
-+------------------------------------------+
-|  🤔 عندك طلعة قريبة؟                     |
-|  [إنشاء خطة (30 ثانية)]                  |
-+------------------------------------------+
-```
-
-لا يظهر في وضع Onboarding أو Re-engagement.
-
-### `src/components/dashboard/CollapsibleStats.tsx`
-
-ملخص أرقام قابل للطي (يظهر فقط في Daily Hub):
-- المصاريف الشهرية
-- الرصيد الصافي
-- عدد المجموعات
-- يبدأ مطوي بشكل افتراضي
-- يستخدم `Collapsible` من Radix UI
-
-### `src/components/dashboard/MinimalQuickActions.tsx`
-
-إجراءات سريعة مبسطة (زرين فقط):
-- اضافة مصروف (Primary)
-- انشاء مجموعة (Outline)
-
-لا خطط، لا إعدادات، لا إحالات.
-
-### `src/components/dashboard/MiniActivityFeed.tsx`
-
-سطر واحد من Activity Feed (يظهر فقط في Daily Hub إذا وُجد حدث):
-
-```text
-+------------------------------------------+
-|  👀 مجموعتك اقتربت من التوازن            |
-|  [عرض التفاصيل]                          |
-+------------------------------------------+
-```
-
-يستخدم `last_group_event` من `useDailyHub`.
-
----
-
-## 4. الملفات المعدلة
-
-### `src/pages/Dashboard.tsx` (اعادة هيكلة كبيرة)
+### `src/pages/Dashboard.tsx`
 
 **التعديلات:**
 
-1. استيراد `useDashboardMode` بدلا من الـ hooks المنفصلة
-2. ازالة المكونات من العرض الافتراضي:
-   - ~~`HomeDiceBanner`~~ (مكرر مع DailyDiceCard)
-   - ~~`SimpleStatsGrid`~~ (يحل محله CollapsibleStats في Daily Hub فقط)
-   - ~~`SimpleQuickActions`~~ (يحل محله MinimalQuickActions)
-   - ~~`DailyCheckInCard`~~ (يبقى فقط في Daily Hub، ليس في Onboarding)
-   - ~~`CreditBalanceCard`~~ (يبقى فقط في Daily Hub)
-   - ~~`ShareableAchievementCard`~~ (ينقل لأسفل)
-   - ~~`MonthlyWrapCard`~~ (ينقل لأسفل)
-   - ~~`SmartPromotionBanner`~~ (ينقل لأسفل)
-
-3. الهيكل الجديد حسب الوضع:
-
-**Onboarding Mode:**
+A) استخدام الـ display flags من `useDashboardMode` بدل المنطق المباشر:
 ```text
-[Welcome Header]
-[OnboardingProgress]          -- العدة (0/5) ثابتة أعلى
-[DailyFocusCard]              -- المهمة التالية فقط
-[InstallWidget]               -- PWA
+الحالي:
+  {mode === 'daily_hub' && <SmartPlanCard ... />}
+
+الجديد:
+  {dashboardMode.showSmartPlanCard && <SmartPlanCard ... />}
 ```
 
-**Daily Hub Mode:**
+B) تمرير `sessionHint` و `lastActionHint` لـ DailyFocusCard:
 ```text
-[Welcome Header]
-[DailyFocusCard]              -- كرت التركيز اليومي
-[StreakDisplay]                -- 🔥 Streak (إذا > 0)
-[SmartPlanCard]               -- كرت التخطيط (إذا له معنى)
-[DailyDiceCard]               -- نرد اليوم
-[MiniActivityFeed]            -- سطر واحد من Feed
-[MinimalQuickActions]         -- زرين فقط
-[CollapsibleStats]            -- أرقام قابلة للطي
-[DailyCheckInCard]            -- المكافأة اليومية
-[CreditBalanceCard]           -- الرصيد
-[ShareableAchievement]        -- إنجاز (إذا وُجد)
-[SmartPromotionBanner]        -- ترويج (إذا وُجد)
+<DailyFocusCard
+  mode={mode}
+  sessionHint={dashboardMode.sessionHint}
+  lastActionHint={dashboardMode.lastActionHint}
+  ...
+/>
 ```
 
-**Re-engagement Mode:**
+C) تغيير شرط عرض النرد في Onboarding:
 ```text
-[Welcome Header]
-[DailyFocusCard]              -- رسالة إحياء + CTA
-[StreakDisplay]                -- (غالبا 0)
-[DailyDiceCard]               -- نرد اليوم
-[MinimalQuickActions]         -- زرين فقط
+الحالي: لا يظهر في onboarding
+الجديد: يظهر إذا dashboardMode.showDice (true عند completedCount >= 2)
 ```
 
-### `src/hooks/useOnboarding.ts`
+D) اضافة MiniActivityFeed في Re-engagement:
+```text
+الحالي: لا يظهر في reengagement
+الجديد: {dashboardMode.showMiniFeed && <MiniActivityFeed ... />}
+```
 
-تعديلات:
-- اضافة `nextIncompleteTask` في الـ return: أول مهمة غير مكتملة
-- اضافة `registrationDate` من `onboarding_tasks.created_at`
-- اضافة `isWithinOnboardingWindow`: boolean (أقل من 7 أيام)
-
-### `src/components/daily-hub/DailyHubSection.tsx`
-
-تعديل:
-- لم يعد يعرض المكونات الثلاثة (Active/Low/New) مباشرة
-- يصبح wrapper يستقبل `mode` من الأب ويعرض المكونات المناسبة
-- أو يُستغنى عنه ويُستخدم المنطق مباشرة في Dashboard
+E) ازالة SmartPlanCard بدون خطة (حالة "عندك طلعة قريبة؟"):
+```text
+الحالي: يظهر دائما في daily_hub
+الجديد: يظهر فقط إذا showSmartPlanCard (أي activePlan !== null)
+```
 
 ### `src/i18n/locales/ar/dashboard.json`
 
-اضافة مفاتيح جديدة:
+اضافة/تعديل مفاتيح:
 ```text
 "daily_focus": {
-  "onboarding_greeting": "👋 أول خطوة اليوم",
-  "plan_active": "🟢 خلّينا نكمّل خطتك",
-  "plan_days_left": "باقي {{days}} يوم",
-  "plan_add_expense": "أضف مصروف للخطة",
-  "no_plan": "✋ خلّينا نبدأ اليوم بخطوة خفيفة",
-  "no_plan_cta": "نفّذ خطوة الآن",
-  "balanced": "✅ يومك تمام",
-  "balanced_sub": "ما عليك شي اليوم",
-  "reengagement": "⏰ صار لك {{days}} يوم بعيد",
-  "reengagement_cta": "ارجع بخطوة بسيطة",
-  "micro_celebration": "👌 تمام، خلّصناها اليوم"
-},
-"smart_plan": {
-  "current_plan": "🗓️ خطتك الحالية",
-  "days_left": "⏳ باقي {{days}} يوم",
-  "view_plan": "عرض الخطة",
-  "no_plan_prompt": "🤔 عندك طلعة قريبة؟",
-  "create_plan_cta": "إنشاء خطة (30 ثانية)"
-},
-"collapsible_stats": {
-  "title": "الأرقام والملخص",
-  "monthly": "المصاريف الشهرية",
-  "balance": "الرصيد الصافي",
-  "groups": "المجموعات"
-},
-"mini_feed": {
-  "view_details": "عرض التفاصيل"
+  ...المفاتيح الموجودة...,
+  "reengagement_title": "طولت الغيبة 👀",
+  "reengagement_sub": "خلّينا نرجعها بخطوة بسيطة",
+  "reengagement_dice_cta": "ارمِ النرد",
+  "daily_ready": "جاهزين ليوم جديد",
+  "daily_ready_sub": "خطوة بسيطة اليوم تفرق",
+  "done_title": "يومك تمام ✅",
+  "done_sub": "ما عليك شي اليوم",
+  "last_action_dice": "آخر مرة استخدمت النرد 🎲",
+  "last_action_expense": "آخر مرة أضفت مصروف",
+  "last_action_group": "آخر مرة أنشأت مجموعة"
 }
 ```
 
 ### `src/i18n/locales/en/dashboard.json`
 
-اضافة نفس المفاتيح بالإنجليزية:
+نفس المفاتيح بالانجليزية:
 ```text
 "daily_focus": {
-  "onboarding_greeting": "👋 First step today",
-  "plan_active": "🟢 Let's continue your plan",
-  "plan_days_left": "{{days}} days left",
-  "plan_add_expense": "Add expense to plan",
-  "no_plan": "✋ Let's start today with a simple step",
-  "no_plan_cta": "Take a step now",
-  "balanced": "✅ You're all set",
-  "balanced_sub": "Nothing to do today",
-  "reengagement": "⏰ It's been {{days}} days",
-  "reengagement_cta": "Come back with a simple step",
-  "micro_celebration": "👌 Done for today!"
-},
-"smart_plan": {
-  "current_plan": "🗓️ Your current plan",
-  "days_left": "⏳ {{days}} days left",
-  "view_plan": "View Plan",
-  "no_plan_prompt": "🤔 Got an upcoming trip?",
-  "create_plan_cta": "Create a plan (30 sec)"
-},
-"collapsible_stats": {
-  "title": "Numbers & Summary",
-  "monthly": "Monthly Expenses",
-  "balance": "Net Balance",
-  "groups": "Groups"
-},
-"mini_feed": {
-  "view_details": "View details"
+  ...existing keys...,
+  "reengagement_title": "It's been a while 👀",
+  "reengagement_sub": "Let's get back with a simple step",
+  "reengagement_dice_cta": "Roll the dice",
+  "daily_ready": "Ready for a new day",
+  "daily_ready_sub": "A simple step today makes a difference",
+  "done_title": "You're all set ✅",
+  "done_sub": "Nothing to do today",
+  "last_action_dice": "Last time you used the dice 🎲",
+  "last_action_expense": "Last time you added an expense",
+  "last_action_group": "Last time you created a group"
 }
 ```
 
 ---
 
-## 5. التفاصيل التقنية
+## 2. التفاصيل التقنية
 
-### منطق DailyFocusCard
-
-```text
-Props:
-  mode: 'onboarding' | 'daily_hub' | 'reengagement'
-  nextTask?: OnboardingTask        // المهمة التالية (onboarding)
-  activePlan?: Plan                // خطة نشطة (daily_hub)
-  netBalance?: number              // الرصيد (daily_hub)
-  daysSinceLastAction?: number     // أيام الغياب (reengagement)
-
-الشرط الداخلي:
-  if mode === 'onboarding':
-    عرض nextTask مع CTA يوجه لـ task.route
-  elif mode === 'reengagement':
-    عرض رسالة الإحياء مع CTA → /my-groups
-  elif mode === 'daily_hub':
-    if activePlan:
-      عرض اسم الخطة + أيام متبقية + CTA → /add-expense?plan_id=X
-    elif netBalance === 0 (أو قريب من 0):
-      عرض "يومك تمام" (بدون CTA)
-    else:
-      عرض "خطوة خفيفة" + CTA → /add-expense
-```
-
-### منطق SmartPlanCard
+### جلب آخر فعل ذي معنى
 
 ```text
-Props:
-  activePlan?: Plan | null
+في useDashboardMode:
 
-if activePlan:
-  عنوان الخطة + أيام متبقية حتى end_date
-  CTA: عرض الخطة → /plan/{id}
-else:
-  رسالة تحفيزية
-  CTA: إنشاء خطة → /plans/create
+const { data: lastAction } = useQuery({
+  queryKey: ['last-meaningful-action', userId],
+  queryFn: async () => {
+    const { data } = await supabase
+      .from('user_action_log')
+      .select('action_type')
+      .eq('user_id', userId)
+      .in('action_type', ['add_expense', 'dice_roll', 'create_group'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data?.action_type || null;
+  },
+  enabled: !!userId,
+  staleTime: 5 * 60 * 1000,
+});
 ```
 
-### منطق CollapsibleStats
+### حساب lastActionHint
 
 ```text
-يستخدم Collapsible من Radix UI
-الحالة الافتراضية: مطوي (closed)
-عند الفتح: يعرض 3 stat cards (شهرية، رصيد، مجموعات)
-Header يعرض عنوان + أيقونة سهم (يتدور عند الفتح)
+function getLastActionHint(actionType: string | null): string | null {
+  if (!actionType) return null;
+  switch (actionType) {
+    case 'dice_roll': return 'last_action_dice';
+    case 'add_expense': return 'last_action_expense';
+    case 'create_group': return 'last_action_group';
+    default: return null;
+  }
+}
 ```
 
-### منطق MinimalQuickActions
+يرجع مفتاح الترجمة (ليس النص مباشرة).
+
+### هيكل Dashboard الجديد
 
 ```text
-فقط زرين:
-1. ➕ إضافة مصروف → /add-expense (Button variant="default")
-2. 👥 إنشاء مجموعة → /create-group (Button variant="outline")
+<Dashboard>
+  [Welcome Header]
 
-عرض أفقي (flex gap-3) بنفس العرض
+  {showOnboardingChecklist && <OnboardingChecklist />}
+
+  <DailyFocusCard
+    mode={mode}
+    sessionHint={sessionHint}
+    lastActionHint={lastActionHint}
+    primaryCTA={...}
+    ...
+  />
+
+  {showSmartPlanCard && <SmartPlanCard />}
+
+  {showDice && <DailyDice />}
+
+  {showMiniFeed && <MiniActivityFeed />}
+
+  {showStats && <CollapsibleStats />}
+
+  // باقي المكونات الثانوية (daily_hub فقط)...
+</Dashboard>
 ```
 
-### القاعدة: CTA واحد رئيسي في الشاشة
+### ترتيب الشروط (محافظ عليه)
 
-- DailyFocusCard يحتوي CTA واحد فقط (Primary)
-- SmartPlanCard يحتوي CTA ثانوي (Outline)
-- MinimalQuickActions يحتوي زرين (Default + Outline)
-- بقية المكونات ليس لها CTA رئيسي
+```text
+1. Onboarding أولا (لا يختفي بالغلط)
+2. Re-engagement ثانيا
+3. Daily Hub آخرا (default)
+```
+
+هذا الترتيب موجود بالفعل في `useDashboardMode.ts` ولا يتغير.
 
 ---
 
-## 6. ملخص الملفات
-
-### ملفات جديدة
-
-| الملف | الوصف |
-|-------|------|
-| `src/hooks/useDashboardMode.ts` | Hook تحديد وضع الـ Dashboard |
-| `src/components/dashboard/DailyFocusCard.tsx` | كرت التركيز اليومي |
-| `src/components/dashboard/SmartPlanCard.tsx` | كرت التخطيط الذكي |
-| `src/components/dashboard/CollapsibleStats.tsx` | إحصائيات قابلة للطي |
-| `src/components/dashboard/MinimalQuickActions.tsx` | إجراءات سريعة مبسطة |
-| `src/components/dashboard/MiniActivityFeed.tsx` | سطر واحد من Activity Feed |
-
-### ملفات معدلة
+## 3. ملخص الملفات
 
 | الملف | التعديل |
 |-------|--------|
-| `src/pages/Dashboard.tsx` | اعادة هيكلة كاملة بثلاثة أوضاع |
-| `src/hooks/useOnboarding.ts` | اضافة nextTask + registrationDate + isWithinWindow |
-| `src/i18n/locales/ar/dashboard.json` | اضافة مفاتيح daily_focus + smart_plan + collapsible_stats + mini_feed |
-| `src/i18n/locales/en/dashboard.json` | اضافة نفس المفاتيح بالإنجليزية |
+| `src/hooks/useDashboardMode.ts` | اضافة sessionHint + lastAction + display flags |
+| `src/components/dashboard/DailyFocusCard.tsx` | sessionHint logic + re-engagement dice CTA + lastActionHint |
+| `src/pages/Dashboard.tsx` | استخدام display flags + تمرير props جديدة |
+| `src/i18n/locales/ar/dashboard.json` | مفاتيح جديدة للنصوص |
+| `src/i18n/locales/en/dashboard.json` | مفاتيح جديدة للنصوص |
 
 ---
 
-## 7. ما يُزال من الصفحة الرئيسية حسب الوضع
+## 4. ما لا يتغير
 
-| المكون | Onboarding | Daily Hub | Re-engagement |
-|--------|-----------|-----------|---------------|
-| OnboardingProgress | ✅ يظهر | ❌ لا يظهر | ❌ لا يظهر |
-| DailyFocusCard | ✅ (المهمة التالية) | ✅ (خطة/خطوة) | ✅ (إحياء) |
-| StreakDisplay | ❌ | ✅ | ✅ (غالبا 0) |
-| SmartPlanCard | ❌ | ✅ | ❌ |
-| DailyDiceCard | ❌ | ✅ | ✅ |
-| MiniActivityFeed | ❌ | ✅ | ❌ |
-| MinimalQuickActions | ❌ | ✅ | ✅ |
-| CollapsibleStats | ❌ | ✅ (مطوي) | ❌ |
-| DailyCheckInCard | ❌ | ✅ | ❌ |
-| CreditBalanceCard | ❌ | ✅ | ❌ |
-| HomeDiceBanner | ❌ (محذوف نهائيا) | ❌ (محذوف) | ❌ (محذوف) |
-| SimpleStatsGrid | ❌ (محذوف) | ❌ (بديله CollapsibleStats) | ❌ |
-| SimpleQuickActions | ❌ (محذوف) | ❌ (بديله MinimalQuickActions) | ❌ |
-| InstallWidget | ✅ | ✅ | ✅ |
-| Achievement | ❌ | ✅ (أسفل) | ❌ |
-| MonthlyWrap | ❌ | ✅ (أسفل) | ❌ |
-| SmartPromotion | ❌ | ✅ (أسفل) | ❌ |
+- منطق `useDashboardMode` الاساسي (ترتيب الشروط الثلاثة) -- محافظ عليه
+- `OnboardingProgress` component -- لا تعديل
+- `StreakDisplay` component -- لا تعديل
+- `CollapsibleStats` component -- لا تعديل
+- `MinimalQuickActions` component -- لا تعديل
+- `SmartPlanCard` component -- لا تعديل (فقط يختفي عند عدم وجود خطة)
 
 ---
 
-## 8. حالات طرفية مهمة
+## 5. حالات طرفية
 
-- مستخدم أكمل 4/5 في اليوم 6: يبقى في Onboarding حتى يكمل 5/5 أو ينتهي اليوم 7
-- مستخدم أكمل 5/5 في اليوم 2: ينتقل لـ Daily Hub فورا
-- مستخدم انتهى اليوم 7 بدون اكمال: ينتقل لـ Daily Hub (العدة تختفي)
-- مستخدم نشط ثم غاب 8 أيام: ينتقل لـ Re-engagement
-- مستخدم re-engagement عمل عمل: يرجع لـ Daily Hub (days_since_last_action يصبح 0)
-- خطة نشطة انتهت تاريخها: SmartPlanCard يعرض "لا توجد خطة"
-- رصيد صافي = 0: DailyFocusCard يعرض "يومك تمام"
-- لا خطط ولا مجموعات: DailyFocusCard يعرض "خطوة خفيفة" مع CTA لانشاء مجموعة
+- مستخدم onboarding اكمل 1/5: لا يرى النرد
+- مستخدم onboarding اكمل 2/5: يرى النرد
+- مستخدم daily بدون خطة + نشط اليوم (daysSince <= 1): يرى "يومك تمام" (done)
+- مستخدم daily بدون خطة + غاب يومين: يرى "خطوة بسيطة" (curiosity)
+- مستخدم daily مع خطة: يرى كرت الخطة + CTA اضافة مصروف (action)
+- مستخدم reengagement: يرى "طولت الغيبة" + CTA "ارمِ النرد" + MiniActivityFeed
+- لا يوجد `user_action_log` للمستخدم: `lastActionHint = null` ولا يعرض شيء
