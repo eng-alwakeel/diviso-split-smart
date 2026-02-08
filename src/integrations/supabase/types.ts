@@ -2983,6 +2983,111 @@ export type Database = {
           },
         ]
       }
+      plan_day_activities: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          currency: string | null
+          description: string | null
+          estimated_cost: number | null
+          id: string
+          linked_expense_id: string | null
+          linked_vote_id: string | null
+          participant_scope: string
+          participant_user_ids: string[] | null
+          plan_day_id: string
+          status: string
+          time_slot: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          linked_expense_id?: string | null
+          linked_vote_id?: string | null
+          participant_scope?: string
+          participant_user_ids?: string[] | null
+          plan_day_id: string
+          status?: string
+          time_slot?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          linked_expense_id?: string | null
+          linked_vote_id?: string | null
+          participant_scope?: string
+          participant_user_ids?: string[] | null
+          plan_day_id?: string
+          status?: string
+          time_slot?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_day_activities_linked_expense_id_fkey"
+            columns: ["linked_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_day_activities_linked_vote_id_fkey"
+            columns: ["linked_vote_id"]
+            isOneToOne: false
+            referencedRelation: "plan_votes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_day_activities_plan_day_id_fkey"
+            columns: ["plan_day_id"]
+            isOneToOne: false
+            referencedRelation: "plan_days"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_days: {
+        Row: {
+          created_at: string | null
+          date: string
+          day_index: number
+          id: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          day_index: number
+          id?: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          day_index?: number
+          id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_days_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_members: {
         Row: {
           joined_at: string
@@ -5621,6 +5726,7 @@ export type Database = {
         Args: { p_action_type: string; p_amount: number; p_user_id: string }
         Returns: Json
       }
+      ensure_plan_days: { Args: { p_plan_id: string }; Returns: undefined }
       generate_credit_note_number: { Args: never; Returns: string }
       generate_invoice_number: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }

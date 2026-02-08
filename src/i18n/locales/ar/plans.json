@@ -163,5 +163,73 @@
     "confirm": "نقل للخطة",
     "linking": "جاري النقل...",
     "already_linked": "مرتبط بخطة أخرى"
+  },
+  "itinerary": {
+    "tab": "الجدول",
+    "no_dates": "أضف تواريخ الخطة ليظهر الجدول اليومي",
+    "edit_plan": "تعديل الخطة",
+    "day_title": "اليوم {{index}}",
+    "add_activity": "إضافة نشاط",
+    "suggest_activities": "اقترح أنشطة",
+    "suggesting": "جاري الاقتراح...",
+    "suggest_success": "تم اقتراح أنشطة لهذا اليوم",
+    "suggest_error": "فشل في اقتراح الأنشطة",
+    "suggest_no_destination": "أضف وجهة الخطة أولاً للحصول على اقتراحات مخصصة",
+    "suggest_rate_limited": "انتظر 10 دقائق قبل المحاولة مرة أخرى",
+    "no_activities": "لا توجد أنشطة لهذا اليوم",
+    "time_slots": {
+      "morning": "صباح",
+      "afternoon": "ظهر",
+      "evening": "مساء",
+      "any": "عام"
+    },
+    "activity_status": {
+      "idea": "فكرة",
+      "proposed": "مقترح",
+      "locked": "مثبّت"
+    },
+    "activity_actions": {
+      "edit": "تعديل",
+      "convert_to_vote": "حوّل لتصويت",
+      "link_expense": "اربط بمصروف",
+      "lock": "تثبيت",
+      "unlock": "إلغاء التثبيت",
+      "delete": "حذف",
+      "delete_confirm": "حذف هذا النشاط؟",
+      "delete_confirm_desc": "لا يمكن التراجع عن هذا الإجراء"
+    },
+    "add_activity_dialog": {
+      "title": "إضافة نشاط",
+      "activity_title": "عنوان النشاط",
+      "activity_title_placeholder": "مثال: زيارة المتحف",
+      "time_slot": "الفترة الزمنية",
+      "extra_details": "تفاصيل إضافية",
+      "description": "الوصف",
+      "description_placeholder": "تفاصيل إضافية عن النشاط",
+      "estimated_cost": "التكلفة التقديرية",
+      "participants": "المشاركين",
+      "all_members": "جميع الأعضاء",
+      "custom": "مخصص",
+      "save": "حفظ",
+      "saving": "جاري الحفظ..."
+    },
+    "edit_activity_dialog": {
+      "title": "تعديل نشاط"
+    },
+    "link_expense_dialog": {
+      "title": "ربط النشاط بمصروف",
+      "create_new": "إنشاء مصروف جديد",
+      "link_existing": "ربط بمصروف موجود",
+      "no_plan_expenses": "لا توجد مصاريف في الخطة",
+      "link_success": "تم ربط النشاط بالمصروف",
+      "link_error": "فشل في الربط"
+    },
+    "convert_vote_success": "تم تحويل النشاط لتصويت",
+    "convert_vote_error": "فشل في التحويل",
+    "activity_saved": "تم حفظ النشاط",
+    "activity_updated": "تم تحديث النشاط",
+    "activity_deleted": "تم حذف النشاط",
+    "activity_locked": "تم تثبيت النشاط",
+    "activity_unlocked": "تم إلغاء تثبيت النشاط"
   }
 }

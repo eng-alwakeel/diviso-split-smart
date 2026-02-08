@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.plan-ai-suggest]
 verify_jwt = true
+
+[functions.plan-day-ai-suggest]
+verify_jwt = true
