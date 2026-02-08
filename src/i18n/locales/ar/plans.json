@@ -134,5 +134,34 @@
     "total_votes": "{{count}} صوت",
     "empty": "لا توجد تصويتات بعد",
     "empty_desc": "أنشئ تصويت لتنسق مع الأعضاء"
+  },
+  "expenses_tab": {
+    "title": "المصاريف",
+    "total": "إجمالي المصاريف",
+    "count": "{{count}} مصروف",
+    "add_expense": "إضافة مصروف",
+    "link_expense": "نقل مصروف للخطة",
+    "unlink_expense": "فصل عن الخطة",
+    "unlink_confirm": "فصل المصروف عن الخطة؟",
+    "unlink_confirm_desc": "سيتم إزالة المصروف من الخطة لكنه لن يُحذف",
+    "unlink_success": "تم فصل المصروف عن الخطة",
+    "unlink_error": "فشل في فصل المصروف",
+    "link_success": "تم نقل المصروف للخطة",
+    "link_error": "فشل في نقل المصروف",
+    "empty": "لا توجد مصاريف مرتبطة بالخطة",
+    "empty_desc": "أضف مصاريف جديدة أو انقل مصاريف موجودة",
+    "needs_group": "اربط الخطة بمجموعة أولاً لإضافة مصاريف",
+    "budget_progress": "{{spent}} من {{budget}} {{currency}}",
+    "over_budget": "تجاوز الميزانية!",
+    "budget_remaining": "متبقي: {{remaining}} {{currency}}"
+  },
+  "link_expense_dialog": {
+    "title": "نقل مصروف إلى الخطة",
+    "description": "اختر مصروف من المجموعة لنقله للخطة",
+    "search_placeholder": "ابحث بالوصف...",
+    "no_expenses": "لا توجد مصاريف متاحة للنقل",
+    "confirm": "نقل للخطة",
+    "linking": "جاري النقل...",
+    "already_linked": "مرتبط بخطة أخرى"
   }
 }
