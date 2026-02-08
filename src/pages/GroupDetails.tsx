@@ -77,6 +77,7 @@ import { useTranslation } from "react-i18next";
 import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
 import { Lock } from "lucide-react";
 import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
+import { GroupActivityFeed } from "@/components/group/GroupActivityFeed";
 
 
 const GroupDetails = () => {
@@ -619,6 +620,9 @@ const GroupDetails = () => {
             groupType={group?.group_type}
           />
         )}
+
+        {/* Activity Feed */}
+        <GroupActivityFeed groupId={id} />
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

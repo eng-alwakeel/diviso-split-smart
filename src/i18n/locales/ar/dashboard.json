@@ -146,5 +146,36 @@
     "congrats": "تهانينا!",
     "share_your_experience": "شارك تجربتك",
     "unshared_achievements": "{{count}} إنجازات للمشاركة"
+  },
+  "daily_hub": {
+    "streak": "🔥 {{count}} يوم متتالي",
+    "active_message": "أنت ناشط هالأسبوع، استمر!",
+    "low_activity_title": "آخر قسمة كانت قبل {{days}} يوم",
+    "low_activity_cta": "نفّذ خطوة بسيطة اليوم",
+    "new_user_title": "مرحباً!",
+    "new_user_dice": "🎲 جرّب نرد اليوم",
+    "new_user_demo": "قسمة تجريبية",
+    "daily_dice_title": "نرد اليوم",
+    "daily_dice_cta": "ارمِ النرد",
+    "group_event_title": "آخر نشاط"
+  },
+  "activity_feed": {
+    "title": "آخر الأحداث",
+    "expense_added": "{{name}} أضاف مصروف {{amount}} {{currency}}",
+    "settlement_made": "{{name}} سدّد {{amount}} {{currency}}",
+    "member_joined": "{{name}} انضم للمجموعة",
+    "split_completed": "تم إكمال القسمة",
+    "smart_messages": {
+      "almost_balanced": "باقي شخص واحد وتكتمل القسمة 👀",
+      "closer_to_balance": "{{name}} قرّب المجموعة للتوازن 💚",
+      "big_expense": "مصروف كبير! 🔥",
+      "new_member_welcome": "أهلاً بالعضو الجديد! 🎉"
+    },
+    "time_ago": {
+      "just_now": "الآن",
+      "minutes": "قبل {{count}} دقيقة",
+      "hours": "قبل {{count}} ساعة",
+      "days": "قبل {{count}} يوم"
+    }
   }
 }

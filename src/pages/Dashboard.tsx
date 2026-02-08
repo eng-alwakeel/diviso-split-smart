@@ -17,6 +17,7 @@ import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
+import { DailyHubSection } from "@/components/daily-hub/DailyHubSection";
 
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -348,6 +349,9 @@ const Dashboard = React.memo(() => {
               {t('dashboard:help')}
             </Button>
           </div>
+
+          {/* Daily Hub - Smart engagement section */}
+          <DailyHubSection userId={userId} />
 
           {/* Onboarding Progress Card - Priority for new users */}
           <OnboardingProgress />

@@ -146,5 +146,36 @@
     "congrats": "Congratulations!",
     "share_your_experience": "Share Your Experience",
     "unshared_achievements": "{{count}} achievements to share"
+  },
+  "daily_hub": {
+    "streak": "🔥 {{count}} day streak",
+    "active_message": "You're on fire this week, keep it up!",
+    "low_activity_title": "Last split was {{days}} days ago",
+    "low_activity_cta": "Take a simple step today",
+    "new_user_title": "Welcome!",
+    "new_user_dice": "🎲 Try today's dice",
+    "new_user_demo": "Demo split",
+    "daily_dice_title": "Today's Dice",
+    "daily_dice_cta": "Roll the dice",
+    "group_event_title": "Latest activity"
+  },
+  "activity_feed": {
+    "title": "Recent Activity",
+    "expense_added": "{{name}} added expense {{amount}} {{currency}}",
+    "settlement_made": "{{name}} settled {{amount}} {{currency}}",
+    "member_joined": "{{name}} joined the group",
+    "split_completed": "Split completed",
+    "smart_messages": {
+      "almost_balanced": "One person left to complete the split 👀",
+      "closer_to_balance": "{{name}} moved the group closer to balance 💚",
+      "big_expense": "Big expense! 🔥",
+      "new_member_welcome": "Welcome to the new member! 🎉"
+    },
+    "time_ago": {
+      "just_now": "Just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}} hr ago",
+      "days": "{{count}} days ago"
+    }
   }
 }
