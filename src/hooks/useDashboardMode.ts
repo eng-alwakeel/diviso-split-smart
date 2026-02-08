@@ -5,6 +5,7 @@ import { useDailyHub, DailyHubData } from './useDailyHub';
 import { supabase } from '@/integrations/supabase/client';
 
 export type DashboardMode = 'onboarding' | 'daily_hub' | 'reengagement';
+export type SessionHint = 'action' | 'done' | 'curiosity';
 
 export interface ActivePlan {
   id: string;
@@ -19,6 +20,18 @@ export interface ActivePlan {
 
 export interface DashboardModeData {
   mode: DashboardMode;
+  // Session
+  sessionHint: SessionHint;
+  lastMeaningfulAction: string | null;
+  lastActionHint: string | null;
+  hasActivePlan: boolean;
+  // Display flags
+  showOnboardingChecklist: boolean;
+  showDailyFocus: boolean;
+  showSmartPlanCard: boolean;
+  showDice: boolean;
+  showMiniFeed: boolean;
+  showStats: boolean;
   // Onboarding data
   tasks: OnboardingTask[];
   nextIncompleteTask: OnboardingTask | null;
@@ -75,6 +88,34 @@ async function fetchActivePlan(userId: string): Promise<ActivePlan | null> {
   return data;
 }
 
+// Fetch last meaningful action from user_action_log
+async function fetchLastMeaningfulAction(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('user_action_log')
+    .select('action_type')
+    .eq('user_id', userId)
+    .in('action_type', ['add_expense', 'dice_roll', 'create_group'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching last meaningful action:', error);
+    return null;
+  }
+  return data?.action_type || null;
+}
+
+function getLastActionHint(actionType: string | null): string | null {
+  if (!actionType) return null;
+  switch (actionType) {
+    case 'dice_roll': return 'last_action_dice';
+    case 'add_expense': return 'last_action_expense';
+    case 'create_group': return 'last_action_group';
+    default: return null;
+  }
+}
+
 function daysBetween(dateStr: string | null): number {
   if (!dateStr) return 999;
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -106,6 +147,14 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
     gcTime: 30 * 60 * 1000,
   });
 
+  // Last meaningful action
+  const { data: lastMeaningfulAction } = useQuery({
+    queryKey: ['last-meaningful-action', userId],
+    queryFn: () => fetchLastMeaningfulAction(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isLoading = onboarding.loading || hubLoading || profileLoading || planLoading;
 
   // Calculate derived values
@@ -124,7 +173,7 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
     // Next incomplete task
     const nextIncompleteTask = onboarding.tasks.find(t => !t.completed) || null;
 
-    // Determine mode
+    // Determine mode (order matters: onboarding first)
     let mode: DashboardMode = 'daily_hub';
 
     if (
@@ -139,16 +188,64 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
       mode = 'daily_hub';
     }
 
+    // Session Hint
+    const hasActivePlan = (activePlan ?? null) !== null;
+    let sessionHint: SessionHint;
+
+    if (mode === 'daily_hub') {
+      if (hasActivePlan) {
+        sessionHint = 'action';
+      } else if (daysSinceLastAction <= 1) {
+        sessionHint = 'done';
+      } else {
+        sessionHint = 'curiosity';
+      }
+    } else if (mode === 'reengagement') {
+      sessionHint = 'curiosity';
+    } else {
+      sessionHint = 'action';
+    }
+
+    // Display flags
+    const showOnboardingChecklist = mode === 'onboarding';
+    const showDailyFocus = true;
+    const showSmartPlanCard = mode === 'daily_hub' && hasActivePlan;
+    const showDice = mode !== 'onboarding' || onboarding.completedCount >= 2;
+    const showMiniFeed = mode === 'daily_hub' || mode === 'reengagement';
+    const showStats = mode === 'daily_hub';
+
+    // Last action hint (i18n key)
+    const lastActionHint = getLastActionHint(lastMeaningfulAction ?? null);
+
     return {
       mode,
+      sessionHint,
+      lastActionHint,
+      hasActivePlan,
       nextIncompleteTask,
       isWithinOnboardingWindow,
       daysSinceLastAction,
+      showOnboardingChecklist,
+      showDailyFocus,
+      showSmartPlanCard,
+      showDice,
+      showMiniFeed,
+      showStats,
     };
-  }, [onboarding, hubData, profileDates]);
+  }, [onboarding, hubData, profileDates, activePlan, lastMeaningfulAction]);
 
   return {
     mode: computed.mode,
+    sessionHint: computed.sessionHint,
+    lastMeaningfulAction: lastMeaningfulAction ?? null,
+    lastActionHint: computed.lastActionHint,
+    hasActivePlan: computed.hasActivePlan,
+    showOnboardingChecklist: computed.showOnboardingChecklist,
+    showDailyFocus: computed.showDailyFocus,
+    showSmartPlanCard: computed.showSmartPlanCard,
+    showDice: computed.showDice,
+    showMiniFeed: computed.showMiniFeed,
+    showStats: computed.showStats,
     tasks: onboarding.tasks,
     nextIncompleteTask: computed.nextIncompleteTask,
     completedCount: onboarding.completedCount,
