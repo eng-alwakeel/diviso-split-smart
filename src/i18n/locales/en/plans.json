@@ -163,5 +163,73 @@
     "confirm": "Move to Plan",
     "linking": "Moving...",
     "already_linked": "Linked to another plan"
+  },
+  "itinerary": {
+    "tab": "Itinerary",
+    "no_dates": "Add plan dates to see the daily schedule",
+    "edit_plan": "Edit Plan",
+    "day_title": "Day {{index}}",
+    "add_activity": "Add Activity",
+    "suggest_activities": "Suggest Activities",
+    "suggesting": "Suggesting...",
+    "suggest_success": "Activities suggested for this day",
+    "suggest_error": "Failed to suggest activities",
+    "suggest_no_destination": "Add a plan destination first for personalized suggestions",
+    "suggest_rate_limited": "Wait 10 minutes before trying again",
+    "no_activities": "No activities for this day",
+    "time_slots": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "any": "Any time"
+    },
+    "activity_status": {
+      "idea": "Idea",
+      "proposed": "Proposed",
+      "locked": "Locked"
+    },
+    "activity_actions": {
+      "edit": "Edit",
+      "convert_to_vote": "Convert to Vote",
+      "link_expense": "Link Expense",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "delete": "Delete",
+      "delete_confirm": "Delete this activity?",
+      "delete_confirm_desc": "This action cannot be undone"
+    },
+    "add_activity_dialog": {
+      "title": "Add Activity",
+      "activity_title": "Activity Title",
+      "activity_title_placeholder": "e.g., Visit the museum",
+      "time_slot": "Time Slot",
+      "extra_details": "Extra Details",
+      "description": "Description",
+      "description_placeholder": "Additional details about the activity",
+      "estimated_cost": "Estimated Cost",
+      "participants": "Participants",
+      "all_members": "All Members",
+      "custom": "Custom",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "edit_activity_dialog": {
+      "title": "Edit Activity"
+    },
+    "link_expense_dialog": {
+      "title": "Link Activity to Expense",
+      "create_new": "Create New Expense",
+      "link_existing": "Link Existing Expense",
+      "no_plan_expenses": "No expenses in this plan",
+      "link_success": "Activity linked to expense",
+      "link_error": "Failed to link"
+    },
+    "convert_vote_success": "Activity converted to vote",
+    "convert_vote_error": "Failed to convert",
+    "activity_saved": "Activity saved",
+    "activity_updated": "Activity updated",
+    "activity_deleted": "Activity deleted",
+    "activity_locked": "Activity locked",
+    "activity_unlocked": "Activity unlocked"
   }
 }

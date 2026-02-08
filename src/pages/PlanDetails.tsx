@@ -21,6 +21,7 @@ import { LinkToGroupDialog } from "@/components/plans/LinkToGroupDialog";
 import { PlanSuggestionsTab } from "@/components/plans/PlanSuggestionsTab";
 import { PlanExpensesTab } from "@/components/plans/PlanExpensesTab";
 import { PlanVotesTab } from "@/components/plans/PlanVotesTab";
+import { PlanItineraryTab } from "@/components/plans/PlanItineraryTab";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import type { PlanSuggestion } from "@/hooks/usePlanSuggestions";
@@ -194,9 +195,12 @@ const PlanDetails = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="summary" className="text-xs">
               {t('details.summary')}
+            </TabsTrigger>
+            <TabsTrigger value="itinerary" className="text-xs">
+              {t('itinerary.tab')}
             </TabsTrigger>
             <TabsTrigger value="suggestions" className="text-xs">
               {t('details.suggestions')}
@@ -218,6 +222,15 @@ const PlanDetails = () => {
                 <PlanMembersList members={plan.members} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="itinerary">
+            <PlanItineraryTab
+              planId={id!}
+              isAdmin={isAdmin}
+              hasDates={!!(plan.start_date && plan.end_date)}
+              groupId={plan.group_id}
+            />
           </TabsContent>
 
           <TabsContent value="suggestions">
