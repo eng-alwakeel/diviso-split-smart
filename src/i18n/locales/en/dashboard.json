@@ -232,6 +232,17 @@
     "checkins": "Check-ins",
     "longest_streak": "Longest streak"
   },
+  "home_plan": {
+    "title_active": "🗓️ Your Current Plan",
+    "title_new": "🗓️ New Plan",
+    "title_onboarding": "🗓️ Planning",
+    "subtitle_active": "{{destination}}{{separator}}⏳ {{days}} days left",
+    "subtitle_active_no_dest": "⏳ {{days}} days left",
+    "subtitle_new": "Trip, outing, activity, shared housing... split from the start",
+    "subtitle_onboarding": "After you complete the onboarding steps, you can create a plan",
+    "cta_view": "View Plan",
+    "cta_create": "➕ Create Plan"
+  },
   "activity_feed": {
     "title": "Recent Activity",
     "expense_added": "{{name}} added expense {{amount}} {{currency}}",

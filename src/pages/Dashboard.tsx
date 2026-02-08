@@ -14,7 +14,7 @@ import { Card } from "@/components/ui/card";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 import { DailyFocusCard } from "@/components/dashboard/DailyFocusCard";
-import { SmartPlanCard } from "@/components/dashboard/SmartPlanCard";
+import { HomePlanCard } from "@/components/dashboard/HomePlanCard";
 import { MinimalQuickActions } from "@/components/dashboard/MinimalQuickActions";
 import { StatsLiteCard } from "@/components/dashboard/StatsLiteCard";
 import { BalanceStatusCard } from "@/components/dashboard/BalanceStatusCard";
@@ -370,11 +370,6 @@ const Dashboard = React.memo(() => {
             <StreakDisplay count={dashboardMode.streakCount} />
           )}
 
-          {/* Smart Plan Card (only when hasActivePlan in daily_hub) */}
-          {dashboardMode.showSmartPlanCard && (
-            <SmartPlanCard activePlan={dashboardMode.activePlan} />
-          )}
-
           {/* Daily Dice (shown per showDice flag) */}
           {dashboardMode.showDice && (
             <DailyDiceCard
@@ -387,6 +382,11 @@ const Dashboard = React.memo(() => {
           {mode !== 'onboarding' && (
             <MinimalQuickActions />
           )}
+          {/* HomePlanCard (always visible) */}
+          <HomePlanCard
+            activePlan={dashboardMode.activePlan}
+            mode={mode}
+          />
 
           {/* Stats Lite Card (daily_hub + reengagement) */}
           {dashboardMode.showStatsLite && (
