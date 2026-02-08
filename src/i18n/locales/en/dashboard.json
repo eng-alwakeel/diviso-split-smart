@@ -161,6 +161,26 @@
     "balance": "Net Balance",
     "groups": "Groups"
   },
+  "stats_lite": {
+    "monthly": "Expenses this month",
+    "balance": "Your net balance",
+    "groups": "Active groups",
+    "outstanding": "Outstanding",
+    "no_data": "No data yet",
+    "no_outstanding": "None"
+  },
+  "balance_status": {
+    "balanced": "Balanced",
+    "balanced_sub": "No outstanding dues today",
+    "near_balanced": "Almost balanced",
+    "near_balanced_sub": "A small amount left to settle",
+    "unbalanced": "Unbalanced",
+    "unbalanced_sub": "You have outstanding dues",
+    "view_details": "View details"
+  },
+  "recent_activity": {
+    "view": "View"
+  },
   "mini_feed": {
     "view_details": "View details"
   },

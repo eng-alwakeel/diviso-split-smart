@@ -32,6 +32,9 @@ export interface DashboardModeData {
   showDice: boolean;
   showMiniFeed: boolean;
   showStats: boolean;
+  showStatsLite: boolean;
+  showBalanceCard: boolean;
+  showRecentActivity: boolean;
   // Onboarding data
   tasks: OnboardingTask[];
   nextIncompleteTask: OnboardingTask | null;
@@ -213,6 +216,9 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
     const showDice = mode !== 'onboarding' || onboarding.completedCount >= 2;
     const showMiniFeed = mode === 'daily_hub' || mode === 'reengagement';
     const showStats = mode === 'daily_hub';
+    const showStatsLite = mode === 'daily_hub' || mode === 'reengagement';
+    const showBalanceCard = mode === 'daily_hub' || mode === 'reengagement';
+    const showRecentActivity = mode === 'daily_hub';
 
     // Last action hint (i18n key)
     const lastActionHint = getLastActionHint(lastMeaningfulAction ?? null);
@@ -231,6 +237,9 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
       showDice,
       showMiniFeed,
       showStats,
+      showStatsLite,
+      showBalanceCard,
+      showRecentActivity,
     };
   }, [onboarding, hubData, profileDates, activePlan, lastMeaningfulAction]);
 
@@ -246,6 +255,9 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
     showDice: computed.showDice,
     showMiniFeed: computed.showMiniFeed,
     showStats: computed.showStats,
+    showStatsLite: computed.showStatsLite,
+    showBalanceCard: computed.showBalanceCard,
+    showRecentActivity: computed.showRecentActivity,
     tasks: onboarding.tasks,
     nextIncompleteTask: computed.nextIncompleteTask,
     completedCount: onboarding.completedCount,
