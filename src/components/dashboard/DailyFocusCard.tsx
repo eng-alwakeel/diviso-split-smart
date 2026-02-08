@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowRight, Check, Dice5 } from 'lucide-react';
+import { Plus, ArrowRight, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { OnboardingTask } from '@/hooks/useOnboarding';
@@ -85,14 +85,9 @@ export function DailyFocusCard({
               </p>
               {lastActionLine}
             </div>
-            <Button
-              size="sm"
-              onClick={() => navigate('/dice')}
-              className="gap-2"
-            >
-              <Dice5 className="w-4 h-4" />
-              {t('daily_focus.reengagement_dice_cta')}
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              {t('daily_focus.reengagement_hint')}
+            </p>
           </div>
         </CardContent>
       </Card>
