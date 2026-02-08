@@ -1,334 +1,273 @@
 
-# الدفعة الثانية: نرد اليوم الذكي + إشعار يومي + Cron Job
+# تطوير كرت المجموعة وتجربة التنقّل
 
 ## ملخص
 
-تكملة نظام الاستخدام اليومي بإضافة 3 أنظمة:
-1. **نرد اليوم المثبت** -- نرد واحد يوميا لا يتغير خلال 24 ساعة
-2. **إشعار يومي ذكي** -- إشعار واحد مقسّم حسب نوع المستخدم
-3. **Cron Job يومي** -- يحسب daily_hub_cache لجميع المستخدمين ويرسل الإشعارات
+توحيد كرت المجموعة (`GroupCard`) ليعمل بحالتين (`compact` و `expanded`)، إضافة عرض واضح لحالة المجموعة (نشطة/مغلقة) ودور المستخدم، إخفاء الأزرار الخطرة داخل قائمة (...)، وتحسين التنقّل.
 
 ---
 
-## الوضع الحالي (ما تم في الدفعة 1)
+## المشاكل الحالية (من الصور المرفقة)
 
-| المكون | الحالة |
-|--------|--------|
-| `daily_hub_cache` | جدول + RPC `compute_daily_hub` يعمل |
-| `user_action_log` | جدول + triggers على expenses/settlements/group_members |
-| `group_activity_feed` | جدول + triggers تسجل الأحداث تلقائيا |
-| `DailyHubSection` | مكون يعرض الحالات الثلاث (active/low_activity/new) |
-| `DailyDiceCard` | يعرض نرد مقترح لكن **غير مثبت** (يتغير كل زيارة) |
-| `suggested_dice_type` | عمود في `daily_hub_cache` يحسب عبر RPC |
-| `user_push_tokens` | جدول موجود مع token + platform |
-| `notifications` | جدول موجود مع نظام in-app كامل |
-| `profiles.last_active_at` | موجود ويتحدث عبر `useActivityTracker` |
-| `user_settings.push_notifications` | boolean موجود |
+| المشكلة | الموقع |
+|---------|--------|
+| زر "حذف" أحمر ظاهر بشكل مباشر | داخل المجموعة (expanded) |
+| زر "مغادرة" بإطار أحمر ظاهر مباشرة | داخل المجموعة (expanded) |
+| حالة المجموعة (مغلقة) غير ظاهرة في صفحة المجموعات | كروت المجموعات (compact) |
+| دور المستخدم لا يميّز بين مالك ومشرف وعضو | كلا الحالتين |
+| زر "مصروف" لا يختفي/يتعطل في المجموعة المغلقة بصفحة المجموعات | compact card |
+| زر الرجوع يذهب للوحة التحكم فقط وليس للمجموعات | داخل المجموعة |
+| لا يوجد Component موحّد بين الحالتين | معمارية الكود |
 
 ---
 
-## 1. قاعدة البيانات (Migration)
+## 1. قاعدة البيانات
 
-### A) إضافة عمود `dice_of_the_day` في `daily_hub_cache`
+### تعديل `useGroups.ts`
 
-```text
-ALTER TABLE daily_hub_cache
-  ADD COLUMN dice_of_the_day text NULL,
-  ADD COLUMN dice_locked_at date NULL;
-```
-
-- `dice_of_the_day`: نوع النرد المثبت لهذا اليوم (food/activity/quick)
-- `dice_locked_at`: تاريخ تثبيت النرد (CURRENT_DATE)
-
-### B) إضافة عمود `last_daily_notification_at` في `daily_hub_cache`
+إضافة `status` و `group_type` للـ Group type والـ query:
 
 ```text
-ALTER TABLE daily_hub_cache
-  ADD COLUMN last_daily_notification_at timestamptz NULL;
+الحالي:
+  groups!inner (id, name, currency, owner_id, created_at, updated_at, archived_at)
+
+الجديد:
+  groups!inner (id, name, currency, owner_id, created_at, updated_at, archived_at, status, group_type)
 ```
 
-يمنع إرسال أكثر من إشعار واحد في اليوم.
-
-### C) تحديث RPC `compute_daily_hub`
-
-تعديل الدالة لتشمل:
-1. فحص `dice_locked_at`:
-   - إذا `dice_locked_at = CURRENT_DATE`: استخدام `dice_of_the_day` الموجود (لا يتغير)
-   - إذا `dice_locked_at != CURRENT_DATE` أو NULL: حساب نرد جديد وتثبيته
-2. تضمين `dice_of_the_day` و `dice_locked_at` في الإرجاع
-
-### D) دالة `compute_all_daily_hubs`
-
-دالة SECURITY DEFINER تحسب daily_hub_cache لجميع المستخدمين النشطين (آخر 30 يوم):
-
+إضافة للـ type:
 ```text
-create or replace function public.compute_all_daily_hubs()
-returns jsonb
+export type Group = {
+  ...existing fields...
+  status?: string;      // 'active' | 'closed'
+  group_type?: string;  // trip/home/work/...
+};
 ```
-
-المنطق:
-1. جلب جميع المستخدمين الذين `last_active_at` خلال آخر 30 يوم
-2. لكل مستخدم: استدعاء `compute_daily_hub`
-3. إرجاع عدد المستخدمين المحسوبين
-
-### E) دالة `send_daily_engagement_notifications`
-
-دالة SECURITY DEFINER ترسل الإشعارات اليومية المقسمة:
-
-```text
-create or replace function public.send_daily_engagement_notifications()
-returns jsonb
-```
-
-المنطق:
-1. جلب المستخدمين من `daily_hub_cache` حيث:
-   - `last_daily_notification_at` IS NULL أو `last_daily_notification_at::date < CURRENT_DATE`
-   - المستخدم لديه `push_notifications = true` في `user_settings`
-   - المستخدم لم يفتح التطبيق خلال آخر 12 ساعة (`profiles.last_active_at < now() - interval '12 hours'`)
-2. تقسيم المستخدمين حسب `user_state`:
-   - **active**: رسالة تحفيزية (تعزيز الاستمرار)
-   - **low_activity**: رسالة فضول (ماذا يحدث في مجموعتك)
-   - **new**: لا إشعار (لا نزعجهم)
-3. لكل مستخدم مؤهل: INSERT في `notifications` مع payload مناسب
-4. تحديث `last_daily_notification_at` لكل من تم إرسال إشعار له
-5. إرجاع عدد الإشعارات المرسلة
 
 ---
 
-## 2. Edge Function: `daily-engagement-cron`
+## 2. ملفات جديدة
 
-Edge function تُستدعى يوميا عبر pg_cron:
+### `src/components/group/GroupCard.tsx`
 
-### المنطق
-1. التحقق من Authorization
-2. استدعاء `compute_all_daily_hubs()` RPC
-3. استدعاء `send_daily_engagement_notifications()` RPC
-4. إرجاع تقرير (عدد المستخدمين المحسوبين + عدد الإشعارات المرسلة)
+Component موحّد يعمل بحالتين:
 
-### Cron Schedule
-- يومي الساعة 8 صباحا بتوقيت السعودية (5:00 UTC)
-- يتم إعداده عبر SQL مباشرة (ليس في migration)
-
----
-
-## 3. ملفات جديدة
-
-### `supabase/functions/daily-engagement-cron/index.ts`
-
-Edge function للـ Cron Job:
-- يستقبل طلب HTTP (من pg_cron عبر pg_net)
-- ينشئ Supabase client مع service role
-- يستدعي `compute_all_daily_hubs()`
-- يستدعي `send_daily_engagement_notifications()`
-- يسجل النتائج في console
-- يرجع JSON بالإحصائيات
-
----
-
-## 4. الملفات المعدلة
-
-### `src/hooks/useDailyHub.ts`
-
-تعديلات:
-- إضافة `dice_of_the_day` و `dice_locked_at` في interface `DailyHubData`
-- تمرير `dice_of_the_day` بدلا من `suggested_dice_type` للـ DailyDiceCard
-- إضافة فحص: إذا `dice_locked_at === اليوم` نستخدم `dice_of_the_day`، وإلا نستخدم `suggested_dice_type`
-
-### `src/components/daily-hub/DailyDiceCard.tsx`
-
-تعديلات:
-- إضافة prop `lockedDate` (اختياري)
-- إذا النرد مثبت: عرض شارة "نرد اليوم" ثابتة
-- تغيير زر "ارم النرد" ليفتح DiceDecision مع `initialDice` = نوع النرد المثبت
-- عدم السماح بتغيير نوع النرد من الكارد
-
-### `src/components/daily-hub/ActiveUserState.tsx`
-
-تعديل بسيط:
-- تمرير `lockedDate` لـ DailyDiceCard
-- استخدام `dice_of_the_day` بدلا من `suggested_dice_type`
-
-### `supabase/config.toml`
-
-إضافة:
+**Props:**
 ```text
-[functions.daily-engagement-cron]
-verify_jwt = false
-```
-
-### `src/i18n/locales/ar/dashboard.json`
-
-إضافة مفاتيح:
-```text
-"daily_hub": {
-  ...المفاتيح الموجودة...,
-  "dice_locked": "نرد اليوم 🔒",
-  "dice_locked_hint": "يتغير كل 24 ساعة"
-},
-"notifications": {
-  "daily_active_1": "🔥 سلسلتك {{streak}} يوم! لا تكسرها",
-  "daily_active_2": "مصاريفك منظمة هالأسبوع 👌",
-  "daily_active_3": "ارمِ نرد اليوم واكتشف وش ينتظرك 🎲",
-  "daily_low_1": "مجموعتك قربت تكتمل اليوم 👀",
-  "daily_low_2": "صار لك {{days}} يوم ما تحركت 👀",
-  "daily_low_3": "خطوة وحدة بسيطة تفرق! 💪"
+interface GroupCardProps {
+  group: GroupData;          // بيانات المجموعة
+  variant: 'compact' | 'expanded';  // الحالة
+  currentUserId: string | null;
+  // Compact-only props
+  onNavigate?: (path: string) => void;
+  onArchive?: (groupId: string) => void;
+  onDelete?: (groupId: string, name: string, ownerId: string) => void;
+  onLeave?: (groupId: string, name: string, ownerId: string) => void;
+  isArchived?: boolean;
+  // Expanded-only props
+  onAddExpense?: () => void;
+  onOpenReport?: () => void;
+  onOpenSettings?: () => void;
+  onCloseGroup?: () => void;
+  onDeleteGroup?: () => void;
+  onLeaveGroup?: () => void;
+  memberCount?: number;
+  totalExpenses?: number;
+  currencyLabel?: string;
+  isLoading?: boolean;
 }
 ```
 
-### `src/i18n/locales/en/dashboard.json`
+**Compact layout (صفحة المجموعات):**
+
+```text
++------------------------------------------+
+|  اسم المجموعة (Bold)                     |
+|  [🟢 نشطة] [👑 مالك]  أو  [🔒 مغلقة]   |
+|  👥 3 أعضاء  •  💰 SAR                   |
+|  [عرض] [مصروف*] [...]                    |
++------------------------------------------+
+* مصروف: يختفي إذا المجموعة مغلقة
+* قائمة (...): إعدادات، أرشفة، حذف/مغادرة
+```
+
+**Expanded layout (داخل المجموعة):**
+
+```text
++------------------------------------------+
+|  Avatar  اسم المجموعة                     |
+|         [عام] [🟢 نشطة] [👑 مالك]        |
+|         👥 3 أعضاء  •  💰 500 SAR         |
+|  [➕ مصروف*] [📊 تقرير] [⚙️ إعدادات]    |
+|  [🔒 إنهاء النشاط**]  [...]              |
++------------------------------------------+
+* مصروف: Disabled + Tooltip إذا مغلقة
+** إنهاء النشاط: يظهر فقط لـ admin/owner + نشطة
+* قائمة (...): حذف/مغادرة (بدون لون أحمر خارج القائمة)
+```
+
+### تصميم Badges
+
+| Badge | الشكل | اللون |
+|-------|-------|------|
+| 🟢 نشطة | Badge outline أخضر | `bg-green-500/10 text-green-600 border-green-500/30` |
+| 🔒 مغلقة | Badge مع أيقونة قفل | `bg-amber-500/10 text-amber-600 border-amber-500/30` |
+| 👑 مالك | Badge ذهبي | `bg-yellow-500/10 text-yellow-700 border-yellow-500/30` |
+| 🛡️ مشرف | Badge أزرق | `bg-blue-500/10 text-blue-600 border-blue-500/30` |
+| 👤 عضو | Badge عادي | `variant="outline"` |
+
+---
+
+## 3. الملفات المعدلة
+
+### `src/hooks/useGroups.ts`
+
+- إضافة `status` و `group_type` في الـ select query
+- إضافة الحقول في الـ return object
+- تحديث الـ `Group` type
+
+### `src/pages/MyGroups.tsx`
+
+- حذف inline `GroupCard` function (سطور 376-484)
+- استيراد `GroupCard` من `@/components/group/GroupCard`
+- تمرير `variant="compact"` + group data مع `status` و `group_type`
+- تمرير `currentUserId` لتحديد الدور الصحيح
+
+### `src/pages/GroupDetails.tsx`
+
+التعديلات الرئيسية:
+
+**1. زر الرجوع (سطر 453-461):**
+```text
+الحالي: "العودة للوحة التحكم" → /dashboard
+الجديد: "الرجوع إلى المجموعات" → /my-groups
+```
+
+**2. بطاقة المجموعة (سطور 463-572):**
+- استبدال كامل البطاقة بـ `<GroupCard variant="expanded" ... />`
+- إزالة زر "حذف" الأحمر المباشر (سطور 549-558)
+- إزالة زر "مغادرة" الأحمر المباشر (سطور 559-569)
+- نقل حذف/مغادرة داخل قائمة (...) في GroupCard
+
+**3. إزالة أزرار خطرة مباشرة:**
+- لا يظهر أي زر أحمر (حذف/مغادرة) خارج قائمة (...)
+- الإجراءات الخطرة تبقى في DropdownMenu فقط
+
+### `src/i18n/locales/ar/groups.json`
+
+إضافة مفاتيح جديدة:
+```text
+"card": {
+  ...existing keys...,
+  "status_active": "نشطة",
+  "status_closed": "مغلقة",
+  "role_owner": "المالك",
+  "role_admin": "مشرف",
+  "role_member": "عضو",
+  "closed_no_expense": "المجموعة مغلقة، لا يمكن إضافة مصاريف",
+  "close_group": "إنهاء النشاط",
+  "report": "تقرير",
+  "add_expense": "إضافة مصروف",
+  "back_to_groups": "الرجوع إلى المجموعات"
+}
+```
+
+### `src/i18n/locales/en/groups.json`
 
 إضافة نفس المفاتيح بالإنجليزية:
 ```text
-"daily_hub": {
+"card": {
   ...existing keys...,
-  "dice_locked": "Today's Dice 🔒",
-  "dice_locked_hint": "Changes every 24 hours"
-},
-"notifications": {
-  "daily_active_1": "🔥 {{streak}} day streak! Don't break it",
-  "daily_active_2": "Your expenses are well organized this week 👌",
-  "daily_active_3": "Roll today's dice and discover what awaits 🎲",
-  "daily_low_1": "Your group is almost balanced today 👀",
-  "daily_low_2": "It's been {{days}} days since your last action 👀",
-  "daily_low_3": "One simple step makes a difference! 💪"
+  "status_active": "Active",
+  "status_closed": "Closed",
+  "role_owner": "Owner",
+  "role_admin": "Admin",
+  "role_member": "Member",
+  "closed_no_expense": "Group is closed, cannot add expenses",
+  "close_group": "End Activity",
+  "report": "Report",
+  "add_expense": "Add Expense",
+  "back_to_groups": "Back to Groups"
 }
 ```
 
 ---
 
-## 5. التفاصيل التقنية
+## 4. التفاصيل التقنية
 
-### منطق نرد اليوم المثبت
-
-```text
-في compute_daily_hub:
-
-IF dice_locked_at = CURRENT_DATE THEN
-  -- النرد مثبت لليوم، لا تغيير
-  v_dice_of_day := (SELECT dice_of_the_day FROM daily_hub_cache WHERE user_id = p_user_id);
-ELSE
-  -- حساب نرد جديد (نفس المنطق الحالي)
-  hour = EXTRACT(HOUR FROM now())
-  dow = EXTRACT(DOW FROM now())
-  
-  IF hour >= 18 THEN v_dice_of_day := 'food'
-  ELSIF dow IN (5,6) THEN v_dice_of_day := 'activity'
-  ELSIF has_active_group THEN v_dice_of_day := 'activity'
-  ELSE v_dice_of_day := 'quick'
-  END IF;
-  
-  -- تثبيت النرد
-  dice_locked_at := CURRENT_DATE
-END IF;
-```
-
-### منطق الإشعار اليومي الذكي
+### منطق تحديد الدور
 
 ```text
-للمستخدم النشط (active):
-  messages = [
-    "سلسلتك {streak} يوم! لا تكسرها 🔥",
-    "مصاريفك منظمة هالأسبوع 👌",
-    "ارمِ نرد اليوم واكتشف وش ينتظرك 🎲"
-  ]
-  اختيار عشوائي من القائمة
-
-للمستخدم قليل النشاط (low_activity):
-  if last_group_event exists:
-    message = "مجموعتك قربت تكتمل اليوم 👀"
-  else:
-    message = "صار لك {days} يوم ما تحركت 👀"
-
-للمستخدم الجديد (new):
-  لا يُرسل إشعار
+function getUserRole(group, currentUserId):
+  if currentUserId === group.owner_id:
+    return 'owner'   // 👑 مالك
+  if group.member_role === 'admin':
+    return 'admin'    // 🛡️ مشرف
+  return 'member'     // 👤 عضو
 ```
 
-### فحص آخر 12 ساعة
+### منطق إخفاء/تعطيل زر المصروف
 
 ```text
-في send_daily_engagement_notifications:
+Compact (صفحة المجموعات):
+  if group.status === 'closed':
+    زر "مصروف" لا يظهر أصلا
 
-WHERE profiles.last_active_at < now() - interval '12 hours'
-  OR profiles.last_active_at IS NULL
-
--- إذا المستخدم فتح التطبيق خلال آخر 12 ساعة = لا يُرسل إشعار
--- هذا يمنع إزعاج المستخدمين النشطين الذين فتحوا التطبيق اليوم
+Expanded (داخل المجموعة):
+  if group.status === 'closed':
+    زر "إضافة مصروف" = disabled
+    tooltip = "المجموعة مغلقة، لا يمكن إضافة مصاريف"
 ```
 
-### تدفق Cron Job
+### منطق قائمة الإجراءات (DropdownMenu)
 
 ```text
-pg_cron (يومي 5:00 UTC / 8:00 صباحا السعودية)
-  --> pg_net.http_post('/functions/v1/daily-engagement-cron')
-  --> Edge function:
-      1. compute_all_daily_hubs()
-         --> Loop: كل مستخدم نشط (last_active_at آخر 30 يوم)
-         --> compute_daily_hub(user_id) لكل واحد
-         --> تحديث dice_of_the_day + dice_locked_at
-      2. send_daily_engagement_notifications()
-         --> جلب المستخدمين المؤهلين
-         --> تقسيمهم حسب user_state
-         --> INSERT في notifications
-         --> تحديث last_daily_notification_at
-  --> إرجاع: { users_computed: 150, notifications_sent: 80 }
+Compact (...):
+  - إعدادات
+  - أرشفة/استعادة (admin فقط)
+  ---
+  - حذف (owner فقط) ← text-destructive داخل القائمة فقط
+  - مغادرة (member/admin) ← text-destructive داخل القائمة فقط
+
+Expanded (...):
+  - حذف (owner فقط) ← text-destructive داخل القائمة فقط
+  - مغادرة (member/admin) ← text-destructive داخل القائمة فقط
 ```
 
-### Cron Job SQL (يُنفذ يدويا بعد التنفيذ)
+### قواعد UX الحاسمة
 
-```text
--- يتم تنفيذه عبر SQL Editor في Supabase
--- ليس في migration (يحتوي على بيانات خاصة بالمشروع)
-
-select cron.schedule(
-  'daily-engagement-cron',
-  '0 5 * * *',  -- كل يوم الساعة 5:00 UTC (8:00 صباحا السعودية)
-  $$
-  select net.http_post(
-    url := 'https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/daily-engagement-cron',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'::jsonb,
-    body := concat('{"time": "', now(), '"}')::jsonb
-  ) as request_id;
-  $$
-);
-```
+1. **لا زر أحمر خارج القائمة**: حذف/مغادرة فقط داخل DropdownMenu
+2. **حالة المجموعة دائما مرئية**: في الكرت compact و expanded
+3. **الدور دائما مرئي**: Badge بلون مميز حسب الدور
+4. **التنقل واضح**: زر رجوع يذهب للمجموعات (ليس Dashboard)
+5. **Component واحد**: `GroupCard` يستخدم في كل مكان
 
 ---
 
-## 6. ملخص الملفات
+## 5. ملخص الملفات
 
 ### ملفات جديدة
 
 | الملف | الوصف |
 |-------|------|
-| Migration SQL | إضافة أعمدة + تحديث RPC + دوال جديدة |
-| `supabase/functions/daily-engagement-cron/index.ts` | Edge function للـ Cron |
+| `src/components/group/GroupCard.tsx` | Component موحّد بحالتين (compact/expanded) |
 
 ### ملفات معدلة
 
 | الملف | التعديل |
 |-------|--------|
-| `src/hooks/useDailyHub.ts` | إضافة dice_of_the_day + dice_locked_at |
-| `src/components/daily-hub/DailyDiceCard.tsx` | دعم النرد المثبت + initialDice |
-| `src/components/daily-hub/ActiveUserState.tsx` | تمرير بيانات النرد المثبت |
-| `supabase/config.toml` | إضافة daily-engagement-cron function |
-| `src/i18n/locales/ar/dashboard.json` | إضافة مفاتيح النرد المثبت + الإشعارات |
-| `src/i18n/locales/en/dashboard.json` | إضافة نفس المفاتيح بالإنجليزية |
+| `src/hooks/useGroups.ts` | إضافة status + group_type في query و type |
+| `src/pages/MyGroups.tsx` | حذف inline GroupCard واستخدام المكون الجديد |
+| `src/pages/GroupDetails.tsx` | استبدال البطاقة + زر رجوع + إزالة أزرار خطرة |
+| `src/i18n/locales/ar/groups.json` | إضافة مفاتيح الحالة والدور |
+| `src/i18n/locales/en/groups.json` | إضافة نفس المفاتيح بالإنجليزية |
 
 ---
 
-## 7. حالات طرفية مهمة
+## 6. حالات طرفية مهمة
 
-- مستخدم بدون `daily_hub_cache`: يُنشأ أول مرة عبر `compute_daily_hub`، النرد يُثبت فورا
-- نرد اليوم بعد منتصف الليل: `dice_locked_at` يتغير تلقائيا مع أول compute في اليوم الجديد
-- مستخدم أوقف الإشعارات (`push_notifications = false`): لا يُرسل له إشعار
-- مستخدم فتح التطبيق الساعة 7 صباحا: `last_active_at` حديث --> لا يُرسل له إشعار الساعة 8
-- Cron Job يفشل: لا ضرر -- المستخدمون يحصلون على بياناتهم عند فتح التطبيق عبر الـ hook
-- مستخدم جديد تماما (لا hub_cache): الإشعار لا يُرسل للمستخدمين الجدد أصلا
-
----
-
-## 8. خطوات ما بعد التنفيذ (يدوية)
-
-1. تفعيل pg_cron و pg_net في Supabase Dashboard (Extensions)
-2. تنفيذ SQL الـ cron.schedule في SQL Editor
-3. مراقبة Edge Function logs للتأكد من عمل الـ Cron
+- مجموعة مغلقة في الأرشيف: تعرض badge "مغلقة" + badge "مؤرشفة" إذا لزم
+- مستخدم owner في مجموعة مغلقة: يظهر "حذف" في القائمة، لا يظهر "إنهاء النشاط"
+- مستخدم member عادي: لا يرى أرشفة ولا إنهاء نشاط، فقط مغادرة
+- زر رجوع: إذا دخل من Dashboard يرجع لـ `/my-groups` (ليس Dashboard)
+- Tooltip على زر مصروف disabled: يعمل على mobile و desktop
