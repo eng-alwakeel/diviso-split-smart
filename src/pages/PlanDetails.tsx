@@ -7,14 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Wallet,
-  Users, Lightbulb, Vote, Receipt, MoreVertical,
-  Plane, Coffee, Home, Zap, ExternalLink
+  Users, MoreVertical, Plane, Coffee, Home, Zap, ExternalLink, Receipt
 } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePlanDetails } from "@/hooks/usePlanDetails";
@@ -22,8 +18,11 @@ import { PlanStatusBar } from "@/components/plans/PlanStatusBar";
 import { PlanMembersList } from "@/components/plans/PlanMembersList";
 import { ConvertToGroupDialog } from "@/components/plans/ConvertToGroupDialog";
 import { LinkToGroupDialog } from "@/components/plans/LinkToGroupDialog";
+import { PlanSuggestionsTab } from "@/components/plans/PlanSuggestionsTab";
+import { PlanVotesTab } from "@/components/plans/PlanVotesTab";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import type { PlanSuggestion } from "@/hooks/usePlanSuggestions";
 
 const typeIcons: Record<string, React.ElementType> = {
   trip: Plane,
@@ -49,6 +48,13 @@ const PlanDetails = () => {
   const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("summary");
+
+  // State for converting suggestion to vote
+  const [voteFromSuggestion, setVoteFromSuggestion] = useState<{
+    title: string;
+    options: string[];
+  } | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -78,6 +84,14 @@ const PlanDetails = () => {
   );
 
   const TypeIcon = typeIcons[plan.plan_type] || Zap;
+
+  const handleConvertToVote = (suggestion: PlanSuggestion) => {
+    setVoteFromSuggestion({
+      title: suggestion.title,
+      options: [suggestion.title, ''],
+    });
+    setActiveTab("votes");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,7 +144,6 @@ const PlanDetails = () => {
         {/* Plan Info */}
         <Card className="border border-border">
           <CardContent className="p-4 space-y-4">
-            {/* Meta */}
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <Badge variant="outline" className="text-xs">
                 {t(`plan_types.${plan.plan_type}`)}
@@ -156,7 +169,6 @@ const PlanDetails = () => {
               )}
             </div>
 
-            {/* Linked Group Badge */}
             {plan.group_id && plan.group_name && (
               <Button
                 variant="outline"
@@ -170,7 +182,6 @@ const PlanDetails = () => {
               </Button>
             )}
 
-            {/* Status Bar */}
             <PlanStatusBar
               currentStatus={plan.status}
               isAdmin={isAdmin}
@@ -181,7 +192,7 @@ const PlanDetails = () => {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="summary" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="summary" className="text-xs">
               {t('details.summary')}
@@ -209,21 +220,21 @@ const PlanDetails = () => {
           </TabsContent>
 
           <TabsContent value="suggestions">
-            <Card className="border border-border">
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <Lightbulb className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('coming_soon')}</p>
-              </CardContent>
-            </Card>
+            <PlanSuggestionsTab
+              planId={id!}
+              isAdmin={isAdmin}
+              onConvertToVote={handleConvertToVote}
+            />
           </TabsContent>
 
           <TabsContent value="votes">
-            <Card className="border border-border">
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <Vote className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('coming_soon')}</p>
-              </CardContent>
-            </Card>
+            <PlanVotesTab
+              planId={id!}
+              isAdmin={isAdmin}
+              initialVoteTitle={voteFromSuggestion?.title}
+              initialVoteOptions={voteFromSuggestion?.options}
+              onInitialVoteConsumed={() => setVoteFromSuggestion(null)}
+            />
           </TabsContent>
 
           <TabsContent value="expenses">

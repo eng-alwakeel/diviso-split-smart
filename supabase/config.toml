@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.generate-dice-comment]
 verify_jwt = false
+
+[functions.plan-ai-suggest]
+verify_jwt = true
