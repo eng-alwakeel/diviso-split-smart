@@ -1,273 +1,445 @@
 
-# تطوير كرت المجموعة وتجربة التنقّل
+# اعادة بناء الصفحة الرئيسية الذكية (Smart Dashboard)
 
 ## ملخص
 
-توحيد كرت المجموعة (`GroupCard`) ليعمل بحالتين (`compact` و `expanded`)، إضافة عرض واضح لحالة المجموعة (نشطة/مغلقة) ودور المستخدم، إخفاء الأزرار الخطرة داخل قائمة (...)، وتحسين التنقّل.
+اعادة هيكلة الـ Dashboard بالكامل ليعمل بثلاثة أوضاع ذكية:
+- **Onboarding Mode**: مستخدم جديد (عدة < 5/5 وأقل من 7 أيام من التسجيل)
+- **Daily Hub Mode**: مستخدم مكتمل الاعداد (5/5 أو مضى 7 أيام)
+- **Re-engagement Mode**: مستخدم غير نشط (آخر نشاط > 7 أيام)
 
 ---
 
-## المشاكل الحالية (من الصور المرفقة)
+## الوضع الحالي (المشاكل)
 
-| المشكلة | الموقع |
+| المشكلة | التفصيل |
 |---------|--------|
-| زر "حذف" أحمر ظاهر بشكل مباشر | داخل المجموعة (expanded) |
-| زر "مغادرة" بإطار أحمر ظاهر مباشرة | داخل المجموعة (expanded) |
-| حالة المجموعة (مغلقة) غير ظاهرة في صفحة المجموعات | كروت المجموعات (compact) |
-| دور المستخدم لا يميّز بين مالك ومشرف وعضو | كلا الحالتين |
-| زر "مصروف" لا يختفي/يتعطل في المجموعة المغلقة بصفحة المجموعات | compact card |
-| زر الرجوع يذهب للوحة التحكم فقط وليس للمجموعات | داخل المجموعة |
-| لا يوجد Component موحّد بين الحالتين | معمارية الكود |
+| الصفحة مزدحمة | 12+ مكون ظاهر: DailyHub, Onboarding, InstallWidget, HomeDiceBanner, StatsGrid, DailyCheckIn, CreditBalance, AdBanner, Achievement, MonthlyWrap, SmartPromotion, QuickActions |
+| لا تمييز بين الأوضاع | كل المستخدمين يرون نفس الصفحة |
+| تكرار بين المكونات | HomeDiceBanner و DailyDiceCard يؤديان نفس الغرض |
+| 6 إجراءات سريعة | تشمل خطط، إحالات، إعدادات (تشتيت) |
+| لا Daily Focus Card | لا يجيب على "وش أسوي اليوم؟" |
+| لا ربط بالخطط | كرت التخطيط غير موجود |
+| الإحصائيات دائما مفتوحة | لا قابلية طي |
 
 ---
 
 ## 1. قاعدة البيانات
 
-### تعديل `useGroups.ts`
+### تعديل على `useOnboarding` hook فقط (بدون migration)
 
-إضافة `status` و `group_type` للـ Group type والـ query:
+الـ `onboarding_tasks` table يحتوي على `created_at` -- يمكن حساب عمر الحساب منه.
+الـ `profiles` table يحتوي على `created_at` و `last_active_at` -- يمكن حساب النشاط.
 
-```text
-الحالي:
-  groups!inner (id, name, currency, owner_id, created_at, updated_at, archived_at)
-
-الجديد:
-  groups!inner (id, name, currency, owner_id, created_at, updated_at, archived_at, status, group_type)
-```
-
-إضافة للـ type:
-```text
-export type Group = {
-  ...existing fields...
-  status?: string;      // 'active' | 'closed'
-  group_type?: string;  // trip/home/work/...
-};
-```
+لا حاجة لـ migration جديد.
 
 ---
 
-## 2. ملفات جديدة
+## 2. منطق تحديد الحالة (User Mode Logic)
 
-### `src/components/group/GroupCard.tsx`
+### Hook جديد: `src/hooks/useDashboardMode.ts`
 
-Component موحّد يعمل بحالتين:
+يجمع البيانات من `useOnboarding` و `useDailyHub` ويحدد الوضع:
 
-**Props:**
 ```text
-interface GroupCardProps {
-  group: GroupData;          // بيانات المجموعة
-  variant: 'compact' | 'expanded';  // الحالة
-  currentUserId: string | null;
-  // Compact-only props
-  onNavigate?: (path: string) => void;
-  onArchive?: (groupId: string) => void;
-  onDelete?: (groupId: string, name: string, ownerId: string) => void;
-  onLeave?: (groupId: string, name: string, ownerId: string) => void;
-  isArchived?: boolean;
-  // Expanded-only props
-  onAddExpense?: () => void;
-  onOpenReport?: () => void;
-  onOpenSettings?: () => void;
-  onCloseGroup?: () => void;
-  onDeleteGroup?: () => void;
-  onLeaveGroup?: () => void;
-  memberCount?: number;
-  totalExpenses?: number;
-  currencyLabel?: string;
-  isLoading?: boolean;
+type DashboardMode = 'onboarding' | 'daily_hub' | 'reengagement';
+
+المنطق:
+1. جلب onboarding data (tasks completed + created_at)
+2. جلب profiles.created_at و last_active_at
+3. حساب daysSinceRegistration و daysSinceLastAction
+
+if (completedTasks < 5 AND daysSinceRegistration <= 7 AND !rewardClaimed):
+  mode = 'onboarding'
+elif (daysSinceLastAction > 7):
+  mode = 'reengagement'
+else:
+  mode = 'daily_hub'
+```
+
+يرجع:
+- `mode`: الوضع الحالي
+- `onboardingData`: بيانات العدة (tasks, progress, nextTask)
+- `hubData`: بيانات Daily Hub
+- `activePlan`: أول خطة نشطة (status = 'active')
+- `isLoading`
+
+---
+
+## 3. ملفات جديدة
+
+### `src/hooks/useDashboardMode.ts`
+
+Hook رئيسي يحدد وضع الـ Dashboard ويجمع كل البيانات اللازمة:
+- يستدعي `useOnboarding`
+- يستدعي `useDailyHub`
+- يجلب `profiles.created_at` و `last_active_at`
+- يجلب أول خطة نشطة من `plans` (status = 'active', أقرب start_date)
+- يحدد الوضع حسب المنطق أعلاه
+
+### `src/components/dashboard/DailyFocusCard.tsx`
+
+كرت واحد أعلى الصفحة يجيب على "وش أسوي اليوم؟":
+
+**في وضع Onboarding:**
+```text
++------------------------------------------+
+|  👋 أول خطوة اليوم                       |
+|  "خلّينا نضيف أول مصروف"                 |
+|  [➕ أضف مصروف]           (CTA واحد)     |
++------------------------------------------+
+```
+يعرض المهمة التالية غير المكتملة من العدة فقط.
+
+**في وضع Daily Hub (مع خطة نشطة):**
+```text
++------------------------------------------+
+|  🟢 خلّينا نكمّل خطتك                    |
+|  رحلة الشمال – باقي 3 أيام              |
+|  [➕ أضف مصروف للخطة]     (CTA واحد)     |
++------------------------------------------+
+```
+
+**في وضع Daily Hub (بدون خطة):**
+```text
++------------------------------------------+
+|  ✋ خلّينا نبدأ اليوم بخطوة خفيفة        |
+|  [نفّذ خطوة الآن]          (CTA واحد)     |
++------------------------------------------+
+```
+
+**في وضع Daily Hub (مستخدم متوازن - لا ديون):**
+```text
++------------------------------------------+
+|  ✅ يومك تمام                            |
+|  ما عليك شي اليوم                        |
++------------------------------------------+
+```
+
+**في وضع Re-engagement:**
+```text
++------------------------------------------+
+|  ⏰ صار لك {{days}} يوم بعيد              |
+|  [ارجع بخطوة بسيطة]       (CTA واحد)     |
++------------------------------------------+
+```
+
+### `src/components/dashboard/SmartPlanCard.tsx`
+
+كرت التخطيط الذكي (يظهر فقط في Daily Hub):
+
+**خطة نشطة موجودة:**
+```text
++------------------------------------------+
+|  🗓️ خطتك الحالية                        |
+|  رحلة الشمال | ⏳ باقي 3 أيام            |
+|  [عرض الخطة]                             |
++------------------------------------------+
+```
+
+**لا توجد خطة:**
+```text
++------------------------------------------+
+|  🤔 عندك طلعة قريبة؟                     |
+|  [إنشاء خطة (30 ثانية)]                  |
++------------------------------------------+
+```
+
+لا يظهر في وضع Onboarding أو Re-engagement.
+
+### `src/components/dashboard/CollapsibleStats.tsx`
+
+ملخص أرقام قابل للطي (يظهر فقط في Daily Hub):
+- المصاريف الشهرية
+- الرصيد الصافي
+- عدد المجموعات
+- يبدأ مطوي بشكل افتراضي
+- يستخدم `Collapsible` من Radix UI
+
+### `src/components/dashboard/MinimalQuickActions.tsx`
+
+إجراءات سريعة مبسطة (زرين فقط):
+- اضافة مصروف (Primary)
+- انشاء مجموعة (Outline)
+
+لا خطط، لا إعدادات، لا إحالات.
+
+### `src/components/dashboard/MiniActivityFeed.tsx`
+
+سطر واحد من Activity Feed (يظهر فقط في Daily Hub إذا وُجد حدث):
+
+```text
++------------------------------------------+
+|  👀 مجموعتك اقتربت من التوازن            |
+|  [عرض التفاصيل]                          |
++------------------------------------------+
+```
+
+يستخدم `last_group_event` من `useDailyHub`.
+
+---
+
+## 4. الملفات المعدلة
+
+### `src/pages/Dashboard.tsx` (اعادة هيكلة كبيرة)
+
+**التعديلات:**
+
+1. استيراد `useDashboardMode` بدلا من الـ hooks المنفصلة
+2. ازالة المكونات من العرض الافتراضي:
+   - ~~`HomeDiceBanner`~~ (مكرر مع DailyDiceCard)
+   - ~~`SimpleStatsGrid`~~ (يحل محله CollapsibleStats في Daily Hub فقط)
+   - ~~`SimpleQuickActions`~~ (يحل محله MinimalQuickActions)
+   - ~~`DailyCheckInCard`~~ (يبقى فقط في Daily Hub، ليس في Onboarding)
+   - ~~`CreditBalanceCard`~~ (يبقى فقط في Daily Hub)
+   - ~~`ShareableAchievementCard`~~ (ينقل لأسفل)
+   - ~~`MonthlyWrapCard`~~ (ينقل لأسفل)
+   - ~~`SmartPromotionBanner`~~ (ينقل لأسفل)
+
+3. الهيكل الجديد حسب الوضع:
+
+**Onboarding Mode:**
+```text
+[Welcome Header]
+[OnboardingProgress]          -- العدة (0/5) ثابتة أعلى
+[DailyFocusCard]              -- المهمة التالية فقط
+[InstallWidget]               -- PWA
+```
+
+**Daily Hub Mode:**
+```text
+[Welcome Header]
+[DailyFocusCard]              -- كرت التركيز اليومي
+[StreakDisplay]                -- 🔥 Streak (إذا > 0)
+[SmartPlanCard]               -- كرت التخطيط (إذا له معنى)
+[DailyDiceCard]               -- نرد اليوم
+[MiniActivityFeed]            -- سطر واحد من Feed
+[MinimalQuickActions]         -- زرين فقط
+[CollapsibleStats]            -- أرقام قابلة للطي
+[DailyCheckInCard]            -- المكافأة اليومية
+[CreditBalanceCard]           -- الرصيد
+[ShareableAchievement]        -- إنجاز (إذا وُجد)
+[SmartPromotionBanner]        -- ترويج (إذا وُجد)
+```
+
+**Re-engagement Mode:**
+```text
+[Welcome Header]
+[DailyFocusCard]              -- رسالة إحياء + CTA
+[StreakDisplay]                -- (غالبا 0)
+[DailyDiceCard]               -- نرد اليوم
+[MinimalQuickActions]         -- زرين فقط
+```
+
+### `src/hooks/useOnboarding.ts`
+
+تعديلات:
+- اضافة `nextIncompleteTask` في الـ return: أول مهمة غير مكتملة
+- اضافة `registrationDate` من `onboarding_tasks.created_at`
+- اضافة `isWithinOnboardingWindow`: boolean (أقل من 7 أيام)
+
+### `src/components/daily-hub/DailyHubSection.tsx`
+
+تعديل:
+- لم يعد يعرض المكونات الثلاثة (Active/Low/New) مباشرة
+- يصبح wrapper يستقبل `mode` من الأب ويعرض المكونات المناسبة
+- أو يُستغنى عنه ويُستخدم المنطق مباشرة في Dashboard
+
+### `src/i18n/locales/ar/dashboard.json`
+
+اضافة مفاتيح جديدة:
+```text
+"daily_focus": {
+  "onboarding_greeting": "👋 أول خطوة اليوم",
+  "plan_active": "🟢 خلّينا نكمّل خطتك",
+  "plan_days_left": "باقي {{days}} يوم",
+  "plan_add_expense": "أضف مصروف للخطة",
+  "no_plan": "✋ خلّينا نبدأ اليوم بخطوة خفيفة",
+  "no_plan_cta": "نفّذ خطوة الآن",
+  "balanced": "✅ يومك تمام",
+  "balanced_sub": "ما عليك شي اليوم",
+  "reengagement": "⏰ صار لك {{days}} يوم بعيد",
+  "reengagement_cta": "ارجع بخطوة بسيطة",
+  "micro_celebration": "👌 تمام، خلّصناها اليوم"
+},
+"smart_plan": {
+  "current_plan": "🗓️ خطتك الحالية",
+  "days_left": "⏳ باقي {{days}} يوم",
+  "view_plan": "عرض الخطة",
+  "no_plan_prompt": "🤔 عندك طلعة قريبة؟",
+  "create_plan_cta": "إنشاء خطة (30 ثانية)"
+},
+"collapsible_stats": {
+  "title": "الأرقام والملخص",
+  "monthly": "المصاريف الشهرية",
+  "balance": "الرصيد الصافي",
+  "groups": "المجموعات"
+},
+"mini_feed": {
+  "view_details": "عرض التفاصيل"
 }
 ```
 
-**Compact layout (صفحة المجموعات):**
+### `src/i18n/locales/en/dashboard.json`
 
+اضافة نفس المفاتيح بالإنجليزية:
 ```text
-+------------------------------------------+
-|  اسم المجموعة (Bold)                     |
-|  [🟢 نشطة] [👑 مالك]  أو  [🔒 مغلقة]   |
-|  👥 3 أعضاء  •  💰 SAR                   |
-|  [عرض] [مصروف*] [...]                    |
-+------------------------------------------+
-* مصروف: يختفي إذا المجموعة مغلقة
-* قائمة (...): إعدادات، أرشفة، حذف/مغادرة
-```
-
-**Expanded layout (داخل المجموعة):**
-
-```text
-+------------------------------------------+
-|  Avatar  اسم المجموعة                     |
-|         [عام] [🟢 نشطة] [👑 مالك]        |
-|         👥 3 أعضاء  •  💰 500 SAR         |
-|  [➕ مصروف*] [📊 تقرير] [⚙️ إعدادات]    |
-|  [🔒 إنهاء النشاط**]  [...]              |
-+------------------------------------------+
-* مصروف: Disabled + Tooltip إذا مغلقة
-** إنهاء النشاط: يظهر فقط لـ admin/owner + نشطة
-* قائمة (...): حذف/مغادرة (بدون لون أحمر خارج القائمة)
-```
-
-### تصميم Badges
-
-| Badge | الشكل | اللون |
-|-------|-------|------|
-| 🟢 نشطة | Badge outline أخضر | `bg-green-500/10 text-green-600 border-green-500/30` |
-| 🔒 مغلقة | Badge مع أيقونة قفل | `bg-amber-500/10 text-amber-600 border-amber-500/30` |
-| 👑 مالك | Badge ذهبي | `bg-yellow-500/10 text-yellow-700 border-yellow-500/30` |
-| 🛡️ مشرف | Badge أزرق | `bg-blue-500/10 text-blue-600 border-blue-500/30` |
-| 👤 عضو | Badge عادي | `variant="outline"` |
-
----
-
-## 3. الملفات المعدلة
-
-### `src/hooks/useGroups.ts`
-
-- إضافة `status` و `group_type` في الـ select query
-- إضافة الحقول في الـ return object
-- تحديث الـ `Group` type
-
-### `src/pages/MyGroups.tsx`
-
-- حذف inline `GroupCard` function (سطور 376-484)
-- استيراد `GroupCard` من `@/components/group/GroupCard`
-- تمرير `variant="compact"` + group data مع `status` و `group_type`
-- تمرير `currentUserId` لتحديد الدور الصحيح
-
-### `src/pages/GroupDetails.tsx`
-
-التعديلات الرئيسية:
-
-**1. زر الرجوع (سطر 453-461):**
-```text
-الحالي: "العودة للوحة التحكم" → /dashboard
-الجديد: "الرجوع إلى المجموعات" → /my-groups
-```
-
-**2. بطاقة المجموعة (سطور 463-572):**
-- استبدال كامل البطاقة بـ `<GroupCard variant="expanded" ... />`
-- إزالة زر "حذف" الأحمر المباشر (سطور 549-558)
-- إزالة زر "مغادرة" الأحمر المباشر (سطور 559-569)
-- نقل حذف/مغادرة داخل قائمة (...) في GroupCard
-
-**3. إزالة أزرار خطرة مباشرة:**
-- لا يظهر أي زر أحمر (حذف/مغادرة) خارج قائمة (...)
-- الإجراءات الخطرة تبقى في DropdownMenu فقط
-
-### `src/i18n/locales/ar/groups.json`
-
-إضافة مفاتيح جديدة:
-```text
-"card": {
-  ...existing keys...,
-  "status_active": "نشطة",
-  "status_closed": "مغلقة",
-  "role_owner": "المالك",
-  "role_admin": "مشرف",
-  "role_member": "عضو",
-  "closed_no_expense": "المجموعة مغلقة، لا يمكن إضافة مصاريف",
-  "close_group": "إنهاء النشاط",
-  "report": "تقرير",
-  "add_expense": "إضافة مصروف",
-  "back_to_groups": "الرجوع إلى المجموعات"
-}
-```
-
-### `src/i18n/locales/en/groups.json`
-
-إضافة نفس المفاتيح بالإنجليزية:
-```text
-"card": {
-  ...existing keys...,
-  "status_active": "Active",
-  "status_closed": "Closed",
-  "role_owner": "Owner",
-  "role_admin": "Admin",
-  "role_member": "Member",
-  "closed_no_expense": "Group is closed, cannot add expenses",
-  "close_group": "End Activity",
-  "report": "Report",
-  "add_expense": "Add Expense",
-  "back_to_groups": "Back to Groups"
+"daily_focus": {
+  "onboarding_greeting": "👋 First step today",
+  "plan_active": "🟢 Let's continue your plan",
+  "plan_days_left": "{{days}} days left",
+  "plan_add_expense": "Add expense to plan",
+  "no_plan": "✋ Let's start today with a simple step",
+  "no_plan_cta": "Take a step now",
+  "balanced": "✅ You're all set",
+  "balanced_sub": "Nothing to do today",
+  "reengagement": "⏰ It's been {{days}} days",
+  "reengagement_cta": "Come back with a simple step",
+  "micro_celebration": "👌 Done for today!"
+},
+"smart_plan": {
+  "current_plan": "🗓️ Your current plan",
+  "days_left": "⏳ {{days}} days left",
+  "view_plan": "View Plan",
+  "no_plan_prompt": "🤔 Got an upcoming trip?",
+  "create_plan_cta": "Create a plan (30 sec)"
+},
+"collapsible_stats": {
+  "title": "Numbers & Summary",
+  "monthly": "Monthly Expenses",
+  "balance": "Net Balance",
+  "groups": "Groups"
+},
+"mini_feed": {
+  "view_details": "View details"
 }
 ```
 
 ---
 
-## 4. التفاصيل التقنية
+## 5. التفاصيل التقنية
 
-### منطق تحديد الدور
-
-```text
-function getUserRole(group, currentUserId):
-  if currentUserId === group.owner_id:
-    return 'owner'   // 👑 مالك
-  if group.member_role === 'admin':
-    return 'admin'    // 🛡️ مشرف
-  return 'member'     // 👤 عضو
-```
-
-### منطق إخفاء/تعطيل زر المصروف
+### منطق DailyFocusCard
 
 ```text
-Compact (صفحة المجموعات):
-  if group.status === 'closed':
-    زر "مصروف" لا يظهر أصلا
+Props:
+  mode: 'onboarding' | 'daily_hub' | 'reengagement'
+  nextTask?: OnboardingTask        // المهمة التالية (onboarding)
+  activePlan?: Plan                // خطة نشطة (daily_hub)
+  netBalance?: number              // الرصيد (daily_hub)
+  daysSinceLastAction?: number     // أيام الغياب (reengagement)
 
-Expanded (داخل المجموعة):
-  if group.status === 'closed':
-    زر "إضافة مصروف" = disabled
-    tooltip = "المجموعة مغلقة، لا يمكن إضافة مصاريف"
+الشرط الداخلي:
+  if mode === 'onboarding':
+    عرض nextTask مع CTA يوجه لـ task.route
+  elif mode === 'reengagement':
+    عرض رسالة الإحياء مع CTA → /my-groups
+  elif mode === 'daily_hub':
+    if activePlan:
+      عرض اسم الخطة + أيام متبقية + CTA → /add-expense?plan_id=X
+    elif netBalance === 0 (أو قريب من 0):
+      عرض "يومك تمام" (بدون CTA)
+    else:
+      عرض "خطوة خفيفة" + CTA → /add-expense
 ```
 
-### منطق قائمة الإجراءات (DropdownMenu)
+### منطق SmartPlanCard
 
 ```text
-Compact (...):
-  - إعدادات
-  - أرشفة/استعادة (admin فقط)
-  ---
-  - حذف (owner فقط) ← text-destructive داخل القائمة فقط
-  - مغادرة (member/admin) ← text-destructive داخل القائمة فقط
+Props:
+  activePlan?: Plan | null
 
-Expanded (...):
-  - حذف (owner فقط) ← text-destructive داخل القائمة فقط
-  - مغادرة (member/admin) ← text-destructive داخل القائمة فقط
+if activePlan:
+  عنوان الخطة + أيام متبقية حتى end_date
+  CTA: عرض الخطة → /plan/{id}
+else:
+  رسالة تحفيزية
+  CTA: إنشاء خطة → /plans/create
 ```
 
-### قواعد UX الحاسمة
+### منطق CollapsibleStats
 
-1. **لا زر أحمر خارج القائمة**: حذف/مغادرة فقط داخل DropdownMenu
-2. **حالة المجموعة دائما مرئية**: في الكرت compact و expanded
-3. **الدور دائما مرئي**: Badge بلون مميز حسب الدور
-4. **التنقل واضح**: زر رجوع يذهب للمجموعات (ليس Dashboard)
-5. **Component واحد**: `GroupCard` يستخدم في كل مكان
+```text
+يستخدم Collapsible من Radix UI
+الحالة الافتراضية: مطوي (closed)
+عند الفتح: يعرض 3 stat cards (شهرية، رصيد، مجموعات)
+Header يعرض عنوان + أيقونة سهم (يتدور عند الفتح)
+```
+
+### منطق MinimalQuickActions
+
+```text
+فقط زرين:
+1. ➕ إضافة مصروف → /add-expense (Button variant="default")
+2. 👥 إنشاء مجموعة → /create-group (Button variant="outline")
+
+عرض أفقي (flex gap-3) بنفس العرض
+```
+
+### القاعدة: CTA واحد رئيسي في الشاشة
+
+- DailyFocusCard يحتوي CTA واحد فقط (Primary)
+- SmartPlanCard يحتوي CTA ثانوي (Outline)
+- MinimalQuickActions يحتوي زرين (Default + Outline)
+- بقية المكونات ليس لها CTA رئيسي
 
 ---
 
-## 5. ملخص الملفات
+## 6. ملخص الملفات
 
 ### ملفات جديدة
 
 | الملف | الوصف |
 |-------|------|
-| `src/components/group/GroupCard.tsx` | Component موحّد بحالتين (compact/expanded) |
+| `src/hooks/useDashboardMode.ts` | Hook تحديد وضع الـ Dashboard |
+| `src/components/dashboard/DailyFocusCard.tsx` | كرت التركيز اليومي |
+| `src/components/dashboard/SmartPlanCard.tsx` | كرت التخطيط الذكي |
+| `src/components/dashboard/CollapsibleStats.tsx` | إحصائيات قابلة للطي |
+| `src/components/dashboard/MinimalQuickActions.tsx` | إجراءات سريعة مبسطة |
+| `src/components/dashboard/MiniActivityFeed.tsx` | سطر واحد من Activity Feed |
 
 ### ملفات معدلة
 
 | الملف | التعديل |
 |-------|--------|
-| `src/hooks/useGroups.ts` | إضافة status + group_type في query و type |
-| `src/pages/MyGroups.tsx` | حذف inline GroupCard واستخدام المكون الجديد |
-| `src/pages/GroupDetails.tsx` | استبدال البطاقة + زر رجوع + إزالة أزرار خطرة |
-| `src/i18n/locales/ar/groups.json` | إضافة مفاتيح الحالة والدور |
-| `src/i18n/locales/en/groups.json` | إضافة نفس المفاتيح بالإنجليزية |
+| `src/pages/Dashboard.tsx` | اعادة هيكلة كاملة بثلاثة أوضاع |
+| `src/hooks/useOnboarding.ts` | اضافة nextTask + registrationDate + isWithinWindow |
+| `src/i18n/locales/ar/dashboard.json` | اضافة مفاتيح daily_focus + smart_plan + collapsible_stats + mini_feed |
+| `src/i18n/locales/en/dashboard.json` | اضافة نفس المفاتيح بالإنجليزية |
 
 ---
 
-## 6. حالات طرفية مهمة
+## 7. ما يُزال من الصفحة الرئيسية حسب الوضع
 
-- مجموعة مغلقة في الأرشيف: تعرض badge "مغلقة" + badge "مؤرشفة" إذا لزم
-- مستخدم owner في مجموعة مغلقة: يظهر "حذف" في القائمة، لا يظهر "إنهاء النشاط"
-- مستخدم member عادي: لا يرى أرشفة ولا إنهاء نشاط، فقط مغادرة
-- زر رجوع: إذا دخل من Dashboard يرجع لـ `/my-groups` (ليس Dashboard)
-- Tooltip على زر مصروف disabled: يعمل على mobile و desktop
+| المكون | Onboarding | Daily Hub | Re-engagement |
+|--------|-----------|-----------|---------------|
+| OnboardingProgress | ✅ يظهر | ❌ لا يظهر | ❌ لا يظهر |
+| DailyFocusCard | ✅ (المهمة التالية) | ✅ (خطة/خطوة) | ✅ (إحياء) |
+| StreakDisplay | ❌ | ✅ | ✅ (غالبا 0) |
+| SmartPlanCard | ❌ | ✅ | ❌ |
+| DailyDiceCard | ❌ | ✅ | ✅ |
+| MiniActivityFeed | ❌ | ✅ | ❌ |
+| MinimalQuickActions | ❌ | ✅ | ✅ |
+| CollapsibleStats | ❌ | ✅ (مطوي) | ❌ |
+| DailyCheckInCard | ❌ | ✅ | ❌ |
+| CreditBalanceCard | ❌ | ✅ | ❌ |
+| HomeDiceBanner | ❌ (محذوف نهائيا) | ❌ (محذوف) | ❌ (محذوف) |
+| SimpleStatsGrid | ❌ (محذوف) | ❌ (بديله CollapsibleStats) | ❌ |
+| SimpleQuickActions | ❌ (محذوف) | ❌ (بديله MinimalQuickActions) | ❌ |
+| InstallWidget | ✅ | ✅ | ✅ |
+| Achievement | ❌ | ✅ (أسفل) | ❌ |
+| MonthlyWrap | ❌ | ✅ (أسفل) | ❌ |
+| SmartPromotion | ❌ | ✅ (أسفل) | ❌ |
+
+---
+
+## 8. حالات طرفية مهمة
+
+- مستخدم أكمل 4/5 في اليوم 6: يبقى في Onboarding حتى يكمل 5/5 أو ينتهي اليوم 7
+- مستخدم أكمل 5/5 في اليوم 2: ينتقل لـ Daily Hub فورا
+- مستخدم انتهى اليوم 7 بدون اكمال: ينتقل لـ Daily Hub (العدة تختفي)
+- مستخدم نشط ثم غاب 8 أيام: ينتقل لـ Re-engagement
+- مستخدم re-engagement عمل عمل: يرجع لـ Daily Hub (days_since_last_action يصبح 0)
+- خطة نشطة انتهت تاريخها: SmartPlanCard يعرض "لا توجد خطة"
+- رصيد صافي = 0: DailyFocusCard يعرض "يومك تمام"
+- لا خطط ولا مجموعات: DailyFocusCard يعرض "خطوة خفيفة" مع CTA لانشاء مجموعة
