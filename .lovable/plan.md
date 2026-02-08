@@ -1,496 +1,512 @@
 
-# المرحلة 4: الجدول اليومي + أنشطة + اقتراحات AI للأيام
+# نظام الاستخدام اليومي (Daily Engagement System) -- Diviso
 
 ## ملخص
 
-إضافة نظام تخطيط يومي كامل (Itinerary) للخطط مع أنشطة مقسمة حسب الفترة الزمنية، اقتراحات AI لكل يوم، وتحويل الأنشطة لتصويت وربطها بمصاريف.
+تحويل Diviso من أداة "وقت الحاجة" إلى رفيق يومي من خلال 6 أنظمة متكاملة: Daily Hub ذكي، Activity Feed للمجموعات، Streak Tracker حقيقي، نرد اليوم، إشعار يومي ذكي، ومنطق backend مع Cron Job.
+
+---
+
+## الوضع الحالي (ما هو موجود)
+
+| المكون | الحالة |
+|--------|--------|
+| Streak System | موجود (`user_streaks` + `daily_checkins` + `useDailyCheckin`) لكنه يعتمد على check-in يدوي |
+| Dashboard | موجود (`Dashboard.tsx`) بمكونات كثيرة (stats, onboarding, dice, checkin, achievements) |
+| Dice Decision | موجود بالكامل مع smart suggestions |
+| Notifications | موجود (`notifications` table + `useNotifications` hook + push notifications مذكورة في الذاكرة) |
+| Activity Tracking | موجود جزئياً (`useActivityTracker` يحدث `last_active_at` فقط) |
+| profiles.last_active_at | موجود |
+| Onboarding | موجود (5 tasks مع progress card) |
+
+---
+
+## التقسيم لدفعات (بسبب حجم المشروع)
+
+### الدفعة 1 (هذه): Daily Hub + Activity Feed + Streak Tracker الحقيقي
+### الدفعة 2 (لاحقاً): نرد اليوم الذكي + إشعار يومي + Cron Job كامل
 
 ---
 
 ## 1. قاعدة البيانات (Migration)
 
-### A) جدول `plan_days`
+### A) جدول `daily_hub_cache`
+
+يخزن بيانات Daily Hub المحسوبة لكل مستخدم (يتحدث كل 24 ساعة عبر Cron أو عند أول زيارة):
+
+| العمود | النوع | الوصف |
+|--------|------|-------|
+| user_id | uuid PK FK profiles | المستخدم |
+| user_state | text NOT NULL default 'new' | الحالة: active/low_activity/new |
+| streak_count | int default 0 | عدد أيام النشاط المتتالية |
+| last_action_at | timestamptz NULL | آخر عمل حقيقي |
+| days_since_last_action | int default 0 | أيام منذ آخر عمل |
+| last_group_event | jsonb NULL | آخر حدث مؤثر في المجموعة |
+| suggested_dice_type | text NULL | نوع النرد المقترح |
+| motivational_message | text NULL | رسالة تحفيزية |
+| computed_at | timestamptz default now() | وقت الحساب |
+
+### B) جدول `group_activity_feed`
+
+يخزن أحداث المجموعة (عرض فقط -- آخر 20 حدث):
 
 | العمود | النوع | الوصف |
 |--------|------|-------|
 | id | uuid PK default gen_random_uuid() | معرف فريد |
-| plan_id | uuid NOT NULL FK plans(id) ON DELETE CASCADE | الخطة |
-| date | date NOT NULL | التاريخ |
-| day_index | int NOT NULL | ترتيب اليوم (1..N) |
-| created_at | timestamptz default now() | تاريخ الإنشاء |
+| group_id | uuid NOT NULL FK groups(id) ON DELETE CASCADE | المجموعة |
+| event_type | text NOT NULL | النوع: expense_added/settlement_made/member_joined/split_completed |
+| actor_user_id | uuid NOT NULL | من قام بالعمل |
+| event_data | jsonb default '{}' | بيانات الحدث (amount, description, member_name, ...) |
+| smart_message_ar | text NULL | رسالة ذكية بالعربي |
+| smart_message_en | text NULL | رسالة ذكية بالإنجليزي |
+| created_at | timestamptz default now() | وقت الحدث |
 
-- UNIQUE constraint: (plan_id, date)
-- Index: plan_days_plan_idx (plan_id)
+Index: group_activity_feed_group_idx (group_id, created_at DESC)
 
-### B) جدول `plan_day_activities`
+### C) جدول `user_action_log`
+
+يسجل الأعمال الحقيقية للمستخدم (للـ Streak الحقيقي):
 
 | العمود | النوع | الوصف |
 |--------|------|-------|
 | id | uuid PK default gen_random_uuid() | معرف فريد |
-| plan_day_id | uuid NOT NULL FK plan_days(id) ON DELETE CASCADE | اليوم |
-| title | text NOT NULL | عنوان النشاط |
-| description | text NULL | تفاصيل |
-| time_slot | text NOT NULL default 'any' | الفترة: morning/afternoon/evening/any |
-| status | text NOT NULL default 'idea' | الحالة: idea/proposed/locked |
-| estimated_cost | numeric NULL | التكلفة التقديرية |
-| currency | text default 'SAR' | العملة |
-| participant_scope | text NOT NULL default 'all' | نطاق المشاركين: all/custom |
-| participant_user_ids | uuid[] NULL | مشاركين محددين |
-| created_by | text NOT NULL default 'user' | المنشئ: ai/user |
-| linked_expense_id | uuid NULL FK expenses(id) ON DELETE SET NULL | ربط بمصروف |
-| linked_vote_id | uuid NULL FK plan_votes(id) ON DELETE SET NULL | ربط بتصويت |
-| created_at | timestamptz default now() | تاريخ الإنشاء |
+| user_id | uuid NOT NULL FK profiles | المستخدم |
+| action_type | text NOT NULL | النوع: expense_added/settlement_made/dice_shared |
+| action_date | date NOT NULL default CURRENT_DATE | تاريخ العمل |
+| metadata | jsonb default '{}' | بيانات إضافية |
+| created_at | timestamptz default now() | وقت التسجيل |
 
-- Index: plan_day_activities_day_idx (plan_day_id)
-- Index: plan_day_activities_status_idx (status)
+UNIQUE: (user_id, action_type, action_date) -- منع التكرار لنفس النوع في نفس اليوم
+Index: user_action_log_user_date_idx (user_id, action_date)
 
-### C) دالة `ensure_plan_days`
+### D) RPC: `compute_daily_hub`
 
-دالة RPC تنشئ/تُوفّق أيام الخطة بناءً على start_date و end_date:
+دالة تحسب وتخزن بيانات Daily Hub لمستخدم واحد:
 
 ```text
-create or replace function public.ensure_plan_days(p_plan_id uuid)
+create or replace function public.compute_daily_hub(p_user_id uuid)
+returns jsonb
+```
+
+المنطق:
+1. فحص آخر عمل حقيقي من `user_action_log`
+2. حساب `days_since_last_action`
+3. تحديد `user_state`:
+   - active: عمل خلال آخر 3 أيام
+   - low_activity: عمل خلال 4-14 يوم
+   - new: لا يوجد أي عمل (أو أكثر من 14 يوم بدون مجموعات)
+4. حساب streak حقيقي (أيام متتالية بعمل واحد على الأقل)
+5. جلب آخر حدث مؤثر من `group_activity_feed`
+6. تحديد نوع النرد المقترح حسب الوقت ونوع المجموعة
+7. اختيار رسالة تحفيزية حسب الحالة
+8. Upsert في `daily_hub_cache`
+9. إرجاع البيانات كـ JSON
+
+### E) RPC: `log_user_action`
+
+دالة تسجل عمل المستخدم وتحدث Streak:
+
+```text
+create or replace function public.log_user_action(
+  p_user_id uuid,
+  p_action_type text,
+  p_metadata jsonb default '{}'
+)
 returns void
 ```
 
 المنطق:
-1. جلب start_date و end_date من plans
-2. إذا أحدهما null: لا تفعل شيئاً
-3. إنشاء صف لكل يوم في النطاق (inclusive) إن لم يكن موجوداً
-4. حذف الأيام خارج النطاق فقط إذا لم يكن لها أنشطة
-5. تحديث day_index ليكون متسلسلاً
+1. INSERT INTO user_action_log ON CONFLICT DO NOTHING
+2. تحديث user_streaks بناءً على الأيام المتتالية الحقيقية
+3. تحديث daily_hub_cache.last_action_at
 
-### D) Trigger على plans
+### F) Trigger: تسجيل أحداث المجموعة تلقائياً
 
-عند تحديث start_date أو end_date في plans:
-- استدعاء ensure_plan_days تلقائياً
-- هذا يضمن تحديث الأيام عند تغيير التواريخ
+Triggers على `expenses` و `settlements` و `group_members`:
+- عند INSERT expense: إضافة حدث `expense_added` في `group_activity_feed`
+- عند INSERT settlement (confirmed): إضافة حدث `settlement_made`
+- عند INSERT group_member: إضافة حدث `member_joined`
+- كل حدث يتضمن رسالة ذكية مولدة بالـ SQL
 
-### E) RLS Policies
+### G) Trigger: تسجيل أعمال المستخدم تلقائياً
 
-- **plan_days**: 
-  - SELECT: `can_access_plan(auth.uid(), plan_id)`
-  - INSERT/UPDATE/DELETE: `is_plan_admin(auth.uid(), plan_id)`
-  
-- **plan_day_activities**:
-  - SELECT: أي شخص يملك access للخطة (عبر join مع plan_days)
-  - INSERT: أي عضو في الخطة يمكنه إضافة نشاط
-  - UPDATE: المنشئ أو owner/admin
-  - DELETE: owner/admin فقط
+Triggers على `expenses` و `settlements`:
+- عند INSERT expense: استدعاء `log_user_action('expense_added')`
+- عند INSERT settlement: استدعاء `log_user_action('settlement_made')`
 
----
+### H) RLS Policies
 
-## 2. Edge Function: `plan-day-ai-suggest`
-
-Edge function جديدة لاقتراحات AI لكل يوم:
-
-### المدخلات
-```text
-{ day_id: uuid, preferences?: string }
-```
-
-### المخرجات
-```text
-{ activities: [{ title, description, time_slot, estimated_cost }] }
-```
-
-### المنطق
-1. التحقق من الصلاحيات (can_access_plan)
-2. Rate limit: 1 تشغيل لكل يوم كل 10 دقائق (عبر فحص آخر نشاط AI لنفس اليوم)
-3. جلب بيانات الخطة + اليوم (day_index, date, total days count)
-4. منطق ذكي حسب day_index:
-   - اليوم الأول: أنشطة وصول + تسجيل + عشاء
-   - اليوم الأخير: تسوق + checkout + مغادرة
-   - أيام وسط: أنشطة رئيسية كاملة
-5. إذا destination مفقودة: إرجاع رسالة تطلب إضافة وجهة
-6. استدعاء Lovable AI Gateway (google/gemini-3-flash-preview)
-7. Fallback templates حسب plan_type + day_index
-8. حذف أنشطة AI سابقة لنفس اليوم (created_by='ai') ثم إدراج الجديدة
-9. إرجاع الأنشطة المقترحة
-
-### Fallback Templates
-
-```text
-اليوم الأول (trip):
-  - morning: "الوصول والتسجيل" + تفاصيل
-  - afternoon: "استكشاف المنطقة"
-  - evening: "عشاء جماعي"
-
-أيام الوسط (trip):
-  - morning: "نشاط صباحي رئيسي"
-  - afternoon: "جولة بعد الغداء"
-  - evening: "سهرة جماعية"
-
-اليوم الأخير (trip):
-  - morning: "إفطار + checkout"
-  - afternoon: "تسوق هدايا"
-  - evening: "المغادرة"
-```
+- **daily_hub_cache**: SELECT فقط لصاحب السجل
+- **group_activity_feed**: SELECT إذا المستخدم عضو في المجموعة
+- **user_action_log**: SELECT فقط لصاحب السجل; INSERT تلقائي عبر triggers
 
 ---
 
-## 3. ملفات جديدة
+## 2. ملفات جديدة
 
-### `src/hooks/usePlanItinerary.ts`
+### `src/hooks/useDailyHub.ts`
 
-Hook رئيسي لإدارة الجدول اليومي:
-- `days`: جلب plan_days مع activities متداخلة
-- `ensureDays()`: استدعاء RPC ensure_plan_days
-- `addActivity(dayId, data)`: إضافة نشاط
-- `updateActivity(activityId, data)`: تعديل نشاط
-- `deleteActivity(activityId)`: حذف نشاط
-- `generateDaySuggestions(dayId, preferences?)`: استدعاء edge function
-- `convertActivityToVote(activityId)`: تحويل نشاط لتصويت
-- `linkActivityToExpense(activityId, expenseId)`: ربط بمصروف
-- `isLoading`, `isGenerating`
-
-### `src/components/plans/PlanItineraryTab.tsx`
-
-تبويب الجدول اليومي الرئيسي:
+Hook رئيسي لصفحة Daily Hub:
 
 ```text
-حالة بدون تواريخ:
+- hubData: بيانات الـ cache (user_state, streak, last_group_event, suggested_dice, message)
+- isLoading
+- computeHub(): استدعاء RPC إذا البيانات قديمة (> 12 ساعة)
+- userState: 'active' | 'low_activity' | 'new'
+```
+
+المنطق:
+1. جلب `daily_hub_cache` للمستخدم
+2. إذا لا يوجد أو `computed_at` أقدم من 12 ساعة: استدعاء `compute_daily_hub` RPC
+3. إرجاع البيانات
+
+### `src/hooks/useActivityFeed.ts`
+
+Hook لجلب Activity Feed لمجموعة:
+
+```text
+- events: قائمة الأحداث (آخر 20)
+- isLoading
+```
+
+### `src/hooks/useRealStreak.ts`
+
+Hook للـ Streak الحقيقي (يكمّل `useDailyCheckin` الموجود):
+
+```text
+- realStreak: عدد الأيام المتتالية بأعمال حقيقية
+- logAction(actionType): تسجيل عمل يدوياً (لنرد اليوم)
+```
+
+### `src/pages/DailyHub.tsx`
+
+الصفحة الرئيسية الذكية -- تستبدل `/dashboard` كصفحة أولى بعد تسجيل الدخول:
+
+```text
+الحالة A (مستخدم نشط):
 +------------------------------------------+
-|  📅  أضف تواريخ الخطة ليظهر الجدول       |
-|     [تعديل الخطة]                        |
+|  🔥 5 أيام متتالية                       |
++------------------------------------------+
+|  [بطاقة نشاط المجموعة]                   |
+|  "أحمد أضاف مصروف 200 ر.س في السفر"      |
++------------------------------------------+
+|  [🎲 نرد اليوم] نرد أكل مقترح            |
+|  [ارمِ النرد]                            |
++------------------------------------------+
+|  💬 "أنت ناشط هالأسبوع، استمر!"          |
 +------------------------------------------+
 
-حالة مع تواريخ:
+الحالة B (مستخدم قليل النشاط):
 +------------------------------------------+
-|  اليوم 1 — 10/02/2026                    |
-|  [+ نشاط] [🤖 اقترح]                    |
-|  ┌─ صباح ─────────────────────────┐     |
-|  │ الوصول والتسجيل  [فكرة]        │     |
-|  └─────────────────────────────────┘     |
-|  ┌─ مساء ──────────────────────────┐     |
-|  │ عشاء جماعي  [مقترح] 200 ر.س    │     |
-|  └─────────────────────────────────┘     |
+|  ⏰ آخر قسمة كانت قبل 5 أيام             |
 +------------------------------------------+
-|  اليوم 2 — 11/02/2026                    |
-|  [+ نشاط] [🤖 اقترح]                    |
-|  ...                                     |
+|  [نفّذ خطوة بسيطة اليوم]                 |
+|  → يوجه لإضافة مصروف أو رمي نرد          |
++------------------------------------------+
+
+الحالة C (مستخدم جديد):
++------------------------------------------+
+|  👋 مرحباً!                              |
++------------------------------------------+
+|  [🎲 جرّب نرد اليوم]                     |
+|  أو [قسمة تجريبية]                       |
 +------------------------------------------+
 ```
 
-### `src/components/plans/DayCard.tsx`
+**مهم**: صفحة DailyHub تكون خفيفة (لا عمليات ثقيلة) -- تقرأ من cache فقط.
 
-بطاقة اليوم:
-- Header: "اليوم {day_index} -- {date}"
-- أزرار: "إضافة نشاط" + "اقترح أنشطة"
-- تجميع الأنشطة حسب time_slot (اختياري UI)
-- عرض ActivityCard لكل نشاط
-- حالة التحميل عند توليد AI
+### `src/components/daily-hub/ActiveUserState.tsx`
 
-### `src/components/plans/ActivityCard.tsx`
+مكون الحالة A -- المستخدم النشط:
+- عرض Streak كبير (رقم + أيقونة نار)
+- بطاقة آخر حدث مجموعة
+- نرد اليوم المقترح
+- رسالة تحفيزية
 
-بطاقة النشاط:
-- title + description (قابلة للتوسيع)
-- Badge الحالة: idea (رمادي) / proposed (أزرق) / locked (أخضر)
-- Badge الفترة: صباح/ظهر/مساء/عام
-- التكلفة التقديرية (إن وجدت)
-- مؤشر المشاركين (الكل / مخصص)
-- مؤشر الربط بتصويت (إن وجد linked_vote_id)
-- مؤشر الربط بمصروف (إن وجد linked_expense_id)
-- قائمة إجراءات (DropdownMenu):
-  - "تعديل"
-  - "حوّل لتصويت"
-  - "اربط بمصروف"
-  - "قفل النشاط" (admin فقط)
-  - "حذف" (admin فقط)
+### `src/components/daily-hub/LowActivityState.tsx`
 
-### `src/components/plans/AddActivityDialog.tsx`
+مكون الحالة B -- المستخدم قليل النشاط:
+- رسالة واحدة واضحة مع عدد الأيام
+- زر CTA واحد فقط
 
-حوار إضافة نشاط:
-- العنوان (مطلوب)
-- الفترة الزمنية (morning/afternoon/evening/any)
-- قسم "تفاصيل إضافية" (Collapsible):
-  - الوصف
-  - التكلفة التقديرية + العملة
-  - نطاق المشاركين (all/custom)
-- زر حفظ
+### `src/components/daily-hub/NewUserState.tsx`
 
-### `src/components/plans/EditActivityDialog.tsx`
+مكون الحالة C -- المستخدم الجديد:
+- Quick Win مباشر
+- زر "جرّب نرد اليوم"
+- رابط لقسمة تجريبية (launch page)
 
-حوار تعديل نشاط (مشابه لإضافة + تعبئة مسبقة + تعديل الحالة)
+### `src/components/daily-hub/StreakDisplay.tsx`
 
-### `src/components/plans/LinkActivityExpenseDialog.tsx`
+عرض Streak بسيط:
+- رقم واحد كبير مع أيقونة 🔥
+- بدون تشتيت بصري
 
-حوار ربط نشاط بمصروف:
-- خياران:
-  1. "إنشاء مصروف جديد" -- ينتقل لـ AddExpense مع بيانات مسبقة
-  2. "ربط بمصروف موجود" -- قائمة مصاريف الخطة (plan_id = this plan)
-- عند الربط: تحديث activity.linked_expense_id
+### `src/components/daily-hub/GroupEventCard.tsx`
+
+بطاقة آخر حدث في المجموعة:
+- الرسالة الذكية
+- اسم المجموعة
+- زمن الحدث
+
+### `src/components/daily-hub/DailyDiceCard.tsx`
+
+بطاقة نرد اليوم المقترح:
+- نوع النرد المقترح مع سبب
+- زر "ارمِ النرد"
+- يفتح DiceDecision dialog
+
+### `src/components/group/GroupActivityFeed.tsx`
+
+Activity Feed داخل صفحة المجموعة:
+- عرض فقط (بدون تفاعل أو تعليقات)
+- آخر 20 حدث
+- أيقونة + رسالة ذكية + زمن نسبي
 
 ---
 
-## 4. الملفات المعدلة
+## 3. الملفات المعدلة
 
-### `src/pages/PlanDetails.tsx`
+### `src/App.tsx`
 
-تغييرات:
-- إضافة تبويب خامس "الجدول" (itinerary) في TabsList (grid-cols-5)
-- إضافة TabsContent لـ PlanItineraryTab
-- تمرير: planId, isAdmin, hasDates (start_date && end_date), plan data
+- إضافة route `/daily-hub` محمي
+- تغيير redirect بعد login من `/dashboard` إلى `/daily-hub`
 
-### `supabase/config.toml`
+### `src/components/BottomNav.tsx`
 
-إضافة:
-```text
-[functions.plan-day-ai-suggest]
-verify_jwt = true
-```
+- تغيير الرابط الأول من `/dashboard` إلى `/daily-hub`
+- أو إبقاء `/dashboard` وجعل DailyHub هو المحتوى الافتراضي
 
-### `src/i18n/locales/ar/plans.json`
+**القرار**: `/dashboard` يبقى كما هو مع إضافة DailyHub كقسم علوي في Dashboard بدلاً من صفحة منفصلة. هذا أسهل للمستخدم ولا يكسر navigation موجود.
+
+### `src/pages/Dashboard.tsx`
+
+تعديلات:
+- إضافة `DailyHubSection` كأول مكون بعد Welcome (يحل محل stats grid كأول شيء يراه المستخدم)
+- DailyHubSection يعرض الحالة المناسبة (A/B/C) حسب `daily_hub_cache`
+- بقية المكونات (stats, checkin, achievements, quick actions) تبقى تحته
+
+### `src/pages/GroupDetails.tsx`
+
+- إضافة `GroupActivityFeed` كمكون جديد في صفحة تفاصيل المجموعة (بعد الملخص وقبل المصاريف)
+
+### `src/hooks/useDailyCheckin.ts`
+
+- تعديل `claimReward` ليستدعي `log_user_action('daily_checkin')` (اختياري -- Daily Checkin وحده لا يحسب streak حقيقي)
+
+### `src/i18n/locales/ar/dashboard.json`
 
 إضافة مفاتيح:
+
 ```text
-"itinerary": {
-  "tab": "الجدول",
-  "no_dates": "أضف تواريخ الخطة ليظهر الجدول اليومي",
-  "edit_plan": "تعديل الخطة",
-  "day_title": "اليوم {{index}}",
-  "add_activity": "إضافة نشاط",
-  "suggest_activities": "🤖 اقترح أنشطة",
-  "suggesting": "جاري الاقتراح...",
-  "suggest_success": "تم اقتراح أنشطة لهذا اليوم",
-  "suggest_error": "فشل في اقتراح الأنشطة",
-  "suggest_no_destination": "أضف وجهة الخطة أولاً للحصول على اقتراحات مخصصة",
-  "suggest_rate_limited": "انتظر 10 دقائق قبل المحاولة مرة أخرى",
-  "no_activities": "لا توجد أنشطة لهذا اليوم",
-  "time_slots": {
-    "morning": "صباح",
-    "afternoon": "ظهر",
-    "evening": "مساء",
-    "any": "عام"
+"daily_hub": {
+  "streak": "🔥 {{count}} يوم متتالي",
+  "active_message": "أنت ناشط هالأسبوع، استمر!",
+  "low_activity_title": "آخر قسمة كانت قبل {{days}} يوم",
+  "low_activity_cta": "نفّذ خطوة بسيطة اليوم",
+  "new_user_title": "مرحباً!",
+  "new_user_dice": "🎲 جرّب نرد اليوم",
+  "new_user_demo": "قسمة تجريبية",
+  "daily_dice_title": "نرد اليوم",
+  "daily_dice_cta": "ارمِ النرد",
+  "group_event_title": "آخر نشاط",
+  "motivational_messages": {
+    "active_1": "أداؤك ممتاز هالأسبوع 💪",
+    "active_2": "استمر، أنت من أنشط المستخدمين!",
+    "active_3": "مصاريفك منظمة، أحسنت 👌",
+    "low_1": "وش رأيك تضيف مصروف بسيط اليوم؟",
+    "low_2": "مجموعتك تنتظرك 👀",
+    "low_3": "خطوة صغيرة تفرق!"
+  }
+},
+"activity_feed": {
+  "title": "آخر الأحداث",
+  "expense_added": "{{name}} أضاف مصروف {{amount}} {{currency}}",
+  "settlement_made": "{{name}} سدّد {{amount}} {{currency}}",
+  "member_joined": "{{name}} انضم للمجموعة",
+  "split_completed": "تم إكمال القسمة",
+  "smart_messages": {
+    "almost_balanced": "باقي شخص واحد وتكتمل القسمة 👀",
+    "closer_to_balance": "{{name}} قرّب المجموعة للتوازن 💚",
+    "big_expense": "مصروف كبير! 🔥",
+    "new_member_welcome": "أهلاً بالعضو الجديد! 🎉"
   },
-  "activity_status": {
-    "idea": "فكرة",
-    "proposed": "مقترح",
-    "locked": "مثبّت"
-  },
-  "activity_actions": {
-    "edit": "تعديل",
-    "convert_to_vote": "حوّل لتصويت",
-    "link_expense": "اربط بمصروف",
-    "lock": "تثبيت",
-    "unlock": "إلغاء التثبيت",
-    "delete": "حذف",
-    "delete_confirm": "حذف هذا النشاط؟",
-    "delete_confirm_desc": "لا يمكن التراجع عن هذا الإجراء"
-  },
-  "add_activity_dialog": {
-    "title": "إضافة نشاط",
-    "activity_title": "عنوان النشاط",
-    "activity_title_placeholder": "مثال: زيارة المتحف",
-    "time_slot": "الفترة الزمنية",
-    "extra_details": "تفاصيل إضافية",
-    "description": "الوصف",
-    "description_placeholder": "تفاصيل إضافية عن النشاط",
-    "estimated_cost": "التكلفة التقديرية",
-    "participants": "المشاركين",
-    "all_members": "جميع الأعضاء",
-    "custom": "مخصص",
-    "save": "حفظ",
-    "saving": "جاري الحفظ..."
-  },
-  "edit_activity_dialog": {
-    "title": "تعديل نشاط"
-  },
-  "link_expense_dialog": {
-    "title": "ربط النشاط بمصروف",
-    "create_new": "إنشاء مصروف جديد",
-    "link_existing": "ربط بمصروف موجود",
-    "no_plan_expenses": "لا توجد مصاريف في الخطة",
-    "link_success": "تم ربط النشاط بالمصروف",
-    "link_error": "فشل في الربط"
-  },
-  "convert_vote_success": "تم تحويل النشاط لتصويت",
-  "convert_vote_error": "فشل في التحويل",
-  "activity_saved": "تم حفظ النشاط",
-  "activity_updated": "تم تحديث النشاط",
-  "activity_deleted": "تم حذف النشاط",
-  "activity_locked": "تم تثبيت النشاط",
-  "activity_unlocked": "تم إلغاء تثبيت النشاط"
+  "time_ago": {
+    "just_now": "الآن",
+    "minutes": "قبل {{count}} دقيقة",
+    "hours": "قبل {{count}} ساعة",
+    "days": "قبل {{count}} يوم"
+  }
 }
 ```
 
-### `src/i18n/locales/en/plans.json`
+### `src/i18n/locales/en/dashboard.json`
 
-إضافة نفس المفاتيح بالإنجليزية:
+إضافة نفس المفاتيح بالإنجليزية.
+
+---
+
+## 4. التفاصيل التقنية
+
+### منطق تحديد حالة المستخدم
+
 ```text
-"itinerary": {
-  "tab": "Itinerary",
-  "no_dates": "Add plan dates to see the daily schedule",
-  "edit_plan": "Edit Plan",
-  "day_title": "Day {{index}}",
-  "add_activity": "Add Activity",
-  "suggest_activities": "🤖 Suggest Activities",
-  "suggesting": "Suggesting...",
-  "suggest_success": "Activities suggested for this day",
-  "suggest_error": "Failed to suggest activities",
-  "suggest_no_destination": "Add a plan destination first for personalized suggestions",
-  "suggest_rate_limited": "Wait 10 minutes before trying again",
-  "no_activities": "No activities for this day",
-  "time_slots": {
-    "morning": "Morning",
-    "afternoon": "Afternoon",
-    "evening": "Evening",
-    "any": "Any time"
-  },
-  "activity_status": {
-    "idea": "Idea",
-    "proposed": "Proposed",
-    "locked": "Locked"
-  },
-  "activity_actions": {
-    "edit": "Edit",
-    "convert_to_vote": "Convert to Vote",
-    "link_expense": "Link Expense",
-    "lock": "Lock",
-    "unlock": "Unlock",
-    "delete": "Delete",
-    "delete_confirm": "Delete this activity?",
-    "delete_confirm_desc": "This action cannot be undone"
-  },
-  "add_activity_dialog": {
-    "title": "Add Activity",
-    "activity_title": "Activity Title",
-    "activity_title_placeholder": "e.g., Visit the museum",
-    "time_slot": "Time Slot",
-    "extra_details": "Extra Details",
-    "description": "Description",
-    "description_placeholder": "Additional details about the activity",
-    "estimated_cost": "Estimated Cost",
-    "participants": "Participants",
-    "all_members": "All Members",
-    "custom": "Custom",
-    "save": "Save",
-    "saving": "Saving..."
-  },
-  "edit_activity_dialog": {
-    "title": "Edit Activity"
-  },
-  "link_expense_dialog": {
-    "title": "Link Activity to Expense",
-    "create_new": "Create New Expense",
-    "link_existing": "Link Existing Expense",
-    "no_plan_expenses": "No expenses in this plan",
-    "link_success": "Activity linked to expense",
-    "link_error": "Failed to link"
-  },
-  "convert_vote_success": "Activity converted to vote",
-  "convert_vote_error": "Failed to convert",
-  "activity_saved": "Activity saved",
-  "activity_updated": "Activity updated",
-  "activity_deleted": "Activity deleted",
-  "activity_locked": "Activity locked",
-  "activity_unlocked": "Activity unlocked"
-}
+function determineUserState(lastActionAt, daysCount, groupsCount):
+  if lastActionAt is null AND groupsCount == 0:
+    return 'new'
+  if days_since_last_action <= 3:
+    return 'active'
+  if days_since_last_action <= 14:
+    return 'low_activity'
+  if groupsCount == 0:
+    return 'new'
+  return 'low_activity'
+```
+
+### منطق Streak الحقيقي
+
+```text
+-- حساب أيام متتالية بأعمال حقيقية
+WITH daily_actions AS (
+  SELECT DISTINCT action_date
+  FROM user_action_log
+  WHERE user_id = p_user_id
+  ORDER BY action_date DESC
+),
+streak AS (
+  SELECT action_date,
+    action_date - (ROW_NUMBER() OVER (ORDER BY action_date DESC))::int AS grp
+  FROM daily_actions
+)
+SELECT COUNT(*) AS streak_length
+FROM streak
+WHERE grp = (SELECT grp FROM streak LIMIT 1)
+```
+
+الأعمال التي تحسب في Streak:
+- إضافة مصروف
+- سداد مبلغ
+- استخدام نرد اليوم + مشاركة النتيجة داخل مجموعة
+
+فتح التطبيق فقط لا يحسب.
+
+### منطق الرسائل الذكية في Activity Feed
+
+```text
+عند إضافة مصروف:
+  if amount > group_avg * 2:
+    smart_message = "مصروف كبير! 🔥"
+  else:
+    smart_message = "{{name}} أضاف مصروف {{amount}} {{currency}}"
+
+عند سداد:
+  -- حساب عدد الأشخاص الذين لم يسددوا بعد
+  remaining = count(unsettled members)
+  if remaining == 1:
+    smart_message = "باقي شخص واحد وتكتمل القسمة 👀"
+  else:
+    smart_message = "{{name}} قرّب المجموعة للتوازن 💚"
+
+عند انضمام عضو:
+  smart_message = "أهلاً بالعضو الجديد! 🎉"
+```
+
+### منطق نرد اليوم المقترح
+
+```text
+hour = EXTRACT(HOUR FROM NOW())
+day_of_week = EXTRACT(DOW FROM NOW())
+
+if hour >= 18:
+  suggested = 'food'     -- مساء = نرد أكل
+elif day_of_week IN (5, 6):
+  suggested = 'activity'  -- نهاية أسبوع = نرد طلعات
+elif has_active_group:
+  suggested = 'activity'  -- مجموعة نشطة = نرد جماعي
+else:
+  suggested = 'quick'     -- فردي = نرد شخصي
+```
+
+### Cache Strategy
+
+```text
+1. أول زيارة للمستخدم: يستدعي compute_daily_hub RPC
+2. النتيجة تخزن في daily_hub_cache
+3. الزيارات التالية: يقرأ من cache مباشرة (عملية SELECT خفيفة)
+4. إذا computed_at أقدم من 12 ساعة: يعيد الحساب
+5. Cron Job يومي (الدفعة 2): يحسب لجميع المستخدمين النشطين
+```
+
+### تسجيل الأحداث تلقائياً (Triggers)
+
+```text
+-- Trigger على expenses (INSERT)
+CREATE FUNCTION log_expense_event() RETURNS trigger AS $$
+BEGIN
+  -- 1. إضافة حدث في activity_feed
+  INSERT INTO group_activity_feed (group_id, event_type, actor_user_id, event_data, smart_message_ar)
+  VALUES (NEW.group_id, 'expense_added', NEW.created_by, 
+    jsonb_build_object('amount', NEW.amount, 'description', NEW.description, 'currency', NEW.currency),
+    NEW.created_by || ' أضاف مصروف ' || NEW.amount
+  );
+  
+  -- 2. تسجيل عمل المستخدم
+  INSERT INTO user_action_log (user_id, action_type, action_date)
+  VALUES (NEW.created_by, 'expense_added', CURRENT_DATE)
+  ON CONFLICT DO NOTHING;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 ```
 
 ---
 
-## 5. التفاصيل التقنية
-
-### سلوك ensure_plan_days
-
-```text
-plan.start_date = 2026-02-10
-plan.end_date = 2026-02-13
-
-Result:
-  plan_days: [
-    { date: 2026-02-10, day_index: 1 },
-    { date: 2026-02-11, day_index: 2 },
-    { date: 2026-02-12, day_index: 3 },
-    { date: 2026-02-13, day_index: 4 },
-  ]
-
-If dates change to 2026-02-11 -> 2026-02-14:
-  - Day 2026-02-10: delete ONLY if no activities exist
-  - Day 2026-02-14: create new
-  - Reindex all remaining days
-```
-
-### سلوك توليد AI لليوم
-
-```text
-User clicks "اقترح أنشطة" on Day 2
-  --> Edge function: plan-day-ai-suggest
-  --> Checks: rate limit (10 min), access, destination required
-  --> AI prompt includes: plan_type, destination, budget, day_index, total_days
-  --> Generates 3-5 activities with time_slots
-  --> Deletes old AI activities for this day (created_by='ai')
-  --> Inserts new activities with status='proposed', created_by='ai'
-  --> Returns activities to UI
-  --> Toast: "تم اقتراح أنشطة لهذا اليوم"
-```
-
-### سلوك تحويل نشاط لتصويت
-
-```text
-User clicks "حوّل لتصويت" on activity
-  --> Creates plan_vote: title=activity.title
-  --> Creates 3 options: "نعم" / "لا" / "بديل"
-  --> Updates activity.linked_vote_id = new vote.id
-  --> Toast + navigate to votes tab
-```
-
-### سلوك ربط نشاط بمصروف
-
-```text
-User clicks "اربط بمصروف"
-  --> LinkActivityExpenseDialog opens
-  --> Option 1: "إنشاء مصروف جديد"
-    --> Navigate to /add-expense?planId=X&groupId=Y&title=activity.title&amount=estimated_cost&date=day.date
-    --> After create: update activity.linked_expense_id
-  --> Option 2: "ربط بمصروف موجود"
-    --> Show list of plan expenses where linked to no activity
-    --> Pick one --> update activity.linked_expense_id
-```
-
-### تغييرات تبويب PlanDetails
-
-```text
-الحالي: grid-cols-4 (ملخص | اقتراحات | تصويت | مصاريف)
-الجديد: grid-cols-5 (ملخص | الجدول | اقتراحات | تصويت | مصاريف)
-
-تبويب "الجدول" يكون في المرتبة الثانية بعد الملخص لأنه الأهم يومياً
-```
-
----
-
-## 6. ملخص الملفات
+## 5. ملخص الملفات
 
 ### ملفات جديدة
 
 | الملف | الوصف |
 |-------|------|
-| Migration SQL | plan_days + plan_day_activities + ensure_plan_days RPC + trigger + RLS |
-| `supabase/functions/plan-day-ai-suggest/index.ts` | Edge function لاقتراحات AI يومية |
-| `src/hooks/usePlanItinerary.ts` | Hook إدارة الجدول اليومي |
-| `src/components/plans/PlanItineraryTab.tsx` | تبويب الجدول الرئيسي |
-| `src/components/plans/DayCard.tsx` | بطاقة اليوم مع أنشطة |
-| `src/components/plans/ActivityCard.tsx` | بطاقة النشاط مع إجراءات |
-| `src/components/plans/AddActivityDialog.tsx` | حوار إضافة نشاط |
-| `src/components/plans/EditActivityDialog.tsx` | حوار تعديل نشاط |
-| `src/components/plans/LinkActivityExpenseDialog.tsx` | حوار ربط نشاط بمصروف |
+| Migration SQL | 3 جداول + RPCs + Triggers + RLS |
+| `src/hooks/useDailyHub.ts` | Hook بيانات Daily Hub |
+| `src/hooks/useActivityFeed.ts` | Hook Activity Feed للمجموعة |
+| `src/hooks/useRealStreak.ts` | Hook Streak الحقيقي |
+| `src/components/daily-hub/DailyHubSection.tsx` | قسم Daily Hub في Dashboard |
+| `src/components/daily-hub/ActiveUserState.tsx` | حالة المستخدم النشط |
+| `src/components/daily-hub/LowActivityState.tsx` | حالة المستخدم قليل النشاط |
+| `src/components/daily-hub/NewUserState.tsx` | حالة المستخدم الجديد |
+| `src/components/daily-hub/StreakDisplay.tsx` | عرض Streak |
+| `src/components/daily-hub/GroupEventCard.tsx` | بطاقة حدث المجموعة |
+| `src/components/daily-hub/DailyDiceCard.tsx` | بطاقة نرد اليوم |
+| `src/components/group/GroupActivityFeed.tsx` | Activity Feed في المجموعة |
 
 ### ملفات معدلة
 
 | الملف | التعديل |
 |-------|--------|
-| `src/pages/PlanDetails.tsx` | إضافة تبويب "الجدول" (grid-cols-5) + import PlanItineraryTab |
-| `supabase/config.toml` | إضافة plan-day-ai-suggest function config |
-| `src/i18n/locales/ar/plans.json` | إضافة مفاتيح itinerary |
-| `src/i18n/locales/en/plans.json` | إضافة مفاتيح itinerary |
+| `src/pages/Dashboard.tsx` | إضافة DailyHubSection كأول مكون |
+| `src/pages/GroupDetails.tsx` | إضافة GroupActivityFeed |
+| `src/i18n/locales/ar/dashboard.json` | إضافة مفاتيح daily_hub + activity_feed |
+| `src/i18n/locales/en/dashboard.json` | إضافة مفاتيح daily_hub + activity_feed |
+
+---
+
+## 6. ما لا تشمله هذه الدفعة (الدفعة 2)
+
+- Cron Job يومي لحساب daily_hub_cache لجميع المستخدمين
+- إشعار يومي ذكي (Segmented Notification) مع Edge Function + Cron
+- نرد اليوم المثبت (dice_of_the_day column لمنع التغيير خلال 24 ساعة)
+- تقسيم الإشعارات حسب نوع المستخدم (نشط/شبه نائم/نائم)
+- فحص "آخر 12 ساعة فتح التطبيق" قبل إرسال الإشعار
 
 ---
 
 ## 7. حالات طرفية مهمة
 
-- خطة بيوم واحد (طلعة/نشاط): يعمل بشكل طبيعي مع day_index=1
-- تحديث التواريخ: الأيام الموجودة تبقى إن كانت تحتوي أنشطة
-- إعادة تشغيل AI: يحذف أنشطة AI السابقة فقط، لا يمس أنشطة المستخدم
-- خطة بدون وجهة: AI يرجع رسالة تطلب إضافة وجهة بدل الفشل
-- صلاحيات: أي عضو يمكنه إضافة نشاط، فقط admin/owner يمكنهم الحذف والقفل
+- مستخدم بدون مجموعات: يعامل كـ "new" حتى لو عنده حساب قديم
+- مستخدم له مجموعات لكن بدون مصاريف: يعامل كـ "low_activity"
+- Activity Feed فارغ: يعرض رسالة "لا توجد أحداث حتى الآن"
+- Streak ينقطع: يعود لـ 0 بدون عقاب
+- عدة أعمال في نفس اليوم: تحسب كيوم واحد فقط في Streak
+- التوافق مع Daily Checkin الموجود: DailyCheckin يبقى كنظام مكافآت منفصل، Streak الحقيقي يعمل بالتوازي
