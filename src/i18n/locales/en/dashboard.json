@@ -223,8 +223,11 @@
   },
   "daily_reward_compact": {
     "title": "Daily Reward",
+    "subtitle": "Check in daily and collect rewards",
     "checked_in": "Checked in today ✓",
     "not_checked_in": "Check in to get your reward",
+    "claim_button": "🎁 Get today's reward",
+    "claiming": "Claiming...",
     "coins": "Coins",
     "checkins": "Check-ins",
     "longest_streak": "Longest streak"
