@@ -35,8 +35,8 @@ export function CollapsibleStats({
       label: t('collapsible_stats.balance'),
       value: `${netBalance.toLocaleString()} ${currencySymbol}`,
       icon: TrendingUp,
-      color: netBalance >= 0 ? 'text-green-600' : 'text-red-500',
-      bgColor: netBalance >= 0 ? 'bg-green-500/10' : 'bg-red-500/10',
+      color: netBalance >= 0 ? 'text-status-positive' : 'text-status-negative',
+      bgColor: netBalance >= 0 ? 'bg-status-positive/10' : 'bg-status-negative/10',
       onClick: () => navigate('/my-expenses'),
     },
     {

@@ -17,7 +17,7 @@ const DayCircle = ({ day, completed, isToday, isLast }: DayCircleProps) => (
   <div
     className={cn(
       'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all',
-      completed && 'bg-[hsl(65,69%,61%)] text-black',
+      completed && 'bg-primary text-primary-foreground',
       !completed && isToday && 'ring-2 ring-primary/40 bg-muted/50 text-foreground',
       !completed && !isToday && 'bg-muted/30 border border-border/50 text-muted-foreground'
     )}
@@ -47,7 +47,7 @@ const WeekProgressBar = ({ weekProgress }: WeekProgressBarProps) => (
         isLast={dp.day === 7}
       />
     ))}
-    <Trophy className="w-5 h-5 text-amber-500 ms-1 shrink-0" />
+    <Trophy className="w-5 h-5 text-primary ms-1 shrink-0" />
   </div>
 );
 
@@ -65,13 +65,13 @@ export const DailyRewardCardCompact = () => {
         {/* Header: Title + Streak badge */}
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
-            <Trophy className="w-4 h-4 text-amber-500" />
+            <Trophy className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
               {t('daily_reward_compact.title')}
             </span>
           </div>
           {streak.currentStreak > 0 && (
-            <div className="flex items-center gap-1 bg-orange-500/10 text-orange-600 px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full">
               <Flame className="w-3.5 h-3.5" />
               <span className="text-xs font-bold">{streak.currentStreak}</span>
             </div>
@@ -101,8 +101,8 @@ export const DailyRewardCardCompact = () => {
             </Button>
           ) : (
             <div className="flex items-center justify-center gap-1.5 py-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="w-4 h-4 text-status-positive" />
+              <span className="text-sm text-status-positive font-medium">
                 {t('daily_reward_compact.checked_in')}
               </span>
             </div>
@@ -113,7 +113,7 @@ export const DailyRewardCardCompact = () => {
         {streak.coins > 0 && (
           <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-border/40">
             <div className="flex items-center gap-1">
-              <Coins className="w-3 h-3 text-amber-500" />
+              <Coins className="w-3 h-3 text-primary" />
               <span className="text-xs text-muted-foreground">
                 {streak.coins} {t('daily_reward_compact.coins')}
               </span>

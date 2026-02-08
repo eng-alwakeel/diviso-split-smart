@@ -42,7 +42,7 @@ export function StatsLiteCard({
     {
       label: t('stats_lite.balance'),
       value: `${netBalance >= 0 ? '+' : ''}${netBalance.toLocaleString()} ${currency}`,
-      color: netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
+      color: netBalance >= 0 ? 'text-status-positive' : 'text-status-negative',
       onClick: () => navigate('/my-expenses'),
     },
     {
@@ -56,7 +56,7 @@ export function StatsLiteCard({
       value: outstandingAmount > 0
         ? `${outstandingAmount.toLocaleString()} ${currency}`
         : t('stats_lite.no_outstanding'),
-      color: outstandingAmount > 0 ? 'text-red-500 dark:text-red-400' : 'text-muted-foreground',
+      color: outstandingAmount > 0 ? 'text-status-negative' : 'text-muted-foreground',
       onClick: () => navigate('/my-expenses'),
     },
   ];
