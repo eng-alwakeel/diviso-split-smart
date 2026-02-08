@@ -67,7 +67,7 @@ export function SmartPlanCard({ activePlan }: SmartPlanCardProps) {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => navigate('/plans/create')}
+            onClick={() => navigate('/create-plan')}
             className="shrink-0 text-xs"
           >
             <Plus className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
