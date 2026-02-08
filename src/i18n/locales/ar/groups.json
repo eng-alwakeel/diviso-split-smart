@@ -403,7 +403,17 @@
     "archive": "أرشفة",
     "restore": "استعادة",
     "delete": "حذف",
-    "leave": "مغادرة"
+    "leave": "مغادرة",
+    "status_active": "نشطة",
+    "status_closed": "مغلقة",
+    "role_owner": "المالك",
+    "role_admin": "مشرف",
+    "role_member": "عضو",
+    "closed_no_expense": "المجموعة مغلقة، لا يمكن إضافة مصاريف",
+    "close_group": "إنهاء النشاط",
+    "report": "تقرير",
+    "add_expense": "إضافة مصروف",
+    "back_to_groups": "الرجوع إلى المجموعات"
   },
   "load_error": "حدث خطأ في تحميل المجموعات",
   "no_search_results": "لا توجد نتائج للبحث",

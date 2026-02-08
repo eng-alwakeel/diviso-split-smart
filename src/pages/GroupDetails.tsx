@@ -67,6 +67,7 @@ import { RecommendationNotification } from "@/components/recommendations/Recomme
 import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
+import { GroupCard } from "@/components/group/GroupCard";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
 import { CloseGroupDialog } from "@/components/group/CloseGroupDialog";
 import { PendingRatingsNotification } from "@/components/group/PendingRatingsNotification";
@@ -453,123 +454,40 @@ const GroupDetails = () => {
         <div>
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/my-groups')}
             className="mb-4"
           >
             <ArrowRight className="w-4 h-4 ml-2" />
-            العودة للوحة التحكم
+            {t('groups:card.back_to_groups')}
           </Button>
           
-          <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-visible md:overflow-hidden">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-4 min-w-0">
-                <Avatar className="w-10 h-10 md:w-14 md:h-14">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl md:text-2xl font-bold">
-                    {(group?.name || "م").slice(0,1)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-lg md:text-2xl font-extrabold break-words">{group?.name ?? "..."}</h1>
-                    {group?.group_type && (
-                      <Badge variant="outline" className="text-xs">
-                        {getGroupTypeLabel(group.group_type)}
-                      </Badge>
-                    )}
-                    {isGroupClosed && (
-                      <Badge variant="secondary" className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
-                        <Lock className="w-3 h-3 ml-1" />
-                        مغلقة
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-2 text-[11px] md:text-sm text-muted-foreground flex-wrap">
-                    <span>{memberCount} {membersLabel(memberCount)}</span>
-                    <span className="opacity-40">•</span>
-                    <span>{totals.totalExpenses.toLocaleString()} {currencyLabel}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 w-full md:w-auto md:flex">
-                <Button
-                  className="w-full md:w-auto text-xs md:text-sm"
-                  variant="outline"
-                  size="sm"
-                  onClick={openReport}
-                  aria-expanded={reportOpen}
-                  disabled={loading || !!error || !group}
-                >
-                  <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                  تقرير
-                </Button>
-                {!isGroupClosed && (
-                  <div className="w-full md:w-auto">
-                    <Button
-                      variant="hero"
-                      size="icon"
-                      className="w-10 h-10 md:hidden mx-auto"
-                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span className="sr-only">إضافة مصروف</span>
-                    </Button>
-                    <Button
-                      variant="hero"
-                      size="sm"
-                      className="hidden md:inline-flex text-xs md:text-sm"
-                      onClick={() => navigate(`/add-expense?groupId=${id}`)}
-                    >
-                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                      إضافة مصروف
-                    </Button>
-                  </div>
-                )}
-                {/* Close Group Button - Admin/Owner only, active groups */}
-                {isAdmin && !isGroupClosed && (
-                  <Button
-                    className="w-full md:w-auto text-xs md:text-sm"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCloseGroupDialogOpen(true)}
-                  >
-                    <Lock className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                    إنهاء النشاط
-                  </Button>
-                )}
-                <Button
-                  className="w-full md:w-auto text-xs md:text-sm"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/group/${id}/settings`)}
-                >
-                  <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                  {t('groups:details.settings')}
-                </Button>
-                {/* Delete/Leave Group Button */}
-                {isOwner ? (
-                  <Button
-                    className="w-full md:w-auto text-xs md:text-sm"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setDeleteGroupDialogOpen(true)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                    {t('groups:card.delete')}
-                  </Button>
-                ) : (
-                  <Button
-                    className="w-full md:w-auto text-xs md:text-sm border-destructive text-destructive hover:bg-destructive/10"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLeaveGroupDialogOpen(true)}
-                  >
-                    <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                    {t('groups:card.leave')}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          {group && (
+            <GroupCard
+              group={{
+                id: group.id,
+                name: group.name,
+                currency: group.currency,
+                owner_id: group.owner_id,
+                created_at: group.created_at || '',
+                updated_at: '',
+                status: group.status,
+                group_type: group.group_type,
+              }}
+              variant="expanded"
+              currentUserId={currentUserId}
+              onAddExpense={() => navigate(`/add-expense?groupId=${id}`)}
+              onOpenReport={openReport}
+              onOpenSettings={() => navigate(`/group/${id}/settings`)}
+              onCloseGroup={() => setCloseGroupDialogOpen(true)}
+              onDeleteGroup={() => setDeleteGroupDialogOpen(true)}
+              onLeaveGroup={() => setLeaveGroupDialogOpen(true)}
+              memberCount={memberCount}
+              totalExpenses={totals.totalExpenses}
+              currencyLabel={currencyLabel}
+              groupTypeLabel={group.group_type ? getGroupTypeLabel(group.group_type) : undefined}
+              isLoading={loading}
+            />
+          )}
         </div>
 
         {/* Closed Group Banner + Pending Ratings */}

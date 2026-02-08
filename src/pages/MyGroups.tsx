@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { SEO } from "@/components/SEO";
-import { Plus, Search, Users, TrendingUp, CreditCard, Settings, Archive, MoreVertical, Trash2, LogOut } from "lucide-react";
+import { Plus, Search, Users, Settings, Archive, MoreVertical, Trash2, LogOut } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
+import { GroupCard } from "@/components/group/GroupCard";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { useToast } from "@/hooks/use-toast";
@@ -335,7 +336,7 @@ export default function MyGroups() {
                   </Button>
                 </CardContent>
               </Card> : <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-              {filteredGroups.map(group => <GroupCard key={group.id} group={group} onNavigate={navigate} onArchive={(groupId) => handleArchiveWithCredits(groupId, activeTab === 'archived')} isArchived={activeTab === 'archived'} isMobile={isMobile} currentUserId={currentUserId} onDelete={openDeleteDialog} onLeave={openLeaveDialog} />)}
+              {filteredGroups.map(group => <GroupCard key={group.id} group={group} variant="compact" currentUserId={currentUserId} onNavigate={(path) => navigate(path)} onArchive={(groupId) => handleArchiveWithCredits(groupId, activeTab === 'archived')} isArchived={activeTab === 'archived'} onDelete={openDeleteDialog} onLeave={openLeaveDialog} />)}
             </div>}
           </TabsContent>
         </Tabs>
@@ -373,112 +374,3 @@ export default function MyGroups() {
   );
 }
 
-interface GroupCardProps {
-  group: {
-    id: string;
-    name: string;
-    currency: string;
-    member_role?: string;
-    member_count?: number;
-    created_at: string;
-    owner_id?: string;
-  };
-  onNavigate: (path: string) => void;
-  onArchive: (groupId: string) => void;
-  isArchived?: boolean;
-  isMobile?: boolean;
-  currentUserId: string | null;
-  onDelete: (groupId: string, groupName: string, ownerId: string) => void;
-  onLeave: (groupId: string, groupName: string, ownerId: string) => void;
-}
-
-function GroupCard({
-  group,
-  onNavigate,
-  onArchive,
-  isArchived,
-  isMobile,
-  currentUserId,
-  onDelete,
-  onLeave
-}: GroupCardProps) {
-  const { t } = useTranslation(['groups']);
-  const isAdmin = group.member_role === 'admin' || group.member_role === 'owner';
-  const isOwner = currentUserId != null && group.owner_id === currentUserId;
-  
-  return (
-    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]">
-      <CardHeader className={`${isMobile ? 'pb-3' : 'pb-4'}`}>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'} leading-tight cursor-pointer hover:text-primary transition-colors`} onClick={() => onNavigate(`/group/${group.id}`)}>
-              {group.name}
-            </CardTitle>
-            <CardDescription className={`flex items-center gap-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-              <Users className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-              {group.member_count || 0} {t('groups:stats.member')}
-              <span className="text-muted-foreground">•</span>
-              {group.currency}
-            </CardDescription>
-          </div>
-          <div className="flex gap-1">
-            {isAdmin && <Badge variant="secondary" className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
-                {t('groups:card.admin')}
-              </Badge>}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0">
-        <div className={`${isMobile ? 'flex gap-2' : 'grid grid-cols-2 gap-3'}`}>
-          <Button size={isMobile ? "sm" : "default"} variant="outline" onClick={() => onNavigate(`/group/${group.id}`)} className="flex-1">
-            <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} me-1`} />
-            {t('groups:card.view')}
-          </Button>
-          <Button size={isMobile ? "sm" : "default"} variant="outline" onClick={() => onNavigate(`/add-expense?group=${group.id}`)} className="flex-1">
-            <CreditCard className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} me-1`} />
-            {t('groups:card.expense')}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size={isMobile ? "sm" : "default"} variant="ghost" className={`hover:bg-muted/50 ${isMobile ? '' : 'col-span-2'}`}>
-                <MoreVertical className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                {!isMobile && <span className="ms-2">{t('groups:card.options')}</span>}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
-              <DropdownMenuItem onClick={() => onNavigate(`/group/${group.id}?tab=settings`)} className="cursor-pointer">
-                <Settings className="h-4 w-4 me-2" />
-                {t('groups:card.settings')}
-              </DropdownMenuItem>
-              {isAdmin && (
-                <DropdownMenuItem onClick={() => onArchive(group.id)} className="cursor-pointer">
-                  <Archive className="h-4 w-4 me-2" />
-                  {isArchived ? t('groups:card.restore') : t('groups:card.archive')}
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              {isOwner ? (
-                <DropdownMenuItem 
-                  onClick={() => onDelete(group.id, group.name, group.owner_id || "")} 
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 me-2" />
-                  {t('groups:card.delete')}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem 
-                  onClick={() => onLeave(group.id, group.name, group.owner_id || "")} 
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="h-4 w-4 me-2" />
-                  {t('groups:card.leave')}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
