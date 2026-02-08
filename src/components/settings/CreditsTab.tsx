@@ -18,7 +18,9 @@ import {
   FileDown,
   Sparkles,
   Clock,
-  Lightbulb
+  Lightbulb,
+  Dice5,
+  Map
 } from "lucide-react";
 import { useUsageCredits, CREDIT_COSTS } from "@/hooks/useUsageCredits";
 import { useDailyCheckin } from "@/hooks/useDailyCheckin";
@@ -38,6 +40,8 @@ const CreditsTab = memo(() => {
     { key: "ocr_scan", icon: Scan },
     { key: "smart_category", icon: Tag },
     { key: "recommendation", icon: Lightbulb },
+    { key: "roll_dice", icon: Dice5 },
+    { key: "create_plan", icon: Map },
     { key: "create_group", icon: UserPlus },
     { key: "settlement", icon: HandCoins },
     { key: "advanced_report", icon: FileText },
@@ -142,7 +146,7 @@ const CreditsTab = memo(() => {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-amber-500" />
+            <Sparkles className="h-5 w-5 text-primary" />
             {isRTL ? "تكاليف العمليات" : "Operation Costs"}
           </CardTitle>
           <CardDescription>
