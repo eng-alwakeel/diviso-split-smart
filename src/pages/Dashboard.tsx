@@ -11,13 +11,16 @@ import { useOptimizedDashboardData } from "@/hooks/useOptimizedQueries";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
 import { Card } from "@/components/ui/card";
-import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
-import { SimpleQuickActions } from "@/components/dashboard/SimpleQuickActions";
-import { FixedStatsAdBanner } from "@/components/ads/FixedStatsAdBanner";
 import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
-import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
-import { DailyHubSection } from "@/components/daily-hub/DailyHubSection";
+import { DailyFocusCard } from "@/components/dashboard/DailyFocusCard";
+import { SmartPlanCard } from "@/components/dashboard/SmartPlanCard";
+import { CollapsibleStats } from "@/components/dashboard/CollapsibleStats";
+import { MinimalQuickActions } from "@/components/dashboard/MinimalQuickActions";
+import { MiniActivityFeed } from "@/components/dashboard/MiniActivityFeed";
+import { StreakDisplay } from "@/components/daily-hub/StreakDisplay";
+import { DailyDiceCard } from "@/components/daily-hub/DailyDiceCard";
+import { useDashboardMode } from "@/hooks/useDashboardMode";
 
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -90,7 +93,6 @@ const Dashboard = React.memo(() => {
   } = useRecommendationTriggers({
     city,
     onTrigger: (trigger) => {
-      // Show interactive toast when recommendation triggers
       if (trigger.shouldShow) {
         toast({
           title: trigger.mealType === "lunch" 
@@ -127,7 +129,7 @@ const Dashboard = React.memo(() => {
     isLoading: recommendationLoading 
   } = useRecommendations();
 
-  // Handle add as expense - open group selector if needed
+  // Handle add as expense
   const handleAddAsExpense = useCallback(async (recommendation: any) => {
     const result = await addAsExpense(recommendation);
     if (result?.needsGroupSelection) {
@@ -146,13 +148,16 @@ const Dashboard = React.memo(() => {
     getUser();
   }, []);
 
-  // Use unified real-time listener (reduces connections from 7+ to 1)
+  // Use unified real-time listener
   useDashboardRealtimeListener(userId || null);
+
+  // Dashboard mode hook
+  const dashboardMode = useDashboardMode(userId);
   
   // Achievements hook
   const { latestUnshared, unsharedCount, monthlyStats } = useAchievements();
   
-  // Founding user hook for user number badge
+  // Founding user hook
   const { userNumber, isFoundingUser } = useFoundingUser(userId);
   
   // Coins hook
@@ -175,8 +180,9 @@ const Dashboard = React.memo(() => {
   const monthlyTotalExpenses = dashboardData?.monthlyTotalExpenses ?? 0;
   const weeklyExpensesCount = dashboardData?.weeklyExpensesCount ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
+  const netBalance = myPaid - myOwed;
 
-  // Real-time listener for group members changes (new member joins)
+  // Real-time listener for group members changes
   useEffect(() => {
     if (!userId) return;
     
@@ -190,7 +196,6 @@ const Dashboard = React.memo(() => {
           table: 'group_members'
         },
         () => {
-          // Refetch dashboard data when group members change
           refetch();
         }
       )
@@ -204,7 +209,6 @@ const Dashboard = React.memo(() => {
   // Show location dialog for first-time users
   useEffect(() => {
     if (userId && shouldShowLocationPrompt()) {
-      // Delay showing the dialog to not overwhelm new users
       const timer = setTimeout(() => {
         setShowLocationDialog(true);
       }, 2000);
@@ -215,7 +219,6 @@ const Dashboard = React.memo(() => {
   // Show notification dialog after location dialog closes
   useEffect(() => {
     if (userId && !showLocationDialog && shouldShowNotificationPrompt()) {
-      // Show notification prompt 3 seconds after location dialog is handled
       const timer = setTimeout(() => {
         setShowNotificationDialog(true);
       }, 3000);
@@ -227,13 +230,10 @@ const Dashboard = React.memo(() => {
   const handleViewRecommendation = useCallback(async () => {
     if (!recommendationsEnabled) return;
     
-    // Open dialog with loading state
     setShowRecommendationDialog(true);
     
-    // Get fresh location before generating recommendation (includes district for restaurants)
     const { city: freshCity, district: freshDistrict, coords } = await getFreshLocation();
     
-    // Generate a recommendation based on current context with fresh location
     const result = await generateRecommendation({
       trigger: triggerType === "meal_time" ? "meal_time" : "post_expense",
       city: freshCity,
@@ -242,7 +242,6 @@ const Dashboard = React.memo(() => {
       longitude: coords?.longitude,
     });
     
-    // If no recommendation returned, close dialog and show toast
     if (!result) {
       setShowRecommendationDialog(false);
       dismissTrigger();
@@ -280,29 +279,24 @@ const Dashboard = React.memo(() => {
     setShowNotificationDialog(false);
   }, [dismissNotificationPrompt]);
 
-  // Memoized callbacks for better performance
+  // Memoized callbacks
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
   const handleCloseGuide = useCallback(() => setShowGuide(false), []);
   const handleRetry = useCallback(() => refetch(), [refetch]);
-  if (loading) {
+
+  if (loading || dashboardMode.isLoading) {
     return <div className="min-h-screen bg-background">
         <AppHeader />
         <div className="page-container space-y-4">
           <Skeleton className="h-8 w-48" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-full" />)}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-4">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-48 w-full" />
-            </div>
-            <Skeleton className="h-64 w-full" />
-          </div>
+          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-16 w-full rounded-lg" />
         </div>
         <BottomNav />
       </div>;
   }
+
   if (error) {
     return <div className="min-h-screen bg-background">
         <AppHeader />
@@ -319,6 +313,10 @@ const Dashboard = React.memo(() => {
         </div>
       </div>;
   }
+
+  const { mode } = dashboardMode;
+  const diceType = dashboardMode.hubData?.dice_of_the_day || dashboardMode.hubData?.suggested_dice_type || null;
+
   return <div className="min-h-screen bg-background">
       <SEO title={t('dashboard:welcome')} noIndex={true} />
       <AppHeader />
@@ -328,7 +326,7 @@ const Dashboard = React.memo(() => {
         showTopBanner={false}
         showBottomBanner={false}
       >
-        <div className="page-container space-y-6">
+        <div className="page-container space-y-4">
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -350,62 +348,123 @@ const Dashboard = React.memo(() => {
             </Button>
           </div>
 
-          {/* Daily Hub - Smart engagement section */}
-          <DailyHubSection userId={userId} />
+          {/* ===== ONBOARDING MODE ===== */}
+          {mode === 'onboarding' && (
+            <>
+              {/* Onboarding Progress (sticky tasks) */}
+              <OnboardingProgress />
 
-          {/* Onboarding Progress Card - Priority for new users */}
-          <OnboardingProgress />
+              {/* Daily Focus: next task */}
+              <DailyFocusCard
+                mode="onboarding"
+                nextTask={dashboardMode.nextIncompleteTask}
+              />
 
-          {/* PWA Install Widget */}
-          <InstallWidget where="appHome" />
-
-          {/* Dice Decision Banner */}
-          <HomeDiceBanner />
-
-          {/* Stats Grid - Main focus after onboarding */}
-          <SimpleStatsGrid monthlyTotalExpenses={monthlyTotalExpenses} groupsCount={groupsCount} weeklyExpensesCount={weeklyExpensesCount} myPaid={myPaid} myOwed={myOwed} />
-
-          {/* Daily Check-in Card */}
-          <Suspense fallback={<CardSkeleton />}>
-            <DailyCheckInCard />
-          </Suspense>
-
-          {/* Credit Balance Card */}
-          <Suspense fallback={<CardSkeleton />}>
-            <CreditBalanceCard />
-          </Suspense>
-
-          {/* Fixed Ad Banner Below Stats */}
-          <FixedStatsAdBanner placement="dashboard_stats" />
-
-          {/* Latest Unshared Achievement */}
-          {latestUnshared && (
-            <Suspense fallback={<CardSkeleton />}>
-              <ShareableAchievementCard achievement={latestUnshared} compact />
-            </Suspense>
+              {/* PWA Install */}
+              <InstallWidget where="appHome" />
+            </>
           )}
 
-          {/* Monthly Wrap Card */}
-          <Suspense fallback={<CardSkeleton />}>
-            <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
-          </Suspense>
+          {/* ===== DAILY HUB MODE ===== */}
+          {mode === 'daily_hub' && (
+            <>
+              {/* Daily Focus Card */}
+              <DailyFocusCard
+                mode="daily_hub"
+                activePlan={dashboardMode.activePlan}
+                netBalance={netBalance}
+              />
 
-          {/* Smart Promotion System */}
-          <Suspense fallback={<CardSkeleton />}>
-            <SmartPromotionBanner />
-          </Suspense>
+              {/* Streak Display */}
+              {dashboardMode.streakCount > 0 && (
+                <StreakDisplay count={dashboardMode.streakCount} />
+              )}
+
+              {/* Smart Plan Card */}
+              <SmartPlanCard activePlan={dashboardMode.activePlan} />
+
+              {/* Daily Dice */}
+              <DailyDiceCard
+                suggestedType={diceType}
+                lockedDate={dashboardMode.hubData?.dice_locked_at}
+              />
+
+              {/* Mini Activity Feed */}
+              <MiniActivityFeed lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null} />
+
+              {/* Minimal Quick Actions */}
+              <MinimalQuickActions />
+
+              {/* Collapsible Stats */}
+              <CollapsibleStats
+                monthlyTotalExpenses={monthlyTotalExpenses}
+                netBalance={netBalance}
+                groupsCount={groupsCount}
+              />
+
+              {/* Daily Check-in */}
+              <Suspense fallback={<CardSkeleton />}>
+                <DailyCheckInCard />
+              </Suspense>
+
+              {/* Credit Balance */}
+              <Suspense fallback={<CardSkeleton />}>
+                <CreditBalanceCard />
+              </Suspense>
+
+              {/* Achievement */}
+              {latestUnshared && (
+                <Suspense fallback={<CardSkeleton />}>
+                  <ShareableAchievementCard achievement={latestUnshared} compact />
+                </Suspense>
+              )}
+
+              {/* Monthly Wrap */}
+              <Suspense fallback={<CardSkeleton />}>
+                <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
+              </Suspense>
+
+              {/* Smart Promotion */}
+              <Suspense fallback={<CardSkeleton />}>
+                <SmartPromotionBanner />
+              </Suspense>
+
+              {/* PWA Install */}
+              <InstallWidget where="appHome" />
+            </>
+          )}
+
+          {/* ===== RE-ENGAGEMENT MODE ===== */}
+          {mode === 'reengagement' && (
+            <>
+              {/* Daily Focus: re-engagement message */}
+              <DailyFocusCard
+                mode="reengagement"
+                daysSinceLastAction={dashboardMode.daysSinceLastAction}
+              />
+
+              {/* Streak (likely 0 but show if > 0) */}
+              {dashboardMode.streakCount > 0 && (
+                <StreakDisplay count={dashboardMode.streakCount} />
+              )}
+
+              {/* Daily Dice */}
+              <DailyDiceCard
+                suggestedType={diceType}
+                lockedDate={dashboardMode.hubData?.dice_locked_at}
+              />
+
+              {/* Minimal Quick Actions */}
+              <MinimalQuickActions />
+
+              {/* PWA Install */}
+              <InstallWidget where="appHome" />
+            </>
+          )}
 
           {/* Admin Dashboard Card - Only for Admins */}
           {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>
-              
             </Card>}
-
-          {/* Quick Actions - Centered */}
-          <div className="flex justify-center">
-            <div className="w-full max-w-md">
-              <SimpleQuickActions />
-            </div>
-          </div>
         </div>
       </UnifiedAdLayout>
       
@@ -466,7 +525,7 @@ const Dashboard = React.memo(() => {
         />
       </Suspense>
 
-      {/* Select Group Dialog for adding expense */}
+      {/* Select Group Dialog */}
       <Suspense fallback={null}>
         <SelectGroupDialog
           open={showSelectGroupDialog}
