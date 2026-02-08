@@ -177,6 +177,45 @@ serve(async (req) => {
       .eq("plan_id", day.plan_id);
 
     const total = totalDays || 1;
+
+    // Fetch all days for this plan to get existing activities
+    const { data: allPlanDays } = await supabase
+      .from("plan_days")
+      .select("id, day_index")
+      .eq("plan_id", day.plan_id)
+      .order("day_index", { ascending: true });
+
+    // Fetch existing activities from all days
+    const otherDayIds = (allPlanDays || [])
+      .filter((d) => d.id !== day_id)
+      .map((d) => d.id);
+
+    let existingActivitiesText = "";
+    if (otherDayIds.length > 0) {
+      const { data: otherActivities } = await supabase
+        .from("plan_day_activities")
+        .select("title, plan_day_id")
+        .in("plan_day_id", otherDayIds);
+
+      if (otherActivities && otherActivities.length > 0) {
+        // Group activities by day
+        const dayIndexMap = new Map((allPlanDays || []).map((d) => [d.id, d.day_index]));
+        const activitiesByDay = new Map<number, string[]>();
+
+        for (const act of otherActivities) {
+          const idx = dayIndexMap.get(act.plan_day_id) || 0;
+          if (!activitiesByDay.has(idx)) activitiesByDay.set(idx, []);
+          activitiesByDay.get(idx)!.push(act.title);
+        }
+
+        const lines: string[] = [];
+        for (const [idx, titles] of Array.from(activitiesByDay.entries()).sort((a, b) => a[0] - b[0])) {
+          lines.push(`- اليوم ${idx}: ${titles.join("، ")}`);
+        }
+        existingActivitiesText = lines.join("\n");
+      }
+    }
+
     let activities: Activity[] = [];
     let aiPowered = false;
 
@@ -191,6 +230,8 @@ serve(async (req) => {
 
         const systemPrompt = `أنت مخطط رحلات ذكي. مهمتك اقتراح أنشطة ليوم محدد من خطة.
 قدم 3-5 أنشطة مناسبة لموقع اليوم في الرحلة.
+مهم جداً: لا تكرر أي نشاط أو مكان تم اقتراحه في أيام أخرى.
+كل يوم يجب أن يحتوي على أماكن وتجارب مختلفة تماماً.
 كل نشاط يجب أن يحتوي: title, description, time_slot (morning/afternoon/evening), estimated_cost (رقم أو null).
 أجب بصيغة JSON فقط.`;
 
@@ -201,6 +242,7 @@ serve(async (req) => {
 - التاريخ: ${day.date}
 - ${dayPosition}
 ${preferences ? `- تفضيلات المستخدم: ${preferences}` : ""}
+${existingActivitiesText ? `\nالأنشطة المقترحة مسبقاً في أيام أخرى (يجب تجنب تكرارها بالكامل):\n${existingActivitiesText}\n\nاقترح أنشطة جديدة ومختلفة تماماً لهذا اليوم.` : ""}
 
 أجب بهذا الشكل:
 {"activities": [{"title": "...", "description": "...", "time_slot": "morning|afternoon|evening", "estimated_cost": null}]}`;
