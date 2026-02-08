@@ -1,27 +1,69 @@
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Flame, CheckCircle2, Gift, Coins } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Trophy, Flame, CheckCircle2, Gift, Coins, Check } from 'lucide-react';
 import { useDailyCheckin } from '@/hooks/useDailyCheckin';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+
+interface DayCircleProps {
+  day: number;
+  completed: boolean;
+  isToday: boolean;
+  isLast: boolean;
+}
+
+const DayCircle = ({ day, completed, isToday, isLast }: DayCircleProps) => (
+  <div
+    className={cn(
+      'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all',
+      completed && 'bg-[hsl(65,69%,61%)] text-black',
+      !completed && isToday && 'ring-2 ring-primary/40 bg-muted/50 text-foreground',
+      !completed && !isToday && 'bg-muted/30 border border-border/50 text-muted-foreground'
+    )}
+  >
+    {completed ? (
+      <Check className="w-3.5 h-3.5" />
+    ) : isLast ? (
+      <Trophy className="w-3.5 h-3.5" />
+    ) : (
+      day
+    )}
+  </div>
+);
+
+interface WeekProgressBarProps {
+  weekProgress: { day: number; completed: boolean; isToday: boolean }[];
+}
+
+const WeekProgressBar = ({ weekProgress }: WeekProgressBarProps) => (
+  <div className="flex items-center justify-between gap-1 py-2">
+    {weekProgress.map((dp) => (
+      <DayCircle
+        key={dp.day}
+        day={dp.day}
+        completed={dp.completed}
+        isToday={dp.isToday}
+        isLast={dp.day === 7}
+      />
+    ))}
+    <Trophy className="w-5 h-5 text-amber-500 ms-1 shrink-0" />
+  </div>
+);
 
 export const DailyRewardCardCompact = () => {
   const { t } = useTranslation('dashboard');
-  const navigate = useNavigate();
-  const { streak, checkedInToday, loading } = useDailyCheckin();
+  const { streak, weekProgress, checkedInToday, loading, claiming, claimReward } = useDailyCheckin();
 
   if (loading) {
-    return <Skeleton className="h-20 w-full rounded-lg" />;
+    return <Skeleton className="h-36 w-full rounded-lg" />;
   }
 
   return (
-    <Card
-      className="cursor-pointer hover:shadow-sm transition-all duration-200 border-border/60"
-      onClick={() => navigate('/rewards')}
-    >
+    <Card className="border-border/60">
       <CardContent className="p-3">
         {/* Header: Title + Streak badge */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             <Trophy className="w-4 h-4 text-amber-500" />
             <span className="text-sm font-semibold text-foreground">
@@ -36,28 +78,40 @@ export const DailyRewardCardCompact = () => {
           )}
         </div>
 
-        {/* Status line */}
-        <div className="flex items-center gap-1.5 mb-1">
-          {checkedInToday ? (
-            <>
+        {/* Subtitle */}
+        <p className="text-xs text-muted-foreground mb-2">
+          {t('daily_reward_compact.subtitle')}
+        </p>
+
+        {/* Week Progress Bar */}
+        <WeekProgressBar weekProgress={weekProgress} />
+
+        {/* Action Area */}
+        <div className="mt-2">
+          {!checkedInToday ? (
+            <Button
+              className="w-full"
+              size="sm"
+              onClick={claimReward}
+              disabled={claiming}
+            >
+              {claiming
+                ? t('daily_reward_compact.claiming')
+                : t('daily_reward_compact.claim_button')}
+            </Button>
+          ) : (
+            <div className="flex items-center justify-center gap-1.5 py-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm text-emerald-600 dark:text-emerald-400">
+              <span className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
                 {t('daily_reward_compact.checked_in')}
               </span>
-            </>
-          ) : (
-            <>
-              <Gift className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                {t('daily_reward_compact.not_checked_in')}
-              </span>
-            </>
+            </div>
           )}
         </div>
 
         {/* Footer stats - only if coins > 0 */}
         {streak.coins > 0 && (
-          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/40">
+          <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-border/40">
             <div className="flex items-center gap-1">
               <Coins className="w-3 h-3 text-amber-500" />
               <span className="text-xs text-muted-foreground">
