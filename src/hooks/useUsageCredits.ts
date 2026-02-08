@@ -52,6 +52,9 @@ export const CREDIT_COSTS = {
   
   // عملية النرد (1 نقطة)
   roll_dice: { type: 'roll_dice', cost: 1, nameAr: 'رمي النرد', nameEn: 'Roll Dice', gated: true },
+  
+  // عملية الخطط (3 نقاط)
+  create_plan: { type: 'create_plan', cost: 3, nameAr: 'إنشاء خطة', nameEn: 'Create Plan', gated: true },
 } as const;
 
 export type CreditActionType = keyof typeof CREDIT_COSTS;
