@@ -349,118 +349,87 @@ const Dashboard = React.memo(() => {
           </div>
 
           {/* ===== ONBOARDING MODE ===== */}
-          {mode === 'onboarding' && (
-            <>
-              {/* Onboarding Progress (sticky tasks) */}
-              <OnboardingProgress />
-
-              {/* Daily Focus: next task */}
-              <DailyFocusCard
-                mode="onboarding"
-                nextTask={dashboardMode.nextIncompleteTask}
-              />
-
-              {/* PWA Install */}
-              <InstallWidget where="appHome" />
-            </>
+          {dashboardMode.showOnboardingChecklist && (
+            <OnboardingProgress />
           )}
 
-          {/* ===== DAILY HUB MODE ===== */}
+          {/* Daily Focus Card (always shown) */}
+          <DailyFocusCard
+            mode={mode}
+            sessionHint={dashboardMode.sessionHint}
+            lastActionHint={dashboardMode.lastActionHint}
+            nextTask={dashboardMode.nextIncompleteTask}
+            activePlan={dashboardMode.activePlan}
+            netBalance={netBalance}
+            daysSinceLastAction={dashboardMode.daysSinceLastAction}
+          />
+
+          {/* Streak Display (daily_hub & reengagement) */}
+          {mode !== 'onboarding' && dashboardMode.streakCount > 0 && (
+            <StreakDisplay count={dashboardMode.streakCount} />
+          )}
+
+          {/* Smart Plan Card (only when hasActivePlan in daily_hub) */}
+          {dashboardMode.showSmartPlanCard && (
+            <SmartPlanCard activePlan={dashboardMode.activePlan} />
+          )}
+
+          {/* Daily Dice (shown per showDice flag) */}
+          {dashboardMode.showDice && (
+            <DailyDiceCard
+              suggestedType={diceType}
+              lockedDate={dashboardMode.hubData?.dice_locked_at}
+            />
+          )}
+
+          {/* Mini Activity Feed (daily_hub + reengagement) */}
+          {dashboardMode.showMiniFeed && (
+            <MiniActivityFeed lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null} />
+          )}
+
+          {/* Minimal Quick Actions (daily_hub + reengagement) */}
+          {mode !== 'onboarding' && (
+            <MinimalQuickActions />
+          )}
+
+          {/* Collapsible Stats (daily_hub only) */}
+          {dashboardMode.showStats && (
+            <CollapsibleStats
+              monthlyTotalExpenses={monthlyTotalExpenses}
+              netBalance={netBalance}
+              groupsCount={groupsCount}
+            />
+          )}
+
+          {/* Daily Hub extras */}
           {mode === 'daily_hub' && (
             <>
-              {/* Daily Focus Card */}
-              <DailyFocusCard
-                mode="daily_hub"
-                activePlan={dashboardMode.activePlan}
-                netBalance={netBalance}
-              />
-
-              {/* Streak Display */}
-              {dashboardMode.streakCount > 0 && (
-                <StreakDisplay count={dashboardMode.streakCount} />
-              )}
-
-              {/* Smart Plan Card */}
-              <SmartPlanCard activePlan={dashboardMode.activePlan} />
-
-              {/* Daily Dice */}
-              <DailyDiceCard
-                suggestedType={diceType}
-                lockedDate={dashboardMode.hubData?.dice_locked_at}
-              />
-
-              {/* Mini Activity Feed */}
-              <MiniActivityFeed lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null} />
-
-              {/* Minimal Quick Actions */}
-              <MinimalQuickActions />
-
-              {/* Collapsible Stats */}
-              <CollapsibleStats
-                monthlyTotalExpenses={monthlyTotalExpenses}
-                netBalance={netBalance}
-                groupsCount={groupsCount}
-              />
-
-              {/* Daily Check-in */}
               <Suspense fallback={<CardSkeleton />}>
                 <DailyCheckInCard />
               </Suspense>
 
-              {/* Credit Balance */}
               <Suspense fallback={<CardSkeleton />}>
                 <CreditBalanceCard />
               </Suspense>
 
-              {/* Achievement */}
               {latestUnshared && (
                 <Suspense fallback={<CardSkeleton />}>
                   <ShareableAchievementCard achievement={latestUnshared} compact />
                 </Suspense>
               )}
 
-              {/* Monthly Wrap */}
               <Suspense fallback={<CardSkeleton />}>
                 <MonthlyWrapCard stats={monthlyStats} onShare={handleWrapShare} />
               </Suspense>
 
-              {/* Smart Promotion */}
               <Suspense fallback={<CardSkeleton />}>
                 <SmartPromotionBanner />
               </Suspense>
-
-              {/* PWA Install */}
-              <InstallWidget where="appHome" />
             </>
           )}
 
-          {/* ===== RE-ENGAGEMENT MODE ===== */}
-          {mode === 'reengagement' && (
-            <>
-              {/* Daily Focus: re-engagement message */}
-              <DailyFocusCard
-                mode="reengagement"
-                daysSinceLastAction={dashboardMode.daysSinceLastAction}
-              />
-
-              {/* Streak (likely 0 but show if > 0) */}
-              {dashboardMode.streakCount > 0 && (
-                <StreakDisplay count={dashboardMode.streakCount} />
-              )}
-
-              {/* Daily Dice */}
-              <DailyDiceCard
-                suggestedType={diceType}
-                lockedDate={dashboardMode.hubData?.dice_locked_at}
-              />
-
-              {/* Minimal Quick Actions */}
-              <MinimalQuickActions />
-
-              {/* PWA Install */}
-              <InstallWidget where="appHome" />
-            </>
-          )}
+          {/* PWA Install (always) */}
+          <InstallWidget where="appHome" />
 
           {/* Admin Dashboard Card - Only for Admins */}
           {adminData?.isAdmin && <Card className="border border-primary/20 hover:shadow-sm transition-all duration-200 cursor-pointer" onClick={() => navigate('/admin-dashboard')}>

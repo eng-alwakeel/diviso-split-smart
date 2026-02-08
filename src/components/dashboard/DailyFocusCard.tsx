@@ -1,15 +1,15 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowRight, Check } from 'lucide-react';
+import { Plus, ArrowRight, Check, Dice5 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import type { OnboardingTask } from '@/hooks/useOnboarding';
-import type { ActivePlan } from '@/hooks/useDashboardMode';
-import type { DashboardMode } from '@/hooks/useDashboardMode';
+import type { ActivePlan, DashboardMode, SessionHint } from '@/hooks/useDashboardMode';
 
 interface DailyFocusCardProps {
   mode: DashboardMode;
+  sessionHint?: SessionHint;
+  lastActionHint?: string | null;
   nextTask?: OnboardingTask | null;
   activePlan?: ActivePlan | null;
   netBalance?: number;
@@ -22,17 +22,10 @@ function getDaysLeft(endDate: string | null): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-// Map onboarding task descriptions to friendly CTA text
-const TASK_CTA_MAP: Record<string, string> = {
-  profile: '/settings',
-  group: '/create-group',
-  expense: '/add-expense',
-  invite: '/my-groups',
-  referral: '/referral',
-};
-
 export function DailyFocusCard({
   mode,
+  sessionHint = 'curiosity',
+  lastActionHint,
   nextTask,
   activePlan,
   netBalance = 0,
@@ -41,15 +34,25 @@ export function DailyFocusCard({
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
 
+  // Last action hint line (shared across modes)
+  const lastActionLine = lastActionHint ? (
+    <p className="text-xs text-muted-foreground mt-1">
+      {t(`daily_focus.${lastActionHint}`)}
+    </p>
+  ) : null;
+
   // Onboarding mode
   if (mode === 'onboarding' && nextTask) {
     return (
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
         <CardContent className="p-5">
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">
-              {t('daily_focus.onboarding_greeting')}
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {t('daily_focus.onboarding_greeting')}
+              </p>
+              {lastActionLine}
+            </div>
             <p className="text-sm text-muted-foreground">
               {t(nextTask.descriptionKey)}
             </p>
@@ -73,16 +76,22 @@ export function DailyFocusCard({
       <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
         <CardContent className="p-5">
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">
-              {t('daily_focus.reengagement', { days: daysSinceLastAction })}
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {t('daily_focus.reengagement_title')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('daily_focus.reengagement_sub')}
+              </p>
+              {lastActionLine}
+            </div>
             <Button
               size="sm"
-              onClick={() => navigate('/my-groups')}
+              onClick={() => navigate('/dice')}
               className="gap-2"
             >
-              <ArrowRight className="w-4 h-4" />
-              {t('daily_focus.reengagement_cta')}
+              <Dice5 className="w-4 h-4" />
+              {t('daily_focus.reengagement_dice_cta')}
             </Button>
           </div>
         </CardContent>
@@ -90,20 +99,23 @@ export function DailyFocusCard({
     );
   }
 
-  // Daily Hub mode
-  // Has active plan
-  if (activePlan) {
+  // Daily Hub mode — driven by sessionHint
+  // sessionHint === 'action' && activePlan
+  if (sessionHint === 'action' && activePlan) {
     const daysLeft = getDaysLeft(activePlan.end_date);
     return (
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
         <CardContent className="p-5">
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">
-              {t('daily_focus.plan_active')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {activePlan.title} — {t('daily_focus.plan_days_left', { days: daysLeft })}
-            </p>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {t('daily_focus.plan_active')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {activePlan.title} — {t('daily_focus.plan_days_left', { days: daysLeft })}
+              </p>
+              {lastActionLine}
+            </div>
             <Button
               size="sm"
               onClick={() => navigate(`/add-expense?plan_id=${activePlan.id}`)}
@@ -118,8 +130,8 @@ export function DailyFocusCard({
     );
   }
 
-  // Balanced (net balance ~0)
-  if (Math.abs(netBalance) < 1) {
+  // sessionHint === 'done'
+  if (sessionHint === 'done') {
     return (
       <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10">
         <CardContent className="p-5">
@@ -129,11 +141,12 @@ export function DailyFocusCard({
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {t('daily_focus.balanced')}
+                {t('daily_focus.done_title')}
               </p>
               <p className="text-xs text-muted-foreground">
-                {t('daily_focus.balanced_sub')}
+                {t('daily_focus.done_sub')}
               </p>
+              {lastActionLine}
             </div>
           </div>
         </CardContent>
@@ -141,14 +154,20 @@ export function DailyFocusCard({
     );
   }
 
-  // Default: light step
+  // sessionHint === 'curiosity' (default daily)
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
       <CardContent className="p-5">
         <div className="space-y-3">
-          <p className="text-sm font-semibold text-foreground">
-            {t('daily_focus.no_plan')}
-          </p>
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {t('daily_focus.daily_ready')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t('daily_focus.daily_ready_sub')}
+            </p>
+            {lastActionLine}
+          </div>
           <Button
             size="sm"
             onClick={() => navigate('/add-expense')}

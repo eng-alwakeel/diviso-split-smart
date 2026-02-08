@@ -136,6 +136,16 @@
     "balanced_sub": "Nothing to do today",
     "reengagement": "⏰ It's been {{days}} days",
     "reengagement_cta": "Come back with a simple step",
+    "reengagement_title": "It's been a while 👀",
+    "reengagement_sub": "Let's get back with a simple step",
+    "reengagement_dice_cta": "Roll the dice",
+    "daily_ready": "Ready for a new day",
+    "daily_ready_sub": "A simple step today makes a difference",
+    "done_title": "You're all set ✅",
+    "done_sub": "Nothing to do today",
+    "last_action_dice": "Last time you used the dice 🎲",
+    "last_action_expense": "Last time you added an expense",
+    "last_action_group": "Last time you created a group",
     "micro_celebration": "👌 Done for today!"
   },
   "smart_plan": {
