@@ -134,5 +134,34 @@
     "total_votes": "{{count}} votes",
     "empty": "No votes yet",
     "empty_desc": "Create a vote to coordinate with members"
+  },
+  "expenses_tab": {
+    "title": "Expenses",
+    "total": "Total Expenses",
+    "count": "{{count}} expenses",
+    "add_expense": "Add Expense",
+    "link_expense": "Move Expense to Plan",
+    "unlink_expense": "Remove from Plan",
+    "unlink_confirm": "Remove expense from plan?",
+    "unlink_confirm_desc": "The expense will be removed from the plan but won't be deleted",
+    "unlink_success": "Expense removed from plan",
+    "unlink_error": "Failed to remove expense",
+    "link_success": "Expense moved to plan",
+    "link_error": "Failed to move expense",
+    "empty": "No expenses linked to this plan",
+    "empty_desc": "Add new expenses or move existing ones",
+    "needs_group": "Link the plan to a group first to add expenses",
+    "budget_progress": "{{spent}} of {{budget}} {{currency}}",
+    "over_budget": "Over budget!",
+    "budget_remaining": "Remaining: {{remaining}} {{currency}}"
+  },
+  "link_expense_dialog": {
+    "title": "Move Expense to Plan",
+    "description": "Choose an expense from the group to move to this plan",
+    "search_placeholder": "Search by description...",
+    "no_expenses": "No expenses available to move",
+    "confirm": "Move to Plan",
+    "linking": "Moving...",
+    "already_linked": "Linked to another plan"
   }
 }

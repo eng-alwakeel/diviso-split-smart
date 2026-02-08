@@ -6083,6 +6083,10 @@ export type Database = {
       }
       is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
       join_group_with_token: { Args: { p_token: string }; Returns: string }
+      link_expense_to_plan: {
+        Args: { p_expense_id: string; p_plan_id: string }
+        Returns: boolean
+      }
       link_plan_to_group: {
         Args: { p_group_id: string; p_plan_id: string }
         Returns: boolean
@@ -6134,6 +6138,10 @@ export type Database = {
         Returns: Json
       }
       unarchive_group: { Args: { p_group_id: string }; Returns: boolean }
+      unlink_expense_from_plan: {
+        Args: { p_expense_id: string }
+        Returns: boolean
+      }
       update_daily_referral_analytics: { Args: never; Returns: number }
       update_expired_referrals: { Args: never; Returns: number }
       update_plan_status: {

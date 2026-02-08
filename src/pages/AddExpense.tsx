@@ -470,7 +470,9 @@ const AddExpense = () => {
         return;
       }
 
-      const expenseData = {
+      const planIdFromUrl = searchParams.get('planId');
+
+      const expenseData: any = {
         group_id: validation.data.group_id,
         created_by: user.id,
         payer_id: validation.data.payer_id,
@@ -479,7 +481,8 @@ const AddExpense = () => {
         category_id: validation.data.category_id,
         spent_at: validation.data.spent_at,
         currency: validation.data.currency,
-        status: 'pending' as const
+        status: 'pending' as const,
+        ...(planIdFromUrl ? { plan_id: planIdFromUrl } : {}),
       };
 
       console.log('Creating expense with data:', expenseData);
@@ -674,9 +677,12 @@ const AddExpense = () => {
       setMemberSplits([]);
       setReceipts([]);
       setOcrResults([]);
-      // Navigate back to group if came from group, otherwise go to dashboard
+      // Navigate back: plan > group > dashboard
+      const planIdNav = searchParams.get('planId');
       const groupIdFromUrl = searchParams.get('groupId');
-      if (groupIdFromUrl) {
+      if (planIdNav) {
+        navigate(`/plan/${planIdNav}`);
+      } else if (groupIdFromUrl) {
         navigate(`/group/${groupIdFromUrl}`);
       } else {
         navigate('/dashboard');

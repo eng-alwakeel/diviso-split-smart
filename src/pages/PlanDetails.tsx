@@ -19,6 +19,7 @@ import { PlanMembersList } from "@/components/plans/PlanMembersList";
 import { ConvertToGroupDialog } from "@/components/plans/ConvertToGroupDialog";
 import { LinkToGroupDialog } from "@/components/plans/LinkToGroupDialog";
 import { PlanSuggestionsTab } from "@/components/plans/PlanSuggestionsTab";
+import { PlanExpensesTab } from "@/components/plans/PlanExpensesTab";
 import { PlanVotesTab } from "@/components/plans/PlanVotesTab";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -238,12 +239,13 @@ const PlanDetails = () => {
           </TabsContent>
 
           <TabsContent value="expenses">
-            <Card className="border border-border">
-              <CardContent className="p-6 text-center text-muted-foreground">
-                <Receipt className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('coming_soon')}</p>
-              </CardContent>
-            </Card>
+            <PlanExpensesTab
+              planId={id!}
+              isAdmin={isAdmin}
+              groupId={plan.group_id}
+              budgetValue={plan.budget_value}
+              budgetCurrency={plan.budget_currency || 'SAR'}
+            />
           </TabsContent>
         </Tabs>
       </div>
