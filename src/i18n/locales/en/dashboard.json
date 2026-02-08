@@ -125,6 +125,35 @@
     "complete_all_first": "Complete all tasks first",
     "error": "An error occurred"
   },
+  "daily_focus": {
+    "onboarding_greeting": "👋 First step today",
+    "plan_active": "🟢 Let's continue your plan",
+    "plan_days_left": "{{days}} days left",
+    "plan_add_expense": "Add expense to plan",
+    "no_plan": "✋ Let's start today with a simple step",
+    "no_plan_cta": "Take a step now",
+    "balanced": "✅ You're all set",
+    "balanced_sub": "Nothing to do today",
+    "reengagement": "⏰ It's been {{days}} days",
+    "reengagement_cta": "Come back with a simple step",
+    "micro_celebration": "👌 Done for today!"
+  },
+  "smart_plan": {
+    "current_plan": "🗓️ Your current plan",
+    "days_left": "⏳ {{days}} days left",
+    "view_plan": "View Plan",
+    "no_plan_prompt": "🤔 Got an upcoming trip?",
+    "create_plan_cta": "Create a plan (30 sec)"
+  },
+  "collapsible_stats": {
+    "title": "Numbers & Summary",
+    "monthly": "Monthly Expenses",
+    "balance": "Net Balance",
+    "groups": "Groups"
+  },
+  "mini_feed": {
+    "view_details": "View details"
+  },
   "achievements": {
     "title": "My Achievements",
     "new_achievement": "New Achievement!",

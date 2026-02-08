@@ -20,6 +20,7 @@ export interface OnboardingData {
   tasksCompleted: number;
   rewardClaimed: boolean;
   rewardClaimedAt: string | null;
+  createdAt: string | null;
 }
 
 const ONBOARDING_TASKS_CONFIG: Omit<OnboardingTask, 'completed'>[] = [
@@ -82,7 +83,8 @@ const fetchOnboardingData = async (userId: string): Promise<OnboardingData | nul
       firstReferralMade: data.first_referral_made,
       tasksCompleted: data.tasks_completed,
       rewardClaimed: data.reward_claimed,
-      rewardClaimedAt: data.reward_claimed_at
+      rewardClaimedAt: data.reward_claimed_at,
+      createdAt: data.created_at ?? null,
     };
   }
 
@@ -100,7 +102,8 @@ const fetchOnboardingData = async (userId: string): Promise<OnboardingData | nul
       firstReferralMade: false,
       tasksCompleted: 0,
       rewardClaimed: false,
-      rewardClaimedAt: null
+      rewardClaimedAt: null,
+      createdAt: new Date().toISOString(),
     };
   }
   
