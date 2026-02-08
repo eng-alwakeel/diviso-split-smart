@@ -1,194 +1,139 @@
 
+# مراجعة ألوان الصفحة الرئيسية والالتزام بألوان البراند
 
-# ترقية كرت المكافأة اليومية الى تفاعلي (DailyRewardCardInteractive)
+## المشكلة
 
-## ملخص
-
-تحويل كرت المكافأة اليومية من عرض سلبي (Compact) الى كرت تفاعلي ذكي بحالتين:
-- **حالة A**: المكافأة غير محصّلة -- يعرض شريط تقدم اسبوعي + زر "احصل على مكافأة اليوم"
-- **حالة B**: المكافأة محصّلة -- يعرض تأكيد التحصيل + سلسلة مستمرة بدون زر
+الصفحة الرئيسية تستخدم ألوان Tailwind مباشرة (amber, orange, emerald, green, red) بدلا من ألوان البراند المعرّفة في نظام الألوان. هذا يخالف قواعد `COLOR_SYSTEM.md` ويُضعف اتساق الهوية البصرية.
 
 ---
 
-## 1. الملفات المعدلة
+## ملخص المخالفات المكتشفة
 
-### `src/components/dashboard/DailyRewardCardCompact.tsx`
-
-**اعادة كتابة كاملة** للمكون ليصبح تفاعليا مع الحفاظ على نفس الاسم (لتجنب تعديل Dashboard.tsx والـ lazy import).
-
-**التصميم النهائي:**
-
-```text
-حالة A -- غير محصّلة:
-+------------------------------------------+
-| 🏆 المكافأة اليومية        🔥 13         |
-| سجل دخولك يومياً واجمع المكافآت          |
-|                                          |
-| [7] [6] [5] [4] [3] [2] [1]  🏆          |
-|  ✓   ✓   ✓   ✓   ✓   ✓   ○              |
-|                                          |
-| [ 🎁 احصل على مكافأة اليوم ]             |
-|                                          |
-| 108 عملة  |  22 تسجيل  |  13 أطول سلسلة |
-+------------------------------------------+
-
-حالة B -- محصّلة:
-+------------------------------------------+
-| 🏆 المكافأة اليومية        🔥 13         |
-| سجل دخولك يومياً واجمع المكافآت          |
-|                                          |
-| [7] [6] [5] [4] [3] [2] [1]  🏆          |
-|  ✓   ✓   ✓   ✓   ✓   ✓   ✓              |
-|                                          |
-| ✅ تم تسجيل دخولك اليوم ✓                |
-|                                          |
-| 108 عملة  |  22 تسجيل  |  13 أطول سلسلة |
-+------------------------------------------+
-```
-
-**البيانات المستخدمة من `useDailyCheckin`:**
-- `streak` -- بيانات السلسلة
-- `weekProgress` -- شريط التقدم الاسبوعي (7 ايام)
-- `checkedInToday` -- هل سجل اليوم
-- `claiming` -- حالة التحميل
-- `claimReward()` -- دالة تحصيل المكافأة
-
-**المنطق:**
-- عند الضغط على الزر: `claimReward()` تُنفّذ
-- بعد التحصيل: الزر يختفي ويظهر نص تأكيد اخضر
-- الكرت لم يعد قابلا للضغط بالكامل (الـ `onClick` على Card يُزال)
-- شريط التقدم: 7 دوائر، المكتملة بلون اخضر فاتح مع علامة صح، والحالية بتأثير pulse خفيف
-
-**شريط التقدم الاسبوعي (WeekProgressBar):**
-- مكون فرعي داخل نفس الملف
-- 7 دوائر تمثل ايام الاسبوع
-- الدائرة المكتملة: خلفية `bg-[#d4e157]` مع ايقونة Check
-- الدائرة الحالية (isToday): حدود متوهجة `ring-2 ring-primary/50`
-- الدائرة غير المكتملة: `bg-muted/30 border border-border/50`
-- اليوم السابع: ايقونة Trophy بدل رقم
+| الملف | المخالفة | البديل الصحيح |
+|-------|---------|---------------|
+| `DailyRewardCardCompact.tsx` | `text-amber-500` (Trophy, Coins) | `text-primary` |
+| `DailyRewardCardCompact.tsx` | `bg-orange-500/10 text-orange-600` (Streak badge) | `bg-primary/10 text-primary` |
+| `DailyRewardCardCompact.tsx` | `text-emerald-500`, `text-emerald-600` (Checked in) | `text-status-positive` |
+| `DailyRewardCardCompact.tsx` | `bg-[hsl(65,69%,61%)]` (DayCircle) | `bg-primary` |
+| `StreakDisplay.tsx` | `bg-orange-500/10 border-orange-500/20 text-orange-500 text-orange-600` | `bg-primary/10 border-primary/20 text-primary` |
+| `StatsLiteCard.tsx` | `text-green-600 dark:text-green-400` (balance+) | `text-status-positive` |
+| `StatsLiteCard.tsx` | `text-red-500 dark:text-red-400` (balance-/outstanding) | `text-status-negative` |
+| `BalanceStatusCard.tsx` | `border-green-500/20 bg-green-500/5` (balanced) | `border-status-positive/20 bg-status-positive/5` |
+| `BalanceStatusCard.tsx` | `border-amber-500/20 bg-amber-500/5` (near balanced) | `border-warning/20 bg-warning/5` |
+| `BalanceStatusCard.tsx` | `border-red-500/20 bg-red-500/5` (unbalanced) | `border-destructive/20 bg-destructive/5` |
+| `DailyFocusCard.tsx` | `border-amber-500/20 bg-amber-500/5 to-amber-500/10` (re-engagement) | `border-warning/20 bg-warning/5 to-warning/10` |
+| `DailyFocusCard.tsx` | `bg-green-500/10 text-green-600 border-green-500/20 to-green-500/10` (done) | `bg-status-positive/10 text-status-positive border-status-positive/20` |
+| `CollapsibleStats.tsx` | `text-green-600 bg-green-500/10` / `text-red-500 bg-red-500/10` | `text-status-positive bg-status-positive/10` / `text-status-negative bg-status-negative/10` |
+| `LowActivityState.tsx` | `border-amber-500/20 bg-amber-500/5 bg-amber-500/10 text-amber-500` | `border-warning/20 bg-warning/5 bg-warning/10 text-warning` |
 
 ---
 
-### `src/i18n/locales/ar/dashboard.json`
+## التعديلات بالتفصيل
 
-تحديث مفاتيح `daily_reward_compact`:
-```text
-"daily_reward_compact": {
-  "title": "المكافأة اليومية",
-  "subtitle": "سجل دخولك يومياً واجمع المكافآت",
-  "checked_in": "تم تسجيل دخولك اليوم ✓",
-  "not_checked_in": "سجّل دخولك لتحصل على المكافأة",
-  "claim_button": "🎁 احصل على مكافأة اليوم",
-  "claiming": "جاري التسجيل...",
-  "coins": "عملة",
-  "checkins": "تسجيل",
-  "longest_streak": "أطول سلسلة"
-}
-```
+### 1. `src/components/dashboard/DailyRewardCardCompact.tsx`
 
-**مفاتيح جديدة:**
-- `subtitle` -- نص وصفي تحت العنوان
-- `claim_button` -- نص زر التحصيل
-- `claiming` -- نص اثناء التحميل
+**5 تعديلات:**
 
----
+- سطر 20: `bg-[hsl(65,69%,61%)] text-black` يتحول الى `bg-primary text-primary-foreground`
+- سطر 50: `text-amber-500` يتحول الى `text-primary`
+- سطر 68: `text-amber-500` يتحول الى `text-primary`
+- سطر 74: `bg-orange-500/10 text-orange-600` يتحول الى `bg-primary/10 text-primary`
+- سطر 104-105: `text-emerald-500` و `text-emerald-600 dark:text-emerald-400` يتحولان الى `text-status-positive`
+- سطر 116: `text-amber-500` يتحول الى `text-primary`
 
-### `src/i18n/locales/en/dashboard.json`
+### 2. `src/components/daily-hub/StreakDisplay.tsx`
 
-نفس التحديث بالانجليزية:
-```text
-"daily_reward_compact": {
-  "title": "Daily Reward",
-  "subtitle": "Check in daily and collect rewards",
-  "checked_in": "Checked in today ✓",
-  "not_checked_in": "Check in to get your reward",
-  "claim_button": "🎁 Get today's reward",
-  "claiming": "Claiming...",
-  "coins": "Coins",
-  "checkins": "Check-ins",
-  "longest_streak": "Longest streak"
-}
-```
+**3 تعديلات:**
 
----
+- سطر 14: `bg-orange-500/10 border border-orange-500/20` يتحول الى `bg-primary/10 border border-primary/20`
+- سطر 15: `text-orange-500` يتحول الى `text-primary`
+- سطر 16: `text-orange-600` يتحول الى `text-primary`
 
-## 2. ما لا يتغير
+### 3. `src/components/dashboard/StatsLiteCard.tsx`
 
-| الملف | السبب |
-|-------|------|
-| `src/pages/Dashboard.tsx` | لا تعديل -- الاسم والـ lazy import يبقى كما هو |
-| `src/hooks/useDashboardMode.ts` | لا تعديل -- `showDailyRewardCard` موجود |
-| `src/hooks/useDailyCheckin.ts` | لا تعديل -- `claimReward` و `weekProgress` موجودين |
-| `StatsLiteCard` | لا تعديل |
-| `BalanceStatusCard` | لا تعديل |
+**2 تعديلات:**
 
----
+- سطر 45: `text-green-600 dark:text-green-400` / `text-red-500 dark:text-red-400` يتحول الى `text-status-positive` / `text-status-negative`
+- سطر 59: `text-red-500 dark:text-red-400` يتحول الى `text-status-negative`
 
-## 3. التفاصيل التقنية
+### 4. `src/components/dashboard/BalanceStatusCard.tsx`
 
-### هيكل المكون
+**3 تعديلات في `stateConfig`:**
 
-```text
-DailyRewardCardCompact (الاسم يبقى للتوافق)
-├── Header: Trophy + عنوان + Flame badge
-├── Subtitle: نص وصفي
-├── WeekProgressBar (مكون فرعي)
-│   └── 7 DayCircle components
-├── Action Area:
-│   ├── حالة A: Button "احصل على مكافأة اليوم"
-│   └── حالة B: نص "تم تسجيل دخولك اليوم ✓"
-└── Footer Stats: عملات | تسجيلات | اطول سلسلة
-```
+- balanced: `border-green-500/20` و `bg-green-500/5` يتحولان الى `border-status-positive/20` و `bg-status-positive/5`
+- near_balanced: `border-amber-500/20` و `bg-amber-500/5` يتحولان الى `border-warning/20` و `bg-warning/5`
+- unbalanced: `border-red-500/20` و `bg-red-500/5` يتحولان الى `border-destructive/20` و `bg-destructive/5`
 
-### DayCircle (مكون فرعي)
+### 5. `src/components/dashboard/DailyFocusCard.tsx`
 
-```text
-Props: { day: number, completed: boolean, isToday: boolean, isLast: boolean }
+**2 تعديلات:**
 
-التصميم:
-- دائرة 32x32px
-- مكتمل: bg-[#d4e157] text-black + Check icon
-- اليوم: ring-2 ring-primary/40 + رقم اليوم
-- عادي: bg-muted/30 border-border/50 + رقم اليوم
-- آخر يوم (7): Trophy icon بدل رقم
-```
+- سطر 76: `border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10` يتحول الى `border-warning/20 bg-gradient-to-br from-warning/5 to-warning/10`
+- سطر 131-135: `border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10` و `bg-green-500/10` و `text-green-600` يتحولان الى `border-status-positive/20 from-status-positive/5 to-status-positive/10` و `bg-status-positive/10` و `text-status-positive`
 
-### سلوك الزر
+### 6. `src/components/dashboard/CollapsibleStats.tsx`
 
-```text
-onClick → claimReward()
-  → يعرض "جاري التسجيل..." (claiming = true)
-  → عند النجاح: toast + الزر يختفي
-  → عند الفشل: toast خطأ + الزر يبقى
-```
+**2 تعديلات:**
 
-### الفرق عن DailyCheckInCard الكامل
+- سطر 38: `text-green-600` / `text-red-500` يتحول الى `text-status-positive` / `text-status-negative`
+- سطر 39: `bg-green-500/10` / `bg-red-500/10` يتحول الى `bg-status-positive/10` / `bg-status-negative/10`
 
-| العنصر | DailyCheckInCard (كامل) | DailyRewardCardCompact (تفاعلي) |
-|--------|------------------------|-------------------------------|
-| شريط التقدم | ✅ | ✅ (نفس المنطق) |
-| زر التحصيل | ✅ | ✅ |
-| وصف المكافأة | ✅ تفصيلي | ❌ مختصر |
-| ارتفاع | كبير | متوسط (compact) |
-| مكانه | صفحة مكافآت | الصفحة الرئيسية |
+### 7. `src/components/daily-hub/LowActivityState.tsx`
+
+**3 تعديلات:**
+
+- سطر 17: `border-amber-500/20 bg-amber-500/5` يتحول الى `border-warning/20 bg-warning/5`
+- سطر 20: `bg-amber-500/10` يتحول الى `bg-warning/10`
+- سطر 21: `text-amber-500` يتحول الى `text-warning`
 
 ---
 
-## 4. ملخص الملفات
+## ملخص التحويلات
 
-| الملف | التعديل |
-|-------|--------|
-| `src/components/dashboard/DailyRewardCardCompact.tsx` | اعادة كتابة -- اضافة شريط تقدم + زر تحصيل + حالتين |
-| `src/i18n/locales/ar/dashboard.json` | اضافة `subtitle` + `claim_button` + `claiming` |
-| `src/i18n/locales/en/dashboard.json` | نفس الاضافات بالانجليزية |
+| لون Tailwind المباشر | لون البراند البديل |
+|---------------------|-------------------|
+| `text-amber-500` | `text-primary` (للأيقونات الذهبية/التحفيزية) |
+| `text-orange-500/600` | `text-primary` (للسلاسل والحوافز) |
+| `text-emerald-500/600` | `text-status-positive` |
+| `text-green-600` | `text-status-positive` |
+| `text-red-500` | `text-status-negative` |
+| `bg-amber-500/*` | `bg-warning/*` |
+| `bg-green-500/*` | `bg-status-positive/*` |
+| `bg-red-500/*` | `bg-destructive/*` او `bg-status-negative/*` |
+| `bg-orange-500/*` | `bg-primary/*` |
+| `border-amber-500/*` | `border-warning/*` |
+| `border-green-500/*` | `border-status-positive/*` |
+| `border-red-500/*` | `border-destructive/*` |
 
 ---
 
-## 5. حالات طرفية
+## ما لا يتغير
 
-- مستخدم لم يسجل ابدا (streak = 0): شريط التقدم كله فارغ + زر التحصيل يظهر
-- مستخدم سجل اليوم: الزر مخفي + نص تأكيد اخضر + الدوائر المكتملة مضيئة
-- اثناء التحصيل (claiming): الزر معطل + نص "جاري التسجيل..."
-- خطأ في التحصيل: toast خطأ + الزر يبقى متاحا
-- 0 عملات: Footer لا يظهر
+- `Dashboard.tsx` -- لا الوان مباشرة فيه
+- `MinimalQuickActions.tsx` -- يستخدم الوان البراند بالفعل
+- `RecentGroupActivityCard.tsx` -- يستخدم الوان البراند بالفعل
+- `DailyDiceCard.tsx` -- يستخدم `text-primary` و `bg-primary/*` بالفعل
+- `OnboardingProgress.tsx` -- يستخدم `text-primary` و `bg-primary` بالفعل
 
+---
+
+## النتيجة المتوقعة
+
+- جميع كروت الصفحة الرئيسية تستخدم الوان البراند الدلالية (Semantic)
+- اتساق بصري كامل مع الهوية (#C8F169 كلون اساسي)
+- لا يوجد اي لون Tailwind مباشر (amber, orange, emerald, green, red) في كروت الداشبورد
+- الصفحة تبدو موحدة واحترافية
+
+---
+
+## الملفات المعدلة (7 ملفات)
+
+| الملف | عدد التعديلات |
+|-------|-------------|
+| `src/components/dashboard/DailyRewardCardCompact.tsx` | 6 |
+| `src/components/daily-hub/StreakDisplay.tsx` | 3 |
+| `src/components/dashboard/StatsLiteCard.tsx` | 2 |
+| `src/components/dashboard/BalanceStatusCard.tsx` | 3 |
+| `src/components/dashboard/DailyFocusCard.tsx` | 2 |
+| `src/components/dashboard/CollapsibleStats.tsx` | 2 |
+| `src/components/daily-hub/LowActivityState.tsx` | 3 |
