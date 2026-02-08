@@ -1,171 +1,316 @@
 
-# المرحلة 3: ربط المصاريف بالخطط
+# المرحلة 4: الجدول اليومي + أنشطة + اقتراحات AI للأيام
 
 ## ملخص
 
-ربط المصاريف بالخطط مع تبويب مصاريف كامل في صفحة تفاصيل الخطة، وإمكانية إضافة مصروف مباشرة من الخطة، ونقل مصروف موجود إلى خطة.
-
----
-
-## الوضع الحالي
-
-- عمود `plan_id` موجود بالفعل في جدول `expenses` (تم إنشاؤه في المرحلة 1)
-- صفحة `PlanDetails.tsx` تعرض placeholder "قريباً" في تبويب المصاريف
-- صفحة `AddExpense.tsx` تدعم `groupId` كـ URL parameter لكنها لا تدعم `planId`
-- مكونات `ExpenseCard` و `ExpenseDetailsDialog` موجودة ويمكن إعادة استخدامها
+إضافة نظام تخطيط يومي كامل (Itinerary) للخطط مع أنشطة مقسمة حسب الفترة الزمنية، اقتراحات AI لكل يوم، وتحويل الأنشطة لتصويت وربطها بمصاريف.
 
 ---
 
 ## 1. قاعدة البيانات (Migration)
 
-### RPC جديد: `link_expense_to_plan`
+### A) جدول `plan_days`
 
-دالة تنقل مصروف موجود إلى خطة:
+| العمود | النوع | الوصف |
+|--------|------|-------|
+| id | uuid PK default gen_random_uuid() | معرف فريد |
+| plan_id | uuid NOT NULL FK plans(id) ON DELETE CASCADE | الخطة |
+| date | date NOT NULL | التاريخ |
+| day_index | int NOT NULL | ترتيب اليوم (1..N) |
+| created_at | timestamptz default now() | تاريخ الإنشاء |
+
+- UNIQUE constraint: (plan_id, date)
+- Index: plan_days_plan_idx (plan_id)
+
+### B) جدول `plan_day_activities`
+
+| العمود | النوع | الوصف |
+|--------|------|-------|
+| id | uuid PK default gen_random_uuid() | معرف فريد |
+| plan_day_id | uuid NOT NULL FK plan_days(id) ON DELETE CASCADE | اليوم |
+| title | text NOT NULL | عنوان النشاط |
+| description | text NULL | تفاصيل |
+| time_slot | text NOT NULL default 'any' | الفترة: morning/afternoon/evening/any |
+| status | text NOT NULL default 'idea' | الحالة: idea/proposed/locked |
+| estimated_cost | numeric NULL | التكلفة التقديرية |
+| currency | text default 'SAR' | العملة |
+| participant_scope | text NOT NULL default 'all' | نطاق المشاركين: all/custom |
+| participant_user_ids | uuid[] NULL | مشاركين محددين |
+| created_by | text NOT NULL default 'user' | المنشئ: ai/user |
+| linked_expense_id | uuid NULL FK expenses(id) ON DELETE SET NULL | ربط بمصروف |
+| linked_vote_id | uuid NULL FK plan_votes(id) ON DELETE SET NULL | ربط بتصويت |
+| created_at | timestamptz default now() | تاريخ الإنشاء |
+
+- Index: plan_day_activities_day_idx (plan_day_id)
+- Index: plan_day_activities_status_idx (status)
+
+### C) دالة `ensure_plan_days`
+
+دالة RPC تنشئ/تُوفّق أيام الخطة بناءً على start_date و end_date:
 
 ```text
-create or replace function public.link_expense_to_plan(
-  p_expense_id uuid,
-  p_plan_id uuid
-) returns boolean
+create or replace function public.ensure_plan_days(p_plan_id uuid)
+returns void
 ```
 
-- التحقق أن المستخدم هو منشئ المصروف أو الدافع
-- التحقق أن المستخدم يملك صلاحية الوصول للخطة (`can_access_plan`)
-- التحقق أن المصروف ينتمي لنفس المجموعة المرتبطة بالخطة (إن وجدت)
-- تحديث `expenses.plan_id = p_plan_id`
-- إرجاع `true` عند النجاح
+المنطق:
+1. جلب start_date و end_date من plans
+2. إذا أحدهما null: لا تفعل شيئاً
+3. إنشاء صف لكل يوم في النطاق (inclusive) إن لم يكن موجوداً
+4. حذف الأيام خارج النطاق فقط إذا لم يكن لها أنشطة
+5. تحديث day_index ليكون متسلسلاً
 
-### RPC جديد: `unlink_expense_from_plan`
+### D) Trigger على plans
 
-دالة تفصل مصروف عن خطة:
+عند تحديث start_date أو end_date في plans:
+- استدعاء ensure_plan_days تلقائياً
+- هذا يضمن تحديث الأيام عند تغيير التواريخ
 
-```text
-create or replace function public.unlink_expense_from_plan(
-  p_expense_id uuid
-) returns boolean
-```
+### E) RLS Policies
 
-- التحقق أن المستخدم هو منشئ المصروف أو مشرف الخطة
-- تحديث `expenses.plan_id = null`
-- إرجاع `true` عند النجاح
+- **plan_days**: 
+  - SELECT: `can_access_plan(auth.uid(), plan_id)`
+  - INSERT/UPDATE/DELETE: `is_plan_admin(auth.uid(), plan_id)`
+  
+- **plan_day_activities**:
+  - SELECT: أي شخص يملك access للخطة (عبر join مع plan_days)
+  - INSERT: أي عضو في الخطة يمكنه إضافة نشاط
+  - UPDATE: المنشئ أو owner/admin
+  - DELETE: owner/admin فقط
 
 ---
 
-## 2. ملفات جديدة
+## 2. Edge Function: `plan-day-ai-suggest`
 
-### `src/hooks/usePlanExpenses.ts`
+Edge function جديدة لاقتراحات AI لكل يوم:
 
-Hook لإدارة مصاريف الخطة:
-- `expenses`: جلب المصاريف المرتبطة بالخطة عبر `plan_id`
-- `stats`: إجمالي المصاريف، عدد المصاريف، إجمالي معتمد/معلق
-- `linkExpense(expenseId, planId)`: ربط مصروف موجود بالخطة
-- `unlinkExpense(expenseId)`: فصل مصروف عن الخطة
-- `isLoading`, `refetch`
-
-### `src/components/plans/PlanExpensesTab.tsx`
-
-مكون تبويب المصاريف في تفاصيل الخطة:
-
+### المدخلات
 ```text
-+------------------------------------------+
-|  [إجمالي: 2,500 ريال | 5 مصاريف]        |
-|  [+ إضافة مصروف]  [نقل مصروف للخطة]     |
-+------------------------------------------+
-|                                          |
-|  [بطاقة مصروف 1 - عشاء - 500 ر.س]      |
-|  [بطاقة مصروف 2 - بنزين - 200 ر.س]     |
-|  [بطاقة مصروف 3 - فندق - 1800 ر.س]     |
-|                                          |
-|  حالة فارغة:                             |
-|  "لا توجد مصاريف مرتبطة بهذه الخطة"     |
-|  [+ إضافة مصروف] [نقل مصروف موجود]       |
-+------------------------------------------+
+{ day_id: uuid, preferences?: string }
 ```
 
-يعرض:
-- ملخص إجمالي المصاريف مقارنة بالميزانية (إن وجدت)
-- شريط تقدم الميزانية (budget_value vs total_spent)
-- قائمة بطاقات المصاريف (يعيد استخدام مكون مبسط)
-- زر "إضافة مصروف" يوجه لـ `/add-expense?planId=X&groupId=Y`
-- زر "نقل مصروف للخطة" يفتح `LinkExpenseDialog`
-
-### `src/components/plans/LinkExpenseDialog.tsx`
-
-حوار لاختيار مصروف موجود ونقله للخطة:
-
+### المخرجات
 ```text
-+------------------------------------------+
-|     نقل مصروف إلى الخطة                  |
-+------------------------------------------+
-|  [بحث...]                                |
-|                                          |
-|  ○ عشاء - 500 ريال - 5 فبراير           |
-|  ○ بنزين - 200 ريال - 3 فبراير          |
-|  ○ تذاكر - 1200 ريال - 1 فبراير         |
-|                                          |
-|  [نقل للخطة]                             |
-+------------------------------------------+
+{ activities: [{ title, description, time_slot, estimated_cost }] }
 ```
 
-- يعرض المصاريف التي تنتمي لنفس المجموعة المرتبطة بالخطة (أو مصاريف المستخدم إن لم تكن مرتبطة بمجموعة)
-- يستبعد المصاريف المرتبطة بخطط أخرى
-- يدعم البحث بالوصف
-- عند الاختيار: يستدعي RPC `link_expense_to_plan`
+### المنطق
+1. التحقق من الصلاحيات (can_access_plan)
+2. Rate limit: 1 تشغيل لكل يوم كل 10 دقائق (عبر فحص آخر نشاط AI لنفس اليوم)
+3. جلب بيانات الخطة + اليوم (day_index, date, total days count)
+4. منطق ذكي حسب day_index:
+   - اليوم الأول: أنشطة وصول + تسجيل + عشاء
+   - اليوم الأخير: تسوق + checkout + مغادرة
+   - أيام وسط: أنشطة رئيسية كاملة
+5. إذا destination مفقودة: إرجاع رسالة تطلب إضافة وجهة
+6. استدعاء Lovable AI Gateway (google/gemini-3-flash-preview)
+7. Fallback templates حسب plan_type + day_index
+8. حذف أنشطة AI سابقة لنفس اليوم (created_by='ai') ثم إدراج الجديدة
+9. إرجاع الأنشطة المقترحة
 
-### `src/components/plans/PlanExpenseCard.tsx`
+### Fallback Templates
 
-بطاقة مصروف مبسطة خاصة بتبويب الخطة:
-- تعرض: الوصف، المبلغ، التاريخ، الحالة
-- زر "فصل عن الخطة" (unlink) لمشرف الخطة
-- الضغط على البطاقة يفتح `ExpenseDetailsDialog`
+```text
+اليوم الأول (trip):
+  - morning: "الوصول والتسجيل" + تفاصيل
+  - afternoon: "استكشاف المنطقة"
+  - evening: "عشاء جماعي"
+
+أيام الوسط (trip):
+  - morning: "نشاط صباحي رئيسي"
+  - afternoon: "جولة بعد الغداء"
+  - evening: "سهرة جماعية"
+
+اليوم الأخير (trip):
+  - morning: "إفطار + checkout"
+  - afternoon: "تسوق هدايا"
+  - evening: "المغادرة"
+```
 
 ---
 
-## 3. الملفات المعدلة
+## 3. ملفات جديدة
+
+### `src/hooks/usePlanItinerary.ts`
+
+Hook رئيسي لإدارة الجدول اليومي:
+- `days`: جلب plan_days مع activities متداخلة
+- `ensureDays()`: استدعاء RPC ensure_plan_days
+- `addActivity(dayId, data)`: إضافة نشاط
+- `updateActivity(activityId, data)`: تعديل نشاط
+- `deleteActivity(activityId)`: حذف نشاط
+- `generateDaySuggestions(dayId, preferences?)`: استدعاء edge function
+- `convertActivityToVote(activityId)`: تحويل نشاط لتصويت
+- `linkActivityToExpense(activityId, expenseId)`: ربط بمصروف
+- `isLoading`, `isGenerating`
+
+### `src/components/plans/PlanItineraryTab.tsx`
+
+تبويب الجدول اليومي الرئيسي:
+
+```text
+حالة بدون تواريخ:
++------------------------------------------+
+|  📅  أضف تواريخ الخطة ليظهر الجدول       |
+|     [تعديل الخطة]                        |
++------------------------------------------+
+
+حالة مع تواريخ:
++------------------------------------------+
+|  اليوم 1 — 10/02/2026                    |
+|  [+ نشاط] [🤖 اقترح]                    |
+|  ┌─ صباح ─────────────────────────┐     |
+|  │ الوصول والتسجيل  [فكرة]        │     |
+|  └─────────────────────────────────┘     |
+|  ┌─ مساء ──────────────────────────┐     |
+|  │ عشاء جماعي  [مقترح] 200 ر.س    │     |
+|  └─────────────────────────────────┘     |
++------------------------------------------+
+|  اليوم 2 — 11/02/2026                    |
+|  [+ نشاط] [🤖 اقترح]                    |
+|  ...                                     |
++------------------------------------------+
+```
+
+### `src/components/plans/DayCard.tsx`
+
+بطاقة اليوم:
+- Header: "اليوم {day_index} -- {date}"
+- أزرار: "إضافة نشاط" + "اقترح أنشطة"
+- تجميع الأنشطة حسب time_slot (اختياري UI)
+- عرض ActivityCard لكل نشاط
+- حالة التحميل عند توليد AI
+
+### `src/components/plans/ActivityCard.tsx`
+
+بطاقة النشاط:
+- title + description (قابلة للتوسيع)
+- Badge الحالة: idea (رمادي) / proposed (أزرق) / locked (أخضر)
+- Badge الفترة: صباح/ظهر/مساء/عام
+- التكلفة التقديرية (إن وجدت)
+- مؤشر المشاركين (الكل / مخصص)
+- مؤشر الربط بتصويت (إن وجد linked_vote_id)
+- مؤشر الربط بمصروف (إن وجد linked_expense_id)
+- قائمة إجراءات (DropdownMenu):
+  - "تعديل"
+  - "حوّل لتصويت"
+  - "اربط بمصروف"
+  - "قفل النشاط" (admin فقط)
+  - "حذف" (admin فقط)
+
+### `src/components/plans/AddActivityDialog.tsx`
+
+حوار إضافة نشاط:
+- العنوان (مطلوب)
+- الفترة الزمنية (morning/afternoon/evening/any)
+- قسم "تفاصيل إضافية" (Collapsible):
+  - الوصف
+  - التكلفة التقديرية + العملة
+  - نطاق المشاركين (all/custom)
+- زر حفظ
+
+### `src/components/plans/EditActivityDialog.tsx`
+
+حوار تعديل نشاط (مشابه لإضافة + تعبئة مسبقة + تعديل الحالة)
+
+### `src/components/plans/LinkActivityExpenseDialog.tsx`
+
+حوار ربط نشاط بمصروف:
+- خياران:
+  1. "إنشاء مصروف جديد" -- ينتقل لـ AddExpense مع بيانات مسبقة
+  2. "ربط بمصروف موجود" -- قائمة مصاريف الخطة (plan_id = this plan)
+- عند الربط: تحديث activity.linked_expense_id
+
+---
+
+## 4. الملفات المعدلة
 
 ### `src/pages/PlanDetails.tsx`
 
-- استبدال placeholder "قريباً" في تبويب المصاريف بـ `PlanExpensesTab`
-- تمرير `planId`, `isAdmin`, `plan.group_id`, `plan.budget_value`, `plan.budget_currency`
+تغييرات:
+- إضافة تبويب خامس "الجدول" (itinerary) في TabsList (grid-cols-5)
+- إضافة TabsContent لـ PlanItineraryTab
+- تمرير: planId, isAdmin, hasDates (start_date && end_date), plan data
 
-### `src/pages/AddExpense.tsx`
+### `supabase/config.toml`
 
-- إضافة دعم لـ `planId` كـ URL parameter
-- عند وجود `planId`: جلب بيانات الخطة (group_id) وتحديد المجموعة تلقائياً
-- عند حفظ المصروف: إضافة `plan_id` في بيانات الإدخال
-- بعد الحفظ: التوجيه لصفحة الخطة بدل المجموعة إن جاء من خطة
+إضافة:
+```text
+[functions.plan-day-ai-suggest]
+verify_jwt = true
+```
 
 ### `src/i18n/locales/ar/plans.json`
 
-إضافة مفاتيح جديدة:
+إضافة مفاتيح:
 ```text
-"expenses_tab": {
-  "title": "المصاريف",
-  "total": "إجمالي المصاريف",
-  "count": "{{count}} مصروف",
-  "add_expense": "إضافة مصروف",
-  "link_expense": "نقل مصروف للخطة",
-  "unlink_expense": "فصل عن الخطة",
-  "unlink_confirm": "فصل المصروف عن الخطة؟",
-  "unlink_confirm_desc": "سيتم إزالة المصروف من الخطة لكنه لن يُحذف",
-  "unlink_success": "تم فصل المصروف عن الخطة",
-  "unlink_error": "فشل في فصل المصروف",
-  "link_success": "تم نقل المصروف للخطة",
-  "link_error": "فشل في نقل المصروف",
-  "empty": "لا توجد مصاريف مرتبطة بالخطة",
-  "empty_desc": "أضف مصاريف جديدة أو انقل مصاريف موجودة",
-  "budget_progress": "{{spent}} من {{budget}} {{currency}}",
-  "over_budget": "تجاوز الميزانية!",
-  "budget_remaining": "متبقي: {{remaining}} {{currency}}"
-},
-"link_expense_dialog": {
-  "title": "نقل مصروف إلى الخطة",
-  "description": "اختر مصروف من المجموعة لنقله للخطة",
-  "search_placeholder": "ابحث بالوصف...",
-  "no_expenses": "لا توجد مصاريف متاحة للنقل",
-  "confirm": "نقل للخطة",
-  "linking": "جاري النقل...",
-  "already_linked": "مرتبط بخطة أخرى"
+"itinerary": {
+  "tab": "الجدول",
+  "no_dates": "أضف تواريخ الخطة ليظهر الجدول اليومي",
+  "edit_plan": "تعديل الخطة",
+  "day_title": "اليوم {{index}}",
+  "add_activity": "إضافة نشاط",
+  "suggest_activities": "🤖 اقترح أنشطة",
+  "suggesting": "جاري الاقتراح...",
+  "suggest_success": "تم اقتراح أنشطة لهذا اليوم",
+  "suggest_error": "فشل في اقتراح الأنشطة",
+  "suggest_no_destination": "أضف وجهة الخطة أولاً للحصول على اقتراحات مخصصة",
+  "suggest_rate_limited": "انتظر 10 دقائق قبل المحاولة مرة أخرى",
+  "no_activities": "لا توجد أنشطة لهذا اليوم",
+  "time_slots": {
+    "morning": "صباح",
+    "afternoon": "ظهر",
+    "evening": "مساء",
+    "any": "عام"
+  },
+  "activity_status": {
+    "idea": "فكرة",
+    "proposed": "مقترح",
+    "locked": "مثبّت"
+  },
+  "activity_actions": {
+    "edit": "تعديل",
+    "convert_to_vote": "حوّل لتصويت",
+    "link_expense": "اربط بمصروف",
+    "lock": "تثبيت",
+    "unlock": "إلغاء التثبيت",
+    "delete": "حذف",
+    "delete_confirm": "حذف هذا النشاط؟",
+    "delete_confirm_desc": "لا يمكن التراجع عن هذا الإجراء"
+  },
+  "add_activity_dialog": {
+    "title": "إضافة نشاط",
+    "activity_title": "عنوان النشاط",
+    "activity_title_placeholder": "مثال: زيارة المتحف",
+    "time_slot": "الفترة الزمنية",
+    "extra_details": "تفاصيل إضافية",
+    "description": "الوصف",
+    "description_placeholder": "تفاصيل إضافية عن النشاط",
+    "estimated_cost": "التكلفة التقديرية",
+    "participants": "المشاركين",
+    "all_members": "جميع الأعضاء",
+    "custom": "مخصص",
+    "save": "حفظ",
+    "saving": "جاري الحفظ..."
+  },
+  "edit_activity_dialog": {
+    "title": "تعديل نشاط"
+  },
+  "link_expense_dialog": {
+    "title": "ربط النشاط بمصروف",
+    "create_new": "إنشاء مصروف جديد",
+    "link_existing": "ربط بمصروف موجود",
+    "no_plan_expenses": "لا توجد مصاريف في الخطة",
+    "link_success": "تم ربط النشاط بالمصروف",
+    "link_error": "فشل في الربط"
+  },
+  "convert_vote_success": "تم تحويل النشاط لتصويت",
+  "convert_vote_error": "فشل في التحويل",
+  "activity_saved": "تم حفظ النشاط",
+  "activity_updated": "تم تحديث النشاط",
+  "activity_deleted": "تم حذف النشاط",
+  "activity_locked": "تم تثبيت النشاط",
+  "activity_unlocked": "تم إلغاء تثبيت النشاط"
 }
 ```
 
@@ -173,116 +318,179 @@ Hook لإدارة مصاريف الخطة:
 
 إضافة نفس المفاتيح بالإنجليزية:
 ```text
-"expenses_tab": {
-  "title": "Expenses",
-  "total": "Total Expenses",
-  "count": "{{count}} expenses",
-  "add_expense": "Add Expense",
-  "link_expense": "Move Expense to Plan",
-  "unlink_expense": "Remove from Plan",
-  "unlink_confirm": "Remove expense from plan?",
-  "unlink_confirm_desc": "The expense will be removed from the plan but won't be deleted",
-  "unlink_success": "Expense removed from plan",
-  "unlink_error": "Failed to remove expense",
-  "link_success": "Expense moved to plan",
-  "link_error": "Failed to move expense",
-  "empty": "No expenses linked to this plan",
-  "empty_desc": "Add new expenses or move existing ones",
-  "budget_progress": "{{spent}} of {{budget}} {{currency}}",
-  "over_budget": "Over budget!",
-  "budget_remaining": "Remaining: {{remaining}} {{currency}}"
-},
-"link_expense_dialog": {
-  "title": "Move Expense to Plan",
-  "description": "Choose an expense from the group to move to this plan",
-  "search_placeholder": "Search by description...",
-  "no_expenses": "No expenses available to move",
-  "confirm": "Move to Plan",
-  "linking": "Moving...",
-  "already_linked": "Linked to another plan"
+"itinerary": {
+  "tab": "Itinerary",
+  "no_dates": "Add plan dates to see the daily schedule",
+  "edit_plan": "Edit Plan",
+  "day_title": "Day {{index}}",
+  "add_activity": "Add Activity",
+  "suggest_activities": "🤖 Suggest Activities",
+  "suggesting": "Suggesting...",
+  "suggest_success": "Activities suggested for this day",
+  "suggest_error": "Failed to suggest activities",
+  "suggest_no_destination": "Add a plan destination first for personalized suggestions",
+  "suggest_rate_limited": "Wait 10 minutes before trying again",
+  "no_activities": "No activities for this day",
+  "time_slots": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "any": "Any time"
+  },
+  "activity_status": {
+    "idea": "Idea",
+    "proposed": "Proposed",
+    "locked": "Locked"
+  },
+  "activity_actions": {
+    "edit": "Edit",
+    "convert_to_vote": "Convert to Vote",
+    "link_expense": "Link Expense",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "delete": "Delete",
+    "delete_confirm": "Delete this activity?",
+    "delete_confirm_desc": "This action cannot be undone"
+  },
+  "add_activity_dialog": {
+    "title": "Add Activity",
+    "activity_title": "Activity Title",
+    "activity_title_placeholder": "e.g., Visit the museum",
+    "time_slot": "Time Slot",
+    "extra_details": "Extra Details",
+    "description": "Description",
+    "description_placeholder": "Additional details about the activity",
+    "estimated_cost": "Estimated Cost",
+    "participants": "Participants",
+    "all_members": "All Members",
+    "custom": "Custom",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "edit_activity_dialog": {
+    "title": "Edit Activity"
+  },
+  "link_expense_dialog": {
+    "title": "Link Activity to Expense",
+    "create_new": "Create New Expense",
+    "link_existing": "Link Existing Expense",
+    "no_plan_expenses": "No expenses in this plan",
+    "link_success": "Activity linked to expense",
+    "link_error": "Failed to link"
+  },
+  "convert_vote_success": "Activity converted to vote",
+  "convert_vote_error": "Failed to convert",
+  "activity_saved": "Activity saved",
+  "activity_updated": "Activity updated",
+  "activity_deleted": "Activity deleted",
+  "activity_locked": "Activity locked",
+  "activity_unlocked": "Activity unlocked"
 }
 ```
 
 ---
 
-## 4. التفاصيل التقنية
+## 5. التفاصيل التقنية
 
-### سلوك إضافة مصروف من الخطة
+### سلوك ensure_plan_days
 
 ```text
-User clicks "إضافة مصروف" in PlanExpensesTab
-  --> Navigate to /add-expense?planId=xxx&groupId=yyy
-  --> AddExpense reads planId from URL
-  --> Auto-selects group from plan's group_id
-  --> On save: includes plan_id in expense INSERT
-  --> After save: navigates back to /plan/:id
+plan.start_date = 2026-02-10
+plan.end_date = 2026-02-13
+
+Result:
+  plan_days: [
+    { date: 2026-02-10, day_index: 1 },
+    { date: 2026-02-11, day_index: 2 },
+    { date: 2026-02-12, day_index: 3 },
+    { date: 2026-02-13, day_index: 4 },
+  ]
+
+If dates change to 2026-02-11 -> 2026-02-14:
+  - Day 2026-02-10: delete ONLY if no activities exist
+  - Day 2026-02-14: create new
+  - Reindex all remaining days
 ```
 
-### سلوك نقل مصروف موجود
+### سلوك توليد AI لليوم
 
 ```text
-User clicks "نقل مصروف للخطة"
-  --> LinkExpenseDialog opens
-  --> Fetches expenses from same group where plan_id IS NULL
-  --> User selects expense
-  --> RPC: link_expense_to_plan(expense_id, plan_id)
-  --> Refresh plan expenses list
-  --> Toast: "تم نقل المصروف للخطة"
+User clicks "اقترح أنشطة" on Day 2
+  --> Edge function: plan-day-ai-suggest
+  --> Checks: rate limit (10 min), access, destination required
+  --> AI prompt includes: plan_type, destination, budget, day_index, total_days
+  --> Generates 3-5 activities with time_slots
+  --> Deletes old AI activities for this day (created_by='ai')
+  --> Inserts new activities with status='proposed', created_by='ai'
+  --> Returns activities to UI
+  --> Toast: "تم اقتراح أنشطة لهذا اليوم"
 ```
 
-### سلوك فصل مصروف عن الخطة
+### سلوك تحويل نشاط لتصويت
 
 ```text
-User clicks "فصل عن الخطة" on expense card
-  --> Confirmation dialog
-  --> RPC: unlink_expense_from_plan(expense_id)
-  --> Refresh plan expenses list
-  --> Toast: "تم فصل المصروف عن الخطة"
+User clicks "حوّل لتصويت" on activity
+  --> Creates plan_vote: title=activity.title
+  --> Creates 3 options: "نعم" / "لا" / "بديل"
+  --> Updates activity.linked_vote_id = new vote.id
+  --> Toast + navigate to votes tab
 ```
 
-### شريط تقدم الميزانية
+### سلوك ربط نشاط بمصروف
 
 ```text
-إذا الخطة لها budget_value:
-  total_spent = مجموع مبالغ المصاريف المعتمدة (approved)
-  progress = (total_spent / budget_value) * 100
-
-  اللون:
-  - أخضر: < 75%
-  - أصفر: 75% - 100%
-  - أحمر: > 100% (تجاوز الميزانية)
+User clicks "اربط بمصروف"
+  --> LinkActivityExpenseDialog opens
+  --> Option 1: "إنشاء مصروف جديد"
+    --> Navigate to /add-expense?planId=X&groupId=Y&title=activity.title&amount=estimated_cost&date=day.date
+    --> After create: update activity.linked_expense_id
+  --> Option 2: "ربط بمصروف موجود"
+    --> Show list of plan expenses where linked to no activity
+    --> Pick one --> update activity.linked_expense_id
 ```
 
-### جلب المصاريف المتاحة للنقل (LinkExpenseDialog)
+### تغييرات تبويب PlanDetails
 
 ```text
-SELECT * FROM expenses
-WHERE group_id = plan.group_id   -- نفس المجموعة
-  AND plan_id IS NULL             -- غير مرتبط بخطة
-  AND (created_by = auth.uid() OR payer_id = auth.uid())
-ORDER BY spent_at DESC
-LIMIT 50
+الحالي: grid-cols-4 (ملخص | اقتراحات | تصويت | مصاريف)
+الجديد: grid-cols-5 (ملخص | الجدول | اقتراحات | تصويت | مصاريف)
+
+تبويب "الجدول" يكون في المرتبة الثانية بعد الملخص لأنه الأهم يومياً
 ```
 
 ---
 
-## 5. ملخص الملفات
+## 6. ملخص الملفات
 
 ### ملفات جديدة
 
-| الملف | الوصف | الأولوية |
-|-------|------|---------|
-| Migration: RPCs (`link_expense_to_plan`, `unlink_expense_from_plan`) | دوال ربط/فصل المصاريف | حرجة |
-| `src/hooks/usePlanExpenses.ts` | Hook مصاريف الخطة | حرجة |
-| `src/components/plans/PlanExpensesTab.tsx` | تبويب المصاريف | حرجة |
-| `src/components/plans/PlanExpenseCard.tsx` | بطاقة مصروف الخطة | حرجة |
-| `src/components/plans/LinkExpenseDialog.tsx` | حوار نقل مصروف | مهمة |
+| الملف | الوصف |
+|-------|------|
+| Migration SQL | plan_days + plan_day_activities + ensure_plan_days RPC + trigger + RLS |
+| `supabase/functions/plan-day-ai-suggest/index.ts` | Edge function لاقتراحات AI يومية |
+| `src/hooks/usePlanItinerary.ts` | Hook إدارة الجدول اليومي |
+| `src/components/plans/PlanItineraryTab.tsx` | تبويب الجدول الرئيسي |
+| `src/components/plans/DayCard.tsx` | بطاقة اليوم مع أنشطة |
+| `src/components/plans/ActivityCard.tsx` | بطاقة النشاط مع إجراءات |
+| `src/components/plans/AddActivityDialog.tsx` | حوار إضافة نشاط |
+| `src/components/plans/EditActivityDialog.tsx` | حوار تعديل نشاط |
+| `src/components/plans/LinkActivityExpenseDialog.tsx` | حوار ربط نشاط بمصروف |
 
 ### ملفات معدلة
 
-| الملف | التعديل | الأولوية |
-|-------|--------|---------|
-| `src/pages/PlanDetails.tsx` | استبدال placeholder بـ `PlanExpensesTab` | حرجة |
-| `src/pages/AddExpense.tsx` | دعم `planId` URL param + إضافة `plan_id` في الإدخال | حرجة |
-| `src/i18n/locales/ar/plans.json` | إضافة مفاتيح المصاريف | مهمة |
-| `src/i18n/locales/en/plans.json` | إضافة مفاتيح المصاريف | مهمة |
+| الملف | التعديل |
+|-------|--------|
+| `src/pages/PlanDetails.tsx` | إضافة تبويب "الجدول" (grid-cols-5) + import PlanItineraryTab |
+| `supabase/config.toml` | إضافة plan-day-ai-suggest function config |
+| `src/i18n/locales/ar/plans.json` | إضافة مفاتيح itinerary |
+| `src/i18n/locales/en/plans.json` | إضافة مفاتيح itinerary |
+
+---
+
+## 7. حالات طرفية مهمة
+
+- خطة بيوم واحد (طلعة/نشاط): يعمل بشكل طبيعي مع day_index=1
+- تحديث التواريخ: الأيام الموجودة تبقى إن كانت تحتوي أنشطة
+- إعادة تشغيل AI: يحذف أنشطة AI السابقة فقط، لا يمس أنشطة المستخدم
+- خطة بدون وجهة: AI يرجع رسالة تطلب إضافة وجهة بدل الفشل
+- صلاحيات: أي عضو يمكنه إضافة نشاط، فقط admin/owner يمكنهم الحذف والقفل
