@@ -221,6 +221,14 @@
     "dice_locked": "Locked",
     "dice_locked_hint": "Changes every 24 hours"
   },
+  "daily_reward_compact": {
+    "title": "Daily Reward",
+    "checked_in": "Checked in today ✓",
+    "not_checked_in": "Check in to get your reward",
+    "coins": "Coins",
+    "checkins": "Check-ins",
+    "longest_streak": "Longest streak"
+  },
   "activity_feed": {
     "title": "Recent Activity",
     "expense_added": "{{name}} added expense {{amount}} {{currency}}",

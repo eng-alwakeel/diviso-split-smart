@@ -221,6 +221,14 @@
     "dice_locked": "مثبت",
     "dice_locked_hint": "يتغير كل 24 ساعة"
   },
+  "daily_reward_compact": {
+    "title": "المكافأة اليومية",
+    "checked_in": "تم تسجيل دخولك اليوم ✓",
+    "not_checked_in": "سجّل دخولك لتحصل على المكافأة",
+    "coins": "عملة",
+    "checkins": "تسجيل",
+    "longest_streak": "أطول سلسلة"
+  },
   "activity_feed": {
     "title": "آخر الأحداث",
     "expense_added": "{{name}} أضاف مصروف {{amount}} {{currency}}",
