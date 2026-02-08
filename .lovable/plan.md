@@ -1,265 +1,365 @@
 
-# Outstanding Balance Notification -- إشعار المبلغ المستحق (MVP)
+# Plans Feature -- خطط شخصية قابلة للربط بمجموعة
 
 ## ملخص
 
-إضافة إشعار خاص يُرسل لكل عضو عليه مبلغ مستحق بعد إنشاء أو اعتماد مصروف. يظهر الإشعار داخل التطبيق فقط مع صفحة تفاصيل وزر "تم الدفع".
+بناء ميزة "الخطط" (Plans) كاملة: خطة شخصية يمكن تحويلها لمجموعة أو ربطها بمجموعة موجودة. تشمل: إنشاء/تعديل خطط، أعضاء، اقتراحات AI، تصويت، ومصاريف مربوطة.
+
+---
+
+## نطاق التنفيذ الكامل
+
+هذا المشروع كبير جداً ويتطلب تقسيمه إلى **3 مراحل** لتنفيذ آمن ومنظم. سأنفذ **المرحلة الأولى (الأساس)** في هذه الدفعة، مع تحضير البنية لباقي المراحل.
+
+### المرحلة 1 (هذه الدفعة): قاعدة البيانات + UI أساسي
+- جميع جداول DB + RLS + RPCs
+- إنشاء/تعديل خطة (wizard)
+- صفحة تفاصيل الخطة (ملخص + أعضاء + حالة)
+- تحويل خطة لمجموعة + ربط بمجموعة موجودة
+- قائمة الخطط
+
+### المرحلة 2 (دفعة لاحقة): اقتراحات AI + تصويت
+- Edge function للاقتراحات
+- واجهة الاقتراحات + "حوّل لتصويت"
+- نظام التصويت الكامل
+
+### المرحلة 3 (دفعة لاحقة): مصاريف مربوطة
+- ربط expenses بـ plan_id
+- تبويب المصاريف في تفاصيل الخطة
+- نقل مصروف لخطة
 
 ---
 
 ## 1. قاعدة البيانات (Migration)
 
-### جدول جديد: `balance_notifications`
-
-يتتبع حالة الدفع لكل إشعار مستحق بشكل منفصل عن جدول `notifications` العام:
+### A) جدول `plans`
 
 | العمود | النوع | الوصف |
 |--------|------|-------|
-| `id` | uuid (PK, default gen_random_uuid) | معرف فريد |
-| `user_id` | uuid (NOT NULL, FK profiles) | العضو الذي عليه المبلغ |
-| `group_id` | uuid (NOT NULL, FK groups) | المجموعة |
-| `expense_id` | uuid (NOT NULL, FK expenses) | المصروف |
-| `payer_id` | uuid (NOT NULL, FK profiles) | الشخص الذي يجب الدفع له |
-| `amount_due` | numeric (NOT NULL) | المبلغ المستحق |
-| `currency` | text (NOT NULL, default 'SAR') | العملة |
-| `status` | text (NOT NULL, default 'unpaid') | الحالة: `unpaid` / `marked_as_paid` |
-| `notification_id` | uuid (FK notifications) | ربط بالإشعار في جدول notifications |
-| `created_at` | timestamptz (default now) | تاريخ الإنشاء |
-| `updated_at` | timestamptz (default now) | تاريخ التحديث |
+| id | uuid PK | معرف فريد |
+| owner_user_id | uuid NOT NULL | مالك الخطة (FK profiles) |
+| group_id | uuid NULL | ربط بمجموعة (FK groups) |
+| title | text NOT NULL | عنوان الخطة |
+| plan_type | text NOT NULL | نوع: trip/outing/shared_housing/activity |
+| destination | text NULL | الوجهة |
+| start_date | date NULL | تاريخ البدء |
+| end_date | date NULL | تاريخ الانتهاء |
+| budget_value | numeric NULL | الميزانية |
+| budget_currency | text default 'SAR' | العملة |
+| status | text NOT NULL default 'draft' | الحالة: draft/planning/locked/done/canceled |
+| created_at | timestamptz default now() | تاريخ الإنشاء |
+| updated_at | timestamptz default now() | تاريخ التحديث |
 
-- Unique constraint: `(user_id, expense_id)` -- يمنع تكرار الإشعار لنفس العملية
-- RLS: SELECT/UPDATE فقط لـ `user_id = auth.uid()`
+Indexes: owner_user_id, group_id, status
 
-### RPC جديد: `mark_balance_as_paid`
+### B) جدول `plan_members`
 
-دالة تستقبل `p_balance_notification_id uuid` وتقوم بـ:
-1. التحقق أن `user_id = auth.uid()`
-2. تحديث `status` إلى `'marked_as_paid'`
-3. أرشفة الإشعار المرتبط في جدول `notifications` (تعيين `archived_at`)
-4. إرجاع `true` عند النجاح
+| العمود | النوع |
+|--------|------|
+| plan_id | uuid FK plans (cascade) |
+| user_id | uuid FK profiles |
+| role | text default 'member' (owner/admin/member) |
+| joined_at | timestamptz default now() |
 
-### RPC جديد: `get_balance_notification_details`
+PK: (plan_id, user_id)
 
-دالة تستقبل `p_notification_id uuid` وترجع تفاصيل الإشعار مع بيانات المصروف والمجموعة والدافع:
+### C) جدول `plan_ai_summary`
+
+| العمود | النوع |
+|--------|------|
+| plan_id | uuid PK FK plans (cascade) |
+| intent_summary_text | text NOT NULL |
+| updated_at | timestamptz default now() |
+
+### D) جدول `plan_suggestions`
+
+| العمود | النوع |
+|--------|------|
+| id | uuid PK |
+| plan_id | uuid FK plans (cascade) |
+| category | text NOT NULL (stay/transport/activities/food/other) |
+| title | text NOT NULL |
+| details | text NULL |
+| created_by | text default 'ai' (ai/user) |
+| created_at | timestamptz default now() |
+
+### E) جدول `plan_votes`
+
+| العمود | النوع |
+|--------|------|
+| id | uuid PK |
+| plan_id | uuid FK plans (cascade) |
+| title | text NOT NULL |
+| status | text default 'open' (open/closed) |
+| created_by | uuid FK profiles |
+| created_at | timestamptz default now() |
+| closes_at | timestamptz NULL |
+
+### F) جدول `plan_vote_options`
+
+| العمود | النوع |
+|--------|------|
+| id | uuid PK |
+| vote_id | uuid FK plan_votes (cascade) |
+| option_text | text NOT NULL |
+
+### G) جدول `plan_vote_responses`
+
+| العمود | النوع |
+|--------|------|
+| vote_id | uuid FK plan_votes (cascade) |
+| option_id | uuid FK plan_vote_options (cascade) |
+| user_id | uuid FK profiles |
+| created_at | timestamptz default now() |
+
+PK: (vote_id, user_id) -- صوت واحد لكل مستخدم
+
+### H) تعديل جدول `expenses`
 
 ```text
-amount_due, currency, status,
-expense_description, expense_amount, expense_date,
-group_name, group_id,
-payer_name, payer_avatar_url
+ALTER TABLE expenses ADD COLUMN plan_id uuid NULL REFERENCES plans(id);
+CREATE INDEX expenses_plan_idx ON expenses(plan_id);
+```
+
+### Security Definer Function
+
+```text
+create or replace function public.can_access_plan(p_user_id uuid, p_plan_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1 from plan_members where plan_id = p_plan_id and user_id = p_user_id
+  )
+  or exists (
+    select 1 from plans p
+    join group_members gm on gm.group_id = p.group_id
+    where p.id = p_plan_id and gm.user_id = p_user_id
+  )
+$$;
+```
+
+### RLS Policies (ملخص)
+
+- **plans**: SELECT if `can_access_plan`; INSERT if `owner_user_id = auth.uid()`; UPDATE/DELETE if owner/admin in plan_members
+- **plan_members**: SELECT if can access plan; INSERT/DELETE by owner/admin only
+- **plan_ai_summary / plan_suggestions**: SELECT if can access; INSERT/UPDATE/DELETE by owner/admin
+- **plan_votes / plan_vote_options**: SELECT if can access; INSERT by owner/admin; UPDATE (close) by owner/admin
+- **plan_vote_responses**: SELECT if can access; INSERT by members only if vote is open; one vote per user enforced by PK
+
+### RPCs
+
+#### `create_plan`
+- Creates plan + inserts owner as plan_member with role='owner'
+- Returns plan id
+
+#### `convert_plan_to_group`
+- Owner only
+- Creates new group (name = plan.title, currency = plan.budget_currency)
+- Adds all plan_members to group_members
+- Updates plan.group_id
+- Returns group id
+
+#### `link_plan_to_group`
+- Owner/admin only
+- Validates user is member of that group
+- Updates plan.group_id
+
+#### `update_plan_status`
+- Owner/admin only
+- Updates plan status (draft -> planning -> locked -> done)
+
+---
+
+## 2. ملفات جديدة (المرحلة 1)
+
+### الصفحات
+
+#### `src/pages/Plans.tsx`
+قائمة الخطط مع تبويبين:
+- "خططي" -- خطط شخصية (لا group_id أو أنا عضو)
+- "خطط المجموعات" -- خطط مربوطة بمجموعات أنا فيها
+
+كل بطاقة تعرض: العنوان، النوع، الوجهة، التواريخ، الحالة، عدد الأعضاء
+CTA: "خطة جديدة"
+
+#### `src/pages/CreatePlan.tsx`
+Wizard من 3 خطوات:
+1. اختيار النوع (trip/outing/shared_housing/activity) مع أيقونات
+2. العنوان + الوجهة (اختياري) + التواريخ (اختياري)
+3. الميزانية (اختياري) + العملة
+
+بعد الإنشاء: توجيه لتفاصيل الخطة
+
+#### `src/pages/PlanDetails.tsx`
+صفحة تفاصيل مع:
+- Header: العنوان + النوع + الحالة + الوجهة + التواريخ
+- شريط حالة (Draft / Planning / Locked / Done) مع زر تغيير الحالة
+- قائمة الأعضاء
+- أزرار إجراءات (تحويل لمجموعة / ربط بمجموعة / دعوة أعضاء)
+- تبويبات: ملخص | اقتراحات | تصويت | مصاريف (المرحلة 2+3 ستضيف المحتوى)
+
+### المكونات
+
+#### `src/components/plans/PlanCard.tsx`
+بطاقة خطة للقائمة
+
+#### `src/components/plans/PlanStatusBar.tsx`
+شريط الحالة مع خطوات (Draft -> Planning -> Locked -> Done) + زر "اقفل الخطة"
+
+#### `src/components/plans/ConvertToGroupDialog.tsx`
+حوار تأكيد تحويل الخطة لمجموعة جديدة
+
+#### `src/components/plans/LinkToGroupDialog.tsx`
+حوار اختيار مجموعة موجودة للربط
+
+#### `src/components/plans/PlanMembersList.tsx`
+قائمة أعضاء الخطة مع أدوار
+
+### الـ Hooks
+
+#### `src/hooks/usePlans.ts`
+- `fetchPlans()` -- جلب جميع خطط المستخدم
+- `createPlan()` -- إنشاء خطة عبر RPC
+- `updatePlan()` -- تحديث بيانات الخطة
+- `updatePlanStatus()` -- تغيير حالة الخطة
+
+#### `src/hooks/usePlanDetails.ts`
+- `fetchPlanDetails(planId)` -- جلب تفاصيل الخطة مع الأعضاء
+- `convertToGroup(planId)` -- تحويل لمجموعة
+- `linkToGroup(planId, groupId)` -- ربط بمجموعة
+- `addPlanMember(planId, userId)` -- إضافة عضو
+
+#### `src/hooks/usePlanVotes.ts` (هيكل فقط -- محتوى المرحلة 2)
+#### `src/hooks/usePlanSuggestions.ts` (هيكل فقط -- محتوى المرحلة 2)
+
+---
+
+## 3. الملفات المعدلة
+
+### `src/App.tsx`
+إضافة routes:
+```text
+/plans -- قائمة الخطط
+/create-plan -- إنشاء خطة
+/plan/:id -- تفاصيل الخطة
+```
+
+### `src/components/BottomNav.tsx`
+لن نعدل الـ BottomNav (مساحة محدودة). بدلاً من ذلك:
+- إضافة زر "الخطط" في Dashboard كـ Quick Action
+
+### `src/components/dashboard/SimpleQuickActions.tsx`
+إضافة زر "الخطط" بجانب الأزرار الحالية
+
+### `src/i18n/locales/ar/plans.json` (جديد)
+جميع النصوص العربية للميزة
+
+### `src/i18n/locales/en/plans.json` (جديد)
+جميع النصوص الإنجليزية
+
+### `src/hooks/useUsageCredits.ts`
+إضافة `create_plan` كعملية (تكلفة: 3 نقاط)
+
+---
+
+## 4. التفاصيل التقنية
+
+### سلوك تحويل الخطة لمجموعة
+
+```text
+User clicks "تحويل إلى مجموعة"
+  --> ConvertToGroupDialog (تأكيد)
+  --> RPC: convert_plan_to_group(p_plan_id)
+    --> Validates: current user is owner
+    --> INSERT INTO groups (name=plan.title, currency=plan.budget_currency, owner_id=plan.owner_user_id)
+    --> For each plan_member: INSERT INTO group_members
+    --> UPDATE plans SET group_id = new_group.id, status = 'planning'
+    --> RETURN group_id
+  --> Navigate to /group/:groupId
+  --> Toast: "تم إنشاء المجموعة وربط الخطة بها"
+```
+
+### سلوك ربط الخطة بمجموعة
+
+```text
+User clicks "ربط بمجموعة موجودة"
+  --> LinkToGroupDialog (اختيار مجموعة)
+  --> RPC: link_plan_to_group(p_plan_id, p_group_id)
+    --> Validates: current user is owner/admin in plan AND member in group
+    --> UPDATE plans SET group_id = p_group_id
+  --> Refresh plan details
+  --> Toast: "تم ربط الخطة بالمجموعة"
+```
+
+### شريط الحالة (Status Bar)
+
+```text
+[Draft] ---> [Planning] ---> [Locked] ---> [Done]
+   |              |              |            |
+  مسودة      جاري التخطيط    مقفلة       مكتملة
+
++ زر "اقفل الخطة" (يظهر فقط لـ owner/admin في حالة planning)
++ زر "إلغاء الخطة" (يظهر في أي حالة ما عدا done)
+```
+
+### أنواع الخطط مع أيقونات
+
+```text
+trip          --> Plane icon        --> رحلة
+outing        --> Coffee icon       --> طلعة
+shared_housing --> Home icon        --> سكن مشترك
+activity      --> Zap/Activity icon --> نشاط
 ```
 
 ---
 
-## 2. منطق إرسال الإشعارات (Frontend)
+## 5. Credits Integration
 
-### تعديل `src/pages/AddExpense.tsx`
-
-بعد حفظ `expense_splits` بنجاح (سطر ~594)، إضافة استدعاء لدالة جديدة `sendBalanceNotifications()`:
-
-```text
-// بعد نجاح حفظ الـ splits:
-await sendBalanceNotifications(expense, validatedSplits, selectedGroup);
-```
-
-الدالة تقوم بـ:
-1. لكل split حيث `member_id !== payer_id` (العضو ليس هو الدافع):
-   - حساب: `amount_due = share_amount`
-2. إدخال سجل في `balance_notifications` لكل عضو مستحق عليه
-3. إدخال إشعار في `notifications` بنوع `'balance_due'` لكل عضو
-4. ربط الـ `notification_id` بسجل `balance_notifications`
-
-**ملاحظة**: الإشعار يُرسل فقط للأعضاء الذين لم يدفعوا (ليسوا الـ payer).
+| العملية | التكلفة |
+|---------|--------|
+| create_plan | 3 نقاط |
+| ai_suggest_plan | 3 نقاط (المرحلة 2) |
 
 ---
 
-## 3. ملفات جديدة
+## 6. ملخص جميع الملفات
 
-### `src/components/notifications/BalanceDetailsSheet.tsx`
+### ملفات جديدة
 
-مكون Drawer/Sheet يُعرض عند الضغط على إشعار `balance_due`:
+| الملف | الوصف | الأولوية |
+|-------|------|---------|
+| Migration SQL | 8 جداول + RLS + RPCs + indexes | حرجة |
+| `src/pages/Plans.tsx` | قائمة الخطط | حرجة |
+| `src/pages/CreatePlan.tsx` | إنشاء خطة (wizard) | حرجة |
+| `src/pages/PlanDetails.tsx` | تفاصيل الخطة | حرجة |
+| `src/hooks/usePlans.ts` | hook الخطط | حرجة |
+| `src/hooks/usePlanDetails.ts` | hook تفاصيل الخطة | حرجة |
+| `src/components/plans/PlanCard.tsx` | بطاقة خطة | حرجة |
+| `src/components/plans/PlanStatusBar.tsx` | شريط الحالة | حرجة |
+| `src/components/plans/ConvertToGroupDialog.tsx` | حوار تحويل لمجموعة | مهمة |
+| `src/components/plans/LinkToGroupDialog.tsx` | حوار ربط بمجموعة | مهمة |
+| `src/components/plans/PlanMembersList.tsx` | قائمة الأعضاء | مهمة |
+| `src/i18n/locales/ar/plans.json` | ترجمة عربية | حرجة |
+| `src/i18n/locales/en/plans.json` | ترجمة إنجليزية | حرجة |
 
-```text
-+------------------------------------------+
-|     💸 مبلغ مستحق في مجموعة              |
-+------------------------------------------+
-|                                          |
-|   عليك 45 ريال                           |
-|   لصالح: [صورة] أحمد                     |
-|   بسبب: عشاء                            |
-|   بتاريخ: 5 فبراير 2026                  |
-|   المجموعة: رحلة الشباب                  |
-|                                          |
-|  [====  ✔️ تم الدفع  ====]               |
-|                                          |
-+------------------------------------------+
-```
+### ملفات معدلة
 
-- يستدعي RPC `get_balance_notification_details` لجلب البيانات
-- زر "تم الدفع" يستدعي RPC `mark_balance_as_paid`
-- بعد النجاح: Toast تأكيد + إغلاق الـ Sheet + refetch الإشعارات
-- حالة `marked_as_paid`: يعرض شارة "تم الإقرار" بدل الزر
-
-### `src/hooks/useBalanceNotification.ts`
-
-Hook بسيط يوفر:
-- `getDetails(notificationId)` -- جلب تفاصيل الإشعار
-- `markAsPaid(balanceNotificationId)` -- إقرار الدفع
-- حالة التحميل
+| الملف | التعديل | الأولوية |
+|-------|--------|---------|
+| `src/App.tsx` | إضافة 3 routes جديدة | حرجة |
+| `src/components/dashboard/SimpleQuickActions.tsx` | إضافة زر "الخطط" | مهمة |
+| `src/hooks/useUsageCredits.ts` | إضافة create_plan | مهمة |
 
 ---
 
-## 4. الملفات المعدلة
+## 7. ما لا يشمله هذه المرحلة (المراحل 2 و 3)
 
-### `src/hooks/useNotifications.ts`
+- Edge function للاقتراحات AI (المرحلة 2)
+- واجهة الاقتراحات مع "حوّل لتصويت" (المرحلة 2)
+- نظام التصويت الكامل (المرحلة 2)
+- ربط المصاريف بالخطة (المرحلة 3)
+- تبويب المصاريف في تفاصيل الخطة (المرحلة 3)
+- زر "انقل هذا المصروف للخطة" (المرحلة 3)
 
-- إضافة `case 'balance_due'` في `getNotificationDescription()`:
-  ```text
-  return t('descriptions.balance_due', {
-    amount: payload.amount_due,
-    currency: payload.currency,
-    group: payload.group_name
-  });
-  ```
-
-### `src/pages/Notifications.tsx`
-
-- إضافة `case 'balance_due'` في `getNotificationIcon()`: return `'💸'`
-- إضافة `case 'balance_due'` في `getNotificationText()`
-- تعديل `handleNotificationClick()`: عند `balance_due` فتح `BalanceDetailsSheet` بدل التنقل
-- إضافة state لـ `selectedBalanceNotification` و `showBalanceSheet`
-
-### `src/components/NotificationBell.tsx`
-
-- إضافة التعامل مع `balance_due` في `handleNotificationClick` -- توجيه لصفحة `/notifications`
-
-### `src/hooks/useGroupNotifications.ts`
-
-- إضافة `'balance_due'` في `GroupNotificationType`
-- إضافة دالة `notifyBalanceDue()` لإرسال إشعارات المبلغ المستحق
-
-### `src/i18n/locales/ar/notifications.json`
-
-إضافة:
-```text
-"types": {
-  "balance_due": "💸 عليك {{amount}} {{currency}} في مجموعة {{group}}"
-},
-"titles": {
-  "balance_due": "مبلغ مستحق 💸"
-},
-"descriptions": {
-  "balance_due": "عليك {{amount}} {{currency}} في مجموعة {{group}}"
-},
-"balance_details": {
-  "title": "مبلغ مستحق",
-  "amount_label": "عليك",
-  "for_label": "لصالح",
-  "reason_label": "بسبب",
-  "date_label": "بتاريخ",
-  "group_label": "المجموعة",
-  "mark_paid": "تم الدفع",
-  "marking_paid": "جاري التحديث...",
-  "paid_success": "تم تسجيل الدفع",
-  "paid_success_desc": "تم إقرار الدفع بنجاح",
-  "already_paid": "تم الإقرار ✅",
-  "view_details": "عرض التفاصيل"
-}
-```
-
-### `src/i18n/locales/en/notifications.json`
-
-إضافة نفس المفاتيح بالإنجليزية:
-```text
-"types": {
-  "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}"
-},
-"titles": {
-  "balance_due": "Outstanding Balance 💸"
-},
-"descriptions": {
-  "balance_due": "You owe {{amount}} {{currency}} in {{group}}"
-},
-"balance_details": {
-  "title": "Outstanding Balance",
-  "amount_label": "You owe",
-  "for_label": "To",
-  "reason_label": "For",
-  "date_label": "Date",
-  "group_label": "Group",
-  "mark_paid": "Mark as Paid",
-  "marking_paid": "Updating...",
-  "paid_success": "Payment Recorded",
-  "paid_success_desc": "Payment has been recorded successfully",
-  "already_paid": "Paid",
-  "view_details": "View Details"
-}
-```
-
----
-
-## 5. التفاصيل التقنية
-
-### سلوك إرسال الإشعار
-
-```text
-AddExpense: handleSaveExpense()
-  --> expense created + splits saved
-  --> sendBalanceNotifications():
-      --> For each split where member_id != payer_id:
-          1. INSERT INTO balance_notifications (user_id, group_id, expense_id, payer_id, amount_due, currency)
-             ON CONFLICT (user_id, expense_id) DO NOTHING  -- منع التكرار
-          2. INSERT INTO notifications (user_id, type: 'balance_due', payload: {
-               amount_due, currency, group_name, group_id,
-               expense_id, expense_description, payer_name
-             })
-          3. UPDATE balance_notifications SET notification_id = <new notification id>
-```
-
-### سلوك "تم الدفع"
-
-```text
-User clicks "تم الدفع"
-  --> useBalanceNotification.markAsPaid(id)
-    --> RPC: mark_balance_as_paid(p_balance_notification_id)
-      --> UPDATE balance_notifications SET status = 'marked_as_paid'
-      --> UPDATE notifications SET archived_at = now() WHERE id = notification_id
-    --> Toast: "تم تسجيل الدفع"
-    --> Close Sheet
-    --> Refetch notifications
-```
-
-### منع التكرار
-
-- الـ Unique constraint `(user_id, expense_id)` على `balance_notifications` يمنع إنشاء إشعارين لنفس العملية والعضو
-- استخدام `ON CONFLICT DO NOTHING` في الـ INSERT
-
-### صياغة محايدة
-
-- لا نستخدم: "مدين"، "متأخر"، "ديون"
-- نستخدم: "عليك مبلغ"، "مبلغ مستحق"، "لصالح"
-
----
-
-## 6. ملخص الملفات
-
-| الملف | العملية | الأولوية |
-|-------|---------|---------|
-| Migration: جدول `balance_notifications` + RPCs | إنشاء جديد | حرجة |
-| `src/hooks/useBalanceNotification.ts` | إنشاء جديد | حرجة |
-| `src/components/notifications/BalanceDetailsSheet.tsx` | إنشاء جديد | حرجة |
-| `src/pages/AddExpense.tsx` | إضافة منطق الإشعار | حرجة |
-| `src/hooks/useNotifications.ts` | إضافة case جديد | حرجة |
-| `src/pages/Notifications.tsx` | إضافة عرض + Sheet | حرجة |
-| `src/components/NotificationBell.tsx` | إضافة case جديد | مهمة |
-| `src/hooks/useGroupNotifications.ts` | إضافة نوع جديد | مهمة |
-| `src/i18n/locales/ar/notifications.json` | إضافة مفاتيح | مهمة |
-| `src/i18n/locales/en/notifications.json` | إضافة مفاتيح | مهمة |
-
-## 7. ما لا يشمله التنفيذ
-
-- لا دفع إلكتروني
-- لا تأكيد من الطرف الآخر (الدافع)
-- لا نزاعات
-- لا Push Notifications
-- لا تنبيه متكرر -- إشعار واحد فقط لكل عملية
+الجداول لكل هذه المراحل ستُنشأ الآن في الـ migration لتجنب migrations إضافية لاحقاً.
