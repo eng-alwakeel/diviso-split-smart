@@ -1267,6 +1267,50 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_hub_cache: {
+        Row: {
+          computed_at: string | null
+          days_since_last_action: number | null
+          last_action_at: string | null
+          last_group_event: Json | null
+          motivational_message: string | null
+          streak_count: number | null
+          suggested_dice_type: string | null
+          user_id: string
+          user_state: string
+        }
+        Insert: {
+          computed_at?: string | null
+          days_since_last_action?: number | null
+          last_action_at?: string | null
+          last_group_event?: Json | null
+          motivational_message?: string | null
+          streak_count?: number | null
+          suggested_dice_type?: string | null
+          user_id: string
+          user_state?: string
+        }
+        Update: {
+          computed_at?: string | null
+          days_since_last_action?: number | null
+          last_action_at?: string | null
+          last_group_event?: Json | null
+          motivational_message?: string | null
+          streak_count?: number | null
+          suggested_dice_type?: string | null
+          user_id?: string
+          user_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_hub_cache_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_sessions: {
         Row: {
           converted_to_user_id: string | null
@@ -1790,6 +1834,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      group_activity_feed: {
+        Row: {
+          actor_user_id: string
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          group_id: string
+          id: string
+          smart_message_ar: string | null
+          smart_message_en: string | null
+        }
+        Insert: {
+          actor_user_id: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          group_id: string
+          id?: string
+          smart_message_ar?: string | null
+          smart_message_en?: string | null
+        }
+        Update: {
+          actor_user_id?: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          group_id?: string
+          id?: string
+          smart_message_ar?: string | null
+          smart_message_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_activity_feed_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_invites: {
         Row: {
@@ -4923,6 +5008,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_action_log: {
+        Row: {
+          action_date: string
+          action_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_date?: string
+          action_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_date?: string
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_action_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_ad_preferences: {
         Row: {
           blocked_categories: string[] | null
@@ -5653,6 +5773,7 @@ export type Database = {
         Args: { p_payment_reference: string; p_purchase_id: string }
         Returns: Json
       }
+      compute_daily_hub: { Args: { p_user_id: string }; Returns: Json }
       consume_credits: {
         Args: {
           p_action_type: string
@@ -6203,6 +6324,10 @@ export type Database = {
       }
       log_suspicious_referral: {
         Args: { p_phone: string; p_reason: string; p_user_id: string }
+        Returns: undefined
+      }
+      log_user_action: {
+        Args: { p_action_type: string; p_metadata?: Json; p_user_id: string }
         Returns: undefined
       }
       mark_balance_as_paid: {
