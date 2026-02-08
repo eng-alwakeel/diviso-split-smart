@@ -1,336 +1,360 @@
 
-# مطابقة Dashboard مع Pseudo-Code المطلوب
+
+# اضافة كروت ثابتة ذكية للصفحة الرئيسية
 
 ## ملخص
 
-مطابقة منطق الصفحة الرئيسية مع الـ Pseudo-Code المقدم. هناك 7 فروقات رئيسية بين التنفيذ الحالي والمنطق المطلوب يجب تصحيحها.
+اضافة 3 كروت ثابتة ذكية للصفحة الرئيسية تثري التجربة بصريا ووظيفيا:
+1. **Stats Lite Card** -- احصائيات مختصرة (Grid 2x2)
+2. **Balance Status Card** -- حالة التوازن المالي
+3. **Recent Group Activity Card** -- آخر نشاط بالمجموعات
+
+مع الحفاظ على Daily Focus كعنصر اساسي والتحكم بالظهور حسب وضع المستخدم.
 
 ---
 
-## الفروقات بين الحالي والمطلوب
+## 1. ملفات جديدة
 
-| # | النقطة | الحالي | المطلوب (Pseudo-Code) |
-|---|--------|--------|----------------------|
-| 1 | Session Hint | غير موجود | `action` / `done` / `curiosity` يتحكم بنبرة الكرت |
-| 2 | عرض النرد | يختفي كليا في Onboarding | يظهر إذا `onboardingTasksCompleted >= 2` |
-| 3 | SmartPlanCard | يظهر دائما في Daily Hub (مع/بدون خطة) | يظهر فقط إذا `hasActivePlan` |
-| 4 | MiniActivityFeed | يظهر في Daily Hub فقط | يظهر في Daily Hub **و** Re-engagement |
-| 5 | CTA في Re-engagement | يوجه لـ `/my-groups` | يوجه لـ `/dice` (النرد) |
-| 6 | حالة "يومك تمام" | تعتمد على `netBalance ~= 0` | تعتمد على `daysSinceLastActivity <= 1` (sessionHint = done) |
-| 7 | Last Action Memory | غير موجود | `lastActionHint` يعرض آخر فعل ذي معنى |
+### `src/components/dashboard/StatsLiteCard.tsx`
+
+كرت احصائيات مختصر بتصميم Grid 2x2:
+
+```text
++--------------------+--------------------+
+| المصاريف هذا الشهر | الرصيد الصافي لك   |
+| 1,200 ر.س          | +350 ر.س           |
++--------------------+--------------------+
+| المجموعات النشطة   | المستحقات          |
+| 3                   | 200 ر.س            |
++--------------------+--------------------+
+```
+
+**Props:**
+```text
+interface StatsLiteCardProps {
+  monthlyTotalExpenses: number;
+  netBalance: number;
+  groupsCount: number;
+  outstandingAmount: number;  // المستحقات (myOwed - myPaid اذا سالب)
+}
+```
+
+**القواعد:**
+- كل خلية قابلة للضغط وتنقل لصفحة التفاصيل المناسبة
+- حجم صغير (ارتفاع منخفض) -- `p-3` للـ CardContent
+- بدون رسوم بيانية ولا ايقونات كبيرة
+- اذا لم تتوفر بيانات (كلها 0): يعرض "لا توجد بيانات بعد"
+- الرصيد الصافي بلون اخضر اذا موجب، احمر اذا سالب
+- المستحقات: تظهر القيمة اذا > 0، والا "لا يوجد"
+
+**التنقل عند الضغط:**
+- المصاريف الشهرية → `/my-expenses`
+- الرصيد الصافي → `/my-expenses`
+- المجموعات → `/my-groups`
+- المستحقات → `/my-expenses`
 
 ---
 
-## 1. الملفات المعدلة
+### `src/components/dashboard/BalanceStatusCard.tsx`
+
+كرت حالة التوازن المالي:
+
+**Props:**
+```text
+interface BalanceStatusCardProps {
+  netBalance: number;
+}
+```
+
+**الحالات الثلاث:**
+
+```text
+حالة 1: متوازن (netBalance === 0)
++------------------------------------------+
+| ✅ متوازن                                |
+| ما عليك أي مستحقات اليوم                 |
+| [عرض التفاصيل]                           |
++------------------------------------------+
+
+حالة 2: قريب من التوازن (|netBalance| < 50)
++------------------------------------------+
+| ⚠️ قريب من التوازن                       |
+| باقي مبلغ بسيط للتسوية                   |
+| [عرض التفاصيل]                           |
++------------------------------------------+
+
+حالة 3: غير متوازن (|netBalance| >= 50)
++------------------------------------------+
+| ❌ غير متوازن                             |
+| عليك مستحقات                             |
+| [عرض التفاصيل]                           |
++------------------------------------------+
+```
+
+**القواعد:**
+- يظهر دائما (حتى لو متوازن)
+- بدون ارقام تفصيلية (لا يعرض المبلغ)
+- CTA واحد: "عرض التفاصيل" → `/my-expenses`
+- الوان مختلفة لكل حالة:
+  - متوازن: `border-green-500/20 bg-green-500/5`
+  - قريب: `border-amber-500/20 bg-amber-500/5`
+  - غير متوازن: `border-red-500/20 bg-red-500/5`
+
+---
+
+### `src/components/dashboard/RecentGroupActivityCard.tsx`
+
+كرت آخر نشاط بالمجموعات:
+
+**Props:**
+```text
+interface RecentGroupActivityCardProps {
+  lastGroupEvent: DailyHubData['last_group_event'];
+}
+```
+
+**العرض:**
+```text
++------------------------------------------+
+| 👀 باقي شخص واحد وتكتمل القسمة          |
+| [عرض]                                     |
++------------------------------------------+
+```
+
+**القواعد:**
+- سطر واحد فقط من آخر حدث
+- CTA صغير: "عرض" → `/group/{group_id}`
+- اذا لم يوجد حدث: لا يظهر الكرت (return null)
+- يعرض الرسالة الذكية من `last_group_event.smart_message_ar` أو `smart_message_en` حسب اللغة
+- تصميم خفيف: `border-border/30 bg-card/40`
+
+**ملاحظة:** هذا الكرت يشبه `MiniActivityFeed` الموجود حاليا لكن بتصميم مختلف قليلا (مكان مختلف + تمييز بصري). سيتم دمجهم في كرت واحد بدل التكرار -- نحذف `MiniActivityFeed` من مكانه القديم ونستخدم `RecentGroupActivityCard` بدلا منه.
+
+---
+
+## 2. الملفات المعدلة
 
 ### `src/hooks/useDashboardMode.ts`
 
 **التعديلات:**
 
-A) اضافة `SessionHint` type ومنطقه:
+اضافة 3 display flags جديدة:
 ```text
-export type SessionHint = 'action' | 'done' | 'curiosity';
+showStatsLite: boolean;      // daily_hub + reengagement
+showBalanceCard: boolean;     // daily_hub + reengagement
+showRecentActivity: boolean;  // daily_hub فقط (يعتمد على وجود بيانات)
 ```
 
 المنطق:
 ```text
-if mode === 'daily':
-  if hasActivePlan → sessionHint = 'action'
-  elif daysSinceLastActivity <= 1 → sessionHint = 'done'
-  else → sessionHint = 'curiosity'
-
-if mode === 'reengagement':
-  sessionHint = 'curiosity'
-
-if mode === 'onboarding':
-  sessionHint = 'action'
+const showStatsLite = mode === 'daily_hub' || mode === 'reengagement';
+const showBalanceCard = mode === 'daily_hub' || mode === 'reengagement';
+const showRecentActivity = mode === 'daily_hub';
 ```
 
-B) اضافة `lastMeaningfulAction` من `user_action_log`:
-```text
-جلب آخر سجل من user_action_log حيث action_type in ('add_expense', 'dice_roll', 'create_group')
-```
-
-C) اضافة `hasActivePlan` (boolean مشتق من activePlan !== null)
-
-D) اضافة `showDice` المحسوب:
-```text
-showDice = mode !== 'onboarding' || completedCount >= 2
-```
-
-E) اضافة `showSmartPlanCard` المحسوب:
-```text
-showSmartPlanCard = mode === 'daily_hub' && activePlan !== null
-```
-
-F) اضافة `showMiniFeed` المحسوب:
-```text
-showMiniFeed = mode === 'daily_hub' || mode === 'reengagement'
-```
-
-G) اضافة `showStats` المحسوب:
-```text
-showStats = mode === 'daily_hub'
-```
-
-**الـ Interface الجديد:**
-```text
-export interface DashboardModeData {
-  ...الحقول الموجودة...
-  // جديد
-  sessionHint: SessionHint;
-  lastMeaningfulAction: string | null;
-  lastActionHint: string | null;
-  hasActivePlan: boolean;
-  // Display flags
-  showOnboardingChecklist: boolean;
-  showDailyFocus: boolean;  // دائما true
-  showSmartPlanCard: boolean;
-  showDice: boolean;
-  showMiniFeed: boolean;
-  showStats: boolean;
-}
-```
-
-### `src/components/dashboard/DailyFocusCard.tsx`
-
-**التعديلات:**
-
-A) اضافة props جديدة:
-```text
-interface DailyFocusCardProps {
-  mode: DashboardMode;
-  sessionHint?: SessionHint;
-  lastActionHint?: string | null;
-  nextTask?: OnboardingTask | null;
-  activePlan?: ActivePlan | null;
-  netBalance?: number;              // يبقى كـ fallback
-  daysSinceLastAction?: number;
-}
-```
-
-B) تغيير منطق Daily Hub:
-```text
-الحالي:
-  if activePlan → كرت الخطة
-  elif netBalance ~= 0 → "يومك تمام"
-  else → "خطوة خفيفة"
-
-الجديد:
-  if sessionHint === 'action' && activePlan → كرت الخطة (CTA: أضف مصروف للخطة)
-  elif sessionHint === 'done' → "جاهزين ليوم جديد" + "يومك تمام" (بدون CTA)
-  elif sessionHint === 'curiosity' → "خطوة بسيطة اليوم تفرق" (CTA: أضف مصروف)
-```
-
-C) تغيير Re-engagement CTA:
-```text
-الحالي: navigate('/my-groups') + "ارجع بخطوة بسيطة"
-الجديد: navigate('/dice') + "ارمِ النرد" (primaryCTA = dice)
-```
-
-D) تغيير نص Re-engagement:
-```text
-الحالي: "صار لك X يوم بعيد"
-الجديد: "طولت الغيبة 👀" + "خلّينا نرجعها بخطوة بسيطة"
-```
-
-E) عرض `lastActionHint` (اختياري):
-```text
-إذا lastActionHint موجود:
-  عرض سطر صغير (text-xs text-muted-foreground) أسفل العنوان الرئيسي
-```
+اضافة الحقول الجديدة في `DashboardModeData` interface والـ return.
 
 ### `src/pages/Dashboard.tsx`
 
 **التعديلات:**
 
-A) استخدام الـ display flags من `useDashboardMode` بدل المنطق المباشر:
+A) استيراد المكونات الجديدة:
 ```text
-الحالي:
-  {mode === 'daily_hub' && <SmartPlanCard ... />}
-
-الجديد:
-  {dashboardMode.showSmartPlanCard && <SmartPlanCard ... />}
+import { StatsLiteCard } from '@/components/dashboard/StatsLiteCard';
+import { BalanceStatusCard } from '@/components/dashboard/BalanceStatusCard';
+import { RecentGroupActivityCard } from '@/components/dashboard/RecentGroupActivityCard';
 ```
 
-B) تمرير `sessionHint` و `lastActionHint` لـ DailyFocusCard:
+B) حذف `MiniActivityFeed` من مكانه الحالي (سطر 386-388) لتجنب التكرار مع `RecentGroupActivityCard`.
+
+C) حذف `CollapsibleStats` (سطر 396-402) لانها بُدلت بـ `StatsLiteCard`.
+
+D) اضافة الكروت الجديدة بالترتيب المطلوب بعد Quick Actions:
+
+الترتيب النهائي للصفحة:
 ```text
-<DailyFocusCard
-  mode={mode}
-  sessionHint={dashboardMode.sessionHint}
-  lastActionHint={dashboardMode.lastActionHint}
-  ...
-/>
+1. Welcome Header
+2. OnboardingChecklist (إن وجد)
+3. DailyFocusCard
+4. StreakDisplay (daily_hub + reengagement)
+5. SmartPlanCard (daily_hub + hasActivePlan)
+6. DailyDiceCard (per showDice flag)
+7. MinimalQuickActions (daily_hub + reengagement)
+8. StatsLiteCard (daily_hub + reengagement)        ← جديد
+9. BalanceStatusCard (daily_hub + reengagement)     ← جديد
+10. RecentGroupActivityCard (daily_hub فقط)          ← جديد (يحل محل MiniActivityFeed)
+11. Daily Hub extras (DailyCheckIn, CreditBalance, etc.)
+12. InstallWidget
 ```
 
-C) تغيير شرط عرض النرد في Onboarding:
+E) تمرير البيانات للكروت الجديدة:
 ```text
-الحالي: لا يظهر في onboarding
-الجديد: يظهر إذا dashboardMode.showDice (true عند completedCount >= 2)
-```
+{dashboardMode.showStatsLite && (
+  <StatsLiteCard
+    monthlyTotalExpenses={monthlyTotalExpenses}
+    netBalance={netBalance}
+    groupsCount={groupsCount}
+    outstandingAmount={Math.max(0, myOwed - myPaid)}
+  />
+)}
 
-D) اضافة MiniActivityFeed في Re-engagement:
-```text
-الحالي: لا يظهر في reengagement
-الجديد: {dashboardMode.showMiniFeed && <MiniActivityFeed ... />}
-```
+{dashboardMode.showBalanceCard && (
+  <BalanceStatusCard netBalance={netBalance} />
+)}
 
-E) ازالة SmartPlanCard بدون خطة (حالة "عندك طلعة قريبة؟"):
-```text
-الحالي: يظهر دائما في daily_hub
-الجديد: يظهر فقط إذا showSmartPlanCard (أي activePlan !== null)
+{dashboardMode.showRecentActivity && (
+  <RecentGroupActivityCard
+    lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null}
+  />
+)}
 ```
 
 ### `src/i18n/locales/ar/dashboard.json`
 
-اضافة/تعديل مفاتيح:
+اضافة مفاتيح جديدة:
 ```text
-"daily_focus": {
-  ...المفاتيح الموجودة...,
-  "reengagement_title": "طولت الغيبة 👀",
-  "reengagement_sub": "خلّينا نرجعها بخطوة بسيطة",
-  "reengagement_dice_cta": "ارمِ النرد",
-  "daily_ready": "جاهزين ليوم جديد",
-  "daily_ready_sub": "خطوة بسيطة اليوم تفرق",
-  "done_title": "يومك تمام ✅",
-  "done_sub": "ما عليك شي اليوم",
-  "last_action_dice": "آخر مرة استخدمت النرد 🎲",
-  "last_action_expense": "آخر مرة أضفت مصروف",
-  "last_action_group": "آخر مرة أنشأت مجموعة"
+"stats_lite": {
+  "monthly": "المصاريف هذا الشهر",
+  "balance": "الرصيد الصافي لك",
+  "groups": "المجموعات النشطة",
+  "outstanding": "المستحقات",
+  "no_data": "لا توجد بيانات بعد",
+  "no_outstanding": "لا يوجد"
+},
+"balance_status": {
+  "balanced": "متوازن",
+  "balanced_sub": "ما عليك أي مستحقات اليوم",
+  "near_balanced": "قريب من التوازن",
+  "near_balanced_sub": "باقي مبلغ بسيط للتسوية",
+  "unbalanced": "غير متوازن",
+  "unbalanced_sub": "عليك مستحقات",
+  "view_details": "عرض التفاصيل"
+},
+"recent_activity": {
+  "view": "عرض"
 }
 ```
 
 ### `src/i18n/locales/en/dashboard.json`
 
-نفس المفاتيح بالانجليزية:
+اضافة نفس المفاتيح بالانجليزية:
 ```text
-"daily_focus": {
-  ...existing keys...,
-  "reengagement_title": "It's been a while 👀",
-  "reengagement_sub": "Let's get back with a simple step",
-  "reengagement_dice_cta": "Roll the dice",
-  "daily_ready": "Ready for a new day",
-  "daily_ready_sub": "A simple step today makes a difference",
-  "done_title": "You're all set ✅",
-  "done_sub": "Nothing to do today",
-  "last_action_dice": "Last time you used the dice 🎲",
-  "last_action_expense": "Last time you added an expense",
-  "last_action_group": "Last time you created a group"
+"stats_lite": {
+  "monthly": "Expenses this month",
+  "balance": "Your net balance",
+  "groups": "Active groups",
+  "outstanding": "Outstanding",
+  "no_data": "No data yet",
+  "no_outstanding": "None"
+},
+"balance_status": {
+  "balanced": "Balanced",
+  "balanced_sub": "No outstanding dues today",
+  "near_balanced": "Almost balanced",
+  "near_balanced_sub": "A small amount left to settle",
+  "unbalanced": "Unbalanced",
+  "unbalanced_sub": "You have outstanding dues",
+  "view_details": "View details"
+},
+"recent_activity": {
+  "view": "View"
 }
 ```
 
 ---
 
-## 2. التفاصيل التقنية
+## 3. التفاصيل التقنية
 
-### جلب آخر فعل ذي معنى
-
-```text
-في useDashboardMode:
-
-const { data: lastAction } = useQuery({
-  queryKey: ['last-meaningful-action', userId],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('user_action_log')
-      .select('action_type')
-      .eq('user_id', userId)
-      .in('action_type', ['add_expense', 'dice_roll', 'create_group'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    return data?.action_type || null;
-  },
-  enabled: !!userId,
-  staleTime: 5 * 60 * 1000,
-});
-```
-
-### حساب lastActionHint
+### منطق StatsLiteCard
 
 ```text
-function getLastActionHint(actionType: string | null): string | null {
-  if (!actionType) return null;
-  switch (actionType) {
-    case 'dice_roll': return 'last_action_dice';
-    case 'add_expense': return 'last_action_expense';
-    case 'create_group': return 'last_action_group';
-    default: return null;
-  }
-}
+الأرقام تُجلب من dashboardData الموجود حاليا:
+- monthlyTotalExpenses ← من useOptimizedDashboardData
+- netBalance ← myPaid - myOwed
+- groupsCount ← من useOptimizedDashboardData
+- outstandingAmount ← Math.max(0, myOwed - myPaid)
+
+حالة "لا توجد بيانات بعد":
+  if monthlyTotalExpenses === 0 && groupsCount === 0 && netBalance === 0:
+    عرض رسالة واحدة بدل Grid
 ```
 
-يرجع مفتاح الترجمة (ليس النص مباشرة).
-
-### هيكل Dashboard الجديد
+### منطق BalanceStatusCard
 
 ```text
-<Dashboard>
-  [Welcome Header]
+العتبة (threshold) للتمييز بين الحالات:
+- متوازن: netBalance === 0
+- قريب: Math.abs(netBalance) < 50 && netBalance !== 0
+- غير متوازن: Math.abs(netBalance) >= 50
 
-  {showOnboardingChecklist && <OnboardingChecklist />}
-
-  <DailyFocusCard
-    mode={mode}
-    sessionHint={sessionHint}
-    lastActionHint={lastActionHint}
-    primaryCTA={...}
-    ...
-  />
-
-  {showSmartPlanCard && <SmartPlanCard />}
-
-  {showDice && <DailyDice />}
-
-  {showMiniFeed && <MiniActivityFeed />}
-
-  {showStats && <CollapsibleStats />}
-
-  // باقي المكونات الثانوية (daily_hub فقط)...
-</Dashboard>
+العتبة 50 ريال قابلة للتعديل. هذا رقم مبدئي يميز بين المبالغ البسيطة والمبالغ الحقيقية.
 ```
 
-### ترتيب الشروط (محافظ عليه)
+### منطق RecentGroupActivityCard
 
 ```text
-1. Onboarding أولا (لا يختفي بالغلط)
-2. Re-engagement ثانيا
-3. Daily Hub آخرا (default)
+يستخدم نفس بيانات last_group_event من useDailyHub
+اذا last_group_event === null: return null (لا يظهر)
+يعرض smart_message_ar أو smart_message_en حسب i18n.language
+CTA يوجه لـ /group/{group_id}
 ```
 
-هذا الترتيب موجود بالفعل في `useDashboardMode.ts` ولا يتغير.
+### علاقة بـ MiniActivityFeed
+
+`MiniActivityFeed` الحالي يستخدم نفس البيانات (`last_group_event`) ويقوم بنفس الوظيفة. بدلا من التكرار:
+- نحذف `MiniActivityFeed` من الـ Dashboard
+- نضع `RecentGroupActivityCard` في مكانه الجديد (اسفل Balance Card)
+- ملف `MiniActivityFeed.tsx` يبقى موجودا في حال استخدامه في مكان آخر
 
 ---
 
-## 3. ملخص الملفات
+## 4. قواعد الظهور حسب الوضع
+
+| الكرت | Onboarding | Daily Hub | Re-engagement |
+|-------|-----------|-----------|---------------|
+| StatsLiteCard | ❌ | ✅ | ✅ |
+| BalanceStatusCard | ❌ | ✅ | ✅ |
+| RecentGroupActivityCard | ❌ | ✅ | ❌ |
+
+---
+
+## 5. ملخص الملفات
+
+### ملفات جديدة
+
+| الملف | الوصف |
+|-------|------|
+| `src/components/dashboard/StatsLiteCard.tsx` | كرت احصائيات مختصر 2x2 |
+| `src/components/dashboard/BalanceStatusCard.tsx` | كرت حالة التوازن المالي |
+| `src/components/dashboard/RecentGroupActivityCard.tsx` | كرت آخر نشاط بالمجموعات |
+
+### ملفات معدلة
 
 | الملف | التعديل |
 |-------|--------|
-| `src/hooks/useDashboardMode.ts` | اضافة sessionHint + lastAction + display flags |
-| `src/components/dashboard/DailyFocusCard.tsx` | sessionHint logic + re-engagement dice CTA + lastActionHint |
-| `src/pages/Dashboard.tsx` | استخدام display flags + تمرير props جديدة |
-| `src/i18n/locales/ar/dashboard.json` | مفاتيح جديدة للنصوص |
-| `src/i18n/locales/en/dashboard.json` | مفاتيح جديدة للنصوص |
+| `src/hooks/useDashboardMode.ts` | اضافة 3 display flags جديدة |
+| `src/pages/Dashboard.tsx` | اضافة الكروت + حذف MiniActivityFeed + حذف CollapsibleStats |
+| `src/i18n/locales/ar/dashboard.json` | اضافة مفاتيح stats_lite + balance_status + recent_activity |
+| `src/i18n/locales/en/dashboard.json` | اضافة نفس المفاتيح بالانجليزية |
 
 ---
 
-## 4. ما لا يتغير
+## 6. ما لا يتغير
 
-- منطق `useDashboardMode` الاساسي (ترتيب الشروط الثلاثة) -- محافظ عليه
-- `OnboardingProgress` component -- لا تعديل
-- `StreakDisplay` component -- لا تعديل
-- `CollapsibleStats` component -- لا تعديل
-- `MinimalQuickActions` component -- لا تعديل
-- `SmartPlanCard` component -- لا تعديل (فقط يختفي عند عدم وجود خطة)
+- `DailyFocusCard` -- لا تعديل
+- `MinimalQuickActions` -- لا تعديل
+- `SmartPlanCard` -- لا تعديل
+- `DailyDiceCard` -- لا تعديل
+- `useDashboardData` / `useOptimizedDashboardData` -- لا تعديل (البيانات متوفرة)
+- `useDailyHub` -- لا تعديل (last_group_event متوفر)
 
 ---
 
-## 5. حالات طرفية
+## 7. حالات طرفية
 
-- مستخدم onboarding اكمل 1/5: لا يرى النرد
-- مستخدم onboarding اكمل 2/5: يرى النرد
-- مستخدم daily بدون خطة + نشط اليوم (daysSince <= 1): يرى "يومك تمام" (done)
-- مستخدم daily بدون خطة + غاب يومين: يرى "خطوة بسيطة" (curiosity)
-- مستخدم daily مع خطة: يرى كرت الخطة + CTA اضافة مصروف (action)
-- مستخدم reengagement: يرى "طولت الغيبة" + CTA "ارمِ النرد" + MiniActivityFeed
-- لا يوجد `user_action_log` للمستخدم: `lastActionHint = null` ولا يعرض شيء
+- مستخدم جديد بدون بيانات (0 مجموعات، 0 مصاريف): StatsLiteCard يعرض "لا توجد بيانات بعد" -- لكنه لا يظهر اصلا في Onboarding
+- مستخدم متوازن تماما (netBalance = 0): BalanceStatusCard يعرض الحالة الايجابية بلون اخضر
+- لا يوجد last_group_event: RecentGroupActivityCard لا يظهر (return null)
+- مستخدم re-engagement: يرى Stats + Balance لكن لا يرى Recent Activity
+- العملة: يستخدم نفس `t('stats.currency')` الموجود حاليا
+
