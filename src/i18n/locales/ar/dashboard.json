@@ -161,6 +161,26 @@
     "balance": "الرصيد الصافي",
     "groups": "المجموعات"
   },
+  "stats_lite": {
+    "monthly": "المصاريف هذا الشهر",
+    "balance": "الرصيد الصافي لك",
+    "groups": "المجموعات النشطة",
+    "outstanding": "المستحقات",
+    "no_data": "لا توجد بيانات بعد",
+    "no_outstanding": "لا يوجد"
+  },
+  "balance_status": {
+    "balanced": "متوازن",
+    "balanced_sub": "ما عليك أي مستحقات اليوم",
+    "near_balanced": "قريب من التوازن",
+    "near_balanced_sub": "باقي مبلغ بسيط للتسوية",
+    "unbalanced": "غير متوازن",
+    "unbalanced_sub": "عليك مستحقات",
+    "view_details": "عرض التفاصيل"
+  },
+  "recent_activity": {
+    "view": "عرض"
+  },
   "mini_feed": {
     "view_details": "عرض التفاصيل"
   },

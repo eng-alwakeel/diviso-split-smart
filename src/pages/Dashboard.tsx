@@ -15,9 +15,10 @@ import { OnboardingProgress } from "@/components/dashboard/OnboardingProgress";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 import { DailyFocusCard } from "@/components/dashboard/DailyFocusCard";
 import { SmartPlanCard } from "@/components/dashboard/SmartPlanCard";
-import { CollapsibleStats } from "@/components/dashboard/CollapsibleStats";
 import { MinimalQuickActions } from "@/components/dashboard/MinimalQuickActions";
-import { MiniActivityFeed } from "@/components/dashboard/MiniActivityFeed";
+import { StatsLiteCard } from "@/components/dashboard/StatsLiteCard";
+import { BalanceStatusCard } from "@/components/dashboard/BalanceStatusCard";
+import { RecentGroupActivityCard } from "@/components/dashboard/RecentGroupActivityCard";
 import { StreakDisplay } from "@/components/daily-hub/StreakDisplay";
 import { DailyDiceCard } from "@/components/daily-hub/DailyDiceCard";
 import { useDashboardMode } from "@/hooks/useDashboardMode";
@@ -382,22 +383,30 @@ const Dashboard = React.memo(() => {
             />
           )}
 
-          {/* Mini Activity Feed (daily_hub + reengagement) */}
-          {dashboardMode.showMiniFeed && (
-            <MiniActivityFeed lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null} />
-          )}
-
           {/* Minimal Quick Actions (daily_hub + reengagement) */}
           {mode !== 'onboarding' && (
             <MinimalQuickActions />
           )}
 
-          {/* Collapsible Stats (daily_hub only) */}
-          {dashboardMode.showStats && (
-            <CollapsibleStats
+          {/* Stats Lite Card (daily_hub + reengagement) */}
+          {dashboardMode.showStatsLite && (
+            <StatsLiteCard
               monthlyTotalExpenses={monthlyTotalExpenses}
               netBalance={netBalance}
               groupsCount={groupsCount}
+              outstandingAmount={Math.max(0, myOwed - myPaid)}
+            />
+          )}
+
+          {/* Balance Status Card (daily_hub + reengagement) */}
+          {dashboardMode.showBalanceCard && (
+            <BalanceStatusCard netBalance={netBalance} />
+          )}
+
+          {/* Recent Group Activity (daily_hub only) */}
+          {dashboardMode.showRecentActivity && (
+            <RecentGroupActivityCard
+              lastGroupEvent={dashboardMode.hubData?.last_group_event ?? null}
             />
           )}
 
