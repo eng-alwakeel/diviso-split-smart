@@ -10,6 +10,8 @@ export type Group = {
   created_at: string;
   updated_at: string;
   archived_at?: string | null;
+  status?: string | null;
+  group_type?: string | null;
   member_role?: string;
   member_count?: number;
 };
@@ -30,7 +32,9 @@ async function fetchUserGroups(showArchived = false): Promise<Group[]> {
         owner_id,
         created_at,
         updated_at,
-        archived_at
+        archived_at,
+        status,
+        group_type
       )
     `)
     .eq("user_id", userData.user.id);
@@ -67,6 +71,8 @@ async function fetchUserGroups(showArchived = false): Promise<Group[]> {
         created_at: group.created_at,
         updated_at: group.updated_at,
         archived_at: group.archived_at,
+        status: group.status,
+        group_type: group.group_type,
         member_role: member.role,
         member_count: count || 0
       };

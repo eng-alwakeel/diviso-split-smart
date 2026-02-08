@@ -403,7 +403,17 @@
     "archive": "Archive",
     "restore": "Restore",
     "delete": "Delete",
-    "leave": "Leave"
+    "leave": "Leave",
+    "status_active": "Active",
+    "status_closed": "Closed",
+    "role_owner": "Owner",
+    "role_admin": "Admin",
+    "role_member": "Member",
+    "closed_no_expense": "Group is closed, cannot add expenses",
+    "close_group": "End Activity",
+    "report": "Report",
+    "add_expense": "Add Expense",
+    "back_to_groups": "Back to Groups"
   },
   "load_error": "Error loading groups",
   "no_search_results": "No search results",
