@@ -19,18 +19,18 @@ function getBalanceState(netBalance: number): BalanceState {
 const stateConfig: Record<BalanceState, { emoji: string; border: string; bg: string }> = {
   balanced: {
     emoji: '✅',
-    border: 'border-green-500/20',
-    bg: 'bg-green-500/5',
+    border: 'border-status-positive/20',
+    bg: 'bg-status-positive/5',
   },
   near_balanced: {
     emoji: '⚠️',
-    border: 'border-amber-500/20',
-    bg: 'bg-amber-500/5',
+    border: 'border-warning/20',
+    bg: 'bg-warning/5',
   },
   unbalanced: {
     emoji: '❌',
-    border: 'border-red-500/20',
-    bg: 'bg-red-500/5',
+    border: 'border-destructive/20',
+    bg: 'bg-destructive/5',
   },
 };
 

@@ -14,11 +14,11 @@ export function LowActivityState({ data }: LowActivityStateProps) {
   const navigate = useNavigate();
 
   return (
-    <Card className="border-amber-500/20 bg-amber-500/5">
+    <Card className="border-warning/20 bg-warning/5">
       <CardContent className="p-5">
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-            <Clock className="w-6 h-6 text-amber-500" />
+          <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+            <Clock className="w-6 h-6 text-warning" />
           </div>
           <p className="text-sm font-medium text-foreground">
             {t('daily_hub.low_activity_title', { days: data.days_since_last_action })}

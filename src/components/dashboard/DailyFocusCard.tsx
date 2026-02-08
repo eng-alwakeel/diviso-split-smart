@@ -73,7 +73,7 @@ export function DailyFocusCard({
   // Re-engagement mode
   if (mode === 'reengagement') {
     return (
-      <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
+      <Card className="border-warning/20 bg-gradient-to-br from-warning/5 to-warning/10">
         <CardContent className="p-5">
           <div className="space-y-3">
             <div>
@@ -128,11 +128,11 @@ export function DailyFocusCard({
   // sessionHint === 'done'
   if (sessionHint === 'done') {
     return (
-      <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-green-500/10">
+      <Card className="border-status-positive/20 bg-gradient-to-br from-status-positive/5 to-status-positive/10">
         <CardContent className="p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-              <Check className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 rounded-full bg-status-positive/10 flex items-center justify-center shrink-0">
+              <Check className="w-5 h-5 text-status-positive" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">
