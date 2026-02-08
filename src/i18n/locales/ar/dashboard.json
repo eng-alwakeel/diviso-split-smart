@@ -157,7 +157,9 @@
     "new_user_demo": "قسمة تجريبية",
     "daily_dice_title": "نرد اليوم",
     "daily_dice_cta": "ارمِ النرد",
-    "group_event_title": "آخر نشاط"
+    "group_event_title": "آخر نشاط",
+    "dice_locked": "مثبت",
+    "dice_locked_hint": "يتغير كل 24 ساعة"
   },
   "activity_feed": {
     "title": "آخر الأحداث",

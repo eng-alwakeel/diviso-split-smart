@@ -157,7 +157,9 @@
     "new_user_demo": "Demo split",
     "daily_dice_title": "Today's Dice",
     "daily_dice_cta": "Roll the dice",
-    "group_event_title": "Latest activity"
+    "group_event_title": "Latest activity",
+    "dice_locked": "Locked",
+    "dice_locked_hint": "Changes every 24 hours"
   },
   "activity_feed": {
     "title": "Recent Activity",

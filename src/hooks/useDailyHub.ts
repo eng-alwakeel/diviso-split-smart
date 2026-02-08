@@ -17,6 +17,8 @@ export interface DailyHubData {
   } | null;
   suggested_dice_type: string | null;
   motivational_message: string | null;
+  dice_of_the_day: string | null;
+  dice_locked_at: string | null;
 }
 
 const CACHE_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
@@ -41,6 +43,8 @@ async function fetchHubData(userId: string): Promise<DailyHubData> {
         last_group_event: cached.last_group_event as DailyHubData['last_group_event'],
         suggested_dice_type: cached.suggested_dice_type,
         motivational_message: cached.motivational_message,
+        dice_of_the_day: (cached as any).dice_of_the_day ?? null,
+        dice_locked_at: (cached as any).dice_locked_at ?? null,
       };
     }
   }
@@ -61,6 +65,8 @@ async function fetchHubData(userId: string): Promise<DailyHubData> {
       last_group_event: null,
       suggested_dice_type: null,
       motivational_message: null,
+      dice_of_the_day: null,
+      dice_locked_at: null,
     };
   }
 
@@ -73,6 +79,8 @@ async function fetchHubData(userId: string): Promise<DailyHubData> {
     last_group_event: result.last_group_event ?? null,
     suggested_dice_type: result.suggested_dice_type ?? null,
     motivational_message: result.motivational_message ?? null,
+    dice_of_the_day: result.dice_of_the_day ?? null,
+    dice_locked_at: result.dice_locked_at ?? null,
   };
 }
 

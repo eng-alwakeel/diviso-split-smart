@@ -98,3 +98,6 @@ verify_jwt = true
 
 [functions.plan-day-ai-suggest]
 verify_jwt = true
+
+[functions.daily-engagement-cron]
+verify_jwt = false
