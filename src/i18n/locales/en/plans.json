@@ -1,0 +1,94 @@
+{
+  "title": "Plans",
+  "my_plans": "My Plans",
+  "group_plans": "Group Plans",
+  "new_plan": "New Plan",
+  "no_plans": "No plans yet",
+  "no_plans_desc": "Start by creating your first plan",
+  "no_group_plans": "No plans linked to your groups",
+  "members_count": "{{count}} members",
+  "plan_types": {
+    "trip": "Trip",
+    "outing": "Outing",
+    "shared_housing": "Shared Housing",
+    "activity": "Activity"
+  },
+  "status": {
+    "draft": "Draft",
+    "planning": "Planning",
+    "locked": "Locked",
+    "done": "Done",
+    "canceled": "Canceled"
+  },
+  "create": {
+    "title": "New Plan",
+    "step1_title": "Plan Type",
+    "step1_desc": "Choose your plan type",
+    "step2_title": "Details",
+    "step2_desc": "Add plan details",
+    "step3_title": "Budget",
+    "step3_desc": "Set a budget (optional)",
+    "plan_title": "Plan Title",
+    "plan_title_placeholder": "e.g., Beach Trip with Friends",
+    "destination": "Destination",
+    "destination_placeholder": "e.g., Jeddah",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "budget": "Budget",
+    "budget_placeholder": "e.g., 5000",
+    "currency": "Currency",
+    "next": "Next",
+    "back": "Back",
+    "create_plan": "Create Plan",
+    "creating": "Creating...",
+    "success": "Plan created successfully",
+    "error": "Failed to create plan"
+  },
+  "details": {
+    "summary": "Summary",
+    "suggestions": "Suggestions",
+    "votes": "Votes",
+    "expenses": "Expenses",
+    "members": "Members",
+    "no_destination": "No destination",
+    "budget_label": "Budget",
+    "dates_label": "Dates",
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
+  },
+  "actions": {
+    "convert_to_group": "Convert to Group",
+    "link_to_group": "Link to Existing Group",
+    "open_group": "Open Group",
+    "lock_plan": "Lock Plan",
+    "unlock_plan": "Unlock",
+    "start_planning": "Start Planning",
+    "mark_done": "Mark as Done",
+    "cancel_plan": "Cancel Plan",
+    "edit_plan": "Edit Plan"
+  },
+  "convert_dialog": {
+    "title": "Convert Plan to Group",
+    "description": "A new group will be created with all plan members and linked to this plan.",
+    "confirm": "Convert to Group",
+    "converting": "Converting...",
+    "success": "Group created and linked to plan",
+    "error": "Failed to convert plan"
+  },
+  "link_dialog": {
+    "title": "Link Plan to Group",
+    "description": "Choose a group to link with this plan",
+    "search_placeholder": "Search groups...",
+    "no_groups": "No groups available",
+    "confirm": "Link to Group",
+    "linking": "Linking...",
+    "success": "Plan linked to group",
+    "error": "Failed to link plan"
+  },
+  "status_change": {
+    "success": "Plan status updated",
+    "error": "Failed to update status"
+  },
+  "coming_soon": "Coming soon in the next phase"
+}

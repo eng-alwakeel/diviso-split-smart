@@ -1638,6 +1638,7 @@ export type Database = {
           id: string
           note_ar: string | null
           payer_id: string | null
+          plan_id: string | null
           spent_at: string
           status: Database["public"]["Enums"]["expense_status"]
           updated_at: string | null
@@ -1653,6 +1654,7 @@ export type Database = {
           id?: string
           note_ar?: string | null
           payer_id?: string | null
+          plan_id?: string | null
           spent_at?: string
           status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string | null
@@ -1668,6 +1670,7 @@ export type Database = {
           id?: string
           note_ar?: string | null
           payer_id?: string | null
+          plan_id?: string | null
           spent_at?: string
           status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string | null
@@ -1699,6 +1702,13 @@ export type Database = {
             columns: ["payer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
@@ -2946,6 +2956,283 @@ export type Database = {
           place_id?: string
         }
         Relationships: []
+      }
+      plan_ai_summary: {
+        Row: {
+          intent_summary_text: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          intent_summary_text: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          intent_summary_text?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_ai_summary_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: true
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_members: {
+        Row: {
+          joined_at: string
+          plan_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          plan_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          plan_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_members_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_suggestions: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          details: string | null
+          id: string
+          plan_id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string
+          details?: string | null
+          id?: string
+          plan_id: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          details?: string | null
+          id?: string
+          plan_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_suggestions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_vote_options: {
+        Row: {
+          id: string
+          option_text: string
+          vote_id: string
+        }
+        Insert: {
+          id?: string
+          option_text: string
+          vote_id: string
+        }
+        Update: {
+          id?: string
+          option_text?: string
+          vote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_vote_options_vote_id_fkey"
+            columns: ["vote_id"]
+            isOneToOne: false
+            referencedRelation: "plan_votes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_vote_responses: {
+        Row: {
+          created_at: string
+          option_id: string
+          user_id: string
+          vote_id: string
+        }
+        Insert: {
+          created_at?: string
+          option_id: string
+          user_id: string
+          vote_id: string
+        }
+        Update: {
+          created_at?: string
+          option_id?: string
+          user_id?: string
+          vote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_vote_responses_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "plan_vote_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_vote_responses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_vote_responses_vote_id_fkey"
+            columns: ["vote_id"]
+            isOneToOne: false
+            referencedRelation: "plan_votes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_votes: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          plan_id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          plan_id: string
+          status?: string
+          title: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_votes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_votes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          budget_currency: string
+          budget_value: number | null
+          created_at: string
+          destination: string | null
+          end_date: string | null
+          group_id: string | null
+          id: string
+          owner_user_id: string
+          plan_type: string
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget_currency?: string
+          budget_value?: number | null
+          created_at?: string
+          destination?: string | null
+          end_date?: string | null
+          group_id?: string | null
+          id?: string
+          owner_user_id: string
+          plan_type: string
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget_currency?: string
+          budget_value?: number | null
+          created_at?: string
+          destination?: string | null
+          end_date?: string | null
+          group_id?: string | null
+          id?: string
+          owner_user_id?: string
+          plan_type?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plans_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plans_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -5179,6 +5466,10 @@ export type Database = {
         Args: { p_days_old?: number; p_user_id: string }
         Returns: number
       }
+      can_access_plan: {
+        Args: { p_plan_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_approve_group_expenses: {
         Args: { p_group_id: string }
         Returns: boolean
@@ -5266,6 +5557,7 @@ export type Database = {
         }
         Returns: Json
       }
+      convert_plan_to_group: { Args: { p_plan_id: string }; Returns: string }
       convert_rewards_to_credits: { Args: { p_user_id: string }; Returns: Json }
       create_ad_action_token: {
         Args: {
@@ -5302,6 +5594,18 @@ export type Database = {
       }
       create_notification: {
         Args: { p_payload?: Json; p_type: string; p_user_id: string }
+        Returns: string
+      }
+      create_plan: {
+        Args: {
+          p_budget_currency?: string
+          p_budget_value?: number
+          p_destination?: string
+          p_end_date?: string
+          p_plan_type: string
+          p_start_date?: string
+          p_title: string
+        }
         Returns: string
       }
       create_rewarded_ad_session: {
@@ -5773,8 +6077,16 @@ export type Database = {
       is_group_member:
         | { Args: { _group_id: string; _user_id: string }; Returns: boolean }
         | { Args: { p_group_id: string }; Returns: boolean }
+      is_plan_admin: {
+        Args: { p_plan_id: string; p_user_id: string }
+        Returns: boolean
+      }
       is_valid_phone: { Args: { phone_input: string }; Returns: boolean }
       join_group_with_token: { Args: { p_token: string }; Returns: string }
+      link_plan_to_group: {
+        Args: { p_group_id: string; p_plan_id: string }
+        Returns: boolean
+      }
       log_security_event: {
         Args: { p_action: string; p_details?: Json; p_table_name?: string }
         Returns: undefined
@@ -5824,6 +6136,10 @@ export type Database = {
       unarchive_group: { Args: { p_group_id: string }; Returns: boolean }
       update_daily_referral_analytics: { Args: never; Returns: number }
       update_expired_referrals: { Args: never; Returns: number }
+      update_plan_status: {
+        Args: { p_plan_id: string; p_status: string }
+        Returns: boolean
+      }
       update_user_activity: { Args: { p_user_id: string }; Returns: undefined }
       validate_family_invitation_token: {
         Args: { p_token: string }

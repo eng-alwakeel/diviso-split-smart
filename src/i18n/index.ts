@@ -27,6 +27,7 @@ import arCookies from './locales/ar/cookies.json';
 import arFounding from './locales/ar/founding.json';
 import arDice from './locales/ar/dice.json';
 import arInstall from './locales/ar/install.json';
+import arPlans from './locales/ar/plans.json';
 
 // Import English translations
 import enCommon from './locales/en/common.json';
@@ -54,6 +55,7 @@ import enCookies from './locales/en/cookies.json';
 import enFounding from './locales/en/founding.json';
 import enDice from './locales/en/dice.json';
 import enInstall from './locales/en/install.json';
+import enPlans from './locales/en/plans.json';
 
 // Get saved language from localStorage or default to Arabic
 const getSavedLanguage = (): string => {
@@ -97,7 +99,8 @@ i18n
         cookies: arCookies,
         founding: arFounding,
         dice: arDice,
-        install: arInstall
+        install: arInstall,
+        plans: arPlans
       },
       en: {
         common: enCommon,
@@ -124,13 +127,14 @@ i18n
         cookies: enCookies,
         founding: enFounding,
         dice: enDice,
-        install: enInstall
+        install: enInstall,
+        plans: enPlans
       }
     },
     lng: getSavedLanguage(),
     fallbackLng: 'ar',
     defaultNS: 'common',
-    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations', 'referral', 'budget', 'privacy', 'credits', 'support', 'blog', 'refund', 'terms', 'cookies', 'founding', 'dice', 'install'],
+    ns: ['common', 'settings', 'auth', 'dashboard', 'expenses', 'groups', 'errors', 'faq', 'quota', 'notifications', 'landing', 'pricing', 'recommendations', 'referral', 'budget', 'privacy', 'credits', 'support', 'blog', 'refund', 'terms', 'cookies', 'founding', 'dice', 'install', 'plans'],
     interpolation: {
       escapeValue: false
     },

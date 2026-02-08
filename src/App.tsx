@@ -70,6 +70,9 @@ const LazyWelcome = withLazyLoading(lazy(() => import("./pages/Welcome")));
 const LazyFoundingProgram = withLazyLoading(lazy(() => import("./pages/FoundingProgram")));
 const LazyDiceDecisionPage = withLazyLoading(lazy(() => import("./pages/DiceDecisionPage")));
 const LazyInstall = withLazyLoading(lazy(() => import("./pages/Install")));
+const LazyPlans = withLazyLoading(lazy(() => import("./pages/Plans")));
+const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")));
+const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -146,6 +149,9 @@ const AppRoutes: React.FC = () => {
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute><PageErrorBoundary><LazyPlans /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/create-plan" element={<ProtectedRoute><PageErrorBoundary><LazyCreatePlan /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/plan/:id" element={<ProtectedRoute><PageErrorBoundary><LazyPlanDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-group" element={<ProtectedRoute><PageErrorBoundary><LazyCreateGroup /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id" element={<ProtectedRoute><PageErrorBoundary><LazyGroupDetails /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/group/:id/invite" element={<ProtectedRoute><PageErrorBoundary><LazyGroupInvite /></PageErrorBoundary></ProtectedRoute>} />

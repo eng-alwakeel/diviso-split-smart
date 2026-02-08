@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, BarChart3, Share2, Settings } from "lucide-react";
+import { Plus, Users, BarChart3, Share2, Settings, Map } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +25,12 @@ export const SimpleQuickActions = () => {
       title: t('quick_actions.financial_plan'),
       icon: BarChart3,
       onClick: () => navigate('/financial-plan'),
+      variant: "outline" as const,
+    },
+    {
+      title: t('quick_actions.plans'),
+      icon: Map,
+      onClick: () => navigate('/plans'),
       variant: "outline" as const,
     },
     {

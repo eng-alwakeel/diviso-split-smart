@@ -1,0 +1,94 @@
+{
+  "title": "الخطط",
+  "my_plans": "خططي",
+  "group_plans": "خطط المجموعات",
+  "new_plan": "خطة جديدة",
+  "no_plans": "لا توجد خطط بعد",
+  "no_plans_desc": "ابدأ بإنشاء خطتك الأولى",
+  "no_group_plans": "لا توجد خطط مرتبطة بمجموعاتك",
+  "members_count": "{{count}} عضو",
+  "plan_types": {
+    "trip": "رحلة",
+    "outing": "طلعة",
+    "shared_housing": "سكن مشترك",
+    "activity": "نشاط"
+  },
+  "status": {
+    "draft": "مسودة",
+    "planning": "جاري التخطيط",
+    "locked": "مقفلة",
+    "done": "مكتملة",
+    "canceled": "ملغاة"
+  },
+  "create": {
+    "title": "خطة جديدة",
+    "step1_title": "نوع الخطة",
+    "step1_desc": "اختر نوع خطتك",
+    "step2_title": "التفاصيل",
+    "step2_desc": "أضف تفاصيل الخطة",
+    "step3_title": "الميزانية",
+    "step3_desc": "حدد ميزانية (اختياري)",
+    "plan_title": "عنوان الخطة",
+    "plan_title_placeholder": "مثال: رحلة الشباب للبحر",
+    "destination": "الوجهة",
+    "destination_placeholder": "مثال: جدة",
+    "start_date": "تاريخ البدء",
+    "end_date": "تاريخ الانتهاء",
+    "budget": "الميزانية",
+    "budget_placeholder": "مثال: 5000",
+    "currency": "العملة",
+    "next": "التالي",
+    "back": "رجوع",
+    "create_plan": "إنشاء الخطة",
+    "creating": "جاري الإنشاء...",
+    "success": "تم إنشاء الخطة بنجاح",
+    "error": "فشل في إنشاء الخطة"
+  },
+  "details": {
+    "summary": "ملخص",
+    "suggestions": "اقتراحات",
+    "votes": "التصويت",
+    "expenses": "المصاريف",
+    "members": "الأعضاء",
+    "no_destination": "بدون وجهة",
+    "budget_label": "الميزانية",
+    "dates_label": "التواريخ",
+    "owner": "مالك",
+    "admin": "مشرف",
+    "member": "عضو"
+  },
+  "actions": {
+    "convert_to_group": "تحويل إلى مجموعة",
+    "link_to_group": "ربط بمجموعة موجودة",
+    "open_group": "فتح المجموعة",
+    "lock_plan": "اقفل الخطة",
+    "unlock_plan": "إلغاء القفل",
+    "start_planning": "ابدأ التخطيط",
+    "mark_done": "تم الانتهاء",
+    "cancel_plan": "إلغاء الخطة",
+    "edit_plan": "تعديل الخطة"
+  },
+  "convert_dialog": {
+    "title": "تحويل الخطة إلى مجموعة",
+    "description": "سيتم إنشاء مجموعة جديدة وإضافة أعضاء الخطة إليها وربط الخطة بالمجموعة.",
+    "confirm": "تحويل إلى مجموعة",
+    "converting": "جاري التحويل...",
+    "success": "تم إنشاء المجموعة وربط الخطة بها",
+    "error": "فشل في تحويل الخطة"
+  },
+  "link_dialog": {
+    "title": "ربط الخطة بمجموعة",
+    "description": "اختر مجموعة لربطها بهذه الخطة",
+    "search_placeholder": "ابحث عن مجموعة...",
+    "no_groups": "لا توجد مجموعات متاحة",
+    "confirm": "ربط بالمجموعة",
+    "linking": "جاري الربط...",
+    "success": "تم ربط الخطة بالمجموعة",
+    "error": "فشل في ربط الخطة"
+  },
+  "status_change": {
+    "success": "تم تحديث حالة الخطة",
+    "error": "فشل في تحديث الحالة"
+  },
+  "coming_soon": "قريباً في المرحلة القادمة"
+}
