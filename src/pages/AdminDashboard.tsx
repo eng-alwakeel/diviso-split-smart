@@ -15,7 +15,7 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2 } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
@@ -25,6 +25,7 @@ import { CreditsEconomyHealth } from "@/components/admin/CreditsEconomyHealth";
 import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSection";
 import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
 import { useAdminTabs } from "@/hooks/useAdminTabs";
+import { AdminBroadcastEmail } from "@/components/admin/AdminBroadcastEmail";
 
 export const AdminDashboard = () => {
   return (
@@ -320,6 +321,12 @@ const AdminDashboardContent = () => {
                 <span className="hidden sm:inline text-xs lg:text-sm">الصلاحيات</span>
               </TabsTrigger>
             )}
+            {allowedTabs.some(t => t.id === "broadcast") && (
+              <TabsTrigger value="broadcast" className="flex items-center gap-1 py-2">
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">البريد</span>
+              </TabsTrigger>
+            )}
             {allowedTabs.some(t => t.id === "management") && (
               <TabsTrigger value="management" className="flex items-center gap-1 py-2">
                 <Users className="h-4 w-4" />
@@ -367,6 +374,12 @@ const AdminDashboardContent = () => {
           {allowedTabs.some(t => t.id === "permissions") && (
             <TabsContent value="permissions">
               <RolesPermissionsSection />
+            </TabsContent>
+          )}
+
+          {allowedTabs.some(t => t.id === "broadcast") && (
+            <TabsContent value="broadcast">
+              <AdminBroadcastEmail />
             </TabsContent>
           )}
 

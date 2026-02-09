@@ -1419,6 +1419,56 @@ export type Database = {
           },
         ]
       }
+      email_campaigns: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          created_at: string
+          failed_count: number | null
+          id: string
+          sent_at: string | null
+          sent_by: string | null
+          sent_count: number | null
+          status: string
+          subject: string
+          total_recipients: number | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          created_at?: string
+          failed_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+          total_recipients?: number | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          created_at?: string
+          failed_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+          total_recipients?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_verification_codes: {
         Row: {
           code: string

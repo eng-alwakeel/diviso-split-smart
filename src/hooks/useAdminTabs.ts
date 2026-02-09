@@ -57,6 +57,13 @@ const ADMIN_TABS: TabConfig[] = [
     requiredPermissions: ["system.settings"] 
   },
   { 
+    id: "broadcast", 
+    labelEn: "Broadcast", 
+    labelAr: "البريد",
+    icon: "Mail",
+    requiredPermissions: ["system.settings"] 
+  },
+  { 
     id: "permissions", 
     labelEn: "Permissions", 
     labelAr: "الصلاحيات",

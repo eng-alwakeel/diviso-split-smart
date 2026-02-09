@@ -101,3 +101,6 @@ verify_jwt = true
 
 [functions.daily-engagement-cron]
 verify_jwt = false
+
+[functions.send-broadcast-email]
+verify_jwt = false
