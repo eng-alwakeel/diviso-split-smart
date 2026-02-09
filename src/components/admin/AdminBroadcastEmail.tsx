@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -206,7 +207,11 @@ export function AdminBroadcastEmail() {
                     className="p-6 bg-background prose prose-sm max-w-none"
                     dir="rtl"
                     dangerouslySetInnerHTML={{
-                      __html: bodyHtml || "<p class='text-muted-foreground'>لا يوجد محتوى</p>",
+                      __html: DOMPurify.sanitize(bodyHtml || "<p class='text-muted-foreground'>لا يوجد محتوى</p>", {
+                        ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'ul', 'li', 'strong', 'em', 'a', 'br', 'div', 'span'],
+                        ALLOWED_ATTR: ['href', 'class', 'style', 'target', 'rel'],
+                        ALLOW_DATA_ATTR: false
+                      }),
                     }}
                   />
                 </div>
