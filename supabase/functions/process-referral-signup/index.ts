@@ -21,7 +21,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log("=== Process Referral Signup Function Started ===");
+    console.log("=== Process Referral Signup ===");
     
     // Initialize Supabase client with service role key
     const supabaseClient = createClient(
@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const inviterId = referralCodeData.user_id;
-    console.log(`Found inviter: ${inviterId}`);
+    console.log('Inviter found for referral code');
 
     // Trial days for the new user (invitee only)
     const trialDays = 7;
@@ -110,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Update existing referral
-      console.log("Updating existing referral:", existingReferral.id);
+      console.log("Updating existing referral");
       isGroupReferral = !!existingReferral.group_id;
       groupId = existingReferral.group_id;
       
@@ -143,11 +143,11 @@ const handler = async (req: Request): Promise<Response> => {
           })
           .eq("id", pendingGroupInvite.id);
         
-        console.log(`Updated linked group invite: ${pendingGroupInvite.id}`);
+        console.log('Updated linked group invite');
       }
     } else if (pendingGroupInvite && pendingGroupInvite.referral_id) {
       // There's a group invite with a linked referral - update it
-      console.log("Found group invite with linked referral:", pendingGroupInvite.referral_id);
+      console.log("Found group invite with linked referral");
       
       const { data: linkedReferral, error: linkedError } = await supabaseClient
         .from("referrals")
@@ -281,8 +281,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error creating notification:", notificationError);
     }
 
-    console.log(`📨 Notification sent to inviter (source: ${isGroupReferral ? 'group' : 'personal'})`);
-    console.log("✅ Referral signup processed successfully");
+    console.log(`Referral signup processed (source: ${isGroupReferral ? 'group' : 'personal'})`);
 
     return new Response(
       JSON.stringify({ 
@@ -305,7 +304,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error) {
-    console.error("❌ Error in process-referral-signup function:", error);
+    console.error("Error in process-referral-signup:", error?.message || 'Unknown error');
     
     return new Response(
       JSON.stringify({ 

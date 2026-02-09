@@ -9,7 +9,6 @@ const corsHeaders = {
 serve(async (req) => {
   console.log('=== Moyasar Webhook Called ===');
   console.log('Method:', req.method);
-  console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries()), null, 2));
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -44,7 +43,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    console.log('Moyasar webhook received:', JSON.stringify(body, null, 2));
+    console.log('Moyasar webhook received, payment status:', body?.status);
 
     const { id: paymentId, status, metadata } = body;
     
@@ -72,7 +71,7 @@ serve(async (req) => {
     }
 
     const paymentData = await verifyResponse.json();
-    console.log('Moyasar payment verification:', JSON.stringify(paymentData, null, 2));
+    console.log('Moyasar payment verified, status:', paymentData.status);
 
     // Check if payment is successful
     if (paymentData.status !== 'paid') {
@@ -128,7 +127,7 @@ serve(async (req) => {
     if (rpcError) {
       console.error('Error completing purchase:', rpcError);
       return new Response(
-        JSON.stringify({ error: 'Failed to complete purchase', details: rpcError.message }),
+        JSON.stringify({ error: 'Failed to complete purchase' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -141,7 +140,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Purchase completed successfully:', purchaseId, result);
+    console.log('Purchase completed successfully, type:', purchaseType);
 
     return new Response(
       JSON.stringify({ success: true, purchase_id: purchaseId, type: purchaseType, result }),
@@ -151,7 +150,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing webhook:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
