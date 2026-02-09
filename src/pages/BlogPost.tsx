@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getArticleBySlug } from "@/content/blog/articles";
 import { BlogHeader } from "@/components/blog/BlogHeader";
@@ -81,7 +82,10 @@ const BlogPost = () => {
 
           <article className="prose prose-lg dark:prose-invert max-w-none">
             <div 
-              dangerouslySetInnerHTML={{ __html: formatContent(content) }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatContent(content), {
+                ALLOWED_TAGS: ['p', 'h2', 'h3', 'ul', 'li', 'strong', 'em', 'a', 'br'],
+                ALLOWED_ATTR: ['href', 'target', 'rel']
+              }) }}
               className="[&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mt-8 [&>h2]:mb-4 [&>h3]:text-xl [&>h3]:font-semibold [&>h3]:mt-6 [&>h3]:mb-3 [&>p]:mb-4 [&>p]:leading-relaxed [&>ul]:mb-4 [&>ul]:space-y-2"
             />
           </article>
