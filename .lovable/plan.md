@@ -1,132 +1,48 @@
-# Rebuild New User Onboarding Flow
 
-## Overview
+# Fix: Monthly Founding Credits Not Being Granted
 
-Create a multi-step, fullscreen onboarding experience for users with zero groups. When a new user lands on `/dashboard` with no groups, they are redirected to `/onboarding` -- a dedicated flow that guides them through group creation, a demo expense "aha moment", and friend invitation before unlocking the full dashboard.
+## Problem
+User #4 (Hijaziun) and all other founding users have never received their 50 monthly points. The `grant-monthly-credits` edge function exists and works correctly, but **no cron job is set up** to call it. The function has literally never been executed.
 
-## Architecture
+## Root Cause
+- A `pg_cron` job exists for `daily-engagement-cron` (runs daily at 5:00 AM)
+- No equivalent cron job exists for `grant-monthly-credits`
+- Result: zero `founding_monthly` records in the entire database
 
-### New Files
+## Fix
 
+### 1. Create a monthly cron job via SQL migration
 
-| File                                                | Purpose                                                                                  |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/pages/Onboarding.tsx`                          | Main onboarding page with step state machine (steps 1-4 + waiting screen)                |
-| `src/hooks/useOnboardingV2.ts`                      | Hook managing step state, feature flag check, group creation, demo expense, invite logic |
-| `src/hooks/useFeatureFlag.ts`                       | Generic hook to read `admin_feature_flags` table by flag name                            |
-| `src/components/onboarding-v2/StepStart.tsx`        | Screen 1 -- welcome + single CTA                                                         |
-| `src/components/onboarding-v2/StepQuickGroup.tsx`   | Screen 2 -- group name (pre-filled) + member count selector                              |
-| `src/components/onboarding-v2/StepDemoExpense.tsx`  | Screen 3 -- auto-generated expense with split breakdown                                  |
-| `src/components/onboarding-v2/StepInvite.tsx`       | Screen 4 -- share/copy invite link                                                       |
-| `src/components/onboarding-v2/WaitingScreen.tsx`    | Lock screen -- waiting for second member                                                 |
-| `src/components/onboarding-v2/OnboardingLayout.tsx` | Shared fullscreen layout wrapper (no header, no bottom nav)                              |
+Add a `pg_cron` job that calls `grant-monthly-credits` on the 1st of every month at 6:00 AM UTC:
 
-
-### Modified Files
-
-
-| File                              | Change                                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `src/pages/Dashboard.tsx`         | Add redirect: if `new_onboarding_v2` flag is on and `groupsCount === 0`, navigate to `/onboarding` |
-| `src/App.tsx`                     | Add route: `/onboarding` -> `ProtectedRoute` -> `LazyOnboarding`                                   |
-| `src/hooks/useAnalyticsEvents.ts` | Add new event names to `EVENT_CATEGORIES`                                                          |
-
-
-## Step-by-Step Flow
-
-### Step 1 -- Start
-
-- Fullscreen, centered layout
-- Title: `خلنا نبدأ بأول مجموعة 👇`
-- Subtitle: `Diviso يشتغل لما تضيف أشخاص وتقسم مصروف.\nخلنا نوريك خلال 30 ثانية.`
-- Single button: `➕ إنشاء مجموعة`
-- Track: `onboarding_started`
-
-### Step 2 -- Quick Group Creation
-
-- Group name input, pre-filled with `طلعة نهاية الأسبوع`
-- Member count selector: buttons for 2, 3, 4, 5+ (button-group style, default=3)
-- Currency auto-detected from profile or default SAR
-- Button: `التالي`
-- On submit: create group in Supabase (same logic as `CreateGroup.tsx` but simplified, no credit check during onboarding)
-- Track: `group_created`
-
-### Step 3 -- Demo Expense (Aha Moment)
-
-- Auto-create an expense in the new group: `مطعم` -- 200 SAR, paid by current user, split equally among selected member count
-- Display a clean card showing:
-  - `🧾 مطعم -- 200 ريال`
-  - `👤 Paid by: You`
-  - `👥 Split among N people`
-  - Visual breakdown: `💰 لك: X ريال` / `💸 عليك: 0 ريال`
-- The expense is inserted into the `expenses` table as a real record
-- Auto-advance after 2 seconds or user taps `التالي`
-- Track: `demo_expense_generated`
-
-### Step 4 -- Invite Friends
-
-- Title: `عشان يعرفون كم عليهم… لازم ينضمون 😅`
-- Generate invite link (reuse `useGroupInvites` hook)
-- Pre-filled share message: `"دفعت عنكم 200 ريال 😅\nشوفوا كم عليكم في Diviso 👇\n[Group Link]"`
-- Two actions: `📲 دعوة الأصدقاء` (native share) + `نسخ الرابط` (copy)
-- After share or copy, enable `التالي` button
-- Track: `invite_shared`
-
-### Waiting Screen (Lock)
-
-- After step 4, check if group has >= 2 members
-- If not: show waiting screen with title `بانتظار انضمام شخص واحد عشان تبدأ القسمة الفعلية 👇`
-- Show re-share button
-- Set up a realtime subscription on `group_members` table for the created group
-- When a second member joins: track `second_member_joined` + `onboarding_completed`, then navigate to `/dashboard`
-
-### Dashboard Gate
-
-In `Dashboard.tsx`, early in the component (after userId and groupsCount are available):
-
-```
-if (featureFlag('new_onboarding_v2') && groupsCount === 0) {
-  navigate('/onboarding', { replace: true });
-  return null;
-}
+```sql
+SELECT cron.schedule(
+  'grant-monthly-credits',
+  '0 6 1 * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/grant-monthly-credits',
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
+    body := '{"time": "monthly"}'::jsonb
+  ) as request_id;
+  $$
+);
 ```
 
-This ensures users who somehow navigate to dashboard are redirected back.
+### 2. Manually trigger the function now
 
-## Feature Flag (A/B)
+After the cron is set up, manually invoke the edge function once so all qualifying founding users (those active in the last 30 days) receive their February credits immediately. This will be done via the `curl_edge_functions` tool.
 
-- Use existing `admin_feature_flags` table
-- Insert row: `flag_name = 'new_onboarding_v2'`, `flag_value = { "enabled": true }`
-- `useFeatureFlag('new_onboarding_v2')` returns boolean
-- When flag is off, dashboard behaves exactly as today (existing onboarding checklist)
+### Qualifying Users (active in last 30 days)
+Based on the data, the following founding users have recent activity and will receive 50 credits:
+- User #1 (adel alwakeel) -- active Feb 17
+- User #4 (Hijaziun) -- active Feb 8
+- User #7 (Fares) -- active Feb 2
+- User #9 (Jawaher) -- active Feb 3
+- User #13 (Faten) -- active Feb 1
+- User #14 (Esraa) -- active Feb 4
+- User #15 (Alwakeel CTO) -- active Feb 9
+- User #17 (Amr Salama) -- active Feb 5
 
-## Analytics Events
-
-Add to `EVENT_CATEGORIES` in `useAnalyticsEvents.ts`:
-
-```
-onboarding_started: 'engagement',
-demo_expense_generated: 'engagement',
-invite_shared: 'growth',
-second_member_joined: 'growth',
-onboarding_completed: 'engagement',
-```
-
-(`group_created` and `invite_sent` already exist)
-
-## UX Details
-
-- Fullscreen layout, `min-h-screen`, centered content, no `AppHeader`, no `BottomNav`
-- Large buttons (`size="lg"`, `w-full`, `text-lg`)
-- Step transitions: simple fade/slide using CSS transitions
-- Progress indicator: subtle dots or step counter at top (e.g., `1/4`)
-- All text in Arabic by default, with i18n keys for English
-- RTL-aware layout using existing `useLanguage` hook
-
-## Technical Details
-
-- **Group creation** reuses existing Supabase insert logic from `CreateGroup.tsx` but skips credit check (onboarding is free)
-- **Demo expense** inserts a real expense via `expenses` table with `is_demo: true` metadata (or a note field) so it can optionally be cleaned up
-- **Invite link** reuses `useGroupInvites` hook which already generates and manages invite codes
-- **Realtime listener** for waiting screen uses existing `supabase.channel()` pattern on `group_members` table filtered by `group_id`
-- **State persistence**: store current onboarding step + created group ID in `localStorage` so refreshing doesn't restart the flow
+### No code changes needed
+The edge function logic is correct. Only infrastructure (cron) is missing.
