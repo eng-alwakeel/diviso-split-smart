@@ -94,19 +94,30 @@ serve(async (req: Request) => {
     if (test_email) {
       const fullHtml = buildEmailHtml(body_html);
       try {
-        await resend.emails.send({
+        console.log("Sending test email to:", test_email);
+        const result = await resend.emails.send({
           from: "Diviso <noreply@diviso.app>",
           to: [test_email],
           subject: `[تجربة] ${subject}`,
           html: fullHtml,
           text: body_text || undefined,
         });
+        console.log("Test email Resend response:", JSON.stringify(result));
+
+        if (result.error) {
+          console.error("Resend returned error:", JSON.stringify(result.error));
+          return new Response(
+            JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
         return new Response(
-          JSON.stringify({ success: true, test: true, sent_to: test_email }),
+          JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
           { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       } catch (err: any) {
-        console.error("Test email error:", err);
+        console.error("Test email exception:", err);
         return new Response(
           JSON.stringify({ error: `فشل إرسال التجربة: ${err.message}` }),
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
