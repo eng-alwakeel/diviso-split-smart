@@ -1,32 +1,51 @@
 
+# Ramadan Hero Banner
 
-# استبدال أيقونات PWA والـ Favicon بشعار Diviso الجديد
+## Overview
+Add a seasonal Ramadan banner section at the very top of the homepage, placed between the Header and the existing HeroSection. It will use the existing dark gradient background, primary (lime green) glow accents, and brand typography -- blending seamlessly with the current design.
 
-## الهدف
+## What You'll See
+- A compact, full-width dark banner above the main hero
+- Arabic headline: "رمضان يجمعنا… و Diviso يرتّبها بينكم"
+- Subtext: "نظّم مشاركاتكم ومصاريفكم بسهولة خلال رمضان"
+- A very subtle crescent SVG rendered in the primary color at low opacity, used as a decorative accent
+- Fully responsive, RTL-aware, no new colors or visual styles
 
-استبدال جميع أيقونات التطبيق (PWA + Favicon + Apple Touch Icon) بالشعار الجديد الذي رفعته (حرف D الأخضر على خلفية داكنة).
+## Technical Details
 
----
+### 1. New Component: `src/components/landing/RamadanHeroBanner.tsx`
+- Uses `bg-gradient-dark` background (matching existing hero)
+- Primary-colored glow orb (`bg-primary/20 blur-2xl`) as soft ambient light
+- Tiny inline SVG crescent in `hsl(var(--primary))` at 20-30% opacity
+- Headline in `text-white` with `text-primary` on "Diviso" (same pattern as HeroSection h1)
+- Subtext in `text-white/70`
+- RTL-aware via `useTranslation` and `dir` attribute
+- No animations or heavy assets -- pure CSS + tiny SVG
 
-## الملفات المتأثرة
+### 2. Edit: `src/pages/Index.tsx`
+- Import `RamadanHeroBanner`
+- Place it right after `<Header />` and before `<HeroSection />`
 
-الصورة المرفوعة (`WhatsApp_Image_2026-01-18_at_3.49.02_PM-2.JPG`) ستُنسخ لتحل محل:
+### 3. Translations: `src/i18n/locales/ar/landing.json` and `en/landing.json`
+- Add `ramadan.headline` and `ramadan.subtext` keys in both languages
+- Arabic values as specified; English equivalents for the EN locale
 
-| الملف | الاستخدام |
-|-------|----------|
-| `public/pwa-192.png` | أيقونة PWA بحجم 192x192 (تظهر عند التثبيت) |
-| `public/pwa-512.png` | أيقونة PWA بحجم 512x512 (Splash screen) |
-| `public/pwa-512-maskable.png` | أيقونة PWA القابلة للقص (maskable) |
-| `public/favicon.png` | أيقونة التبويب في المتصفح + Apple Touch Icon |
+### Component Structure
+```text
++--------------------------------------------------+
+| Header (sticky)                                  |
++--------------------------------------------------+
+| RamadanHeroBanner                                |
+|  [soft primary glow orb]                         |
+|  [tiny crescent SVG accent]                      |
+|  "رمضان يجمعنا… و Diviso يرتّبها بينكم"          |
+|  "نظّم مشاركاتكم ومصاريفكم بسهولة خلال رمضان"    |
++--------------------------------------------------+
+| HeroSection (existing, unchanged)                |
++--------------------------------------------------+
+```
 
----
-
-## خطوات التنفيذ
-
-1. **نسخ الصورة المرفوعة** إلى كل ملف من الملفات الأربعة أعلاه (تحل محل الصور القديمة)
-2. **لا تعديل على الكود**: ملف `manifest.json` و `index.html` يشيران بالفعل لنفس أسماء الملفات، فلا حاجة لتعديلهما
-
-## ملاحظة
-
-بما أن Lovable لا يدعم تغيير حجم الصور، سيتم استخدام نفس الصورة لجميع الأحجام. المتصفح يتكفل بالتصغير تلقائيا. إذا أردت نتيجة مثالية (خاصة للحجم الصغير 192x192)، يمكنك تحضير صور بالأحجام الدقيقة خارجيا وإعادة رفعها لاحقا.
-
+### Performance
+- No images, no lazy loading needed -- just CSS gradients, a tiny inline SVG, and text
+- No JavaScript logic beyond reading the current language
+- Zero impact on LCP/CLS
