@@ -23,11 +23,11 @@
   "hero": {
     "mainTitle": "organizes Ramadan expenses between people",
     "useCases": {
-      "travel": "Travel",
-      "housing": "Shared Housing",
-      "friends": "Friends Outing",
-      "activities": "Activities",
-      "camping": "Camping"
+      "travel": "Umrah",
+      "housing": "Group Iftar",
+      "friends": "Suhoor with Friends",
+      "activities": "Travel",
+      "camping": "Shared Housing"
     },
     "valueDesc": "Any shared experience with multiple people, Diviso organizes expenses and makes everything clear without confusion or awkwardness.",
     "steps": {
