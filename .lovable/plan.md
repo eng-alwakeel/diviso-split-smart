@@ -1,53 +1,55 @@
 
-# Add "Send Test Email" Button to Broadcast Compose Screen
+# Fix: Test Email Not Being Delivered
 
-## Overview
-Add a button next to the main send button that allows the admin to send a test email to a specific address before broadcasting to all users. This lets you preview the actual email in your inbox before committing.
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## Changes
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-### 1. Frontend -- `src/components/admin/AdminBroadcastEmail.tsx`
+## Fix
 
-- Add a `testEmail` state (default: admin's email from Supabase auth)
-- Add an `Input` field for the test email address above the buttons
-- Add a "Send Test" button (`variant="outline"`) next to the main send button
-- Add a `testMutation` that calls the same edge function with `test_email` parameter
-- Layout: two buttons side by side -- "ارسال تجربة" (outline) + "إرسال لجميع المسجلين" (primary)
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 2. Backend -- `supabase/functions/send-broadcast-email/index.ts`
+Add detailed logging to the test email code path:
 
-- After parsing the request body, check for `test_email` field
-- If `test_email` is provided:
-  - Skip fetching all users
-  - Skip creating a campaign record
-  - Send only to the provided email address using the same `buildEmailHtml` template
-  - Return a simple success/failure response
-- If no `test_email`: proceed with existing broadcast logic (no changes)
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-## UI Layout (Compose Tab)
-
-```text
-+--------------------------------------+
-| عنوان الإيميل                         |
-| [____________________________]       |
-|                                      |
-| محتوى الإيميل (HTML)                  |
-| [____________________________]       |
-|                                      |
-| نص مختصر (اختياري)                    |
-| [____________________________]       |
-|                                      |
-| إيميل التجربة                         |
-| [admin@example.com___________]       |
-|                                      |
-| [ارسال تجربة 🧪] [إرسال للجميع ◀]    |
-+--------------------------------------+
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-## Technical Details
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-- Test email input validates with basic email format check
-- Test mutation is independent from broadcast mutation (separate loading state)
-- Edge function differentiates via `test_email` field presence in body
-- No campaign record created for test sends
-- Same HTML template wrapping applied so test email looks identical to real broadcast
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
+
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
