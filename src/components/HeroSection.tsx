@@ -48,6 +48,15 @@ export const HeroSection = () => {
           {/* Text Content */}
           <div className={`text-center ${isRTL ? 'lg:text-right lg:order-last' : 'lg:text-left lg:order-first'}`}>
             {/* Main Title */}
+            {/* Ramadan tagline */}
+            <p className="text-sm md:text-base text-white/70 mb-3">
+              {isRTL ? (
+                <>رمضان يجمعنا… و <span className="text-primary font-semibold">Diviso</span> يرتّبها بينكم</>
+              ) : (
+                <>{t('ramadan.headline_pre')}<span className="text-primary font-semibold">Diviso</span>{t('ramadan.headline_post')}</>
+              )}
+            </p>
+
             <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
               <span className="text-primary">Diviso</span> {t('hero.mainTitle')}
             </h1>
