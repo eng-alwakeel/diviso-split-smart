@@ -1,18 +1,38 @@
 
 
-# Update Hero H1 to Ramadan Version
+# Update Use-Case List to Ramadan Theme
 
 ## Change
-Replace the main H1 text content with the Ramadan version. No layout, styling, or structural changes.
+Replace the five use-case items under the hero headline with Ramadan-relevant ones. Text-only change in translation files.
+
+## Current vs New
+
+| # | Current (AR) | New (AR) |
+|---|-------------|----------|
+| 1 | سفر | عمرة |
+| 2 | سكن مشترك | إفطار جماعي |
+| 3 | طلعة أصدقاء | سحور أصدقاء |
+| 4 | نشاط | سفر |
+| 5 | رحلة بر | سكن مشترك |
 
 ## Technical Steps
 
 ### 1. Edit `src/i18n/locales/ar/landing.json`
-- Change `hero.mainTitle` from `"ينظّم أي مشاركة بين أكثر من شخص"` to `"ينظّم مصاريف رمضان بين أكثر من شخص"`
+Update `hero.useCases`:
+- `travel` -> `"عمرة"`
+- `housing` -> `"إفطار جماعي"`
+- `friends` -> `"سحور أصدقاء"`
+- `activities` -> `"سفر"`
+- `camping` -> `"سكن مشترك"`
 
 ### 2. Edit `src/i18n/locales/en/landing.json`
-- Change `hero.mainTitle` to an English equivalent, e.g. `"organizes Ramadan expenses between people"`
+Update `hero.useCases` with English equivalents:
+- `travel` -> `"Umrah"`
+- `housing` -> `"Group Iftar"`
+- `friends` -> `"Suhoor with Friends"`
+- `activities` -> `"Travel"`
+- `camping` -> `"Shared Housing"`
 
-### 3. No changes to `HeroSection.tsx`
-The component already renders `<span className="text-primary">Diviso</span> {t('hero.mainTitle')}` -- the "Diviso" styling stays intact automatically. Only the translation value changes.
+### No component changes
+`HeroSection.tsx` already maps over these five keys with the dot separator -- layout, typography, and spacing stay identical.
 
