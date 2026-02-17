@@ -1,51 +1,49 @@
 
-# Ramadan Hero Banner
 
-## Overview
-Add a seasonal Ramadan banner section at the very top of the homepage, placed between the Header and the existing HeroSection. It will use the existing dark gradient background, primary (lime green) glow accents, and brand typography -- blending seamlessly with the current design.
+# Integrate Ramadan Message Into the Hero Section
 
-## What You'll See
-- A compact, full-width dark banner above the main hero
-- Arabic headline: "رمضان يجمعنا… و Diviso يرتّبها بينكم"
-- Subtext: "نظّم مشاركاتكم ومصاريفكم بسهولة خلال رمضان"
-- A very subtle crescent SVG rendered in the primary color at low opacity, used as a decorative accent
-- Fully responsive, RTL-aware, no new colors or visual styles
+## What Changes
 
-## Technical Details
+Remove `RamadanHeroBanner` as a separate section. Instead, add a small Ramadan tagline **inside** the existing `HeroSection`, placed just above the main `h1` headline. This eliminates the stacked/layered feeling and makes it feel native.
 
-### 1. New Component: `src/components/landing/RamadanHeroBanner.tsx`
-- Uses `bg-gradient-dark` background (matching existing hero)
-- Primary-colored glow orb (`bg-primary/20 blur-2xl`) as soft ambient light
-- Tiny inline SVG crescent in `hsl(var(--primary))` at 20-30% opacity
-- Headline in `text-white` with `text-primary` on "Diviso" (same pattern as HeroSection h1)
-- Subtext in `text-white/70`
-- RTL-aware via `useTranslation` and `dir` attribute
-- No animations or heavy assets -- pure CSS + tiny SVG
+## Visual Result
 
-### 2. Edit: `src/pages/Index.tsx`
-- Import `RamadanHeroBanner`
-- Place it right after `<Header />` and before `<HeroSection />`
+The hero will look like this (single section, no extra blocks):
 
-### 3. Translations: `src/i18n/locales/ar/landing.json` and `en/landing.json`
-- Add `ramadan.headline` and `ramadan.subtext` keys in both languages
-- Arabic values as specified; English equivalents for the EN locale
-
-### Component Structure
 ```text
 +--------------------------------------------------+
-| Header (sticky)                                  |
+| Header                                           |
 +--------------------------------------------------+
-| RamadanHeroBanner                                |
-|  [soft primary glow orb]                         |
-|  [tiny crescent SVG accent]                      |
-|  "رمضان يجمعنا… و Diviso يرتّبها بينكم"          |
-|  "نظّم مشاركاتكم ومصاريفكم بسهولة خلال رمضان"    |
-+--------------------------------------------------+
-| HeroSection (existing, unchanged)                |
+| HeroSection (same bg-gradient-hero)              |
+|                                                  |
+|  "رمضان يجمعنا… و Diviso يرتّبها بينكم"  <-- small tagline |
+|                                                  |
+|  Diviso ينظّم أي مشاركة...     <-- existing h1  |
+|  [use cases • travel • housing...]               |
+|  [value description]                             |
+|  [CTA button]                                    |
+|  ...                                             |
 +--------------------------------------------------+
 ```
 
-### Performance
-- No images, no lazy loading needed -- just CSS gradients, a tiny inline SVG, and text
-- No JavaScript logic beyond reading the current language
-- Zero impact on LCP/CLS
+The Ramadan line will be a subtle `text-sm md:text-base` tagline in `text-white/70` with "Diviso" in `text-primary`, sitting above the h1 with a small bottom margin. No extra gradients, no glow orbs, no crescent -- just text that blends into the existing hero.
+
+## Technical Steps
+
+### 1. Edit `src/components/HeroSection.tsx`
+- Add the Ramadan tagline as a `<p>` element right above the `<h1>` (line 51)
+- Style: `text-sm md:text-base text-white/70 mb-3` -- smaller than the main title, subtle
+- Use existing translation keys (`ramadan.headline_pre`, `ramadan.headline_post`)
+- For Arabic, render the hardcoded Arabic text directly (same pattern already used)
+
+### 2. Edit `src/pages/Index.tsx`
+- Remove `<RamadanHeroBanner />` from the page (line 83)
+- Remove the import of `RamadanHeroBanner` (line 18)
+
+### 3. Keep `RamadanHeroBanner.tsx` file
+- Leave it in place (can be cleaned up later) -- the import removal is sufficient
+
+## What Stays the Same
+- The existing hero gradient, spacing, layout grid, brand art, steps, CTA -- all untouched
+- The Ramadan message is just one line of text added inside the existing text column
+- No new colors, no new visual elements, no extra sections
