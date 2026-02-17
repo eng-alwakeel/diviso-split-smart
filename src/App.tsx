@@ -73,6 +73,7 @@ const LazyInstall = withLazyLoading(lazy(() => import("./pages/Install")));
 const LazyPlans = withLazyLoading(lazy(() => import("./pages/Plans")));
 const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")));
 const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
+const LazyOnboarding = withLazyLoading(lazy(() => import("./pages/Onboarding")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -148,6 +149,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/install" element={<LazyInstall />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/plans" element={<ProtectedRoute><PageErrorBoundary><LazyPlans /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-plan" element={<ProtectedRoute><PageErrorBoundary><LazyCreatePlan /></PageErrorBoundary></ProtectedRoute>} />

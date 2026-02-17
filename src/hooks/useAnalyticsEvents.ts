@@ -35,6 +35,13 @@ const EVENT_CATEGORIES: Record<string, EventCategory> = {
   dice_rerolled_in_chat: 'engagement',
   split_started_from_dice_chat: 'engagement',
   
+  // Onboarding V2 events
+  onboarding_started: 'engagement',
+  demo_expense_generated: 'engagement',
+  invite_shared: 'growth',
+  second_member_joined: 'growth',
+  onboarding_completed: 'engagement',
+  
   // Monetization events
   credits_spent: 'monetization',
   credits_granted: 'monetization',
