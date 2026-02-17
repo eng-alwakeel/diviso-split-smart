@@ -83,13 +83,39 @@ serve(async (req: Request) => {
     const { data: { user } } = await supabaseUser.auth.getUser();
     if (!user) throw new Error("User not found");
 
-    const { subject, body_html, body_text } = await req.json();
+    const { subject, body_html, body_text, test_email } = await req.json();
     if (!subject || !body_html) {
       throw new Error("العنوان والمحتوى مطلوبان");
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     const resend = new Resend(resendApiKey);
+
+    // --- Test email mode ---
+    if (test_email) {
+      const fullHtml = buildEmailHtml(body_html);
+      try {
+        await resend.emails.send({
+          from: "Diviso <noreply@diviso.app>",
+          to: [test_email],
+          subject: `[تجربة] ${subject}`,
+          html: fullHtml,
+          text: body_text || undefined,
+        });
+        return new Response(
+          JSON.stringify({ success: true, test: true, sent_to: test_email }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      } catch (err: any) {
+        console.error("Test email error:", err);
+        return new Response(
+          JSON.stringify({ error: `فشل إرسال التجربة: ${err.message}` }),
+          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+    }
+
+    // --- Broadcast mode ---
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch all users with email
     const allUsers: { email: string }[] = [];
