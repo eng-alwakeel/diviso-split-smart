@@ -22,6 +22,7 @@ import { RecentGroupActivityCard } from "@/components/dashboard/RecentGroupActiv
 import { StreakDisplay } from "@/components/daily-hub/StreakDisplay";
 import { DailyDiceCard } from "@/components/daily-hub/DailyDiceCard";
 import { useDashboardMode } from "@/hooks/useDashboardMode";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 import { useTranslation } from "react-i18next";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -60,6 +61,7 @@ const Dashboard = React.memo(() => {
   const isRTL = i18n.language === 'ar';
   const navigate = useNavigate();
   const { data: adminData } = useAdminAuth();
+  const { enabled: onboardingV2Enabled } = useFeatureFlag('new_onboarding_v2');
   const [showGuide, setShowGuide] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -284,6 +286,13 @@ const Dashboard = React.memo(() => {
   const handleShowGuide = useCallback(() => setShowGuide(true), []);
   const handleCloseGuide = useCallback(() => setShowGuide(false), []);
   const handleRetry = useCallback(() => refetch(), [refetch]);
+
+  // Redirect new users to onboarding v2
+  useEffect(() => {
+    if (!loading && !dashboardMode.isLoading && onboardingV2Enabled && groupsCount === 0) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [loading, dashboardMode.isLoading, onboardingV2Enabled, groupsCount, navigate]);
 
   if (loading || dashboardMode.isLoading) {
     return <div className="min-h-screen bg-background">
