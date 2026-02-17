@@ -1,48 +1,53 @@
 
-# Fix: Monthly Founding Credits Not Being Granted
+# Add "Send Test Email" Button to Broadcast Compose Screen
 
-## Problem
-User #4 (Hijaziun) and all other founding users have never received their 50 monthly points. The `grant-monthly-credits` edge function exists and works correctly, but **no cron job is set up** to call it. The function has literally never been executed.
+## Overview
+Add a button next to the main send button that allows the admin to send a test email to a specific address before broadcasting to all users. This lets you preview the actual email in your inbox before committing.
 
-## Root Cause
-- A `pg_cron` job exists for `daily-engagement-cron` (runs daily at 5:00 AM)
-- No equivalent cron job exists for `grant-monthly-credits`
-- Result: zero `founding_monthly` records in the entire database
+## Changes
 
-## Fix
+### 1. Frontend -- `src/components/admin/AdminBroadcastEmail.tsx`
 
-### 1. Create a monthly cron job via SQL migration
+- Add a `testEmail` state (default: admin's email from Supabase auth)
+- Add an `Input` field for the test email address above the buttons
+- Add a "Send Test" button (`variant="outline"`) next to the main send button
+- Add a `testMutation` that calls the same edge function with `test_email` parameter
+- Layout: two buttons side by side -- "ارسال تجربة" (outline) + "إرسال لجميع المسجلين" (primary)
 
-Add a `pg_cron` job that calls `grant-monthly-credits` on the 1st of every month at 6:00 AM UTC:
+### 2. Backend -- `supabase/functions/send-broadcast-email/index.ts`
 
-```sql
-SELECT cron.schedule(
-  'grant-monthly-credits',
-  '0 6 1 * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://iwthriddasxzbjddpzzf.supabase.co/functions/v1/grant-monthly-credits',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer <anon_key>"}'::jsonb,
-    body := '{"time": "monthly"}'::jsonb
-  ) as request_id;
-  $$
-);
+- After parsing the request body, check for `test_email` field
+- If `test_email` is provided:
+  - Skip fetching all users
+  - Skip creating a campaign record
+  - Send only to the provided email address using the same `buildEmailHtml` template
+  - Return a simple success/failure response
+- If no `test_email`: proceed with existing broadcast logic (no changes)
+
+## UI Layout (Compose Tab)
+
+```text
++--------------------------------------+
+| عنوان الإيميل                         |
+| [____________________________]       |
+|                                      |
+| محتوى الإيميل (HTML)                  |
+| [____________________________]       |
+|                                      |
+| نص مختصر (اختياري)                    |
+| [____________________________]       |
+|                                      |
+| إيميل التجربة                         |
+| [admin@example.com___________]       |
+|                                      |
+| [ارسال تجربة 🧪] [إرسال للجميع ◀]    |
++--------------------------------------+
 ```
 
-### 2. Manually trigger the function now
+## Technical Details
 
-After the cron is set up, manually invoke the edge function once so all qualifying founding users (those active in the last 30 days) receive their February credits immediately. This will be done via the `curl_edge_functions` tool.
-
-### Qualifying Users (active in last 30 days)
-Based on the data, the following founding users have recent activity and will receive 50 credits:
-- User #1 (adel alwakeel) -- active Feb 17
-- User #4 (Hijaziun) -- active Feb 8
-- User #7 (Fares) -- active Feb 2
-- User #9 (Jawaher) -- active Feb 3
-- User #13 (Faten) -- active Feb 1
-- User #14 (Esraa) -- active Feb 4
-- User #15 (Alwakeel CTO) -- active Feb 9
-- User #17 (Amr Salama) -- active Feb 5
-
-### No code changes needed
-The edge function logic is correct. Only infrastructure (cron) is missing.
+- Test email input validates with basic email format check
+- Test mutation is independent from broadcast mutation (separate loading state)
+- Edge function differentiates via `test_email` field presence in body
+- No campaign record created for test sends
+- Same HTML template wrapping applied so test email looks identical to real broadcast
