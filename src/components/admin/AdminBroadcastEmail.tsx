@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Send, Eye, History, Loader2, CheckCircle, XCircle, Clock, Mail } from "lucide-react";
+import { Send, Eye, History, Loader2, CheckCircle, XCircle, Clock, Mail, FlaskConical } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }> = {
@@ -34,7 +34,25 @@ export function AdminBroadcastEmail() {
   const [subject, setSubject] = useState("");
   const [bodyHtml, setBodyHtml] = useState("");
   const [bodyText, setBodyText] = useState("");
+  const [testEmail, setTestEmail] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Get admin email as default test email
+  const { data: sessionData } = useQuery({
+    queryKey: ["admin-session"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    },
+    staleTime: Infinity,
+  });
+
+  // Set default test email from admin session
+  useEffect(() => {
+    if (sessionData?.email && !testEmail) {
+      setTestEmail(sessionData.email);
+    }
+  }, [sessionData?.email]);
 
   // Fetch campaign history
   const { data: campaigns, isLoading: campaignsLoading } = useQuery({
@@ -76,6 +94,42 @@ export function AdminBroadcastEmail() {
       });
     },
   });
+
+  // Send test email mutation
+  const testMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("send-broadcast-email", {
+        body: { subject, body_html: bodyHtml, body_text: bodyText, test_email: testEmail },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم إرسال التجربة 🧪",
+        description: `تم إرسال إيميل تجريبي إلى ${data.sent_to}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "خطأ في إرسال التجربة",
+        description: error.message || "حدث خطأ أثناء إرسال الإيميل التجريبي",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleTestSend = () => {
+    if (!subject.trim() || !bodyHtml.trim()) {
+      toast({ title: "بيانات ناقصة", description: "يرجى كتابة العنوان والمحتوى", variant: "destructive" });
+      return;
+    }
+    if (!testEmail.trim() || !testEmail.includes("@")) {
+      toast({ title: "إيميل غير صالح", description: "يرجى إدخال إيميل تجربة صحيح", variant: "destructive" });
+      return;
+    }
+    testMutation.mutate();
+  };
 
   const handleSendClick = () => {
     if (!subject.trim() || !bodyHtml.trim()) {
@@ -159,24 +213,56 @@ export function AdminBroadcastEmail() {
                 />
               </div>
 
-              <Button
-                onClick={handleSendClick}
-                disabled={sendMutation.isPending || !subject.trim() || !bodyHtml.trim()}
-                className="w-full gap-2"
-                size="lg"
-              >
-                {sendMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    جاري الإرسال...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
-                    إرسال لجميع المسجلين
-                  </>
-                )}
-              </Button>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">إيميل التجربة</label>
+                <Input
+                  placeholder="example@email.com"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  dir="ltr"
+                  type="email"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleTestSend}
+                  disabled={testMutation.isPending || !subject.trim() || !bodyHtml.trim() || !testEmail.trim()}
+                  variant="outline"
+                  className="gap-2 flex-1"
+                  size="lg"
+                >
+                  {testMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      <FlaskConical className="h-4 w-4" />
+                      ارسال تجربة
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleSendClick}
+                  disabled={sendMutation.isPending || !subject.trim() || !bodyHtml.trim()}
+                  className="gap-2 flex-1"
+                  size="lg"
+                >
+                  {sendMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      إرسال لجميع المسجلين
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
