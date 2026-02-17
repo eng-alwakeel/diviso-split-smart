@@ -11,6 +11,11 @@
     "switchToArabic": "عربي",
     "switchToEnglish": "EN"
   },
+  "ramadan": {
+    "headline_pre": "Ramadan brings us together… and ",
+    "headline_post": " keeps it organized",
+    "subtext": "Easily manage your shared expenses during Ramadan"
+  },
   "seo": {
     "title": "Diviso - Smart Expense Splitting App",
     "description": "Split expenses among friends, family, and colleagues fairly and smartly. Track expenses, calculate debts, and receive AI-powered financial insights."

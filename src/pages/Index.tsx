@@ -15,6 +15,7 @@ const PricingSection = lazy(() => import("@/components/PricingSection").then(m =
 
 // Import non-lazy for above-the-fold
 import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
+import { RamadanHeroBanner } from "@/components/landing/RamadanHeroBanner";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 
 // Properly sized skeleton to prevent layout shift - using containIntrinsicBlockSize for better CLS
@@ -79,6 +80,7 @@ const Index = () => {
         canonical="https://diviso.app/"
       />
       <Header />
+      <RamadanHeroBanner />
       <HeroSection />
       
       {/* Above the fold - not lazy */}
