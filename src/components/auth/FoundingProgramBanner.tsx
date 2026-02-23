@@ -18,22 +18,6 @@ export const FoundingProgramBanner = () => {
         <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
         <span className="font-semibold text-sm">{t("founding_program.title")}</span>
       </div>
-
-      {/* Remaining Counter */}
-      <div className="text-sm font-medium text-amber-600 dark:text-amber-400">
-        {isLoading ? (
-          <span className="animate-pulse">⏳ ...</span>
-        ) : (
-          <span>{t("founding_program.spots_remaining", { remaining })}</span>
-        )}
-      </div>
-
-      {/* Terms Link */}
-      <p className="text-[10px] text-muted-foreground mt-2">
-        <Link to="/terms" className="underline hover:text-foreground">
-          {t("founding_program.terms_apply")}
-        </Link>
-      </p>
     </div>
   );
 };
