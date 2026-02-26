@@ -107,9 +107,17 @@ export function DailyDiceCard() {
                 <span className="text-2xl">{diceIcon}</span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">
-                  {t('daily_suggestion.title')}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {t('daily_suggestion.title')}
+                  </p>
+                  {streakCount > 0 && (
+                    <span className="flex items-center gap-0.5 text-xs font-bold text-primary">
+                      <Flame className="w-3.5 h-3.5" />
+                      {streakCount}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-xs text-muted-foreground truncate">
                     {subtitle}
