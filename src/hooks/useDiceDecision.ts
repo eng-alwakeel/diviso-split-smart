@@ -196,6 +196,20 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     
     // Consume credit after successful roll
     await consumeCredits('roll_dice');
+
+    // Log for streak tracking
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.rpc('log_user_action', {
+          p_user_id: user.id,
+          p_action_type: 'dice_roll',
+          p_metadata: { dice_type: 'quick', activity: activityFace.id, cuisine: cuisineFace.id },
+        });
+      }
+    } catch {
+      // non-blocking
+    }
     
     // Trigger success haptic
     await hapticNotification('success');
