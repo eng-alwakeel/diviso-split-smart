@@ -133,6 +133,10 @@ export const useNotifications = (includeArchived = false) => {
           currency: payload.currency,
           group: payload.group_name
         });
+      case 'daily_engagement':
+        return i18n.language === 'ar' 
+          ? (payload.message_ar || t('descriptions.daily_engagement'))
+          : (payload.message_en || t('descriptions.daily_engagement'));
       default:
         return t('descriptions.default');
     }
