@@ -13,7 +13,7 @@ export interface DiceDecision {
   id: string;
   group_id: string;
   created_by: string;
-  dice_type: 'activity' | 'food' | 'quick';
+  dice_type: 'activity' | 'food' | 'cuisine' | 'budget' | 'whopays' | 'task' | 'quick';
   results: DiceDecisionResult[];
   status: 'open' | 'accepted' | 'rerolled' | 'expired';
   votes: string[];
