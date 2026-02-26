@@ -39,6 +39,8 @@ export const NotificationBell = () => {
       navigate(`/group/${notification.payload.group_id}?tab=chat`);
     } else if (notification.type === 'balance_due') {
       navigate('/notifications');
+    } else if (notification.type === 'daily_engagement') {
+      navigate('/');
     }
   };
 
@@ -87,6 +89,10 @@ export const NotificationBell = () => {
           currency: payload.currency,
           group: payload.group_name
         });
+      case 'daily_engagement':
+        return i18n.language === 'ar' 
+          ? (payload.message_ar || t('types.daily_engagement'))
+          : (payload.message_en || t('types.daily_engagement'));
       default:
         return t('types.new_notification');
     }

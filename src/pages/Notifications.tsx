@@ -59,6 +59,9 @@ export default function Notifications() {
         setShowBalanceSheet(true);
       }
       return;
+    } else if (notification.type === 'daily_engagement') {
+      navigate('/');
+      return;
     } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
       navigate('/referral-center');
     } else if (notification.type.includes('expense') && notification.payload.group_id) {
@@ -106,6 +109,8 @@ export default function Notifications() {
         return '🗑️';
       case 'balance_due':
         return '💸';
+      case 'daily_engagement':
+        return '📊';
       default:
         return '🔔';
     }
@@ -151,6 +156,10 @@ export default function Notifications() {
         return t('notifications:types.group_deleted', { name: payload.deleted_by_name, group: payload.group_name });
       case 'balance_due':
         return t('notifications:types.balance_due', { amount: payload.amount_due, currency: payload.currency, group: payload.group_name });
+      case 'daily_engagement':
+        return isRTL 
+          ? (payload.message_ar || t('notifications:types.daily_engagement'))
+          : (payload.message_en || t('notifications:types.daily_engagement'));
       default:
         return t('notifications:types.new_notification');
     }

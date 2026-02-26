@@ -62,6 +62,7 @@
     "dice_accepted": "تم الاعتماد ✅",
     "dice_rerolled": "إعادة الرمي 🔄",
     "balance_due": "مبلغ مستحق 💸",
+    "daily_engagement": "تذكير يومي 📊",
     "default": "إشعار جديد"
   },
   "descriptions": {
@@ -83,6 +84,7 @@
     "member_left": "{{name}} غادر مجموعة \"{{group}}\"",
     "group_deleted": "{{name}} حذف مجموعة \"{{group}}\"",
     "balance_due": "عليك {{amount}} {{currency}} في مجموعة {{group}}",
+    "daily_engagement": "سجّل دخولك وحافظ على سلسلة نشاطك!",
     "default": "إشعار جديد"
   },
   "balance_details": {
