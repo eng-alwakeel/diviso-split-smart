@@ -1,87 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# Fix: New Users Skipping Onboarding When Added to Someone Else's Group
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## Root Cause Analysis
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-### Issue 1: Dashboard Instead of Onboarding
-The current redirect logic in `Dashboard.tsx` (line 292):
-```
-if (!loading && !dashboardMode.isLoading && onboardingV2Enabled && groupsCount === 0) {
-  navigate('/onboarding', { replace: true });
-}
-```
-Only checks `groupsCount === 0`. User #75 was **added as a member** to another user's group, so `groupsCount = 1`, bypassing onboarding entirely -- even though they completed **0 out of 5** onboarding tasks.
+## Fix
 
-### Issue 2: "150 Credits" -- Actually Correct
-- 100 credits: Founding welcome (Feb 3)
-- 50 credits: Monthly founding credits (auto-granted by cron on Feb 17)
-- Total = 150. This is working as designed.
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-## Proposed Fix
+Add detailed logging to the test email code path:
 
-### Change 1: Smarter Onboarding Redirect Logic
-**File: `src/pages/Dashboard.tsx`** (line 290-295)
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-Update the redirect condition to also check onboarding completion status from `dashboardMode`:
-
+**Before (lines 96-105):**
 ```typescript
-// Before:
-if (!loading && !dashboardMode.isLoading && onboardingV2Enabled && groupsCount === 0) {
-  navigate('/onboarding', { replace: true });
-}
-
-// After:
-if (
-  !loading &&
-  !dashboardMode.isLoading &&
-  onboardingV2Enabled &&
-  (groupsCount === 0 || (
-    dashboardMode.completedCount === 0 &&
-    !dashboardMode.rewardClaimed &&
-    dashboardMode.isWithinOnboardingWindow
-  ))
-) {
-  navigate('/onboarding', { replace: true });
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
 }
 ```
 
-This ensures users who were added to groups by others (but never completed onboarding themselves) still get the onboarding flow -- but only within the 7-day window.
-
-### Change 2: Handle "member-only" users in Onboarding
-**File: `src/pages/Onboarding.tsx`** (around lines 60-67)
-
-The current logic redirects users away from onboarding if they already have groups. Update it to only redirect if the user **owns** a group (not just a member):
-
+**After:**
 ```typescript
-// Before: checks if user has ANY groups
-const { data: groups } = await supabase
-  .from('group_members')
-  .select('group_id')
-  .eq('user_id', session.user.id);
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-if (groups && groups.length > 0) {
-  navigate('/dashboard', { replace: true });
-}
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-// After: only skip if user OWNS a group
-const { data: ownedGroups } = await supabase
-  .from('group_members')
-  .select('group_id')
-  .eq('user_id', session.user.id)
-  .eq('role', 'owner');
-
-if (ownedGroups && ownedGroups.length > 0) {
-  navigate('/dashboard', { replace: true });
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
 }
 ```
 
-### No Credit Changes Needed
-The 150 credits (100 welcome + 50 monthly) are correct behavior for a founding user active for more than one month.
-
-## Summary
-- 2 file changes (`Dashboard.tsx`, `Onboarding.tsx`)
-- No database changes needed
-- No translation changes needed
-- Fixes: dormant users who were invited to groups now properly see onboarding
-- Credits (150) are correct and need no fix
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
