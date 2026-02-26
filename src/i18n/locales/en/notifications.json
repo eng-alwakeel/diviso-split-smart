@@ -34,7 +34,8 @@
     "member_left": "👋 {{name}} left \"{{group}}\"",
     "group_deleted": "🗑️ {{name}} deleted \"{{group}}\"",
     "new_notification": "New notification",
-    "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}"
+    "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}",
+    "daily_engagement": "📊 Daily reminder"
   },
   "titles": {
     "expense_created": "New Expense",
