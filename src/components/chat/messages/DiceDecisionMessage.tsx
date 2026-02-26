@@ -102,10 +102,29 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
           </Badge>
         );
       case 'food':
+      case 'cuisine':
         return (
           <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
             <UtensilsCrossed className="w-3 h-3 me-1" />
-            {t('dice:chat.food_badge', 'أكل')}
+            {t('dice:chat.cuisine_badge', t('dice:chat.food_badge', 'أكل'))}
+          </Badge>
+        );
+      case 'budget':
+        return (
+          <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
+            💰 {t('dice:chat.budget_badge', 'ميزانية')}
+          </Badge>
+        );
+      case 'whopays':
+        return (
+          <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
+            👥 {t('dice:chat.whopays_badge', 'مين يدفع')}
+          </Badge>
+        );
+      case 'task':
+        return (
+          <Badge variant="secondary" className="bg-secondary border-secondary text-secondary-foreground">
+            ✅ {t('dice:chat.task_badge', 'مهمة')}
           </Badge>
         );
       default:
