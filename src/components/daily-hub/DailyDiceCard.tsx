@@ -33,7 +33,7 @@ export function DailyDiceCard() {
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
   const [streakCount, setStreakCount] = useState(0);
 
-  // Load smart suggestion
+  // Load smart suggestion + streak
   useEffect(() => {
     const loadSuggestion = async () => {
       try {
@@ -57,7 +57,25 @@ export function DailyDiceCard() {
       }
     };
 
+    const loadStreak = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('daily_hub_cache')
+          .select('streak_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data?.streak_count) {
+          setStreakCount(data.streak_count);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
     loadSuggestion();
+    loadStreak();
   }, []);
 
   const subtitle = useMemo(() => {
