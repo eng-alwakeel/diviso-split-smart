@@ -1,55 +1,86 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# Fix: Incorrect days_inactive (999) + Group Notifications Not Arriving
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## Problem 1: "999 يوم ما تحركت" is wrong
 
-## Fix
+The `compute_daily_hub` function determines inactivity based on `user_action_log`. Your account has zero entries in this table because `logAction` is only called for specific actions (adding expenses, etc.). Since you have no logged actions, the function defaults `days_since_last_action` to 999.
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+**Fix:** Modify `compute_daily_hub` to also consider `profiles.last_active_at` as a fallback when `user_action_log` is empty. Your profile shows `last_active_at = 2026-02-26`, so this will give accurate results.
 
-Add detailed logging to the test email code path:
+### SQL change in `compute_daily_hub`:
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+```text
+Before:
+  SELECT MAX(created_at) INTO v_last_action_at
+  FROM user_action_log WHERE user_id = p_user_id;
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+After:
+  SELECT MAX(created_at) INTO v_last_action_at
+  FROM user_action_log WHERE user_id = p_user_id;
+
+  -- Fallback: use last_active_at from profiles if no action log entries
+  IF v_last_action_at IS NULL THEN
+    SELECT last_active_at INTO v_last_action_at
+    FROM profiles WHERE id = p_user_id;
+  END IF;
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+---
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+## Problem 2: Group member notifications not arriving
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
+The RLS INSERT policy on the `notifications` table is:
+
+```text
+WITH CHECK (user_id = auth.uid())
 ```
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+This means a user can only insert notifications **for themselves**. When `notifyMemberJoined` (client-side) tries to insert notifications for other group members, the rows are silently rejected.
+
+**Fix:** Move the member_joined notification logic to the database level inside the `join_group_with_token` function (which is `SECURITY DEFINER` and bypasses RLS), similar to how `respond_group_invite` already handles `group_invite_accepted` notifications.
+
+### SQL change in `join_group_with_token`:
+
+Add this block after the existing member insert, before `RETURN`:
+
+```text
+-- Notify other group members about the new member
+INSERT INTO notifications (user_id, type, payload)
+SELECT
+  gm.user_id,
+  'member_joined',
+  jsonb_build_object(
+    'group_name', (SELECT name FROM groups WHERE id = v_token_record.group_id),
+    'group_id', v_token_record.group_id,
+    'member_name', (SELECT COALESCE(display_name, name, 'عضو جديد')
+                    FROM profiles WHERE id = v_user_id)
+  )
+FROM group_members gm
+WHERE gm.group_id = v_token_record.group_id
+  AND gm.user_id != v_user_id;
+```
+
+---
+
+## Problem 3: Clean up old incorrect notifications
+
+Run a one-time cleanup to delete/archive the stale `daily_engagement` notifications with `days_inactive: 999`.
+
+### SQL cleanup:
+
+```text
+UPDATE notifications
+SET archived_at = now(), read_at = COALESCE(read_at, now())
+WHERE type = 'daily_engagement'
+  AND (payload->>'days_inactive')::int >= 30;
+```
+
+---
+
+## Summary of changes
+
+1. **Migration SQL** -- Update `compute_daily_hub` to fallback to `profiles.last_active_at`
+2. **Migration SQL** -- Update `join_group_with_token` to insert `member_joined` notifications server-side
+3. **Migration SQL** -- Archive old incorrect `daily_engagement` notifications with 999 days
+4. **No frontend changes needed** -- the existing `useNotifications` already handles `member_joined` type correctly; we just need the notifications to actually get inserted
