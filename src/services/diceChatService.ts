@@ -229,8 +229,7 @@ export async function rerollDecision(
     newResults.push(faceToResult(face));
   } else {
     // For budget, whopays, task - use their respective faces from diceData
-    const dice = getDiceById(diceType);
-    const dice = getDiceById(diceType);
+    const matchedDice = getDiceById(diceType);
     if (dice) {
       const face = getRandomFace(dice);
       newResults.push(faceToResult(face));
