@@ -59,6 +59,9 @@ export default function Notifications() {
         setShowBalanceSheet(true);
       }
       return;
+    } else if (notification.type === 'daily_engagement') {
+      navigate('/');
+      return;
     } else if (notification.type === 'referral_joined' || notification.type === 'referral_completed') {
       navigate('/referral-center');
     } else if (notification.type.includes('expense') && notification.payload.group_id) {

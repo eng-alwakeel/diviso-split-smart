@@ -79,6 +79,7 @@
     "member_left": "{{name}} left group \"{{group}}\"",
     "group_deleted": "{{name}} deleted group \"{{group}}\"",
     "balance_due": "You owe {{amount}} {{currency}} in {{group}}",
+    "daily_engagement": "Check in and keep your streak going!",
     "default": "New notification"
   },
   "balance_details": {

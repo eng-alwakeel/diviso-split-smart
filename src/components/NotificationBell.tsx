@@ -39,6 +39,8 @@ export const NotificationBell = () => {
       navigate(`/group/${notification.payload.group_id}?tab=chat`);
     } else if (notification.type === 'balance_due') {
       navigate('/notifications');
+    } else if (notification.type === 'daily_engagement') {
+      navigate('/');
     }
   };
 
