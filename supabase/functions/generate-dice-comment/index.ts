@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 interface GenerateCommentRequest {
-  dice_type: 'activity' | 'food' | 'quick';
+  dice_type: 'activity' | 'food' | 'cuisine' | 'budget' | 'whopays' | 'task' | 'quick';
   result_label: string;
   result_label_ar?: string;
   group_type?: string;
@@ -19,38 +19,58 @@ interface GenerateCommentResponse {
   comment_en?: string;
 }
 
-// Fallback comments based on time of day
-const FALLBACK_COMMENTS: Record<string, string[]> = {
-  morning: [
-    'بداية يوم حلوة 🌅',
-    'اختيار صباحي مثالي ☀️',
-    'يناسب الجو الصباحي',
-  ],
-  afternoon: [
-    'خيار حلو لنص اليوم 👌',
-    'يكسر روتين اليوم',
-    'اختيار موفق للوقت الحالي',
-  ],
-  evening: [
-    'مناسب للمسا 🌆',
-    'اختيار يناسب وقتكم',
-    'خيار جميل للمساء',
-  ],
-  night: [
-    'خيار مريح يناسب الليل 🌙',
-    'مناسب لجلسة الليل',
-    'اختيار هادي للوقت الحالي',
-  ],
+// Fallback comments based on time of day and dice type
+const FALLBACK_COMMENTS: Record<string, Record<string, string[]>> = {
+  default: {
+    morning: [
+      'بداية يوم حلوة 🌅',
+      'اختيار صباحي مثالي ☀️',
+      'يناسب الجو الصباحي',
+    ],
+    afternoon: [
+      'خيار حلو لنص اليوم 👌',
+      'يكسر روتين اليوم',
+      'اختيار موفق للوقت الحالي',
+    ],
+    evening: [
+      'مناسب للمسا 🌆',
+      'اختيار يناسب وقتكم',
+      'خيار جميل للمساء',
+    ],
+    night: [
+      'خيار مريح يناسب الليل 🌙',
+      'مناسب لجلسة الليل',
+      'اختيار هادي للوقت الحالي',
+    ],
+  },
+  budget: {
+    morning: ['ميزانية مناسبة للصباح 💰'],
+    afternoon: ['ميزانية معقولة لنص اليوم 👌'],
+    evening: ['ميزانية حلوة للمسا 💵'],
+    night: ['ميزانية مريحة لجلسة الليل 🌙'],
+  },
+  whopays: {
+    morning: ['يا حظه الصباح 😅'],
+    afternoon: ['القرعة وقعت عليه 👀'],
+    evening: ['يدفع اليوم وبكرا نشوف 😂'],
+    night: ['الحظ اختاره الليلة 🎯'],
+  },
+  task: {
+    morning: ['مهمة بسيطة تبدأ فيها يومك ✅'],
+    afternoon: ['خلّها ما تنسى اليوم 📋'],
+    evening: ['مهمة سريعة قبل ما ينتهي اليوم ⚡'],
+    night: ['ممكن تأجلها للصباح 😴'],
+  },
 };
 
-function getFallbackComment(timeOfDay: string): GenerateCommentResponse {
-  const comments = FALLBACK_COMMENTS[timeOfDay] || FALLBACK_COMMENTS['evening'];
+function getFallbackComment(timeOfDay: string, diceType?: string): GenerateCommentResponse {
+  const typeComments = FALLBACK_COMMENTS[diceType || 'default'] || FALLBACK_COMMENTS['default'];
+  const comments = typeComments[timeOfDay] || typeComments['evening'] || FALLBACK_COMMENTS['default']['evening'];
   const randomIndex = Math.floor(Math.random() * comments.length);
   return { comment: comments[randomIndex] };
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -59,26 +79,23 @@ serve(async (req) => {
     const body: GenerateCommentRequest = await req.json();
     const { dice_type, result_label, result_label_ar, group_type, member_count, time_of_day } = body;
 
-    // Validate input
     if (!time_of_day || !result_label) {
       return new Response(
-        JSON.stringify(getFallbackComment('evening')),
+        JSON.stringify(getFallbackComment('evening', dice_type)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     
-    // If no API key, use fallback
     if (!DEEPSEEK_API_KEY) {
       console.log('No DEEPSEEK_API_KEY, using fallback comment');
       return new Response(
-        JSON.stringify(getFallbackComment(time_of_day)),
+        JSON.stringify(getFallbackComment(time_of_day, dice_type)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build context for DeepSeek
     const timeLabels: Record<string, string> = {
       morning: 'صباح',
       afternoon: 'ظهر',
@@ -86,10 +103,20 @@ serve(async (req) => {
       night: 'ليل',
     };
 
+    const diceTypeLabels: Record<string, string> = {
+      activity: 'نشاط',
+      food: 'أكل',
+      cuisine: 'مطبخ',
+      budget: 'ميزانية',
+      whopays: 'مين يدفع',
+      task: 'مهمة يومية',
+      quick: 'قرار سريع',
+    };
+
     const prompt = `أنت كاتب تعليقات ذكية لتطبيق Diviso. النرد اختار نتيجة عشوائية وأنت تكتب تعليق قصير يشرح لماذا هذه النتيجة مناسبة للسياق الحالي.
 
 السياق:
-- نوع النرد: ${dice_type === 'activity' ? 'نشاط' : dice_type === 'food' ? 'أكل' : 'قرار سريع'}
+- نوع النرد: ${diceTypeLabels[dice_type] || 'نشاط'}
 - النتيجة: ${result_label_ar || result_label}
 - نوع المجموعة: ${group_type || 'أصدقاء'}
 - عدد الأعضاء: ${member_count || 'غير محدد'}
@@ -103,18 +130,11 @@ serve(async (req) => {
 5. لا تذكر "ذكاء اصطناعي" أو "خوارزمية"
 6. اجعل التعليق يبرر لماذا الاختيار مناسب للوقت أو العدد
 
-أمثلة على تعليقات جيدة:
-- "خيار مريح يناسب وقت الليل وعددكم 👌"
-- "يبدو مناسب بعد يوم طويل"
-- "قرار بسيط بدون تعقيد ⚡"
-- "خفيف وسريع للوقت الحالي"
-
 أرجع JSON فقط بدون أي نص إضافي:
 {"comment": "التعليق هنا"}`;
 
-    // Call DeepSeek with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
 
     try {
       const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -148,7 +168,6 @@ serve(async (req) => {
         throw new Error('No content in DeepSeek response');
       }
 
-      // Parse JSON from response (handle potential markdown wrapping)
       let jsonContent = content.trim();
       if (jsonContent.startsWith('```')) {
         jsonContent = jsonContent.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
@@ -156,7 +175,6 @@ serve(async (req) => {
 
       const commentResponse: GenerateCommentResponse = JSON.parse(jsonContent);
 
-      // Validate the response
       if (!commentResponse.comment || typeof commentResponse.comment !== 'string') {
         throw new Error('Invalid comment format');
       }
@@ -171,7 +189,7 @@ serve(async (req) => {
       console.error('DeepSeek error, using fallback:', aiError);
       
       return new Response(
-        JSON.stringify(getFallbackComment(time_of_day)),
+        JSON.stringify(getFallbackComment(time_of_day, dice_type)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

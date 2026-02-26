@@ -93,7 +93,11 @@
     "of": "of"
   },
   "actions": {
-    "roll": "Roll the Dice"
+    "roll": "Roll the Dice",
+    "execute": "Execute",
+    "set_budget": "Set Today's Budget",
+    "create_invoice": "Create Invoice",
+    "go_to_task": "Do Task"
   },
   "page": {
     "title": "Let the Dice Decide | Diviso",
