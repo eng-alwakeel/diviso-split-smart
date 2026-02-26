@@ -7,7 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { DiceResult as DiceResultType, DualDiceResult } from "@/data/diceData";
-import { ThumbsUp, RotateCcw, Share2, Utensils, Divide } from "lucide-react";
+import { DiceAction } from "@/data/diceActions";
+import { ThumbsUp, RotateCcw, Share2, Utensils, Divide, ArrowRight } from "lucide-react";
 
 interface DiceResultProps {
   result: DiceResultType | null;
@@ -21,12 +22,14 @@ interface DiceResultProps {
   isAccepted?: boolean;
   smartComment?: string | null;
   isLoadingComment?: boolean;
+  diceAction?: DiceAction | null;
   onAccept: () => void;
   onReroll: () => void;
   onShare: () => void;
   onContinueFood: () => void;
   onVote?: () => void;
   onStartSplit?: () => void;
+  onExecuteAction?: () => void;
   className?: string;
 }
 
@@ -84,6 +87,31 @@ function SmartComment({
   );
 }
 
+// Action button for dice result
+function ActionButton({
+  action,
+  isRTL,
+  onExecute,
+}: {
+  action: DiceAction;
+  isRTL: boolean;
+  onExecute: () => void;
+}) {
+  const label = isRTL ? action.labelAr : action.labelEn;
+
+  return (
+    <Button
+      onClick={onExecute}
+      variant="outline"
+      className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+      size="lg"
+    >
+      <ArrowRight className="w-4 h-4" />
+      {label}
+    </Button>
+  );
+}
+
 export function DiceResultDisplay({
   result,
   dualResult,
@@ -96,12 +124,14 @@ export function DiceResultDisplay({
   isAccepted = false,
   smartComment,
   isLoadingComment,
+  diceAction,
   onAccept,
   onReroll,
   onShare,
   onContinueFood,
   onVote,
   onStartSplit,
+  onExecuteAction,
   className
 }: DiceResultProps) {
   const { t, i18n } = useTranslation('dice');
@@ -115,8 +145,8 @@ export function DiceResultDisplay({
       ? dualResult.activity.face.labelAr 
       : dualResult.activity.face.labelEn;
     const foodLabel = isRTL 
-      ? dualResult.food.face.labelAr 
-      : dualResult.food.face.labelEn;
+      ? (dualResult.cuisine || dualResult.food)?.face.labelAr 
+      : (dualResult.cuisine || dualResult.food)?.face.labelEn;
 
     return (
       <div className={cn("space-y-6", className)}>
@@ -136,9 +166,9 @@ export function DiceResultDisplay({
             isActivity
           />
           <ResultTile
-            emoji={dualResult.food.face.emoji}
-            label={foodLabel}
-            typeLabel={t('chat.food_tile')}
+            emoji={(dualResult.cuisine || dualResult.food)?.face.emoji || ''}
+            label={foodLabel || ''}
+            typeLabel={t('chat.cuisine_tile', t('chat.food_tile'))}
           />
         </div>
 
@@ -255,6 +285,15 @@ export function DiceResultDisplay({
         {/* Smart Comment */}
         <SmartComment comment={smartComment} isLoading={isLoadingComment} />
 
+        {/* Dynamic Action Button */}
+        {diceAction && onExecuteAction && (
+          <ActionButton
+            action={diceAction}
+            isRTL={isRTL}
+            onExecute={onExecuteAction}
+          />
+        )}
+
         {/* Food Prompt - shows when restaurant is selected */}
         {showFoodPrompt && (
           <Card className="border-dashed border-2 border-warning/50 bg-warning/5">
@@ -263,7 +302,7 @@ export function DiceResultDisplay({
                 <div className="flex items-center gap-2">
                   <Utensils className="w-5 h-5 text-warning" />
                   <p className="text-sm font-medium">
-                    {t('result.continue_food')}
+                    {t('result.continue_cuisine', t('result.continue_food'))}
                   </p>
                 </div>
                 <Button 
@@ -272,7 +311,7 @@ export function DiceResultDisplay({
                   onClick={onContinueFood}
                   className="border-warning/50 text-warning hover:bg-warning/10"
                 >
-                  🎲 {t('result.roll_food')}
+                  🎲 {t('result.roll_cuisine', t('result.roll_food'))}
                 </Button>
               </div>
             </CardContent>
@@ -346,14 +385,23 @@ export function DiceResultDisplay({
               <span className="font-semibold">{t('chat.decision_accepted')}</span>
             </div>
             
-            <Button 
-              onClick={onStartSplit}
-              className="w-full gap-2"
-              size="lg"
-            >
-              <Divide className="w-4 h-4" />
-              {t('chat.start_split')}
-            </Button>
+            {/* Show action button if available, otherwise show split */}
+            {diceAction && onExecuteAction ? (
+              <ActionButton
+                action={diceAction}
+                isRTL={isRTL}
+                onExecute={onExecuteAction}
+              />
+            ) : (
+              <Button 
+                onClick={onStartSplit}
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Divide className="w-4 h-4" />
+                {t('chat.start_split')}
+              </Button>
+            )}
           </div>
         )}
 

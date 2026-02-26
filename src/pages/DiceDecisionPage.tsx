@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
 import { AppHeader } from "@/components/AppHeader";
@@ -12,6 +12,7 @@ import { AnimatedDice } from "@/components/dice/AnimatedDice";
 import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { useSmartDiceComment } from "@/hooks/useSmartDiceComment";
+import { getActionForResult } from "@/data/diceActions";
 import { ACTIVITY_DICE, CUISINE_DICE, FOOD_DICE, DiceType } from "@/data/diceData";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Home } from "lucide-react";
@@ -25,7 +26,6 @@ const DiceDecisionPage = () => {
   const isRTL = i18n.language === 'ar';
   const [showShare, setShowShare] = useState(false);
 
-  // Smart comment hook
   const { comment: smartComment, isLoading: isLoadingComment, generateComment, clearComment } = useSmartDiceComment();
 
   const {
@@ -46,7 +46,6 @@ const DiceDecisionPage = () => {
     closePaywall
   } = useDiceDecision();
 
-  // Determine current state
   const getCurrentState = (): PageState => {
     if (showShare) return 'share';
     if (result || dualResult) return 'result';
@@ -56,6 +55,12 @@ const DiceDecisionPage = () => {
   };
 
   const currentState = getCurrentState();
+
+  // Get action for current result
+  const diceAction = useMemo(() => {
+    if (!result) return null;
+    return getActionForResult(result.diceType.id, result.face.id);
+  }, [result]);
 
   // Generate smart comment when result changes
   useEffect(() => {
@@ -74,15 +79,13 @@ const DiceDecisionPage = () => {
     }
   }, [result, dualResult, smartComment, generateComment]);
 
-  // Handle dice selection
   const handleSelectDice = (dice: DiceType) => {
     selectDice(dice);
-    clearComment(); // Clear any previous comment
+    clearComment();
   };
 
-  // Handle roll
   const handleRoll = async () => {
-    clearComment(); // Clear comment before new roll
+    clearComment();
     if (selectedDice?.id === 'quick') {
       await rollQuickDice();
     } else {
@@ -90,18 +93,15 @@ const DiceDecisionPage = () => {
     }
   };
 
-  // Handle accept
   const handleAccept = () => {
     acceptDecision();
     navigate('/dashboard');
   };
 
-  // Handle share
   const handleShare = () => {
     setShowShare(true);
   };
 
-  // Handle back
   const handleBack = () => {
     if (showShare) {
       setShowShare(false);
@@ -110,6 +110,12 @@ const DiceDecisionPage = () => {
       clearComment();
     }
   };
+
+  const handleExecuteAction = useCallback(() => {
+    if (diceAction?.navigateTo) {
+      navigate(diceAction.navigateTo);
+    }
+  }, [diceAction, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,12 +157,10 @@ const DiceDecisionPage = () => {
         {/* Main Content */}
         <Card className="border-primary/10">
           <CardContent className="p-6">
-            {/* Picker State */}
             {currentState === 'picker' && (
               <DicePicker onSelect={handleSelectDice} />
             )}
 
-            {/* Ready State - Show dice and roll button */}
             {currentState === 'ready' && selectedDice && (
               <div className="space-y-8 text-center py-4">
                 <div className="py-8">
@@ -190,25 +194,14 @@ const DiceDecisionPage = () => {
               </div>
             )}
 
-            {/* Rolling State */}
             {currentState === 'rolling' && (
               <div className="py-16 text-center space-y-8">
                 {selectedDice?.id === 'quick' ? (
-                  // Dual dice rolling
                   <div className="flex justify-center gap-8">
-                    <AnimatedDice
-                      faces={ACTIVITY_DICE.faces}
-                      isRolling={true}
-                      size="md"
-                    />
-                    <AnimatedDice
-                      faces={FOOD_DICE.faces}
-                      isRolling={true}
-                      size="md"
-                    />
+                    <AnimatedDice faces={ACTIVITY_DICE.faces} isRolling={true} size="md" />
+                    <AnimatedDice faces={FOOD_DICE.faces} isRolling={true} size="md" />
                   </div>
                 ) : (
-                  // Single dice rolling
                   <AnimatedDice
                     faces={selectedDice?.faces || ACTIVITY_DICE.faces}
                     isRolling={true}
@@ -223,7 +216,6 @@ const DiceDecisionPage = () => {
               </div>
             )}
 
-            {/* Result State */}
             {currentState === 'result' && (
               <DiceResultDisplay
                 result={result}
@@ -233,14 +225,15 @@ const DiceDecisionPage = () => {
                 isRolling={isRolling}
                 smartComment={smartComment}
                 isLoadingComment={isLoadingComment}
+                diceAction={diceAction}
                 onAccept={handleAccept}
                 onReroll={rerollDice}
                 onShare={handleShare}
                 onContinueFood={rollFoodAfterActivity}
+                onExecuteAction={handleExecuteAction}
               />
             )}
 
-            {/* Share State */}
             {currentState === 'share' && (
               <ShareDiceResult
                 result={result}
@@ -255,7 +248,6 @@ const DiceDecisionPage = () => {
       <div className="h-24" />
       <BottomNav />
 
-      {/* Zero Credits Paywall */}
       <ZeroCreditsPaywall
         open={showPaywall}
         onOpenChange={(open) => !open && closePaywall()}

@@ -162,7 +162,6 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
   // Render result tile
   const renderResultTile = (result: typeof decision.results[0], index: number) => {
     const isActivity = index === 0 && decision.dice_type === 'quick';
-    const isFood = index === 1 || decision.dice_type === 'food';
     
     let tileLabel = '';
     let tileIcon = '';
@@ -170,8 +169,20 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
     if (decision.dice_type === 'quick') {
       tileLabel = isActivity 
         ? t('dice:chat.activity_tile', 'النشاط')
-        : t('dice:chat.food_tile', 'الأكل');
+        : t('dice:chat.cuisine_tile', t('dice:chat.food_tile', 'الأكل'));
       tileIcon = isActivity ? '🎯' : '🍽️';
+    } else if (decision.dice_type === 'budget') {
+      tileLabel = t('dice:chat.budget_tile', 'الميزانية');
+      tileIcon = '💰';
+    } else if (decision.dice_type === 'whopays') {
+      tileLabel = t('dice:chat.whopays_tile', 'الدافع');
+      tileIcon = '👥';
+    } else if (decision.dice_type === 'task') {
+      tileLabel = t('dice:chat.task_tile', 'المهمة');
+      tileIcon = '✅';
+    } else if (decision.dice_type === 'cuisine') {
+      tileLabel = t('dice:chat.cuisine_tile', 'المطبخ');
+      tileIcon = '🍽️';
     }
 
     return (
