@@ -215,18 +215,29 @@ export async function rerollDecision(
 
   // Generate new results
   const newResults: DiceDecisionResult[] = [];
-  const diceType = decision.dice_type as 'activity' | 'food' | 'quick';
+  const diceType = decision.dice_type as DiceDecision['dice_type'];
 
   if (diceType === 'quick') {
     const activityFace = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
-    const foodFace = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
-    newResults.push(faceToResult(activityFace), faceToResult(foodFace));
+    const cuisineFace = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
+    newResults.push(faceToResult(activityFace), faceToResult(cuisineFace));
   } else if (diceType === 'activity') {
     const face = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
     newResults.push(faceToResult(face));
-  } else {
-    const face = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
+  } else if (diceType === 'cuisine' || diceType === 'food') {
+    const face = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
     newResults.push(faceToResult(face));
+  } else {
+    // For budget, whopays, task - use their respective faces from diceData
+    const { getDiceById, getRandomFace } = await import('@/data/diceData');
+    const dice = getDiceById(diceType);
+    if (dice) {
+      const face = getRandomFace(dice);
+      newResults.push(faceToResult(face));
+    } else {
+      const face = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
+      newResults.push(faceToResult(face));
+    }
   }
 
   // Mark old decision as rerolled
