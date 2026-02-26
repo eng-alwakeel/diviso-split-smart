@@ -295,8 +295,7 @@ const Dashboard = React.memo(() => {
       onboardingV2Enabled &&
       (groupsCount === 0 || (
         dashboardMode.completedCount === 0 &&
-        !dashboardMode.rewardClaimed &&
-        dashboardMode.isWithinOnboardingWindow
+        !dashboardMode.rewardClaimed
       ))
     ) {
       navigate('/onboarding', { replace: true });
