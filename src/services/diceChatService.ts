@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DiceFace, ACTIVITY_FACES, FOOD_FACES } from "@/data/diceData";
+import { DiceFace, ACTIVITY_FACES, CUISINE_FACES, FOOD_FACES, getDiceById, getRandomFace } from "@/data/diceData";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface DiceDecisionResult {
@@ -13,7 +13,7 @@ export interface DiceDecision {
   id: string;
   group_id: string;
   created_by: string;
-  dice_type: 'activity' | 'food' | 'quick';
+  dice_type: 'activity' | 'food' | 'cuisine' | 'budget' | 'whopays' | 'task' | 'quick';
   results: DiceDecisionResult[];
   status: 'open' | 'accepted' | 'rerolled' | 'expired';
   votes: string[];
@@ -215,18 +215,28 @@ export async function rerollDecision(
 
   // Generate new results
   const newResults: DiceDecisionResult[] = [];
-  const diceType = decision.dice_type as 'activity' | 'food' | 'quick';
+  const diceType = decision.dice_type as DiceDecision['dice_type'];
 
   if (diceType === 'quick') {
     const activityFace = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
-    const foodFace = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
-    newResults.push(faceToResult(activityFace), faceToResult(foodFace));
+    const cuisineFace = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
+    newResults.push(faceToResult(activityFace), faceToResult(cuisineFace));
   } else if (diceType === 'activity') {
     const face = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
     newResults.push(faceToResult(face));
-  } else {
-    const face = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
+  } else if (diceType === 'cuisine' || diceType === 'food') {
+    const face = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
     newResults.push(faceToResult(face));
+  } else {
+    // For budget, whopays, task - use their respective faces from diceData
+    const matchedDice = getDiceById(diceType);
+    if (matchedDice) {
+      const face = getRandomFace(matchedDice);
+      newResults.push(faceToResult(face));
+    } else {
+      const face = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
+      newResults.push(faceToResult(face));
+    }
   }
 
   // Mark old decision as rerolled
@@ -293,8 +303,8 @@ export async function getDecision(decisionId: string): Promise<DiceDecision | nu
     ...data,
     results: data.results as unknown as DiceDecisionResult[],
     votes: data.votes as unknown as string[],
-    dice_type: data.dice_type as 'activity' | 'food' | 'quick',
-    status: data.status as 'open' | 'accepted' | 'rerolled' | 'expired',
+    dice_type: data.dice_type as DiceDecision['dice_type'],
+    status: data.status as DiceDecision['status'],
   };
 }
 

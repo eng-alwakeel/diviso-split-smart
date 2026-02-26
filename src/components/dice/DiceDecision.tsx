@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { DiceType, ACTIVITY_DICE, FOOD_DICE, getDiceForGroupType } from "@/data/diceData";
+import { DiceType, ACTIVITY_DICE, CUISINE_DICE, FOOD_DICE, getDiceForGroupType } from "@/data/diceData";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { DicePicker } from "./DicePicker";
 import { DiceResultDisplay } from "./DiceResult";
@@ -87,13 +87,10 @@ export function DiceDecision({
   // Handle reveal animation when rolling completes
   useEffect(() => {
     if (!isRolling && (result || dualResult) && !isRevealing) {
-      // Trigger reveal animation
       setIsRevealing(true);
       
-      // After reveal animation, show full result
       const timer = setTimeout(() => {
         setIsRevealing(false);
-        // Trigger confetti after reveal
         confetti({
           particleCount: 100,
           spread: 70,
@@ -120,7 +117,6 @@ export function DiceDecision({
     return getDiceForGroupType(groupType);
   }, [groupType]);
 
-  // Handle dialog close
   const handleClose = useCallback(() => {
     reset();
     setShowShare(false);
@@ -128,12 +124,10 @@ export function DiceDecision({
     onOpenChange(false);
   }, [reset, onOpenChange]);
 
-  // Handle dice selection
   const handleSelectDice = useCallback((dice: DiceType) => {
     selectDice(dice);
   }, [selectDice]);
 
-  // Handle roll
   const handleRoll = useCallback(async () => {
     if (selectedDice?.id === 'quick') {
       await rollQuickDice();
@@ -142,25 +136,21 @@ export function DiceDecision({
     }
   }, [selectedDice, rollQuickDice, rollDice]);
 
-  // Handle accept
   const handleAccept = useCallback(() => {
     acceptDecision();
     handleClose();
   }, [acceptDecision, handleClose]);
 
-  // Handle share
   const handleShare = useCallback(() => {
     setShowShare(true);
   }, []);
 
-  // Handle back to picker
   const handleBack = useCallback(() => {
     reset();
     setShowShare(false);
     setIsRevealing(false);
   }, [reset]);
 
-  // Get dialog title based on state
   const getDialogTitle = () => {
     switch (currentState) {
       case 'picker':
@@ -179,6 +169,9 @@ export function DiceDecision({
         return t('dialog.title');
     }
   };
+
+  // Determine faces for animation based on selected dice
+  const animationFaces = selectedDice?.faces?.length ? selectedDice.faces : ACTIVITY_DICE.faces;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -213,7 +206,7 @@ export function DiceDecision({
             />
           )}
 
-          {/* Ready State - Show dice and roll button */}
+          {/* Ready State */}
           {currentState === 'ready' && selectedDice && (
             <div className="space-y-8 text-center">
               <div className="py-8">
@@ -221,12 +214,12 @@ export function DiceDecision({
                   <DualAnimatedDice
                     isRolling={false}
                     activityFaces={ACTIVITY_DICE.faces}
-                    foodFaces={FOOD_DICE.faces}
+                    foodFaces={CUISINE_DICE.faces}
                     className="mx-auto"
                   />
                 ) : (
                   <AnimatedDice
-                    faces={selectedDice.faces}
+                    faces={animationFaces}
                     isRolling={false}
                     size="lg"
                     className="mx-auto"
@@ -249,19 +242,19 @@ export function DiceDecision({
             </div>
           )}
 
-          {/* Rolling State - Dice shaking */}
+          {/* Rolling State */}
           {currentState === 'rolling' && (
             <div className="py-16 text-center space-y-8">
               {selectedDice?.id === 'quick' ? (
                 <DualAnimatedDice
                   isRolling={true}
                   activityFaces={ACTIVITY_DICE.faces}
-                  foodFaces={FOOD_DICE.faces}
+                  foodFaces={CUISINE_DICE.faces}
                   className="mx-auto"
                 />
               ) : (
                 <AnimatedDice
-                  faces={selectedDice?.faces || ACTIVITY_DICE.faces}
+                  faces={animationFaces}
                   isRolling={true}
                   size="lg"
                   className="mx-auto"
@@ -274,7 +267,7 @@ export function DiceDecision({
             </div>
           )}
 
-          {/* Revealing State - Dice flips to show result */}
+          {/* Revealing State */}
           {currentState === 'revealing' && (
             <div className="py-16 text-center space-y-8">
               {dualResult ? (
@@ -282,14 +275,14 @@ export function DiceDecision({
                   isRolling={false}
                   isRevealing={true}
                   activityFace={dualResult.activity.face}
-                  foodFace={dualResult.food.face}
+                  foodFace={(dualResult.cuisine || dualResult.food)?.face}
                   activityFaces={ACTIVITY_DICE.faces}
-                  foodFaces={FOOD_DICE.faces}
+                  foodFaces={CUISINE_DICE.faces}
                   className="mx-auto"
                 />
               ) : result ? (
                 <AnimatedDice
-                  faces={selectedDice?.faces || ACTIVITY_DICE.faces}
+                  faces={animationFaces}
                   isRolling={false}
                   isRevealing={true}
                   resultFace={result.face}

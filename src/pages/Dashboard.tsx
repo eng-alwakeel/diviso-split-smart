@@ -389,10 +389,7 @@ const Dashboard = React.memo(() => {
 
           {/* Daily Dice (shown per showDice flag) */}
           {dashboardMode.showDice && (
-            <DailyDiceCard
-              suggestedType={diceType}
-              lockedDate={dashboardMode.hubData?.dice_locked_at}
-            />
+            <DailyDiceCard />
           )}
 
           {/* Minimal Quick Actions (daily_hub + reengagement) */}
