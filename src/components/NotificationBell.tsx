@@ -87,6 +87,10 @@ export const NotificationBell = () => {
           currency: payload.currency,
           group: payload.group_name
         });
+      case 'daily_engagement':
+        return i18n.language === 'ar' 
+          ? (payload.message_ar || t('types.daily_engagement'))
+          : (payload.message_en || t('types.daily_engagement'));
       default:
         return t('types.new_notification');
     }
