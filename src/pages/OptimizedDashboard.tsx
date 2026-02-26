@@ -17,7 +17,7 @@ import { SmartAdManager } from "@/components/ads/SmartAdManager";
 import { SmartAdSidebar } from "@/components/ads/SmartAdSidebar";
 import { LeftSidebarAd } from "@/components/ads/LeftSidebarAd";
 import { MobileFloatingAd } from "@/components/ads/MobileFloatingAd";
-import { HomeDiceBanner } from "@/components/dice/HomeDiceBanner";
+import { DailyDiceCard } from "@/components/daily-hub/DailyDiceCard";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { SimpleStatsGrid } from "@/components/dashboard/SimpleStatsGrid";
