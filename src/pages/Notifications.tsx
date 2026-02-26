@@ -106,6 +106,8 @@ export default function Notifications() {
         return '🗑️';
       case 'balance_due':
         return '💸';
+      case 'daily_engagement':
+        return '📊';
       default:
         return '🔔';
     }
