@@ -237,8 +237,8 @@ const OptimizedDashboard = React.memo(() => {
         {/* Smart Promotion System */}
         <SmartPromotionBanner />
 
-        {/* Dice Decision Banner */}
-        <HomeDiceBanner />
+        {/* Daily Dice Suggestion */}
+        <DailyDiceCard />
 
         {/* Welcome Section */}
         <div className="flex items-center justify-between">

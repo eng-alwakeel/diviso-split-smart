@@ -6,11 +6,16 @@ import {
   DualDiceResult, 
   DiceContext,
   ACTIVITY_DICE,
-  FOOD_DICE,
+  CUISINE_DICE,
+  BUDGET_DICE,
+  WHOPAYS_DICE,
+  TASK_DICE,
   ACTIVITY_FACES,
+  CUISINE_FACES,
   FOOD_FACES,
   getRandomFace,
-  shouldPromptFoodDice
+  shouldPromptCuisineDice,
+  getDiceById
 } from '@/data/diceData';
 import { hapticImpact, hapticNotification } from '@/lib/native';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
@@ -116,8 +121,8 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     // Trigger success haptic
     await hapticNotification('success');
     
-    // Check if we should prompt for food dice
-    if (selectedDice.id === 'activity' && shouldPromptFoodDice(face)) {
+    // Check if we should prompt for cuisine dice (when activity result is restaurant)
+    if (selectedDice.id === 'activity' && shouldPromptCuisineDice(face)) {
       setShowFoodPrompt(true);
     }
     
@@ -128,7 +133,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     });
   }, [selectedDice, isRolling, trackEvent, checkCredits, consumeCredits]);
 
-  // Roll quick dice (dual roll)
+  // Roll quick dice (dual roll: activity + cuisine)
   const rollQuickDice = useCallback(async () => {
     if (isRolling) return;
     
@@ -151,7 +156,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     
     // Get random faces for both dice
     const activityFace = ACTIVITY_FACES[Math.floor(Math.random() * ACTIVITY_FACES.length)];
-    const foodFace = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
+    const cuisineFace = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
     
     const newDualResult: DualDiceResult = {
       activity: {
@@ -159,9 +164,15 @@ export function useDiceDecision(): UseDiceDecisionReturn {
         face: activityFace,
         timestamp: new Date()
       },
+      cuisine: {
+        diceType: CUISINE_DICE,
+        face: cuisineFace,
+        timestamp: new Date()
+      },
+      // Keep legacy food field for backward compatibility
       food: {
-        diceType: FOOD_DICE,
-        face: foodFace,
+        diceType: CUISINE_DICE,
+        face: cuisineFace,
         timestamp: new Date()
       }
     };
@@ -178,11 +189,11 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     // Track event
     trackEvent('dice_dual_rolled', { 
       activity_result: activityFace.id,
-      food_result: foodFace.id
+      cuisine_result: cuisineFace.id
     });
   }, [isRolling, trackEvent, checkCredits, consumeCredits]);
 
-  // Roll food dice after activity (when restaurant is selected)
+  // Roll cuisine dice after activity (when restaurant is selected)
   const rollFoodAfterActivity = useCallback(async () => {
     if (isRolling || !result) return;
     
@@ -192,13 +203,18 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     await hapticImpact('medium');
     await new Promise(resolve => setTimeout(resolve, ROLL_DURATION));
     
-    const foodFace = FOOD_FACES[Math.floor(Math.random() * FOOD_FACES.length)];
+    const cuisineFace = CUISINE_FACES[Math.floor(Math.random() * CUISINE_FACES.length)];
     
     const newDualResult: DualDiceResult = {
       activity: result,
+      cuisine: {
+        diceType: CUISINE_DICE,
+        face: cuisineFace,
+        timestamp: new Date()
+      },
       food: {
-        diceType: FOOD_DICE,
-        face: foodFace,
+        diceType: CUISINE_DICE,
+        face: cuisineFace,
         timestamp: new Date()
       }
     };
@@ -210,8 +226,8 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     await hapticNotification('success');
     
     trackEvent('dice_rolled', { 
-      dice_type: 'food',
-      result_face: foodFace.id,
+      dice_type: 'cuisine',
+      result_face: cuisineFace.id,
       after_activity: true
     });
   }, [isRolling, result, trackEvent]);
@@ -240,7 +256,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     const eventData = dualResult
       ? { 
           activity_result: dualResult.activity.face.id,
-          food_result: dualResult.food.face.id
+          cuisine_result: dualResult.cuisine?.face.id || dualResult.food?.face.id
         }
       : { 
           dice_type: result?.diceType.id,
@@ -274,7 +290,9 @@ export function useDiceDecision(): UseDiceDecisionReturn {
           member_count: context.memberCount,
           time_of_day: context.timeOfDay || getTimeOfDay(),
           last_activity: context.lastActivity,
-          available_dice: ['activity', 'food']
+          available_dice: ['activity', 'cuisine', 'budget', 'whopays', 'task'],
+          outstanding_balance: context.outstandingBalance,
+          avg_spending: context.avgSpending
         }
       });
       
@@ -283,23 +301,21 @@ export function useDiceDecision(): UseDiceDecisionReturn {
       // Set suggested dice based on response
       if (data?.suggested_dice?.length > 0) {
         const suggestedId = data.suggested_dice[0];
-        if (suggestedId === 'activity') {
+        const dice = getDiceById(suggestedId);
+        if (dice) {
+          setSuggestedDice(dice);
+        } else {
           setSuggestedDice(ACTIVITY_DICE);
-        } else if (suggestedId === 'food') {
-          setSuggestedDice(FOOD_DICE);
         }
-        // Set suggestion reason if provided
         if (data?.reason) {
           setSuggestionReason(data.reason);
         }
       } else {
-        // Fallback to activity dice
         setSuggestedDice(ACTIVITY_DICE);
         setSuggestionReason(null);
       }
     } catch (error) {
       console.error('Error loading dice suggestion:', error);
-      // Fallback to activity dice
       setSuggestedDice(ACTIVITY_DICE);
       setSuggestionReason(null);
     } finally {
@@ -308,7 +324,6 @@ export function useDiceDecision(): UseDiceDecisionReturn {
   }, []);
 
   return {
-    // State
     selectedDice,
     isRolling,
     result,
@@ -316,8 +331,6 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     hasRerolled,
     showFoodPrompt,
     showPaywall,
-    
-    // Actions
     selectDice,
     rollDice,
     rollQuickDice,
@@ -326,8 +339,6 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     rerollDice,
     reset,
     closePaywall,
-    
-    // Smart suggestion
     suggestedDice,
     suggestionReason,
     isLoadingSuggestion,

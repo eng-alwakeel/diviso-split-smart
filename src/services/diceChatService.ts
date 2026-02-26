@@ -304,8 +304,8 @@ export async function getDecision(decisionId: string): Promise<DiceDecision | nu
     ...data,
     results: data.results as unknown as DiceDecisionResult[],
     votes: data.votes as unknown as string[],
-    dice_type: data.dice_type as 'activity' | 'food' | 'quick',
-    status: data.status as 'open' | 'accepted' | 'rerolled' | 'expired',
+    dice_type: data.dice_type as DiceDecision['dice_type'],
+    status: data.status as DiceDecision['status'],
   };
 }
 

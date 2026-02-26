@@ -26,15 +26,6 @@ export function DicePicker({
   // Use available dice if provided, otherwise show all
   const diceToShow = availableDice || DICE_TYPES;
 
-  const getDiceIcon = (id: string) => {
-    switch (id) {
-      case 'activity': return '🎯';
-      case 'food': return '🍽️';
-      case 'quick': return '⚡';
-      default: return '🎲';
-    }
-  };
-
   return (
     <div className={cn("space-y-4", className)}>
       <h3 className="text-lg font-semibold text-center">
@@ -66,7 +57,7 @@ export function DicePicker({
                     "w-14 h-14 rounded-xl flex items-center justify-center text-3xl",
                     `bg-gradient-to-br ${dice.color} shadow-lg`
                   )}>
-                    {getDiceIcon(dice.id)}
+                    {dice.icon}
                   </div>
                   
                   {/* Content */}

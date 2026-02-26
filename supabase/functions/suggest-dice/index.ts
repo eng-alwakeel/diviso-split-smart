@@ -11,6 +11,8 @@ interface SuggestDiceRequest {
   time_of_day: 'morning' | 'afternoon' | 'evening' | 'night';
   last_activity?: string;
   available_dice: string[];
+  outstanding_balance?: number;
+  avg_spending?: number;
 }
 
 interface SuggestDiceResponse {
@@ -23,35 +25,56 @@ interface SuggestDiceResponse {
 function getFallbackSuggestion(
   timeOfDay: string,
   groupType?: string,
-  lastActivity?: string
+  lastActivity?: string,
+  outstandingBalance?: number
 ): SuggestDiceResponse {
-  // If last activity was restaurant/food, suggest activity
+  // Outstanding debt → suggest "whopays"
+  if (outstandingBalance && outstandingBalance > 0) {
+    return {
+      suggested_dice: ['whopays'],
+      priority: 9,
+      allow_dual_roll: false,
+      reason: 'فيه مديونية مفتوحة'
+    };
+  }
+
+  // If last activity was restaurant/food, suggest cuisine
   if (lastActivity && ['restaurant', 'cafe', 'food'].includes(lastActivity)) {
     return {
-      suggested_dice: ['activity'],
+      suggested_dice: ['cuisine'],
       priority: 7,
       allow_dual_roll: true,
-      reason: 'Last activity was food-related'
+      reason: 'آخر نشاط كان أكل'
     };
   }
 
-  // Lunch or dinner time -> Food dice
+  // Lunch or dinner time -> Cuisine dice
   if (timeOfDay === 'afternoon' || timeOfDay === 'evening') {
     return {
-      suggested_dice: ['food'],
+      suggested_dice: ['activity'],
       priority: 8,
       allow_dual_roll: true,
-      reason: 'Meal time - suggesting food'
+      reason: 'وقت طلعة'
     };
   }
 
-  // Work groups -> Activity only
+  // Work groups -> Activity or Task
   if (groupType === 'work') {
     return {
-      suggested_dice: ['activity'],
+      suggested_dice: ['task'],
       priority: 6,
       allow_dual_roll: false,
-      reason: 'Work group - activity focus'
+      reason: 'مجموعة عمل'
+    };
+  }
+
+  // Morning -> Task dice
+  if (timeOfDay === 'morning') {
+    return {
+      suggested_dice: ['task'],
+      priority: 5,
+      allow_dual_roll: false,
+      reason: 'بداية اليوم'
     };
   }
 
@@ -60,21 +83,19 @@ function getFallbackSuggestion(
     suggested_dice: ['activity'],
     priority: 5,
     allow_dual_roll: groupType === 'friends' || groupType === 'trip',
-    reason: 'Default suggestion'
+    reason: 'اقتراح عام'
   };
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const body: SuggestDiceRequest = await req.json();
-    const { group_type, member_count, time_of_day, last_activity, available_dice } = body;
+    const { group_type, member_count, time_of_day, last_activity, available_dice, outstanding_balance, avg_spending } = body;
 
-    // Validate input
     if (!time_of_day || !available_dice || available_dice.length === 0) {
       return new Response(
         JSON.stringify(getFallbackSuggestion('morning')),
@@ -84,16 +105,14 @@ serve(async (req) => {
 
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     
-    // If no API key, use fallback
     if (!DEEPSEEK_API_KEY) {
       console.log('No DEEPSEEK_API_KEY, using fallback');
       return new Response(
-        JSON.stringify(getFallbackSuggestion(time_of_day, group_type, last_activity)),
+        JSON.stringify(getFallbackSuggestion(time_of_day, group_type, last_activity, outstanding_balance)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build prompt for DeepSeek
     const prompt = `أنت مساعد ذكي لتطبيق Diviso. بناءً على السياق التالي، اقترح أي نرد يُعرض للمستخدم.
 
 السياق:
@@ -102,19 +121,21 @@ serve(async (req) => {
 - الوقت: ${time_of_day === 'morning' ? 'صباح' : time_of_day === 'afternoon' ? 'ظهر' : time_of_day === 'evening' ? 'مساء' : 'ليل'}
 - آخر نشاط: ${last_activity || 'لا يوجد'}
 - النرد المتاح: ${available_dice.join(', ')}
+- مديونية مفتوحة: ${outstanding_balance ? `${outstanding_balance} ريال` : 'لا يوجد'}
+- متوسط الإنفاق: ${avg_spending ? `${avg_spending} ريال` : 'غير محدد'}
 
 القواعد:
-1. في وقت الغداء أو العشاء (afternoon/evening) → أولوية لنرد الأكل (food)
-2. مجموعات الأصدقاء (friends) → كلا النردين متاحين
-3. مجموعات العمل (work) → نرد النشاط فقط
-4. إذا آخر نشاط كان مطعم أو كافيه → اقترح نرد النشاط
-5. في الصباح → نرد النشاط
-6. الرحلات (trip) → كلا النردين متاحين
+1. إذا فيه مديونية مفتوحة → أولوية لنرد "whopays"
+2. في وقت الغداء أو العشاء (afternoon/evening) → نرد الطلعة "activity"
+3. إذا آخر نشاط كان مطعم أو كافيه → اقترح نرد المطابخ "cuisine"
+4. مجموعات العمل (work) → نرد المهمة "task"
+5. في الصباح → نرد المهمة "task"
+6. مجموعات الأصدقاء (friends) → نرد الطلعة "activity"
+7. الرحلات (trip) → نرد الطلعة "activity"
 
 أرجع JSON فقط بدون أي نص إضافي:
 {"suggested_dice": ["activity"], "priority": 8, "allow_dual_roll": true, "reason": "سبب قصير"}`;
 
-    // Call DeepSeek with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -150,7 +171,6 @@ serve(async (req) => {
         throw new Error('No content in DeepSeek response');
       }
 
-      // Parse JSON from response (handle potential markdown wrapping)
       let jsonContent = content.trim();
       if (jsonContent.startsWith('```')) {
         jsonContent = jsonContent.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
@@ -158,7 +178,6 @@ serve(async (req) => {
 
       const suggestion: SuggestDiceResponse = JSON.parse(jsonContent);
 
-      // Validate the suggestion
       if (!suggestion.suggested_dice || !Array.isArray(suggestion.suggested_dice)) {
         throw new Error('Invalid suggestion format');
       }
@@ -182,7 +201,7 @@ serve(async (req) => {
       console.error('DeepSeek error, using fallback:', aiError);
       
       return new Response(
-        JSON.stringify(getFallbackSuggestion(time_of_day, group_type, last_activity)),
+        JSON.stringify(getFallbackSuggestion(time_of_day, group_type, last_activity, outstanding_balance)),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

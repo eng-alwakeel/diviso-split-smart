@@ -4,6 +4,17 @@
     "description": "Quick decision, no arguments! 😅",
     "cta": "Roll the Dice 🎲"
   },
+  "daily_suggestion": {
+    "title": "Ready for today's decision?",
+    "subtitle_activity": "What to do today?",
+    "subtitle_cuisine": "Which cuisine to try?",
+    "subtitle_budget": "How much to spend?",
+    "subtitle_whopays": "Who pays today?",
+    "subtitle_task": "What to do in Diviso?",
+    "subtitle_default": "Let the dice decide!",
+    "cta": "Roll the Dice 🎲",
+    "change_type": "Change type"
+  },
   "picker": {
     "title": "Choose Dice Type",
     "suggested": "Suggested",
@@ -11,21 +22,43 @@
       "name": "Activity Dice",
       "description": "What to do?"
     },
+    "cuisine": {
+      "name": "Cuisine Dice",
+      "description": "Which cuisine?"
+    },
+    "budget": {
+      "name": "Budget Dice",
+      "description": "How much to spend?"
+    },
+    "whopays": {
+      "name": "Who Pays Dice",
+      "description": "Who pays today?"
+    },
+    "task": {
+      "name": "Daily Task Dice",
+      "description": "What to do in Diviso today?"
+    },
     "food": {
       "name": "Food Dice",
-      "description": "What to cook/eat today?"
+      "description": "What to eat?"
     },
     "quick": {
       "name": "Quick Decision",
-      "description": "Activity + Food in one tap"
+      "description": "Activity + Cuisine in one tap"
     }
   },
   "result": {
     "activity_label": "Activity",
     "food_label": "Food",
+    "cuisine_label": "Cuisine",
+    "budget_label": "Budget",
+    "whopays_label": "Payer",
+    "task_label": "Task",
     "accept": "Accept",
     "reroll": "Reroll",
     "share": "Share",
+    "continue_cuisine": "Continue with cuisine choice?",
+    "roll_cuisine": "Roll Cuisine Dice",
     "continue_food": "Continue with food choice?",
     "roll_food": "Roll Food Dice",
     "reroll_used": "Reroll used",
@@ -71,7 +104,9 @@
   "suggestion": {
     "smart_title": "Smart Suggestion",
     "based_on_time": "Based on time",
-    "based_on_group": "Based on group type"
+    "based_on_group": "Based on group type",
+    "based_on_debt": "Outstanding balance exists",
+    "based_on_low_activity": "Low activity"
   },
   "chat": {
     "dice_decided": "🎲 The Dice Decided!",
@@ -79,8 +114,16 @@
     "quick_badge": "Quick",
     "activity_badge": "Activity",
     "food_badge": "Food",
+    "cuisine_badge": "Cuisine",
+    "budget_badge": "Budget",
+    "whopays_badge": "Who Pays",
+    "task_badge": "Task",
     "activity_tile": "Activity",
     "food_tile": "Food",
+    "cuisine_tile": "Cuisine",
+    "budget_tile": "Budget",
+    "whopays_tile": "Payer",
+    "task_tile": "Task",
     "voters": "Agreed",
     "of": "of",
     "vote": "Vote",
