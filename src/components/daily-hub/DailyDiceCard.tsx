@@ -31,6 +31,7 @@ export function DailyDiceCard() {
   const [showPicker, setShowPicker] = useState(false);
   const [suggestedType, setSuggestedType] = useState<DiceType>(ACTIVITY_DICE);
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
+  const [streakCount, setStreakCount] = useState(0);
 
   // Load smart suggestion
   useEffect(() => {
