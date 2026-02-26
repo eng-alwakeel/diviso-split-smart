@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dice5, ChevronDown } from 'lucide-react';
+import { Dice5, ChevronDown, Flame } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DiceDecision } from '@/components/dice/DiceDecision';
 import { DiceType, ACTIVITY_DICE, CUISINE_DICE, BUDGET_DICE, WHOPAYS_DICE, TASK_DICE, getDiceById } from '@/data/diceData';
