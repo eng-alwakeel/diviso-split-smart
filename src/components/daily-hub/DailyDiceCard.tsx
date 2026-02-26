@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dice5, ChevronDown } from 'lucide-react';
+import { Dice5, ChevronDown, Flame } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DiceDecision } from '@/components/dice/DiceDecision';
 import { DiceType, ACTIVITY_DICE, CUISINE_DICE, BUDGET_DICE, WHOPAYS_DICE, TASK_DICE, getDiceById } from '@/data/diceData';
@@ -31,8 +31,9 @@ export function DailyDiceCard() {
   const [showPicker, setShowPicker] = useState(false);
   const [suggestedType, setSuggestedType] = useState<DiceType>(ACTIVITY_DICE);
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null);
+  const [streakCount, setStreakCount] = useState(0);
 
-  // Load smart suggestion
+  // Load smart suggestion + streak
   useEffect(() => {
     const loadSuggestion = async () => {
       try {
@@ -56,7 +57,25 @@ export function DailyDiceCard() {
       }
     };
 
+    const loadStreak = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('daily_hub_cache')
+          .select('streak_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data?.streak_count) {
+          setStreakCount(data.streak_count);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
     loadSuggestion();
+    loadStreak();
   }, []);
 
   const subtitle = useMemo(() => {
@@ -88,9 +107,17 @@ export function DailyDiceCard() {
                 <span className="text-2xl">{diceIcon}</span>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">
-                  {t('daily_suggestion.title')}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {t('daily_suggestion.title')}
+                  </p>
+                  {streakCount > 0 && (
+                    <span className="flex items-center gap-0.5 text-xs font-bold text-primary">
+                      <Flame className="w-3.5 h-3.5" />
+                      {streakCount}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-xs text-muted-foreground truncate">
                     {subtitle}

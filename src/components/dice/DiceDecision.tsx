@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import {
   Dialog,
@@ -9,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { DiceType, ACTIVITY_DICE, CUISINE_DICE, FOOD_DICE, getDiceForGroupType } from "@/data/diceData";
+import { DiceType, ACTIVITY_DICE, CUISINE_DICE, getDiceForGroupType } from "@/data/diceData";
+import { getActionForResult } from "@/data/diceActions";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { DicePicker } from "./DicePicker";
 import { DiceResultDisplay } from "./DiceResult";
@@ -28,7 +30,6 @@ interface DiceDecisionProps {
 
 type DiceState = 'picker' | 'ready' | 'rolling' | 'revealing' | 'result' | 'share';
 
-// Revealing duration in ms
 const REVEAL_DURATION = 600;
 
 export function DiceDecision({
@@ -39,6 +40,7 @@ export function DiceDecision({
   initialDice
 }: DiceDecisionProps) {
   const { t, i18n } = useTranslation('dice');
+  const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
   const [showShare, setShowShare] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
@@ -117,6 +119,12 @@ export function DiceDecision({
     return getDiceForGroupType(groupType);
   }, [groupType]);
 
+  // Get action for current result
+  const diceAction = useMemo(() => {
+    if (!result) return null;
+    return getActionForResult(result.diceType.id, result.face.id, groupId);
+  }, [result, groupId]);
+
   const handleClose = useCallback(() => {
     reset();
     setShowShare(false);
@@ -151,6 +159,13 @@ export function DiceDecision({
     setIsRevealing(false);
   }, [reset]);
 
+  const handleExecuteAction = useCallback(() => {
+    if (diceAction?.navigateTo) {
+      handleClose();
+      navigate(diceAction.navigateTo);
+    }
+  }, [diceAction, handleClose, navigate]);
+
   const getDialogTitle = () => {
     switch (currentState) {
       case 'picker':
@@ -170,7 +185,6 @@ export function DiceDecision({
     }
   };
 
-  // Determine faces for animation based on selected dice
   const animationFaces = selectedDice?.faces?.length ? selectedDice.faces : ACTIVITY_DICE.faces;
 
   return (
@@ -305,10 +319,12 @@ export function DiceDecision({
               hasRerolled={hasRerolled}
               showFoodPrompt={showFoodPrompt}
               isRolling={isRolling}
+              diceAction={diceAction}
               onAccept={handleAccept}
               onReroll={rerollDice}
               onShare={handleShare}
               onContinueFood={rollFoodAfterActivity}
+              onExecuteAction={handleExecuteAction}
             />
           )}
 

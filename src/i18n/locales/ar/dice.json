@@ -93,7 +93,11 @@
     "of": "من"
   },
   "actions": {
-    "roll": "ارمِ النرد"
+    "roll": "ارمِ النرد",
+    "execute": "تنفيذ",
+    "set_budget": "تثبيت ميزانية اليوم",
+    "create_invoice": "إنشاء فاتورة",
+    "go_to_task": "تنفيذ المهمة"
   },
   "page": {
     "title": "خلّ النرد يقرر | Diviso",
