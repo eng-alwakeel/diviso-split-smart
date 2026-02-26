@@ -1,49 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تطبيق الإعداد (Onboarding) على جميع الحسابات القديمة
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشكلة الحالية
-الإعداد يظهر فقط للمستخدمين الجدد خلال أول 7 أيام من التسجيل. الحسابات القديمة التي لم تكمل الإعداد لا يتم توجيهها لمسار الإعداد.
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## التغييرات المطلوبة
+## Fix
 
-### 1. إزالة شرط نافذة الـ 7 أيام من Dashboard.tsx
-حالياً الشرط يتطلب `isWithinOnboardingWindow` (أقل من 7 أيام من التسجيل). سيتم إزالة هذا الشرط بحيث أي مستخدم لم يكمل أي مهمة إعداد ولم يستلم المكافأة يتم توجيهه للإعداد.
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-**الشرط الجديد:**
-- عدد المجموعات = 0، أو
-- عدد المهام المكتملة = 0 ولم يستلم المكافأة (بغض النظر عن تاريخ التسجيل)
+Add detailed logging to the test email code path:
 
-### 2. تحديث useDashboardMode.ts
-إزالة شرط `isWithinOnboardingWindow` من تحديد وضع `onboarding` بحيث أي مستخدم لم يكمل المهام يظهر له وضع الإعداد.
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### 3. لا تغيير على Onboarding.tsx
-المنطق الحالي (تخطي فقط إذا كان المستخدم مالك مجموعة) يبقى كما هو.
-
-## التفاصيل التقنية
-
-**`src/pages/Dashboard.tsx`** - إزالة `dashboardMode.isWithinOnboardingWindow` من شرط التوجيه:
-```text
-// قبل:
-groupsCount === 0 || (completedCount === 0 && !rewardClaimed && isWithinOnboardingWindow)
-
-// بعد:
-groupsCount === 0 || (completedCount === 0 && !rewardClaimed)
-```
-
-**`src/hooks/useDashboardMode.ts`** - إزالة شرط النافذة الزمنية من تحديد وضع onboarding:
-```text
-// قبل:
-if (completedCount < totalTasks && isWithinOnboardingWindow && !rewardClaimed) {
-  mode = 'onboarding';
-}
-
-// بعد:
-if (completedCount < totalTasks && !rewardClaimed) {
-  mode = 'onboarding';
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
 }
 ```
 
-## الملفات المتأثرة
-- `src/pages/Dashboard.tsx` - تعديل سطر واحد
-- `src/hooks/useDashboardMode.ts` - تعديل سطر واحد
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
+
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
+
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues

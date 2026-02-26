@@ -182,7 +182,6 @@ export function useDashboardMode(userId: string | undefined): DashboardModeData 
 
     if (
       onboarding.completedCount < onboarding.totalTasks &&
-      isWithinOnboardingWindow &&
       !onboarding.rewardClaimed
     ) {
       mode = 'onboarding';
