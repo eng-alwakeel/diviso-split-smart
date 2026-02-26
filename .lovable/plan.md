@@ -1,55 +1,47 @@
 
-# Fix: Test Email Not Being Delivered
+
+# Fix Daily Engagement Notifications Display + Reduce Frequency
 
 ## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+1. `daily_engagement` notifications show as "إشعار جديد" because all 3 display components lack a case for this type
+2. The payload already contains `message_ar` and `message_en` - we just need to use them
+3. Notifications send daily even when `days_inactive` is 999 (likely a data issue in `daily_hub_cache`)
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## Changes
 
-## Fix
+### 1. Add `daily_engagement` case to notification display (3 files)
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+**`src/hooks/useNotifications.ts`** - Add to both `getNotificationTitle` and `getNotificationDescription`:
+- Title: return a new translation key `titles.daily_engagement` ("تذكير يومي" / "Daily Reminder")
+- Description: return `payload.message_ar` or `payload.message_en` based on current language (payload already has both)
 
-Add detailed logging to the test email code path:
+**`src/pages/Notifications.tsx`** - Add to `getNotificationIcon` and `getNotificationText`:
+- Icon: `📊` for daily engagement
+- Text: use `payload.message_ar` or `payload.message_en` based on language
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+**`src/components/NotificationBell.tsx`** - Add to `getNotificationText`:
+- Same logic: use payload message based on language
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+### 2. Add translation keys (2 files)
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+**`src/i18n/locales/ar/notifications.json`**:
+- Add `types.daily_engagement`, `titles.daily_engagement`, `descriptions.daily_engagement`
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+**`src/i18n/locales/en/notifications.json`**:
+- Same keys in English
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### 3. Reduce notification frequency (DB migration)
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+Update the `send_daily_engagement_notifications` function to:
+- Skip users with `days_inactive >= 30` (truly dormant users don't benefit from nudges)
+- For `low_activity` users, only send every 3 days instead of daily (check `last_daily_notification_at < now() - interval '3 days'` for low_activity)
+- Keep daily for `active` users (streak reminders are time-sensitive)
+
+### 4. Handle click navigation
+
+Add `daily_engagement` to click handlers in `NotificationBell.tsx` and `Notifications.tsx` to navigate to `/` (dashboard) since these are general engagement prompts.
+
+## Technical Details
+
+The DB function `send_daily_engagement_notifications` stores `message_ar` and `message_en` in the payload. The fix is straightforward: read the correct message from payload based on `i18n.language` instead of relying on translation keys. This also future-proofs the system since messages are generated dynamically with streak counts and days.
+
