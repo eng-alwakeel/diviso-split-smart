@@ -289,7 +289,16 @@ const Dashboard = React.memo(() => {
 
   // Redirect new users to onboarding v2
   useEffect(() => {
-    if (!loading && !dashboardMode.isLoading && onboardingV2Enabled && groupsCount === 0) {
+    if (
+      !loading &&
+      !dashboardMode.isLoading &&
+      onboardingV2Enabled &&
+      (groupsCount === 0 || (
+        dashboardMode.completedCount === 0 &&
+        !dashboardMode.rewardClaimed &&
+        dashboardMode.isWithinOnboardingWindow
+      ))
+    ) {
       navigate('/onboarding', { replace: true });
     }
   }, [loading, dashboardMode.isLoading, onboardingV2Enabled, groupsCount, navigate]);

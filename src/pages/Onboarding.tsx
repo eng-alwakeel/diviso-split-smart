@@ -56,9 +56,10 @@ const Onboarding: React.FC = () => {
       const { count } = await supabase
         .from('group_members')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('role', 'owner');
 
-      // If user already has groups and has completed onboarding before, redirect
+      // If user OWNS a group and has completed onboarding before, redirect
       if (count && count > 0 && !groupId) {
         navigate('/dashboard', { replace: true });
       }
