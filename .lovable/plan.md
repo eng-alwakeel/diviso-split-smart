@@ -1,55 +1,150 @@
 
-# Fix: Test Email Not Being Delivered
+# المراحل 3-6: إكمال نظام النرد الذكي V2
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+---
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## المرحلة 3: ربط النتائج بإجراءات مباشرة
 
-## Fix
+### 3A. ملف جديد: `src/data/diceActions.ts`
+جدول ربط كل نتيجة نرد بإجراء تنفيذي:
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+| نوع النرد | النتيجة | الإجراء | التوجيه |
+|-----------|---------|---------|---------|
+| activity | restaurant | فتح إضافة مصروف + اقتراح نرد المطابخ | `/add-expense?groupId=X&category=restaurant` |
+| activity | cafe | فتح إضافة مصروف بتصنيف كافيه | `/add-expense?groupId=X&category=cafe` |
+| activity | entertainment | فتح إضافة مصروف بتصنيف ترفيه | `/add-expense?groupId=X&category=entertainment` |
+| cuisine | * (أي مطبخ) | لا إجراء خاص -- المطابخ معلومة سياقية | -- |
+| budget | أي نتيجة | عرض زر "تثبيت ميزانية اليوم" | حفظ في metadata المجموعة |
+| whopays | عضو عشوائي | عرض زر "إنشاء فاتورة باسمه" | `/add-expense?groupId=X&paidBy=MEMBER_ID` |
+| task | add_expense | توجيه لإضافة مصروف | `/add-expense` |
+| task | settle | توجيه لصفحة التسوية | `/groups/X/settle` |
+| task | remind | فتح التذكير | يعتمد على المنطق الموجود |
+| task | review_report | فتح التقرير | `/groups/X/report` |
+| task | rename_group | فتح إعدادات المجموعة | `/group/X/settings` |
+| task | invite_member | فتح الدعوة | `/group/X/settings` |
 
-Add detailed logging to the test email code path:
+الملف يصدّر دالة `getActionForResult(diceTypeId, faceId, groupId?, memberId?)` تُرجع كائن يحتوي:
+- `label_ar` / `label_en`: نص الزر
+- `icon`: أيقونة lucide
+- `navigateTo?`: مسار التوجيه (إن وجد)
+- `handler?`: دالة تنفيذ مباشر (إن لم يكن توجيه)
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+### 3B. تحديث `DiceResult.tsx`
+- إضافة prop جديد `onAction?: (action) => void`
+- بعد عرض النتيجة، عرض زر إجراء ديناميكي (بجانب أزرار "اعتماد" و"إعادة")
+- الزر يستخدم `getActionForResult` لتحديد النص والأيقونة
+- عند الضغط يتم التوجيه أو التنفيذ
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+### 3C. تحديث `DiceDecision.tsx` (الـ Dialog)
+- تمرير `onAction` من الـ dialog إلى `DiceResultDisplay`
+- عند التنفيذ: إغلاق الـ dialog + التوجيه باستخدام `useNavigate`
+
+### 3D. تحديث `DiceDecisionPage.tsx`
+- نفس المنطق: ربط زر الإجراء بالتوجيه
+
+### 3E. نرد "مين يدفع" -- منطق خاص في `useDiceDecision.ts`
+- إضافة دالة `rollWhoPays(members: {id, name}[])`
+- تختار عضو عشوائي من قائمة الأعضاء
+- تُرجع `DiceResult` بوجه ديناميكي (اسم وصورة العضو)
+- الإجراء: زر "إنشاء فاتورة باسمه" يوجه لـ `/add-expense?groupId=X&paidBy=MEMBER_ID`
+
+### 3F. تحديث `DiceDecisionMessage.tsx` (في الشات)
+- إضافة badges للأنواع الجديدة (cuisine, budget, whopays, task)
+- تحديث `renderResultTile` لعرض أيقونات ونصوص مناسبة لكل نوع
+- إضافة زر إجراء ديناميكي في حالة القبول (بدلاً من "ابدأ التقسيم" فقط)
+
+---
+
+## المرحلة 4: وضع القرار السريع المحدّث
+
+### 4A. تحديث `useDiceDecision.ts`
+- تحديث `rollQuickDice` ليدعم تركيبات مختلفة:
+  - طلعة + مطابخ (الافتراضي)
+  - نشاط + ميزانية (خيار إضافي)
+- إضافة حقل `quickMode?: 'activity_cuisine' | 'activity_budget'` في state
+
+### 4B. تحديث `DualDiceResult` في `diceData.ts`
+- الـ interface الحالي يدعم بالفعل `activity` + `cuisine` + `budget`
+- لا تغيير مطلوب على البنية
+
+### 4C. تحديث `DiceDecision.tsx`
+- عند اختيار "قرار سريع" من الـ picker، عرض خيار لاختيار التركيبة
+
+---
+
+## المرحلة 5: نظام Streak + Gamification
+
+### 5A. تحديث `useDiceDecision.ts` -- تسجيل الرمية
+- بعد `consumeCredits('roll_dice')` الناجح، استدعاء `logAction('dice_roll')`
+- يتطلب تمرير `userId` من الكومبوننت الأب أو استخدام `supabase.auth.getUser()`
+
+### 5B. تحديث `DailyDiceCard.tsx` -- عرض streak
+- استخدام `useDailyHub` أو `useRealStreak` لجلب عدد أيام الـ streak
+- عرض عداد صغير بجانب عنوان الكرت: "🔥 3 أيام"
+- فقط يظهر إذا كان الـ streak > 0
+- يستخدم الكومبوننت الموجود `StreakDisplay`
+
+---
+
+## المرحلة 6: تحديث الترجمة + Edge Functions
+
+### 6A. ملفات الترجمة (`ar/dice.json` + `en/dice.json`)
+إضافة مفاتيح جديدة:
+
+```text
+actions.execute          -- "تنفيذ" / "Execute"
+actions.set_budget       -- "تثبيت ميزانية اليوم" / "Set Today's Budget"
+actions.create_invoice   -- "إنشاء فاتورة" / "Create Invoice"
+actions.go_to_task       -- "تنفيذ المهمة" / "Do Task"
+result.budget_label      -- "الميزانية" / "Budget"
+result.whopays_label     -- "الدافع" / "Payer"
+result.task_label        -- "المهمة" / "Task"
+chat.cuisine_badge       -- "مطبخ" / "Cuisine"
+chat.budget_badge        -- "ميزانية" / "Budget"
+chat.whopays_badge       -- "مين يدفع" / "Who Pays"
+chat.task_badge          -- "مهمة" / "Task"
+chat.cuisine_tile        -- "المطبخ" / "Cuisine"
+chat.budget_tile         -- "الميزانية" / "Budget"
+chat.whopays_tile        -- "الدافع" / "Payer"
+chat.task_tile           -- "المهمة" / "Task"
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+(أغلب هذه المفاتيح موجودة فعلاً من المرحلة السابقة -- سيتم التحقق وإضافة الناقص فقط)
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### 6B. تحديث `generate-dice-comment/index.ts`
+- توسيع `dice_type` ليشمل: `'activity' | 'food' | 'cuisine' | 'budget' | 'whopays' | 'task' | 'quick'`
+- تحديث prompt الـ DeepSeek ليشمل السياق الجديد (نوع الميزانية، مين يدفع، المهمة)
+- تقليل timeout من 4 ثوانٍ إلى 2 ثانية
+- إضافة fallback comments للأنواع الجديدة
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### 6C. تحديث `suggest-dice/index.ts`
+- المنطق الحالي يدعم الأنواع الجديدة بالفعل (تم تحديثه في المرحلة السابقة)
+- مراجعة سريعة للتأكد من أن fallback يغطي كل الحالات
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+---
+
+## ملخص الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| `src/data/diceActions.ts` | **جديد** -- ربط النتائج بالإجراءات |
+| `src/components/dice/DiceResult.tsx` | زر إجراء ديناميكي |
+| `src/components/dice/DiceDecision.tsx` | تمرير onAction + quick mode |
+| `src/pages/DiceDecisionPage.tsx` | ربط الإجراءات |
+| `src/hooks/useDiceDecision.ts` | rollWhoPays + streak logging + quick modes |
+| `src/components/daily-hub/DailyDiceCard.tsx` | عرض streak |
+| `src/components/chat/messages/DiceDecisionMessage.tsx` | badges + إجراءات الأنواع الجديدة |
+| `src/i18n/locales/ar/dice.json` | مفاتيح الإجراءات الجديدة |
+| `src/i18n/locales/en/dice.json` | مفاتيح الإجراءات الجديدة |
+| `supabase/functions/generate-dice-comment/index.ts` | أنواع جديدة + timeout 2s |
+| `src/services/diceChatService.ts` | دعم الأنواع الجديدة في reroll |
+
+---
+
+## ترتيب التنفيذ
+
+1. المرحلة 6A (ترجمة) -- تُنفذ أولاً لأن باقي المراحل تعتمد على المفاتيح
+2. المرحلة 3 (إجراءات + diceActions.ts + تحديث UI)
+3. المرحلة 4 (القرار السريع)
+4. المرحلة 5 (Streak)
+5. المرحلة 6B+6C (Edge Functions)
