@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DiceFace, ACTIVITY_FACES, FOOD_FACES } from "@/data/diceData";
+import { DiceFace, ACTIVITY_FACES, CUISINE_FACES, FOOD_FACES, getDiceById, getRandomFace } from "@/data/diceData";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface DiceDecisionResult {
