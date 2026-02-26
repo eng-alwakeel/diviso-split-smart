@@ -18,10 +18,7 @@ export function ActiveUserState({ data }: ActiveUserStateProps) {
         <GroupEventCard event={data.last_group_event} />
       )}
 
-      <DailyDiceCard
-        suggestedType={diceType}
-        lockedDate={data.dice_locked_at}
-      />
+      <DailyDiceCard />
 
       {data.motivational_message && (
         <p className="text-sm text-muted-foreground text-center py-1">

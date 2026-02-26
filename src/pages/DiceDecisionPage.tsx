@@ -12,7 +12,7 @@ import { AnimatedDice } from "@/components/dice/AnimatedDice";
 import { ZeroCreditsPaywall } from "@/components/credits/ZeroCreditsPaywall";
 import { useDiceDecision } from "@/hooks/useDiceDecision";
 import { useSmartDiceComment } from "@/hooks/useSmartDiceComment";
-import { ACTIVITY_DICE, FOOD_DICE, DiceType } from "@/data/diceData";
+import { ACTIVITY_DICE, CUISINE_DICE, FOOD_DICE, DiceType } from "@/data/diceData";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";

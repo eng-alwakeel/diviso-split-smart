@@ -229,7 +229,7 @@ export async function rerollDecision(
     newResults.push(faceToResult(face));
   } else {
     // For budget, whopays, task - use their respective faces from diceData
-    const { getDiceById, getRandomFace } = await import('@/data/diceData');
+    const dice = getDiceById(diceType);
     const dice = getDiceById(diceType);
     if (dice) {
       const face = getRandomFace(dice);
