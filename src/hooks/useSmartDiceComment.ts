@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAnalyticsEvents } from '@/hooks/useAnalyticsEvents';
 
 interface SmartCommentContext {
-  diceType: 'activity' | 'food' | 'quick';
+  diceType: string;
   resultLabel: string;
   resultLabelAr?: string;
   groupType?: string;
