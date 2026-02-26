@@ -1419,6 +1419,86 @@ export type Database = {
           },
         ]
       }
+      dice_faces: {
+        Row: {
+          created_at: string | null
+          dice_type_id: string
+          emoji: string
+          id: string
+          label_ar: string
+          label_en: string
+          sort_order: number | null
+          value: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          dice_type_id: string
+          emoji: string
+          id?: string
+          label_ar: string
+          label_en: string
+          sort_order?: number | null
+          value: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          dice_type_id?: string
+          emoji?: string
+          id?: string
+          label_ar?: string
+          label_en?: string
+          sort_order?: number | null
+          value?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dice_faces_dice_type_id_fkey"
+            columns: ["dice_type_id"]
+            isOneToOne: false
+            referencedRelation: "dice_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dice_types: {
+        Row: {
+          color: string
+          created_at: string | null
+          enabled: boolean | null
+          icon: string
+          id: string
+          name_ar: string
+          name_en: string
+          rules_json: Json | null
+          sort_order: number | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          enabled?: boolean | null
+          icon?: string
+          id: string
+          name_ar: string
+          name_en: string
+          rules_json?: Json | null
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          enabled?: boolean | null
+          icon?: string
+          id?: string
+          name_ar?: string
+          name_en?: string
+          rules_json?: Json | null
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       email_campaigns: {
         Row: {
           body_html: string
