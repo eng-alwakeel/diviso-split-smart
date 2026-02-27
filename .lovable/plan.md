@@ -1,55 +1,100 @@
 
-# Fix: Test Email Not Being Delivered
+# إصلاح مركز الإحالة — منع التكرار + تتبع نقاط كل صديق
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+## المشاكل المكتشفة
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+بعد فحص قاعدة البيانات، وجدت 3 مشاكل:
 
-## Fix
+### 1. تكرار الأعضاء في السجل
+- نفس الشخص يظهر أكثر من مرة (مثال: "فاتن المدني" مكررة مرتين بنفس الـ user ID)
+- السبب: لا يوجد unique constraint على `(inviter_id, invitee_phone)` في جدول `referrals`، ولا يتم التحقق من التكرار عند إنشاء referral من group_invite
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+### 2. نفس الشخص يُحسب كإحالات متعددة عبر مجموعات مختلفة
+- إذا دعيت "Fatin" لمجموعتين مختلفتين، تظهر كإحالتين منفصلتين وتُحسب مرتين في الإحصائيات
+- المفترض: كل شخص (user ID) يُحسب مرة واحدة فقط كإحالة ناجحة
 
-Add detailed logging to the test email code path:
+### 3. لا يوجد تتبع للنقاط المكتسبة من كل صديق
+- جدول `referral_progress` يحتوي على البيانات (`points_for_first_usage`, `points_for_group_settlement`) لكنها لا تُعرض في الواجهة
+- المستخدم لا يعرف أي صديق أكمل المراحل وكسب منه نقاط
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+---
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+## الحل المقترح
+
+### المرحلة 1: تنظيف البيانات + منع التكرار (Migration)
+
+**تنظيف البيانات المكررة:**
+```text
+-- حذف السجلات المكررة مع الإبقاء على الأقدم
+DELETE FROM referrals r1
+USING referrals r2
+WHERE r1.id > r2.id
+  AND r1.inviter_id = r2.inviter_id
+  AND r1.invitee_phone = r2.invitee_phone;
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+**دمج الإحالات بناءً على user ID الفعلي:**
+- استخراج الـ user ID من `invitee_phone` (الذي يكون بصيغة `group_member_UUID`)
+- عند العرض، تجميع الإحالات التي تشير لنفس الشخص
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### المرحلة 2: تحديث `useReferrals.ts` — دمج التكرارات
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
+- إضافة منطق تجميع (deduplication) بعد جلب الإحالات
+- استخراج الـ user ID من `invitee_phone` (إذا كان بصيغة `group_member_X`)
+- تجميع الإحالات بنفس الـ user ID مع الإبقاء على أحدث سجل
+- تحديث العدادات (`totalReferrals`, `successfulReferrals`) لتعكس الأشخاص الفريدين فقط
+
+### المرحلة 3: تحديث `useReferralStats.ts` — إضافة تتبع النقاط لكل صديق
+
+- توسيع `InviteeProgress` ليشمل:
+  - `pointsEarned`: إجمالي النقاط المكتسبة من هذا الصديق
+  - `firstUsageCompleted`: هل أكمل أول استخدام (+10)
+  - `groupSettlementCompleted`: هل أنشأ قروب/تسوية (+20)
+- جلب بيانات `referral_progress` وربطها بكل إحالة
+- تطبيق نفس منطق الـ deduplication
+
+### المرحلة 4: تحديث واجهة `ReferralCenter.tsx` — عرض تقدم كل صديق
+
+تحديث قسم "سجل الإحالات" ليعرض لكل صديق:
+- الاسم + تاريخ الانضمام
+- شريط تقدم يوضح المراحل المكتملة:
+  - انضم (تم)
+  - أول استخدام: +10 نقاط (تم / لم يتم)
+  - قروب أو تسوية: +20 نقاط (تم / لم يتم)
+- إجمالي النقاط المكتسبة من هذا الصديق (مثل: 10/30 أو 30/30)
+- حالة واضحة: "أكمل كل المراحل" أو "بانتظار إنشاء قروب"
+
+### المرحلة 5: تحديث الترجمة
+
+إضافة مفاتيح جديدة في `ar/referral.json` و `en/referral.json`:
+```text
+history.points_earned       -- "نقاط مكتسبة" / "Points Earned"
+history.first_usage_done    -- "أول استخدام" / "First Usage"
+history.group_settlement_done -- "قروب أو تسوية" / "Group/Settlement"
+history.all_stages_complete -- "أكمل كل المراحل" / "All stages complete"
+history.waiting_first_usage -- "بانتظار أول استخدام" / "Waiting for first usage"
+history.waiting_group       -- "بانتظار إنشاء قروب" / "Waiting for group"
+history.unique_referrals    -- "أصدقاء فريدين" / "Unique Friends"
 ```
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+---
+
+## الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| Migration SQL | تنظيف التكرارات + منع إدخال مكرر |
+| `src/hooks/useReferrals.ts` | دمج الإحالات المكررة بناءً على user ID |
+| `src/hooks/useReferralStats.ts` | إضافة تتبع النقاط لكل صديق من `referral_progress` |
+| `src/pages/ReferralCenter.tsx` | عرض تقدم كل صديق مع شريط النقاط |
+| `src/i18n/locales/ar/referral.json` | مفاتيح جديدة |
+| `src/i18n/locales/en/referral.json` | مفاتيح جديدة |
+
+---
+
+## النتيجة المتوقعة
+
+- كل صديق يظهر **مرة واحدة فقط** في السجل
+- الإحصائيات تعكس **الأشخاص الفريدين** وليس عدد السجلات
+- كل صديق يظهر بجانبه **كم نقطة كسبت منه** (0/30 أو 10/30 أو 30/30)
+- المستخدم يعرف بالضبط **أي صديق يحتاج يكمل المراحل** عشان يحصل كامل النقاط
