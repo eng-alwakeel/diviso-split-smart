@@ -104,8 +104,21 @@ const GroupDetails = () => {
   const [reportOpen, setReportOpen] = useState(false);
   // حوار التسوية
   const [settleOpen, setSettleOpen] = useState(false);
+  const [settlementGuardOpen, setSettlementGuardOpen] = useState(false);
   const [prefillTo, setPrefillTo] = useState<string | undefined>(undefined);
   const [prefillAmount, setPrefillAmount] = useState<number | undefined>(undefined);
+  
+  // Helper: open settlement with guard check
+  const openSettlement = (toUserId?: string, amount?: number) => {
+    setPrefillTo(toUserId);
+    setPrefillAmount(amount);
+    const hasUnconfirmed = members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending');
+    if (hasUnconfirmed) {
+      setSettlementGuardOpen(true);
+    } else {
+      setSettleOpen(true);
+    }
+  };
   
   // حوارات تحرير ورفض المصاريف
   const [editExpenseOpen, setEditExpenseOpen] = useState(false);
