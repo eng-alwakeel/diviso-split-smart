@@ -937,6 +937,7 @@ const GroupDetails = () => {
                 settlements={settlements}
                 profiles={profiles}
                 currency={currencyLabel}
+                hasUnconfirmedMembers={members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending')}
                 onSettleClick={(toUserId, amount) => {
                   setPrefillTo(toUserId);
                   setPrefillAmount(amount);
