@@ -1779,18 +1779,21 @@ export type Database = {
           expense_id: string
           member_id: string
           share_amount: number
+          share_status: string
         }
         Insert: {
           created_at?: string
           expense_id: string
           member_id: string
           share_amount: number
+          share_status?: string
         }
         Update: {
           created_at?: string
           expense_id?: string
           member_id?: string
           share_amount?: number
+          share_status?: string
         }
         Relationships: [
           {
@@ -1819,6 +1822,7 @@ export type Database = {
           description: string | null
           group_id: string
           id: string
+          needs_attention: boolean
           note_ar: string | null
           payer_id: string | null
           plan_id: string | null
@@ -1835,6 +1839,7 @@ export type Database = {
           description?: string | null
           group_id: string
           id?: string
+          needs_attention?: boolean
           note_ar?: string | null
           payer_id?: string | null
           plan_id?: string | null
@@ -1851,6 +1856,7 @@ export type Database = {
           description?: string | null
           group_id?: string
           id?: string
+          needs_attention?: boolean
           note_ar?: string | null
           payer_id?: string | null
           plan_id?: string | null
@@ -2125,27 +2131,36 @@ export type Database = {
       }
       group_members: {
         Row: {
+          archived_at: string | null
           can_approve_expenses: boolean
           group_id: string
           id: string
           joined_at: string | null
+          phone_e164: string | null
           role: Database["public"]["Enums"]["member_role"]
+          status: string
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
           can_approve_expenses?: boolean
           group_id: string
           id?: string
           joined_at?: string | null
+          phone_e164?: string | null
           role?: Database["public"]["Enums"]["member_role"]
+          status?: string
           user_id: string
         }
         Update: {
+          archived_at?: string | null
           can_approve_expenses?: boolean
           group_id?: string
           id?: string
           joined_at?: string | null
+          phone_e164?: string | null
           role?: Database["public"]["Enums"]["member_role"]
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -6481,6 +6496,14 @@ export type Database = {
       process_referral_milestone: {
         Args: { p_invited_user_id: string; p_milestone: string }
         Returns: Json
+      }
+      rebalance_shares_for_member: {
+        Args: { p_group_id: string; p_member_user_id: string }
+        Returns: undefined
+      }
+      reject_group_invite: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: undefined
       }
       relink_approved_expenses: {
         Args: { p_group_id: string }
