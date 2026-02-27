@@ -4,7 +4,8 @@
   "balance_card": {
     "referrals": "Referrals",
     "successful": "Successful",
-    "earned": "Points Earned"
+    "earned": "Points Earned",
+    "unique_friends": "Unique Friends"
   },
   "points_info": {
     "title": "How to Earn Referral Points",
@@ -25,7 +26,13 @@
     "title": "Referral History",
     "joined": "Joined",
     "pending": "Pending",
-    "more_referrals": "+{{count}} more referrals"
+    "more_referrals": "+{{count}} more referrals",
+    "points_earned": "{{points}}/30 pts",
+    "first_usage_done": "First Usage",
+    "group_settlement_done": "Group/Settlement",
+    "all_stages_complete": "All stages complete ✨",
+    "waiting_first_usage": "Waiting for first usage",
+    "waiting_group": "Waiting for group"
   },
   "toast": {
     "copied": "Copied!",
