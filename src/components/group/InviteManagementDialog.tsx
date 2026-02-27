@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { InviteLinkTab } from "@/components/group/invite-tabs/InviteLinkTab";
 import { KnownPeopleTab } from "@/components/group/invite-tabs/KnownPeopleTab";
-import { usePendingGroupInvites } from "@/hooks/usePendingGroupInvites";
+import { usePendingGroupInvites, type PendingGroupInvite } from "@/hooks/usePendingGroupInvites";
 import { useGroupInviteActions } from "@/hooks/useGroupInviteActions";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
