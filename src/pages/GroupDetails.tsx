@@ -1181,6 +1181,15 @@ const GroupDetails = () => {
         groupCurrency={groupCurrency}
       />
 
+      <SettlementGuardDialog
+        open={settlementGuardOpen}
+        onOpenChange={setSettlementGuardOpen}
+        onProceedActiveOnly={() => {
+          setSettlementGuardOpen(false);
+          setSettleOpen(true);
+        }}
+      />
+
       <EditExpenseDialog
         open={editExpenseOpen}
         onOpenChange={setEditExpenseOpen}
