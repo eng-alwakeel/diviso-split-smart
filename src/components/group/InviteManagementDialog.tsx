@@ -102,10 +102,14 @@ export const InviteManagementDialog = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1">
+          <TabsList className="grid w-full grid-cols-4 gap-1">
             <TabsTrigger value="known" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
               <UserCheck className="w-3 h-3 shrink-0" />
-              <span className="truncate">{t("known_people.tab_label")}</span>
+              <span className="truncate">أشخاص</span>
+            </TabsTrigger>
+            <TabsTrigger value="phone" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <Phone className="w-3 h-3 shrink-0" />
+              <span className="truncate">رقم جوال</span>
             </TabsTrigger>
             <TabsTrigger value="link" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
               <Link className="w-3 h-3 shrink-0" />
