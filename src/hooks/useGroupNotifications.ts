@@ -8,7 +8,10 @@ type GroupNotificationType =
   | "dice_posted"
   | "dice_accepted"
   | "dice_rerolled"
-  | "balance_due";
+  | "balance_due"
+  | "invite_accepted"
+  | "invite_rejected"
+  | "pending_linked";
 
 interface NotificationPayload {
   group_name: string;
@@ -184,6 +187,60 @@ export function useGroupNotifications() {
     });
   };
 
+  /**
+   * Notify group admin/inviter when an invite is accepted
+   */
+  const notifyInviteAccepted = async (
+    groupId: string,
+    groupName: string,
+    acceptedUserId: string,
+    acceptedUserName: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, acceptedUserId);
+    
+    await sendNotifications(memberIds, "invite_accepted", {
+      group_name: groupName,
+      group_id: groupId,
+      member_name: acceptedUserName,
+    });
+  };
+
+  /**
+   * Notify group admin/inviter when an invite is rejected
+   */
+  const notifyInviteRejected = async (
+    groupId: string,
+    groupName: string,
+    rejectedUserId: string,
+    rejectedUserName: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, rejectedUserId);
+    
+    await sendNotifications(memberIds, "invite_rejected", {
+      group_name: groupName,
+      group_id: groupId,
+      member_name: rejectedUserName,
+    });
+  };
+
+  /**
+   * Notify group when a pending member is linked after signup
+   */
+  const notifyPendingLinked = async (
+    groupId: string,
+    groupName: string,
+    linkedUserId: string,
+    linkedUserName: string
+  ) => {
+    const memberIds = await getOtherMembers(groupId, linkedUserId);
+    
+    await sendNotifications(memberIds, "pending_linked", {
+      group_name: groupName,
+      group_id: groupId,
+      member_name: linkedUserName,
+    });
+  };
+
   return {
     notifyMemberJoined,
     notifyMemberLeft,
@@ -191,5 +248,8 @@ export function useGroupNotifications() {
     notifyDicePosted,
     notifyDiceAccepted,
     notifyDiceRerolled,
+    notifyInviteAccepted,
+    notifyInviteRejected,
+    notifyPendingLinked,
   };
 }

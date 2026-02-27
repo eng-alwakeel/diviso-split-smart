@@ -1139,7 +1139,30 @@ const AddExpense = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{t('split_section.participating_members')}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>{t('split_section.participating_members')}</Label>
+                    {members.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => {
+                          const allNonArchived = members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at);
+                          const allSelected = allNonArchived.every(m => memberSplits.some(sp => sp.member_id === m.user_id));
+                          if (allSelected) {
+                            setMemberSplits([]);
+                          } else {
+                            setMemberSplits(allNonArchived.map(m => ({ member_id: m.user_id, share_amount: 0 })));
+                          }
+                        }}
+                      >
+                        {members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at).every(m => memberSplits.some(sp => sp.member_id === m.user_id))
+                          ? 'إلغاء تحديد الكل'
+                          : 'تحديد الكل'}
+                      </Button>
+                    )}
+                  </div>
                   {membersLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (

@@ -109,6 +109,12 @@ export default function Notifications() {
         return '🗑️';
       case 'balance_due':
         return '💸';
+      case 'invite_accepted':
+        return '✅';
+      case 'invite_rejected':
+        return '❌';
+      case 'pending_linked':
+        return '🔗';
       case 'daily_engagement':
         return '📊';
       default:
@@ -156,6 +162,12 @@ export default function Notifications() {
         return t('notifications:types.group_deleted', { name: payload.deleted_by_name, group: payload.group_name });
       case 'balance_due':
         return t('notifications:types.balance_due', { amount: payload.amount_due, currency: payload.currency, group: payload.group_name });
+      case 'invite_accepted':
+        return `وافق ${payload.member_name || 'عضو'} على الدعوة في ${payload.group_name || 'المجموعة'}`;
+      case 'invite_rejected':
+        return `رفض ${payload.member_name || 'عضو'} الدعوة في ${payload.group_name || 'المجموعة'}`;
+      case 'pending_linked':
+        return `انضم ${payload.member_name || 'عضو'} إلى ${payload.group_name || 'المجموعة'} بعد التسجيل`;
       case 'daily_engagement':
         return isRTL 
           ? (payload.message_ar || t('notifications:types.daily_engagement'))
