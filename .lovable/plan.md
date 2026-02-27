@@ -1,31 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تبسيط نافذة دعوة الأعضاء — 3 تبويبات فقط
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## التغيير المطلوب
-- **إزالة** تبويب "جهات" (Contacts) نهائياً من النافذة
-- **الإبقاء** على: أشخاص تعرفهم + رابط + متابعة
-- **تحديث تبويب المتابعة** ليعرض دعوات "أشخاص تعرفهم" (الدعوات الداخلية) بدلاً من دعوات الهاتف/البريد
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## التغييرات التقنية
+## Fix
 
-### 1. تحديث `InviteManagementDialog.tsx`
-- إزالة import الخاص بـ `InviteContactsTab`
-- تغيير `grid-cols-4` إلى `grid-cols-3` في TabsList
-- حذف TabsTrigger و TabsContent الخاص بـ "contacts"
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 2. تحديث تبويب المتابعة ليعرض دعوات "أشخاص تعرفهم"
-- استبدال `InviteTrackingTab` (الذي يعرض دعوات phone/email من جدول `invites`) بمحتوى جديد يستخدم `usePendingGroupInvites` لعرض الدعوات الداخلية المرسلة للأشخاص المعروفين
-- عرض: اسم الشخص، الصورة، حالة الدعوة (معلقة/مقبولة/مرفوضة)، مع خيار إلغاء الدعوة
+Add detailed logging to the test email code path:
 
-### 3. إنشاء محتوى متابعة جديد داخل `InviteManagementDialog.tsx`
-- استخدام `usePendingGroupInvites(groupId)` لجلب الدعوات المعلقة
-- عرض كل دعوة بنفس تصميم KnownPeopleTab (Avatar + اسم + حالة)
-- زر إلغاء الدعوة عبر `cancel_group_invite` RPC
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-## الملفات المتأثرة
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-| الملف | التغيير |
-|-------|---------|
-| `src/components/group/InviteManagementDialog.tsx` | إزالة تبويب جهات + تحديث المتابعة لعرض دعوات أشخاص تعرفهم |
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
+
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
