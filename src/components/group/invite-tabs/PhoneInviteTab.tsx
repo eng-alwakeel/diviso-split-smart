@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PhoneInputWithCountry } from "@/components/ui/phone-input-with-country";
 import { useGroupInvites } from "@/hooks/useGroupInvites";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BRAND_CONFIG } from "@/lib/brandConfig";
 import {
@@ -39,6 +39,8 @@ interface InviteResult {
   url: string;
   status: string;
   isRegistered: boolean;
+  idempotent?: boolean;
+  message?: string;
 }
 
 interface LookupResult {
@@ -53,8 +55,7 @@ export const PhoneInviteTab = ({
   groupName,
   onInviteSent,
 }: PhoneInviteTabProps) => {
-  const { toast } = useToast();
-  const { sendInvite, cancelInvite } = useGroupInvites(groupId);
+  const { cancelInvite } = useGroupInvites(groupId);
 
   const [inviteeName, setInviteeName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -96,8 +97,6 @@ export const PhoneInviteTab = ({
   const performLookup = useCallback(
     async (phone: string) => {
       if (!groupId || !isUUID(groupId) || phone.length < 8) return;
-
-      // Skip if same phone already looked up
       if (lastLookedUpPhone.current === phone) return;
       lastLookedUpPhone.current = phone;
 
@@ -121,7 +120,6 @@ export const PhoneInviteTab = ({
         setLookupResult(result);
         setLookupDone(true);
 
-        // Auto-fill name if found
         if (result.found && result.user && !result.already_member) {
           setInviteeName(result.user.display_name);
         }
@@ -138,14 +136,12 @@ export const PhoneInviteTab = ({
   const handlePhoneChange = useCallback(
     (newPhone: string) => {
       setPhoneNumber(newPhone);
-      // Reset lookup when phone changes
       setLookupResult(null);
       setLookupDone(false);
       lastLookedUpPhone.current = "";
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
-      // Only lookup if phone looks valid (digits portion >= 8)
       const digits = newPhone.replace(/[^\d]/g, "");
       if (digits.length >= 8) {
         debounceRef.current = setTimeout(() => performLookup(newPhone), 500);
@@ -164,67 +160,57 @@ export const PhoneInviteTab = ({
     !loading &&
     !isAlreadyMember;
 
-  // Direct invite for registered user
-  const handleInviteKnownUser = async () => {
-    if (!groupId || !lookupResult?.user) return;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("send_group_invite", {
-        p_group_id: groupId,
-        p_invited_user_id: lookupResult.user.id,
-      });
-      if (error) throw error;
-      toast({ title: "تم إرسال الدعوة", description: "سيتلقى المستخدم إشعاراً بالدعوة" });
-      onInviteSent?.();
-      handleReset();
-    } catch (error) {
-      console.error("Direct invite error:", error);
-      toast({ title: "خطأ في إرسال الدعوة", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Pending invite for non-registered user
-  const handleCreateInvite = async () => {
+  // ── Single unified submit handler ──
+  const handleSubmit = async () => {
     if (!canSubmit || !groupId) return;
     setLoading(true);
     try {
-      const isRegistered = lookupResult?.found || false;
+      const { data, error } = await supabase.functions.invoke("create-phone-invite", {
+        body: {
+          group_id: groupId,
+          phone_raw: phoneNumber,
+          invitee_name: inviteeName.trim(),
+        },
+      });
 
-      const result = await sendInvite(phoneNumber, "member", groupName, "smart");
-      if (result?.error) {
-        setLoading(false);
+      if (error) {
+        console.error("create-phone-invite error:", error);
+        toast.error("خطأ في إنشاء الدعوة");
         return;
       }
 
-      const { data: tokenData } = await supabase.rpc("create_group_join_token", {
-        p_group_id: groupId,
-        p_role: "member",
-        p_link_type: "phone_invite",
-      });
+      if (!data?.ok) {
+        if (data?.reason === "already_active_member") {
+          toast.error("هذا الشخص موجود بالفعل في المجموعة كعضو فعّال");
+        } else if (data?.reason === "not_admin") {
+          toast.error("يجب أن تكون مالك أو مدير المجموعة لإرسال الدعوات");
+        } else {
+          toast.error(data?.detail || "خطأ في إنشاء الدعوة");
+        }
+        return;
+      }
 
-      const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
-      const token =
-        typeof tokenObj === "object" && tokenObj !== null
-          ? (tokenObj as { token?: string }).token
-          : String(tokenObj);
-      const inviteUrl = token
-        ? `${BRAND_CONFIG.url}/i/${token}`
-        : `${BRAND_CONFIG.url}`;
-
-      const inviteId = result?.data?.id || "";
+      // Show warning toast if notification failed but invite was created
+      if (data.warning === "NOTIFY_FAILED") {
+        toast.warning("تم إنشاء الدعوة، لكن تعذر إرسال الإشعار. يمكنك مشاركة الرابط يدويًا.");
+      } else if (data.idempotent) {
+        toast.info(data.message || "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.");
+      } else {
+        toast.success("تم إنشاء الدعوة بنجاح!");
+      }
 
       setInviteResult({
-        id: inviteId,
-        url: inviteUrl,
-        status: "sent",
-        isRegistered,
+        id: data.invite_id || "",
+        url: data.invite_url || "",
+        status: data.member_status === "invited" ? "sent" : "pending",
+        isRegistered: data.is_registered || false,
+        idempotent: data.idempotent,
+        message: data.message,
       });
       onInviteSent?.();
     } catch (error) {
       console.error("Phone invite error:", error);
-      toast({ title: "خطأ في إنشاء الدعوة", variant: "destructive" });
+      toast.error("خطأ في إنشاء الدعوة");
     } finally {
       setLoading(false);
     }
@@ -233,7 +219,7 @@ export const PhoneInviteTab = ({
   const handleCopyLink = async () => {
     if (!inviteResult?.url) return;
     await navigator.clipboard.writeText(inviteResult.url);
-    toast({ title: "تم النسخ", description: "تم نسخ رابط الدعوة" });
+    toast.success("تم نسخ رابط الدعوة");
   };
 
   const buildWhatsAppMessage = () => {
@@ -253,7 +239,7 @@ export const PhoneInviteTab = ({
   const handleCopyMessage = async () => {
     const message = buildWhatsAppMessage();
     await navigator.clipboard.writeText(message);
-    toast({ title: "تم النسخ", description: "تم نسخ رسالة الدعوة" });
+    toast.success("تم نسخ رسالة الدعوة");
   };
 
   const handleCancelInvite = async () => {
@@ -301,7 +287,16 @@ export const PhoneInviteTab = ({
           </div>
         </div>
 
-        {inviteResult.isRegistered && (
+        {inviteResult.idempotent && (
+          <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
+            <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">
+              {inviteResult.message || "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي."}
+            </p>
+          </div>
+        )}
+
+        {inviteResult.isRegistered && !inviteResult.idempotent && (
           <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
             <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
@@ -310,43 +305,51 @@ export const PhoneInviteTab = ({
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label className="text-xs">رابط الدعوة الشخصي</Label>
-          <div className="flex gap-2">
-            <Input value={inviteResult.url} readOnly className="text-xs" />
-            <Button variant="outline" onClick={handleCopyLink} className="shrink-0">
-              <Copy className="w-4 h-4" />
-            </Button>
+        {inviteResult.url && (
+          <div className="space-y-2">
+            <Label className="text-xs">رابط الدعوة الشخصي</Label>
+            <div className="flex gap-2">
+              <Input value={inviteResult.url} readOnly className="text-xs" />
+              <Button variant="outline" onClick={handleCopyLink} className="shrink-0">
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         {inviteResult.status !== "revoked" && (
           <div className="space-y-2">
-            <Button
-              className="w-full bg-[hsl(142,70%,45%)] hover:bg-[hsl(142,70%,40%)] text-white"
-              onClick={handleShareWhatsApp}
-            >
-              <MessageCircle className="w-4 h-4 ml-2" />
-              مشاركة عبر واتساب
-            </Button>
-            <Button variant="outline" className="w-full" onClick={handleCopyMessage}>
-              <Copy className="w-4 h-4 ml-2" />
-              نسخ الرسالة
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-destructive hover:text-destructive"
-              onClick={handleCancelInvite}
-              disabled={cancelling}
-            >
-              {cancelling ? (
-                <Loader2 className="w-4 h-4 ml-1 animate-spin" />
-              ) : (
-                <XCircle className="w-4 h-4 ml-1" />
-              )}
-              إلغاء الدعوة
-            </Button>
+            {inviteResult.url && (
+              <>
+                <Button
+                  className="w-full bg-[hsl(142,70%,45%)] hover:bg-[hsl(142,70%,40%)] text-white"
+                  onClick={handleShareWhatsApp}
+                >
+                  <MessageCircle className="w-4 h-4 ml-2" />
+                  مشاركة عبر واتساب
+                </Button>
+                <Button variant="outline" className="w-full" onClick={handleCopyMessage}>
+                  <Copy className="w-4 h-4 ml-2" />
+                  نسخ الرسالة
+                </Button>
+              </>
+            )}
+            {inviteResult.id && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-destructive hover:text-destructive"
+                onClick={handleCancelInvite}
+                disabled={cancelling}
+              >
+                {cancelling ? (
+                  <Loader2 className="w-4 h-4 ml-1 animate-spin" />
+                ) : (
+                  <XCircle className="w-4 h-4 ml-1" />
+                )}
+                إلغاء الدعوة
+              </Button>
+            )}
           </div>
         )}
 
@@ -394,7 +397,6 @@ export const PhoneInviteTab = ({
         {/* Lookup status messages */}
         {lookupDone && lookupResult && (
           <>
-            {/* Found & already member */}
             {isAlreadyMember && (
               <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
                 <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
@@ -410,7 +412,6 @@ export const PhoneInviteTab = ({
               </div>
             )}
 
-            {/* Found & can invite */}
             {isFoundUser && lookupResult.user && (
               <div className="space-y-3">
                 <div className="flex items-start gap-2 p-2 bg-primary/5 rounded-lg border border-primary/15">
@@ -438,7 +439,6 @@ export const PhoneInviteTab = ({
               </div>
             )}
 
-            {/* Not found */}
             {!lookupResult.found && (
               <div className="flex items-start gap-2 p-2 bg-muted/50 rounded-lg border border-border">
                 <UserPlus className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -450,7 +450,7 @@ export const PhoneInviteTab = ({
           </>
         )}
 
-        {/* Name input: shown for non-found users, auto-filled & readonly for found users */}
+        {/* Name input */}
         {!isAlreadyMember && (
           <div className="space-y-1.5">
             <Label className="text-xs">اسم المدعو</Label>
@@ -467,46 +467,22 @@ export const PhoneInviteTab = ({
         )}
       </div>
 
-      {/* CTA buttons */}
-      {isFoundUser ? (
-        <div className="space-y-2">
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={handleInviteKnownUser}
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-            ) : (
-              <UserCheck className="w-4 h-4 ml-2" />
-            )}
-            دعوة هذا الشخص
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-muted-foreground"
-            onClick={handleReset}
-          >
-            دعوة شخص آخر
-          </Button>
-        </div>
-      ) : (
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={handleCreateInvite}
-          disabled={!canSubmit}
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-          ) : (
-            <Send className="w-4 h-4 ml-2" />
-          )}
-          إضافة وإنشاء دعوة
-        </Button>
-      )}
+      {/* Single unified CTA button */}
+      <Button
+        size="lg"
+        className="w-full"
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+      >
+        {loading ? (
+          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+        ) : isFoundUser ? (
+          <UserCheck className="w-4 h-4 ml-2" />
+        ) : (
+          <Send className="w-4 h-4 ml-2" />
+        )}
+        {isFoundUser ? "دعوة هذا الشخص" : "إضافة وإنشاء دعوة"}
+      </Button>
     </div>
   );
 };
