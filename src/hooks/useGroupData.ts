@@ -363,6 +363,7 @@ export const useGroupData = (groupId?: string) => {
     return () => {
       console.log("[useGroupData] Cleaning up realtime listeners");
       realtimeInitializedRef.current = false;
+      supabase.removeChannel(membersChannel);
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(settlementsChannel);
       supabase.removeChannel(splitsChannel);
