@@ -1,55 +1,95 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# تحديث نص رسالة دعوة الانضمام للمجموعة
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## الملخص
+توحيد رسالة الدعوة في 3 أماكن مختلفة بالكود واستبدالها بالنص التسويقي الجديد، مع إضافة مفاتيح i18n للترجمة المستقبلية.
 
-## Fix
+## الأماكن المتأثرة (3 ملفات)
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+### 1. `src/components/group/invite-tabs/InviteLinkTab.tsx` (سطر 129-134)
+رسالة المشاركة عند الضغط على زر "شارك الرابط":
 
-Add detailed logging to the test email code path:
+**الحالي:**
+```
+👋 صديقك يدعوك للانضمام لمجموعة "المجموعة" على ديفيسو
+⏰ الرابط صالح لمدة 24 ساعة
+📱 حمّل ديفيسو لتقسيم المصاريف بذكاء
+```
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+**الجديد:**
+```
+👋 {{senderName}} أضافك إلى مجموعة "{{groupName}}" على Diviso
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
+خلّ القسمة واضحة من أول يوم 👌
+لا دفاتر… لا واتساب… كل شيء محسوب وواضح للجميع 💸✨
+
+⏳ الرابط صالح لمدة 24 ساعة
+انضم الآن وابدأ مع المجموعة 👇
+```
+
+### 2. `src/pages/GroupInvite.tsx` (سطر 172-184)
+رسالة الدعوة في صفحة الدعوة المستقلة:
+
+**الحالي:**
+```
+👋 مرحباً!
+انضم إلى مجموعة "المجموعة"
+الدعوة من: صديقك
+🔗 رابط الانضمام: ...
+📱 حمّل تطبيق ديفيسو...
+```
+
+**الجديد:** نفس النص الجديد أعلاه + رابط الانضمام.
+
+### 3. `src/components/group/invite-tabs/InviteContactsTab.tsx` (سطر 132-139)
+رسالة الدعوة المرسلة عبر التطبيقات الخارجية:
+
+**الحالي:**
+```
+🎉 مرحباً! أدعوك للانضمام لمجموعة "..." على تطبيق Diviso...
+```
+
+**الجديد:** نفس النص الموحد.
+
+## دعم الترجمة (i18n)
+
+اضافة مفاتيح جديدة في ملفات الترجمة:
+
+### `src/i18n/locales/ar/groups.json`
+```json
+"invite_share": {
+  "title": "{{name}} أضافك إلى مجموعة \"{{group}}\" على Diviso",
+  "body": "خلّ القسمة واضحة من أول يوم 👌\nلا دفاتر… لا واتساب… كل شيء محسوب وواضح للجميع 💸✨",
+  "expiry": "الرابط صالح لمدة {{hours}} ساعة",
+  "cta": "انضم الآن وابدأ مع المجموعة 👇",
+  "browser_note": "لا يحتاج تحميل — يفتح مباشرة من المتصفح"
 }
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
-
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
+### `src/i18n/locales/en/groups.json`
+```json
+"invite_share": {
+  "title": "{{name}} added you to \"{{group}}\" on Diviso",
+  "body": "Keep expenses clear from day one 👌\nNo notebooks... no WhatsApp... everything tracked and clear for everyone 💸✨",
+  "expiry": "Link valid for {{hours}} hours",
+  "cta": "Join now and get started 👇",
+  "browser_note": "No download needed — opens directly in browser"
 }
 ```
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+## الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| `src/i18n/locales/ar/groups.json` | إضافة مفاتيح `invite_share` |
+| `src/i18n/locales/en/groups.json` | إضافة مفاتيح `invite_share` |
+| `src/components/group/invite-tabs/InviteLinkTab.tsx` | تحديث `shareText` باستخدام i18n |
+| `src/pages/GroupInvite.tsx` | تحديث `getInviteMessage` باستخدام i18n |
+| `src/components/group/invite-tabs/InviteContactsTab.tsx` | تحديث `createInviteMessage` باستخدام i18n |
+
+## ملاحظات
+- اسم "Diviso" يبقى كما هو بدون ترجمة (هوية العلامة التجارية)
+- الإيموجي 👋 و ⏳ مدعومة في جميع تطبيقات المراسلة
+- النص مُحسّن للعرض في واتساب و iMessage والمنصات الأخرى
+
