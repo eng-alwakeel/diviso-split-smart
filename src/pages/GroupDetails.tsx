@@ -45,6 +45,7 @@ import { useGroupData } from "@/hooks/useGroupData";
 // GroupSettingsDialog moved to dedicated page - /group/:id/settings
 import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog";
+import { SettlementGuardDialog } from "@/components/group/SettlementGuardDialog";
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
@@ -104,8 +105,21 @@ const GroupDetails = () => {
   const [reportOpen, setReportOpen] = useState(false);
   // حوار التسوية
   const [settleOpen, setSettleOpen] = useState(false);
+  const [settlementGuardOpen, setSettlementGuardOpen] = useState(false);
   const [prefillTo, setPrefillTo] = useState<string | undefined>(undefined);
   const [prefillAmount, setPrefillAmount] = useState<number | undefined>(undefined);
+  
+  // Helper: open settlement with guard check
+  const openSettlement = (toUserId?: string, amount?: number) => {
+    setPrefillTo(toUserId);
+    setPrefillAmount(amount);
+    const hasUnconfirmed = members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending');
+    if (hasUnconfirmed) {
+      setSettlementGuardOpen(true);
+    } else {
+      setSettleOpen(true);
+    }
+  };
   
   // حوارات تحرير ورفض المصاريف
   const [editExpenseOpen, setEditExpenseOpen] = useState(false);
@@ -543,7 +557,7 @@ const GroupDetails = () => {
             hasOpenDebts={balanceSummary.some(b => Number(b.total_net) !== 0)}
             hasExpenses={expenses.length > 0}
             onOpenAddExpense={({ groupId: gid }) => navigate(`/group/${gid}/add-expense`)}
-            onOpenSettleUp={() => setSettleOpen(true)}
+            onOpenSettleUp={() => openSettlement()}
             onOpenInvite={() => setOpenInvite(true)}
             onOpenWeeklyReport={() => setReportOpen(true)}
             onOpenRenameGroup={({ groupId: gid }) => navigate(`/group/${gid}/settings`)}
@@ -904,7 +918,7 @@ const GroupDetails = () => {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">التسويات</h2>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => { setPrefillTo(undefined); setPrefillAmount(undefined); setSettleOpen(true); }}>
+                <Button variant="outline" onClick={() => openSettlement()}>
                   إضافة تسوية
                 </Button>
                 {myBalances.confirmed < 0 && (
@@ -918,7 +932,7 @@ const GroupDetails = () => {
                     } else {
                       setPrefillTo(undefined); setPrefillAmount(undefined);
                     }
-                    setSettleOpen(true);
+                    openSettlement(prefillTo, prefillAmount);
                   }}>
                     تسوية الآن
                   </Button>
@@ -937,10 +951,9 @@ const GroupDetails = () => {
                 settlements={settlements}
                 profiles={profiles}
                 currency={currencyLabel}
+                hasUnconfirmedMembers={members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending')}
                 onSettleClick={(toUserId, amount) => {
-                  setPrefillTo(toUserId);
-                  setPrefillAmount(amount);
-                  setSettleOpen(true);
+                  openSettlement(toUserId, amount);
                 }}
                 onSettlementConfirmed={refetch}
               />
@@ -1166,6 +1179,15 @@ const GroupDetails = () => {
         initialAmount={prefillAmount}
         onCreated={() => refetch()}
         groupCurrency={groupCurrency}
+      />
+
+      <SettlementGuardDialog
+        open={settlementGuardOpen}
+        onOpenChange={setSettlementGuardOpen}
+        onProceedActiveOnly={() => {
+          setSettlementGuardOpen(false);
+          setSettleOpen(true);
+        }}
       />
 
       <EditExpenseDialog

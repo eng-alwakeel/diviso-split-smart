@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export type MemberStatus = 'active' | 'invited' | 'pending' | 'rejected';
+
 interface GroupMember {
   id: string;
   user_id: string;
   role: 'owner' | 'admin' | 'member';
   can_approve_expenses: boolean;
   joined_at: string;
+  status: MemberStatus;
+  phone_e164: string | null;
+  archived_at: string | null;
   profile: {
     id: string;
     display_name: string | null;
@@ -35,6 +40,9 @@ export const useGroupMembers = (groupId: string | null) => {
           role,
           can_approve_expenses,
           joined_at,
+          status,
+          phone_e164,
+          archived_at,
           profiles!user_id (
             id,
             display_name,
@@ -44,6 +52,7 @@ export const useGroupMembers = (groupId: string | null) => {
           )
         `)
         .eq('group_id', groupId)
+        .is('archived_at', null)
         .order('joined_at', { ascending: true });
 
       if (error) {
@@ -59,6 +68,7 @@ export const useGroupMembers = (groupId: string | null) => {
       // Transform the data to match our interface
       const transformedData = (data || []).map(item => ({
         ...item,
+        status: (item.status || 'active') as MemberStatus,
         profile: item.profiles
       }));
       setMembers(transformedData);

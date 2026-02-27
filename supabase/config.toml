@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.send-broadcast-email]
 verify_jwt = false
+
+[functions.reject-group-invite]
+verify_jwt = false

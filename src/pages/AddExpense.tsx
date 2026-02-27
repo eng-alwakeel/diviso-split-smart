@@ -1152,8 +1152,11 @@ const AddExpense = () => {
                       ))}
                     </div>
                   ) : (
+                    <>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {members.map((member) => (
+                      {members.map((member) => {
+                        const memberStatus = (member as any).status || 'active';
+                        return (
                         <div key={member.user_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                           <div className="flex items-center space-x-3 space-x-reverse">
                             <Checkbox
@@ -1167,7 +1170,24 @@ const AddExpense = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-medium">{getMemberDisplayName(member)}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{getMemberDisplayName(member)}</span>
+                                {memberStatus === 'invited' && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-medium">
+                                    بانتظار الموافقة
+                                  </span>
+                                )}
+                                {memberStatus === 'pending' && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 font-medium">
+                                    بانتظار التسجيل
+                                  </span>
+                                )}
+                                {memberStatus === 'active' && member.role === 'member' && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent font-medium">
+                                    منضم
+                                  </span>
+                                )}
+                              </div>
                               {member.role !== 'member' && (
                                 <span className="text-xs text-muted-foreground">
                                   {member.role === 'owner' ? t('groups:roles.owner') : member.role === 'admin' ? t('groups:roles.admin') : ''}
@@ -1177,10 +1197,7 @@ const AddExpense = () => {
                             </div>
                           </div>
                           
-                          {/* Show input fields for all selected members or when split type requires input */}
-                          {(memberSplits.some(split => split.member_id === member.user_id) || 
-                            (splitType !== 'equal' && memberSplits.length > 0)) && 
-                           memberSplits.some(split => split.member_id === member.user_id) && (
+                          {memberSplits.some(split => split.member_id === member.user_id) && (
                             <div className="flex items-center space-x-2 space-x-reverse">
                               {splitType === 'percentage' && (
                                 <div className="flex items-center gap-2">
@@ -1252,11 +1269,23 @@ const AddExpense = () => {
                             </div>
                           )}
                         </div>
-                      ))}
+                        );
+                      })}
                       {members.length === 0 && (
                         <p className="text-muted-foreground text-center py-4">{t('split_section.no_members')}</p>
                       )}
                     </div>
+                    
+                    {/* Info note for unconfirmed members */}
+                    {memberSplits.length > 0 && members.some(m => 
+                      ((m as any).status === 'invited' || (m as any).status === 'pending') && memberSplits.some(sp => sp.member_id === m.user_id)
+                    ) && (
+                      <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
+                        <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span>ملاحظة: بعض الأعضاء لم يكتمل انضمامهم بعد، وسيتم احتساب حصتهم تلقائيًا.</span>
+                      </div>
+                    )}
+                    </>
                   )}
                 </div>
 
