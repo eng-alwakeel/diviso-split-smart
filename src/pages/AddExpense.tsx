@@ -1279,10 +1279,9 @@ const AddExpense = () => {
                     </div>
                     
                     {/* Info note for unconfirmed members */}
-                    {memberSplits.length > 0 && members.some(m => {
-                      const s = (m as any).status;
-                      return (s === 'invited' || s === 'pending') && memberSplits.some(sp => sp.member_id === m.user_id);
-                    }) && (
+                    {memberSplits.length > 0 && members.some(m => 
+                      ((m as any).status === 'invited' || (m as any).status === 'pending') && memberSplits.some(sp => sp.member_id === m.user_id)
+                    ) && (
                       <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300">
                         <Info className="w-4 h-4 mt-0.5 shrink-0" />
                         <span>ملاحظة: بعض الأعضاء لم يكتمل انضمامهم بعد، وسيتم احتساب حصتهم تلقائيًا.</span>
