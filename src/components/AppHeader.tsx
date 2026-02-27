@@ -11,7 +11,6 @@ import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, 
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
