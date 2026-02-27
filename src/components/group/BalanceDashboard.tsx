@@ -52,6 +52,7 @@ interface BalanceDashboardProps {
   profiles: Record<string, { display_name?: string | null; name?: string | null }>;
   currency?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
+  hasUnconfirmedMembers?: boolean;
 }
 
 export const BalanceDashboard = ({
@@ -62,7 +63,8 @@ export const BalanceDashboard = ({
   profiles,
   currency = "ر.س",
   onSettleClick,
-  onSettlementConfirmed
+  onSettlementConfirmed,
+  hasUnconfirmedMembers = false,
 }: BalanceDashboardProps) => {
   const { t } = useTranslation('groups');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
