@@ -196,10 +196,13 @@ const Settings = () => {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const handleImageUpload = async (file: File) => {
     try {
       const newAvatarUrl = await uploadProfileImage(file);
       setProfile(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
+      queryClient.invalidateQueries({ queryKey: ['user-profile-header'] });
     } catch (error) {
       // Error is handled in the hook
     }

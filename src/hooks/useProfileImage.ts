@@ -22,8 +22,20 @@ export function useProfileImage() {
         throw new Error('حجم الملف يجب أن يكون أقل من 5 ميجابايت');
       }
 
+      // حذف الملفات القديمة
+      const { data: existingFiles } = await supabase.storage
+        .from('avatars')
+        .list(user.id);
+
+      if (existingFiles?.length) {
+        await supabase.storage
+          .from('avatars')
+          .remove(existingFiles.map(f => `${user.id}/${f.name}`));
+      }
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const timestamp = Date.now();
+      const fileName = `${user.id}/avatar_${timestamp}.${fileExt}`;
 
       // رفع الصورة
       const { error: uploadError } = await supabase.storage
@@ -39,12 +51,14 @@ export function useProfileImage() {
         .from('avatars')
         .getPublicUrl(fileName);
 
+      const versionedUrl = `${publicUrl}?v=${timestamp}`;
+
       // تحديث الملف الشخصي
       const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          avatar_url: publicUrl,
+          avatar_url: versionedUrl,
           updated_at: new Date().toISOString()
         });
 
@@ -55,7 +69,7 @@ export function useProfileImage() {
         description: "تم تحديث صورة الملف الشخصي بنجاح",
       });
 
-      return publicUrl;
+      return versionedUrl;
 
     } catch (error: any) {
       console.error('Error uploading image:', error);
