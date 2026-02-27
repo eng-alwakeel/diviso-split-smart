@@ -531,11 +531,23 @@ const GroupDetails = () => {
           />
         )}
 
-        {/* Dice Decision Suggestion - بعد بطاقة المجموعة */}
-        {!isGroupClosed && (
-          <GroupDiceSuggestion 
+        {/* Dice Decision Card - بعد بطاقة المجموعة */}
+        {!isGroupClosed && id && (
+          <GroupDiceCard
             groupId={id}
             groupType={group?.group_type}
+            members={members.map(m => ({
+              id: m.user_id,
+              name: profiles[m.user_id]?.display_name || profiles[m.user_id]?.name || m.user_id.slice(0, 4),
+            }))}
+            hasOpenDebts={balanceSummary.some(b => Number(b.total_net) !== 0)}
+            hasExpenses={expenses.length > 0}
+            onOpenAddExpense={({ groupId: gid }) => navigate(`/group/${gid}/add-expense`)}
+            onOpenSettleUp={() => setSettleOpen(true)}
+            onOpenInvite={() => setOpenInvite(true)}
+            onOpenWeeklyReport={() => setReportOpen(true)}
+            onOpenRenameGroup={({ groupId: gid }) => navigate(`/group/${gid}/settings`)}
+            onOpenBudgetSettings={({ groupId: gid }) => navigate(`/group/${gid}/settings?tab=budget`)}
           />
         )}
 
