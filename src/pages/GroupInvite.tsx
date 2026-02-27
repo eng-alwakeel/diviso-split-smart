@@ -170,18 +170,16 @@ const GroupInvite = () => {
   };
 
   const getInviteMessage = () => {
+    const inviterName = senderName || "صديقك";
     const groupNameDisplay = group?.name || "المجموعة";
-    const senderDisplay = senderName || "صديقك";
     
-    return `👋 مرحباً!
+    const title = t('invite_share.title', { name: inviterName, group: groupNameDisplay });
+    const body = t('invite_share.body');
+    const expiry = t('invite_share.expiry', { hours: 24 });
+    const cta = t('invite_share.cta');
+    const browserNote = t('invite_share.browser_note');
 
-انضم إلى مجموعة "${groupNameDisplay}"
-الدعوة من: ${senderDisplay}
-
-🔗 رابط الانضمام:
-${link}
-
-📱 حمّل تطبيق ديفيسو لتقسيم المصاريف بذكاء بين الأصدقاء والعائلة`;
+    return `${title}\n\n${body}\n\n${expiry}\n${cta}\n\n🔗 ${link}\n\n${browserNote}`;
   };
 
   const copyLink = async () => {

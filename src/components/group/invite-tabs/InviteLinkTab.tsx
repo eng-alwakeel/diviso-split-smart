@@ -128,14 +128,17 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
       ? Math.ceil((new Date(linkInfo.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60))
       : 24;
     
-    const shareTitle = `دعوة من ${senderName || 'صديقك'} للانضمام لـ "${groupName || 'المجموعة'}"`;
-    const shareText = `👋 ${senderName || 'صديقك'} يدعوك للانضمام لمجموعة "${groupName || 'المجموعة'}" على ديفيسو
+    const inviterName = senderName || 'صديقك';
+    const group = groupName || 'المجموعة';
+    
+    const shareTitle = t('invite_share.title', { name: inviterName, group });
+    const shareBody = t('invite_share.body');
+    const shareExpiry = t('invite_share.expiry', { hours: hoursLeft });
+    const shareCta = t('invite_share.cta');
+    const browserNote = t('invite_share.browser_note');
 
-⏰ الرابط صالح لمدة ${hoursLeft} ساعة
-
-📱 حمّل ديفيسو لتقسيم المصاريف بذكاء`;
-
-    const fullMessage = `${shareText}\n\n🔗 ${shareLink}`;
+    const shareText = `${shareTitle}\n\n${shareBody}\n\n${shareExpiry}\n${shareCta}`;
+    const fullMessage = `${shareText}\n\n🔗 ${shareLink}\n\n${browserNote}`;
     
     try {
       // Native platform (Capacitor)
