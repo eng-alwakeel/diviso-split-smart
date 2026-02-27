@@ -660,34 +660,55 @@ export function ProfileTab({
       </Card>
 
       {/* Founding User Section */}
-      {isFoundingUser && userNumber && (
-        <Card className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10 border border-amber-400/30 rounded-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-              {t('auth:founding_program.title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* رقم المستخدم */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{t('auth:founding_program.you_are_user')}</span>
-              <span className="text-2xl font-bold text-foreground">#{userNumber}</span>
+      {isFoundingUser && userNumber && userNumber <= 1000 && (
+        <Card className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10 border border-amber-400/30 rounded-2xl shadow-lg shadow-amber-500/5">
+          <CardContent className="p-6 space-y-5">
+            {/* Header: Crown + Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
+                <Star className="w-5 h-5 text-white fill-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {t('auth:founding_program.founding_badge')} #{userNumber}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('auth:founding_program.you_are_user')} #{userNumber}
+                </p>
+              </div>
             </div>
-            
-            {/* الشارة */}
+
+            {/* Badge */}
             <div className="flex justify-center">
               <FoundingBadge userNumber={userNumber} size="lg" />
             </div>
-            
-            {/* النقاط الشهرية */}
-            <Separator />
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-foreground">{t('auth:founding_program.monthly_credits_section')}</h4>
-              <p className="text-sm text-muted-foreground">{t('auth:founding_program.monthly_credits_desc')}</p>
+
+            {/* Benefits */}
+            <Separator className="bg-amber-400/20" />
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">{t('auth:founding_program.founding_benefits_title')}</h4>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                  {t('auth:founding_program.founding_monthly')}
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                  {t('auth:founding_program.free_enhanced')}
+                </li>
+                <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                  {t('auth:founding_program.founding_badge_permanent')}
+                </li>
+              </ul>
+            </div>
+
+            {/* Activity requirement */}
+            <div className="bg-amber-500/5 rounded-lg p-3 space-y-1">
               <p className="text-xs text-muted-foreground">{t('auth:founding_program.activity_requirement')}</p>
               {lastActiveAt && (
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
                   {t('auth:founding_program.last_activity')}: {new Date(lastActiveAt).toLocaleDateString('ar-SA')}
                 </p>
               )}
