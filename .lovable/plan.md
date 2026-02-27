@@ -1,55 +1,56 @@
 
-# Fix: Test Email Not Being Delivered
-
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# Fix Founding Program Section - Missing Translations + Premium UI
 
 ## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+The Arabic `auth.json` has only `founding_program.title` -- all other keys (`you_are_user`, `monthly_credits_section`, `monthly_credits_desc`, `activity_requirement`, `last_activity`) are missing, so raw i18n key strings render in the UI.
 
-## Fix
+## Changes
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+### 1. Add Missing Arabic Translations (`src/i18n/locales/ar/auth.json`)
 
-Add detailed logging to the test email code path:
-
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
-
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+Add the following keys inside `founding_program`:
+```json
+"you_are_user": "أنت المستخدم رقم",
+"founding_badge": "مستخدم مؤسس",
+"founding_benefits_title": "كمستخدم مؤسس، ستحصل على:",
+"founding_monthly": "50 نقطة شهرية مع تسجيل دخول واحد",
+"founding_badge_permanent": "شارتك الدائمة",
+"monthly_credits_section": "رصيدك الشهري كمستخدم مؤسس",
+"monthly_credits_desc": "تحصل على 50 نقطة شهريا طالما تحافظ على نشاطك داخل التطبيق.",
+"activity_requirement": "يشترط تسجيل نشاط مرة واحدة على الأقل شهريا للحفاظ على الامتياز.",
+"last_activity": "آخر نشاط",
+"founding_user_tooltip": "مستخدم مؤسس #{{number}}",
+"free_enhanced": "استخدام مجاني مع حدود محسّنة",
+"remaining": "{{remaining}} من {{limit}} متبقي",
+"closed": "تم إغلاق البرنامج",
+"spots_remaining": "{{remaining}} من 1000 مقعد متبقي"
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### 2. Upgrade UI to Premium Card (`src/components/settings/ProfileTab.tsx`)
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+Replace the current founding section (lines 662-697) with a premium gold card:
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+- **Header**: Crown icon + "مستخدم مؤسس #N" as main title (bold, larger)
+- **Subtitle**: "أنت من أوائل 1,000 مستخدم في Diviso"
+- **Benefits list** with sparkle/check icons:
+  - 50 نقطة مجانية شهريا
+  - أولوية في الميزات الجديدة
+  - شارة مميزة في البروفايل
+- **FoundingBadge** centered
+- **Last activity** line with clock icon
+- Gold gradient background kept (from-amber-500/10) but enhanced with slightly stronger amber border and shadow
+- Condition: only render if `isFoundingUser && userNumber && userNumber <= 1000`
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+### 3. Update English Translations (minor cleanup)
+
+The English `auth.json` already has the keys but update `you_are_user` and `monthly_credits_desc` to match the improved copy:
+- `you_are_user` -> "You are user number"  (already correct)
+- `monthly_credits_desc` -> "You receive 50 credits every month as long as you stay active." (update from "You get 50 points monthly")
+
+## Files Affected
+
+| File | Change |
+|---|---|
+| `src/i18n/locales/ar/auth.json` | Add ~12 missing `founding_program.*` keys |
+| `src/i18n/locales/en/auth.json` | Minor copy improvements to 2 existing keys |
+| `src/components/settings/ProfileTab.tsx` | Redesign founding section (lines 662-697) to premium card with benefits list |
