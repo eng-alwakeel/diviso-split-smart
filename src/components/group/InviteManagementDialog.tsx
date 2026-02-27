@@ -142,6 +142,18 @@ export const InviteManagementDialog = ({
             </Card>
           </TabsContent>
 
+          <TabsContent value="phone" className="space-y-4">
+            <Card>
+              <CardContent className="pt-4">
+                <PhoneInviteTab
+                  groupId={groupId}
+                  groupName={groupName}
+                  onInviteSent={handleInviteSent}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="link" className="space-y-4">
             <Card>
               <CardContent className="pt-4">
