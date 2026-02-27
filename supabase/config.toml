@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.lookup-user-by-phone]
 verify_jwt = false
+
+[functions.create-phone-invite]
+verify_jwt = false
