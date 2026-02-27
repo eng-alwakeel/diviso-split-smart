@@ -1152,6 +1152,7 @@ const AddExpense = () => {
                       ))}
                     </div>
                   ) : (
+                    <>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {members.map((member) => {
                         const memberStatus = (member as any).status || 'active';
@@ -1196,10 +1197,7 @@ const AddExpense = () => {
                             </div>
                           </div>
                           
-                          {/* Show input fields for all selected members or when split type requires input */}
-                          {(memberSplits.some(split => split.member_id === member.user_id) || 
-                            (splitType !== 'equal' && memberSplits.length > 0)) && 
-                           memberSplits.some(split => split.member_id === member.user_id) && (
+                          {memberSplits.some(split => split.member_id === member.user_id) && (
                             <div className="flex items-center space-x-2 space-x-reverse">
                               {splitType === 'percentage' && (
                                 <div className="flex items-center gap-2">
@@ -1287,6 +1285,7 @@ const AddExpense = () => {
                         <span>ملاحظة: بعض الأعضاء لم يكتمل انضمامهم بعد، وسيتم احتساب حصتهم تلقائيًا.</span>
                       </div>
                     )}
+                    </>
                   )}
                 </div>
 
