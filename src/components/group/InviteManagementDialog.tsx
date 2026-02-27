@@ -23,7 +23,8 @@ import {
   QrCode,
   Clock,
   XCircle,
-  Loader2
+  Loader2,
+  Phone
 } from "lucide-react";
 
 interface InviteManagementDialogProps {
