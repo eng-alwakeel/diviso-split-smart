@@ -45,6 +45,7 @@ import { useGroupData } from "@/hooks/useGroupData";
 // GroupSettingsDialog moved to dedicated page - /group/:id/settings
 import { GroupReportDialog } from "@/components/group/GroupReportDialog";
 import { GroupSettlementDialog } from "@/components/group/GroupSettlementDialog";
+import { SettlementGuardDialog } from "@/components/group/SettlementGuardDialog";
 import { EditExpenseDialog } from "@/components/group/EditExpenseDialog";
 import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
