@@ -204,8 +204,6 @@ export const InviteManagementDialog = ({
 
 // --- Inline sub-component for pending invites list ---
 
-import type { PendingGroupInvite } from "@/hooks/usePendingGroupInvites";
-
 function PendingInvitesList({
   invites,
   loading,
