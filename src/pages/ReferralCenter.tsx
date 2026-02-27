@@ -191,11 +191,11 @@ const ReferralCenter = () => {
             
             <div className="flex justify-center gap-6 text-center text-sm text-muted-foreground border-t border-border pt-4">
               <div>
-                <p className="font-semibold text-foreground">{totalReferrals}</p>
-                <p>{t('balance_card.referrals')}</p>
+                <p className="font-semibold text-foreground">{uniqueTotalReferrals}</p>
+                <p>{t('balance_card.unique_friends')}</p>
               </div>
               <div className="border-s border-border ps-6">
-                <p className="font-semibold text-foreground">{successfulReferrals}</p>
+                <p className="font-semibold text-foreground">{uniqueJoinedReferrals}</p>
                 <p>{t('balance_card.successful')}</p>
               </div>
             </div>
