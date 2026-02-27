@@ -64,10 +64,12 @@ export const useGroupInviteActions = () => {
 
   /**
    * Decline a group_invite_request via the respond_group_invite RPC
+   * Also triggers server-side rebalance of expense shares
    */
   const rejectInvite = async (notificationId: string, inviteId: string) => {
     setLoading(true);
     try {
+      // 1) Decline the invite via existing RPC
       const { data, error } = await supabase.rpc('respond_group_invite', {
         p_invite_id: inviteId,
         p_response: 'decline',
@@ -78,7 +80,40 @@ export const useGroupInviteActions = () => {
       const result = data as any;
       if (result?.error) throw new Error(result.error);
 
-      // Mark notification as read
+      // 2) Get group_id from invite to trigger rebalance
+      const { data: inviteData } = await supabase
+        .from('group_invites')
+        .select('group_id')
+        .eq('id', inviteId)
+        .single();
+
+      // 3) Trigger server-side rebalance via edge function
+      if (inviteData?.group_id) {
+        try {
+          const { data: session } = await supabase.auth.getSession();
+          const token = session.session?.access_token;
+          if (token) {
+            const resp = await fetch(
+              `https://iwthriddasxzbjddpzzf.functions.supabase.co/reject-group-invite`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ group_id: inviteData.group_id }),
+              }
+            );
+            if (!resp.ok) {
+              console.warn('[rejectInvite] Rebalance call failed:', await resp.text());
+            }
+          }
+        } catch (rebalanceErr) {
+          console.warn('[rejectInvite] Rebalance error (non-blocking):', rebalanceErr);
+        }
+      }
+
+      // 4) Mark notification as read
       await supabase
         .from('notifications')
         .update({ read_at: new Date().toISOString() })
@@ -86,7 +121,7 @@ export const useGroupInviteActions = () => {
 
       toast({
         title: t('known_people.invite_declined'),
-        description: t('known_people.invite_declined_desc'),
+        description: 'تم رفض الدعوة وتحديث المصاريف تلقائيًا.',
       });
 
       return { success: true };
