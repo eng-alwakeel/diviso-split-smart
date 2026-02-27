@@ -8,7 +8,10 @@ type GroupNotificationType =
   | "dice_posted"
   | "dice_accepted"
   | "dice_rerolled"
-  | "balance_due";
+  | "balance_due"
+  | "invite_accepted"
+  | "invite_rejected"
+  | "pending_linked";
 
 interface NotificationPayload {
   group_name: string;
