@@ -75,7 +75,7 @@ import { RatingSheet } from "@/components/group/RatingSheet";
 import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
-import { GroupDiceSuggestion } from "@/components/dice/GroupDiceSuggestion";
+import { GroupDiceCard } from "@/components/group/GroupDiceCard";
 import { Lock } from "lucide-react";
 import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
 import { GroupActivityFeed } from "@/components/group/GroupActivityFeed";
