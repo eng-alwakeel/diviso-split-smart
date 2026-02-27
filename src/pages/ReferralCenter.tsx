@@ -53,15 +53,14 @@ const ReferralCenter = () => {
 
   const { 
     totalEarnedFromReferrals,
-    totalReferrals: totalReferralsCount,
-    joinedReferrals,
+    totalReferrals: uniqueTotalReferrals,
+    joinedReferrals: uniqueJoinedReferrals,
+    inviteesProgress,
     loading: statsLoading
   } = useReferralStats();
 
   const referralLink = getReferralLink();
   const shareableLink = getShareableLink();
-  const totalReferrals = referrals.length;
-  const successfulReferrals = referrals.filter(r => r.status === 'joined').length;
 
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
