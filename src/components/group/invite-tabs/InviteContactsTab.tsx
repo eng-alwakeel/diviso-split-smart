@@ -131,12 +131,24 @@ export const InviteContactsTab = ({
   // إنشاء رسالة الدعوة
   const createInviteMessage = async () => {
     const link = await createUniqueInviteLink();
-    return `🎉 مرحباً! أدعوك للانضمام لمجموعة "${groupName}" على تطبيق Diviso لتقسيم المصاريف.
+    
+    // جلب اسم المرسل
+    let inviterName = 'صديقك';
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('profiles').select('name').eq('id', user.id).single();
+        inviterName = data?.name || 'صديقك';
+      }
+    } catch {}
 
-📱 حمّل التطبيق وانضم لنا:
-${link}
+    const title = t('invite_share.title', { name: inviterName, group: groupName || 'المجموعة' });
+    const body = t('invite_share.body');
+    const expiry = t('invite_share.expiry', { hours: 24 });
+    const cta = t('invite_share.cta');
+    const browserNote = t('invite_share.browser_note');
 
-✨ Diviso يساعدك في تتبع وتقسيم المصاريف مع الأصدقاء والعائلة بسهولة!`;
+    return `${title}\n\n${body}\n\n${expiry}\n${cta}\n\n🔗 ${link}\n\n${browserNote}`;
   };
 
   // إرسال إشعار داخلي للمستخدم المسجل

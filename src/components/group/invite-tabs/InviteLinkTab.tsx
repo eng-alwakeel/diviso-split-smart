@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Share } from "@capacitor/share";
 import { Capacitor } from "@capacitor/core";
 import { BRAND_CONFIG } from "@/lib/brandConfig";
+import { useTranslation } from "react-i18next";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
@@ -23,6 +24,7 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSent }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
+  const { t } = useTranslation(['groups']);
   const [displayLink, setDisplayLink] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,14 +128,17 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
       ? Math.ceil((new Date(linkInfo.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60))
       : 24;
     
-    const shareTitle = `دعوة من ${senderName || 'صديقك'} للانضمام لـ "${groupName || 'المجموعة'}"`;
-    const shareText = `👋 ${senderName || 'صديقك'} يدعوك للانضمام لمجموعة "${groupName || 'المجموعة'}" على ديفيسو
+    const inviterName = senderName || 'صديقك';
+    const group = groupName || 'المجموعة';
+    
+    const shareTitle = t('invite_share.title', { name: inviterName, group });
+    const shareBody = t('invite_share.body');
+    const shareExpiry = t('invite_share.expiry', { hours: hoursLeft });
+    const shareCta = t('invite_share.cta');
+    const browserNote = t('invite_share.browser_note');
 
-⏰ الرابط صالح لمدة ${hoursLeft} ساعة
-
-📱 حمّل ديفيسو لتقسيم المصاريف بذكاء`;
-
-    const fullMessage = `${shareText}\n\n🔗 ${shareLink}`;
+    const shareText = `${shareTitle}\n\n${shareBody}\n\n${shareExpiry}\n${shareCta}`;
+    const fullMessage = `${shareText}\n\n🔗 ${shareLink}\n\n${browserNote}`;
     
     try {
       // Native platform (Capacitor)

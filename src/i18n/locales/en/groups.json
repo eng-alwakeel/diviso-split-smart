@@ -197,6 +197,14 @@
     "whatsapp_message": "👋 Invitation from {{senderName}} to join \"{{groupName}}\"\n\n📱 Download Diviso for smart expense splitting\n\n🔗 {{inviteLink}}"
   },
 
+  "invite_share": {
+    "title": "👋 {{name}} added you to \"{{group}}\" on Diviso",
+    "body": "Keep expenses clear from day one 👌\nNo notebooks... no WhatsApp... everything tracked and clear for everyone 💸✨",
+    "expiry": "⏳ Link valid for {{hours}} hours",
+    "cta": "Join now and get started 👇",
+    "browser_note": "No download needed — opens directly in browser"
+  },
+
   "balance": {
     "title": "Balances",
     "you_owe": "You Owe",
