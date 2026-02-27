@@ -557,7 +557,7 @@ const GroupDetails = () => {
             hasOpenDebts={balanceSummary.some(b => Number(b.total_net) !== 0)}
             hasExpenses={expenses.length > 0}
             onOpenAddExpense={({ groupId: gid }) => navigate(`/group/${gid}/add-expense`)}
-            onOpenSettleUp={() => setSettleOpen(true)}
+            onOpenSettleUp={() => openSettlement()}
             onOpenInvite={() => setOpenInvite(true)}
             onOpenWeeklyReport={() => setReportOpen(true)}
             onOpenRenameGroup={({ groupId: gid }) => navigate(`/group/${gid}/settings`)}
