@@ -17,7 +17,6 @@ import {
   Loader2,
   CheckCircle,
   Clock,
-  Send,
   Info,
   UserCheck,
   UserPlus,
