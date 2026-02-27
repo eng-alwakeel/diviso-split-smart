@@ -78,6 +78,36 @@ export function useReferrals() {
 
       if (error) throw error;
 
+      // Filter out pre-existing users (profile created before referral)
+      const groupMemberIds: string[] = [];
+      for (const ref of (data || [])) {
+        if (ref.invitee_phone?.startsWith('group_member_')) {
+          groupMemberIds.push(ref.invitee_phone.replace('group_member_', ''));
+        }
+      }
+
+      let profileCreationMap = new Map<string, Date>();
+      if (groupMemberIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, created_at')
+          .in('id', groupMemberIds);
+
+        (profiles || []).forEach(p => {
+          profileCreationMap.set(p.id, new Date(p.created_at));
+        });
+      }
+
+      const ONE_HOUR = 60 * 60 * 1000;
+      const filteredData = (data || []).filter(ref => {
+        if (!ref.invitee_phone?.startsWith('group_member_')) return true;
+        const userId = ref.invitee_phone.replace('group_member_', '');
+        const profileDate = profileCreationMap.get(userId);
+        if (!profileDate) return true;
+        const referralDate = new Date(ref.created_at);
+        return profileDate.getTime() >= referralDate.getTime() - ONE_HOUR;
+      });
+
       // تحويل البيانات لتشمل معلومات المصدر
       const allReferrals: ReferralData[] = (data || []).map(ref => ({
         id: ref.id,
