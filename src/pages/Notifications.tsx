@@ -109,6 +109,12 @@ export default function Notifications() {
         return '🗑️';
       case 'balance_due':
         return '💸';
+      case 'invite_accepted':
+        return '✅';
+      case 'invite_rejected':
+        return '❌';
+      case 'pending_linked':
+        return '🔗';
       case 'daily_engagement':
         return '📊';
       default:
