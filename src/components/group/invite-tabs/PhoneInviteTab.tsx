@@ -262,7 +262,7 @@ export const PhoneInviteTab = ({
     string,
     { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }
   > = {
-    sent: { label: "تم الإرسال", variant: "default", icon: <CheckCircle className="w-3 h-3" /> },
+    sent: { label: "تم الإنشاء", variant: "default", icon: <CheckCircle className="w-3 h-3" /> },
     pending: { label: "قيد الانتظار", variant: "secondary", icon: <Clock className="w-3 h-3" /> },
     revoked: { label: "ملغاة", variant: "destructive", icon: <XCircle className="w-3 h-3" /> },
     expired: { label: "منتهية", variant: "outline", icon: <Clock className="w-3 h-3" /> },
