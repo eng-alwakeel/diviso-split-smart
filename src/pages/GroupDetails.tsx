@@ -871,7 +871,7 @@ const GroupDetails = () => {
                     isOwner={isOwner}
                     canAdmin={canApprove}
                     groupId={id!}
-                    onMemberRemoved={refetch}
+                    onMemberRemoved={forceRefresh}
                     planConfig={memberPlanConfig}
                     balance={memberBalance}
                     pendingAmount={memberPending}
