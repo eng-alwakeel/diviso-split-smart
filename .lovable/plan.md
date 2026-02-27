@@ -1,82 +1,55 @@
 
-# إعادة هيكلة واجهة الدعوات - إضافة تبويب "رقم جوال"
+# Fix: Test Email Not Being Delivered
 
-## ملخص التغيير
-فصل دعوة الأشخاص عبر رقم الجوال عن تبويب الرابط العام، وإضافة تبويب رابع مخصص لذلك.
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## التغييرات المطلوبة
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-### 1. إنشاء مكون جديد: `src/components/group/invite-tabs/PhoneInviteTab.tsx`
+## Fix
 
-تبويب مخصص لدعوة شخص محدد عبر الاسم ورقم الجوال:
-- حقل إدخال **اسم المدعو** (inviteeName)
-- مكون **PhoneInputWithCountry** الموجود لإدخال الرقم مع رمز الدولة
-- زر أساسي: **"إضافة وإنشاء دعوة"**
-- بعد النجاح يظهر:
-  - حقل رابط الدعوة الشخصي + زر نسخ
-  - زر **"مشاركة عبر واتساب"** (يفتح wa.me برسالة عربية مخصصة بالاسم)
-  - زر **"نسخ الرسالة"**
-  - زر **"إلغاء الدعوة"** (يستدعي revoke الموجود)
-  - Badge حالة الدعوة (active/sent/revoked/expired)
-- إذا كان الرقم مسجلا في Diviso: ملاحظة "هذا الرقم لديه حساب في Diviso -- سيتم إرسال دعوة للموافقة."
-- يستخدم `useGroupInvites.sendInvite` و `smart-invite` edge function الموجودين
-- يحتفظ بالنتيجة حتى إغلاق الـ modal
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 2. تعديل: `src/components/group/InviteManagementDialog.tsx`
+Add detailed logging to the test email code path:
 
-- تغيير grid-cols-3 الى grid-cols-4 في TabsList
-- إضافة TabsTrigger جديد باسم "رقم جوال" مع ايقونة Phone بين "أشخاص" و "رابط"
-- إضافة TabsContent value="phone" يعرض PhoneInviteTab
-- ترتيب التبويبات: أشخاص | رقم جوال | رابط | متابعة
-- تحديث reset state عند إغلاق الـ dialog
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### 3. تعديل: `src/components/group/invite-tabs/InviteLinkTab.tsx`
-
-- تغيير العنوان إلى **"رابط الدعوة العام"**
-- إزالة أي UI متعلق بإدخال اسم/هاتف (حاليا غير موجود بهذا الملف، لكن التأكد)
-- إبقاء: إنشاء رابط، نسخ، مشاركة، معلومات الصلاحية، إنشاء رابط جديد، QR
-
-### 4. تعديل: تبويب المتابعة
-
-في `InviteManagementDialog.tsx` (PendingInvitesList inline component):
-- تحديث نص الحالة الفارغة من:
-  `استخدم تبويب "أشخاص تعرفهم" لإرسال دعوات`
-  الى:
-  `استخدم تبويب "أشخاص" أو "رقم جوال" لإرسال دعوات`
-
-## تفاصيل تقنية
-
-### رسالة واتساب المخصصة
-```text
-{{inviteeName}}، تمت دعوتك من {{inviterName}} للانضمام إلى مجموعة "{{groupName}}" في Diviso لتقسيم المصاريف بسهولة.
-افتح الرابط وسجل بالطريقة التي تناسبك، ثم أكد رقم جوالك ليتم إدخالك مباشرة إلى المجموعة:
-{{inviteUrl}}
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-### منطق PhoneInviteTab
-```text
-State:
-- inviteeName (string)
-- phoneNumber (string from PhoneInputWithCountry)
-- inviteResult: { id, url, status, isRegistered } | null
-- loading (boolean)
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-Flow:
-1. User fills name + phone, clicks CTA
-2. Call smart-invite edge function (reuse existing)
-3. If success: create invite record via useGroupInvites.sendInvite
-4. Generate personalized invite link via create_group_join_token RPC
-5. Show result panel with link, share buttons, status badge
-6. Cancel button calls cancelInvite from useGroupInvites
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
 ```
 
-### لا تغييرات في Backend
-- لا تعديل على schema او edge functions
-- استخدام الـ APIs الموجودة فقط: `smart-invite`, `create_group_join_token`, `sendInvite`, `cancelInvite`
-
-## الملفات المتأثرة
-| الملف | نوع التغيير |
-|---|---|
-| `src/components/group/invite-tabs/PhoneInviteTab.tsx` | جديد |
-| `src/components/group/InviteManagementDialog.tsx` | تعديل (4 tabs + empty state text) |
-| `src/components/group/invite-tabs/InviteLinkTab.tsx` | تعديل طفيف (عنوان فقط) |
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues

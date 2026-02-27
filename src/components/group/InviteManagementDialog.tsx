@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { InviteLinkTab } from "@/components/group/invite-tabs/InviteLinkTab";
 import { KnownPeopleTab } from "@/components/group/invite-tabs/KnownPeopleTab";
+import { PhoneInviteTab } from "@/components/group/invite-tabs/PhoneInviteTab";
 import { usePendingGroupInvites, type PendingGroupInvite } from "@/hooks/usePendingGroupInvites";
 import { useGroupInviteActions } from "@/hooks/useGroupInviteActions";
 import { useTranslation } from "react-i18next";
@@ -22,7 +23,8 @@ import {
   QrCode,
   Clock,
   XCircle,
-  Loader2
+  Loader2,
+  Phone
 } from "lucide-react";
 
 interface InviteManagementDialogProps {
@@ -100,10 +102,14 @@ export const InviteManagementDialog = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 gap-1">
+          <TabsList className="grid w-full grid-cols-4 gap-1">
             <TabsTrigger value="known" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
               <UserCheck className="w-3 h-3 shrink-0" />
-              <span className="truncate">{t("known_people.tab_label")}</span>
+              <span className="truncate">أشخاص</span>
+            </TabsTrigger>
+            <TabsTrigger value="phone" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
+              <Phone className="w-3 h-3 shrink-0" />
+              <span className="truncate">رقم جوال</span>
             </TabsTrigger>
             <TabsTrigger value="link" className="flex items-center gap-1 text-[10px] sm:text-xs px-1 sm:px-2">
               <Link className="w-3 h-3 shrink-0" />
@@ -131,6 +137,18 @@ export const InviteManagementDialog = ({
                   onMemberAdded={() => {
                     handleInviteSent();
                   }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="phone" className="space-y-4">
+            <Card>
+              <CardContent className="pt-4">
+                <PhoneInviteTab
+                  groupId={groupId}
+                  groupName={groupName}
+                  onInviteSent={handleInviteSent}
                 />
               </CardContent>
             </Card>
@@ -230,9 +248,9 @@ function PendingInvitesList({
         <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
           <Clock className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="font-medium mb-2">لا توجد دعوات معلقة</h3>
+        <h3 className="font-medium mb-2">لا توجد دعوات معلّقة</h3>
         <p className="text-sm text-muted-foreground">
-          استخدم تبويب "أشخاص تعرفهم" لإرسال دعوات
+          استخدم تبويب "أشخاص" أو "رقم جوال" لإرسال دعوات
         </p>
       </div>
     );

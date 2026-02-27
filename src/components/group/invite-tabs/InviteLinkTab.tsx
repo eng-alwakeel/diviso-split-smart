@@ -201,9 +201,9 @@ export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSen
             <Share2 className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <h3 className="font-medium">شارك رابط الدعوة</h3>
+            <h3 className="font-medium">رابط الدعوة العام</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              أنشئ رابط دعوة وشاركه عبر أي تطبيق تفضله
+              أنشئ رابط دعوة عام وشاركه مع أي شخص
             </p>
           </div>
           
