@@ -4,7 +4,8 @@
   "balance_card": {
     "referrals": "إحالات",
     "successful": "ناجحة",
-    "earned": "نقاط مكتسبة"
+    "earned": "نقاط مكتسبة",
+    "unique_friends": "أصدقاء فريدين"
   },
   "points_info": {
     "title": "كيف تكسب نقاط الإحالة",
@@ -25,7 +26,13 @@
     "title": "سجل الإحالات",
     "joined": "انضم",
     "pending": "في الانتظار",
-    "more_referrals": "+{{count}} إحالات أخرى"
+    "more_referrals": "+{{count}} إحالات أخرى",
+    "points_earned": "{{points}}/30 نقطة",
+    "first_usage_done": "أول استخدام",
+    "group_settlement_done": "قروب أو تسوية",
+    "all_stages_complete": "أكمل كل المراحل ✨",
+    "waiting_first_usage": "بانتظار أول استخدام",
+    "waiting_group": "بانتظار إنشاء قروب"
   },
   "toast": {
     "copied": "تم النسخ!",
