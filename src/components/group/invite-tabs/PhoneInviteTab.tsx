@@ -351,7 +351,7 @@ export const PhoneInviteTab = ({
         )}
 
         <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={handleReset}>
-          <Send className="w-3 h-3 ml-1" />
+          <UserPlus className="w-3 h-3 ml-1" />
           إنشاء دعوة جديدة
         </Button>
       </div>
