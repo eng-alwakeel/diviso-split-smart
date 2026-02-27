@@ -207,6 +207,11 @@ export const BalanceDashboard = ({
                     معلق: {formatAmount(myPending.pending_net)}
                   </p>
                 )}
+                {hasUnconfirmedMembers && (
+                  <p className="text-[10px] mt-1 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 inline-block">
+                    يشمل أعضاء لم يكتمل انضمامهم بعد
+                  </p>
+                )}
               </div>
               <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
                 <DollarSign className="w-6 h-6 text-accent" />
