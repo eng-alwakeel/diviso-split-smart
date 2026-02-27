@@ -297,7 +297,7 @@ export const PhoneInviteTab = ({
           <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
             <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              هذا الرقم لديه حساب في Diviso — سيتم إرسال دعوة للموافقة.
+              تم إضافة العضو — بانتظار الموافقة.
             </p>
           </div>
         )}
