@@ -932,7 +932,7 @@ const GroupDetails = () => {
                     } else {
                       setPrefillTo(undefined); setPrefillAmount(undefined);
                     }
-                    setSettleOpen(true);
+                    openSettlement(prefillTo, prefillAmount);
                   }}>
                     تسوية الآن
                   </Button>
