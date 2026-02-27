@@ -918,7 +918,7 @@ const GroupDetails = () => {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">التسويات</h2>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => { setPrefillTo(undefined); setPrefillAmount(undefined); setSettleOpen(true); }}>
+                <Button variant="outline" onClick={() => openSettlement()}>
                   إضافة تسوية
                 </Button>
                 {myBalances.confirmed < 0 && (
