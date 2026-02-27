@@ -1,54 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# إصلاح: استبعاد المستخدمين المسجلين مسبقاً من الإحالات
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشكلة
-عند إضافة عضو لمجموعة، النظام ينشئ سجل إحالة (`group_invite`) تلقائياً بدون التحقق إن كان الشخص مسجلاً مسبقاً. النتيجة: **جميع** الإحالات من نوع `group_invite` حالياً هي لأشخاص مسجلين من قبل ولا يجب حسابهم كإحالات.
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## الحل (مرحلتان)
+## Fix
 
-### المرحلة 1: تصفية في `useReferralStats.ts`
-إضافة فلتر في الـ frontend يستبعد الإحالات التي كان المدعو مسجلاً قبلها:
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-- بعد جلب الإحالات، استخراج user IDs من `invitee_phone` (بصيغة `group_member_UUID`)
-- جلب `created_at` لهؤلاء المستخدمين من جدول `profiles`
-- مقارنة تاريخ إنشاء البروفايل مع تاريخ الإحالة
-- استبعاد أي إحالة يكون فيها البروفايل مُنشأ قبل الإحالة بأكثر من ساعة واحدة
+Add detailed logging to the test email code path:
 
-### المرحلة 2: منع الإنشاء من المصدر
-تحديث الكود الذي ينشئ إحالات `group_invite` (في `process-referral-signup` أو منطق المجموعات) للتحقق أولاً من تاريخ تسجيل العضو قبل إنشاء سجل الإحالة. لكن هذا تغيير في Edge Function وسنركز الآن على المرحلة 1.
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-## التفاصيل التقنية
-
-### الملف: `src/hooks/useReferralStats.ts`
-
-بعد جلب الإحالات وقبل الـ deduplication:
-
-1. جمع كل الـ user IDs من `invitee_phone` (التي تبدأ بـ `group_member_`)
-2. استعلام `profiles` لجلب `created_at` لهذه الـ IDs
-3. فلترة: استبعاد الإحالات التي `profile.created_at < referral.created_at - 1 hour`
-4. متابعة المنطق الحالي (deduplication + progress mapping)
-
-```text
-التدفق الحالي:
-  fetch referrals -> dedup -> map progress -> set stats
-
-التدفق الجديد:
-  fetch referrals -> filter pre-existing users -> dedup -> map progress -> set stats
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-### الملف: `src/hooks/useReferrals.ts`
-تطبيق نفس الفلترة لضمان تطابق الإحصائيات في كلا الـ hook.
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-## الملفات المتأثرة
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-| الملف | التغيير |
-|-------|---------|
-| `src/hooks/useReferralStats.ts` | إضافة فلتر المستخدمين المسجلين مسبقاً |
-| `src/hooks/useReferrals.ts` | نفس الفلتر لتطابق الإحصائيات |
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-## النتيجة
-- Saud Thawab وجميع المستخدمين المسجلين مسبقاً لن يظهروا في مركز الإحالة
-- فقط المستخدمون الذين سجلوا فعلاً عبر رابط الإحالة سيُحسبون
-- الإحصائيات ستعكس الأرقام الحقيقية للإحالات الناجحة
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
