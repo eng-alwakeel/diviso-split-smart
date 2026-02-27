@@ -179,9 +179,8 @@ export const MemberCard = ({
               avatarSize="md"
               badgeSize="sm"
               showAvatar={true}
-              showPlanBadge={true}
+              showPlanBadge={false}
               className="flex-1"
-              planConfig={planConfig}
             />
             
             <div className="flex items-center gap-2">

@@ -1,28 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# إزالة بادج الخطة من قائمة الأعضاء وتحسين ترتيب البادجات
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشكلة
-في `MemberCard.tsx`، يتم تمرير `showPlanBadge={true}` و `planConfig` إلى `UserDisplayWithBadges`، مما يعرض بادج FREE/PRO بجانب كل عضو في قائمة الأعضاء وهو غير مطلوب.
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## التغييرات
+## Fix
 
-### 1. `src/components/group/MemberCard.tsx`
-- تغيير `showPlanBadge={true}` إلى `showPlanBadge={false}` (سطر 182)
-- حذف تمرير `planConfig` (سطر 184) لأنه لم يعد مستخدما هنا
-- نقل بادج "أنت" وبادج الدور إلى نفس صف البادجات داخل `UserDisplayWithBadges` لتوحيد الترتيب وتقليل الفوضى البصرية
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 2. ترتيب البادجات النهائي في قائمة الأعضاء
-1. **FoundingBadge** (ذهبي، مثل #90) -- يظهر تلقائيا من `UserDisplayWithBadges`
-2. **Role badge** (مالك/مدير) -- من `getRoleBadge()`
-3. **"أنت"** badge -- إذا كان العضو هو المستخدم الحالي
+Add detailed logging to the test email code path:
 
-لا يظهر بادج الخطة (FREE/PRO) ولا بادج Admin (الإدارة العامة للتطبيق).
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### الملفات المتأثرة
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-| الملف | التغيير |
-|---|---|
-| `src/components/group/MemberCard.tsx` | `showPlanBadge={false}` وحذف `planConfig` prop |
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-تغيير بسيط في سطرين فقط. باقي المنطق (FoundingBadge، Role badge، "أنت") يعمل بالفعل بشكل صحيح.
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
+
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
