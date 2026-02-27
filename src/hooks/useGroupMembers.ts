@@ -68,6 +68,7 @@ export const useGroupMembers = (groupId: string | null) => {
       // Transform the data to match our interface
       const transformedData = (data || []).map(item => ({
         ...item,
+        status: (item.status || 'active') as MemberStatus,
         profile: item.profiles
       }));
       setMembers(transformedData);
