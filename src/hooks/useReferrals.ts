@@ -79,7 +79,7 @@ export function useReferrals() {
       if (error) throw error;
 
       // تحويل البيانات لتشمل معلومات المصدر
-      const unifiedReferrals: ReferralData[] = (data || []).map(ref => ({
+      const allReferrals: ReferralData[] = (data || []).map(ref => ({
         id: ref.id,
         invitee_name: ref.invitee_name,
         invitee_phone: ref.invitee_phone,
@@ -92,6 +92,23 @@ export function useReferrals() {
         group_name: ref.group_name
       }));
 
+      // Deduplicate by user ID (invitee_phone may be "group_member_UUID")
+      const seenUsers = new Map<string, ReferralData>();
+      for (const ref of allReferrals) {
+        const userKey = ref.invitee_phone?.startsWith('group_member_')
+          ? ref.invitee_phone.replace('group_member_', '')
+          : ref.invitee_phone;
+
+        const existing = seenUsers.get(userKey);
+        if (!existing) {
+          seenUsers.set(userKey, ref);
+        } else if (ref.status === 'joined' && existing.status !== 'joined') {
+          seenUsers.set(userKey, ref);
+        }
+      }
+
+      const unifiedReferrals = Array.from(seenUsers.values());
+
       setReferrals(unifiedReferrals);
       
       if (stats && stats.length > 0) {
@@ -99,7 +116,7 @@ export function useReferrals() {
         setTotalReferrals(stat.total_referrals);
         setSuccessfulReferrals(stat.successful_referrals);
       } else {
-        // fallback للحساب اليدوي
+        // fallback للحساب اليدوي — based on deduplicated list
         const totalCount = unifiedReferrals.length;
         const successfulCount = unifiedReferrals.filter(ref => ref.status === 'joined').length;
         setTotalReferrals(totalCount);
