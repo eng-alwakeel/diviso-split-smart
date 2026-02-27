@@ -108,13 +108,11 @@ export function useReferralStats(): ReferralStats {
 
       // Deduplicate referrals by extracting actual user ID from invitee_phone
       const seenUsers = new Map<string, typeof referrals[0]>();
-      for (const ref of (referrals || [])) {
-        // Extract user ID: invitee_phone may be "group_member_UUID" or a phone number
+      for (const ref of filteredReferrals) {
         const userKey = ref.invitee_phone?.startsWith('group_member_')
           ? ref.invitee_phone.replace('group_member_', '')
           : ref.invitee_phone;
 
-        // Keep the one with best status (joined > pending) or oldest
         const existing = seenUsers.get(userKey);
         if (!existing) {
           seenUsers.set(userKey, ref);

@@ -109,7 +109,7 @@ export function useReferrals() {
       });
 
       // تحويل البيانات لتشمل معلومات المصدر
-      const allReferrals: ReferralData[] = (data || []).map(ref => ({
+      const allReferrals: ReferralData[] = filteredData.map(ref => ({
         id: ref.id,
         invitee_name: ref.invitee_name,
         invitee_phone: ref.invitee_phone,
