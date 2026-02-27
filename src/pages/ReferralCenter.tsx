@@ -313,7 +313,7 @@ const ReferralCenter = () => {
         />
 
         {/* Referral History - Collapsible */}
-        {referrals.length > 0 && (
+        {inviteesProgress.length > 0 && (
           <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
             <Card className="shadow-card">
               <CollapsibleTrigger asChild>
@@ -322,7 +322,7 @@ const ReferralCenter = () => {
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5" />
                       {t('history.title')}
-                      <Badge variant="secondary" className="ms-2">{referrals.length}</Badge>
+                      <Badge variant="secondary" className="ms-2">{inviteesProgress.length}</Badge>
                     </div>
                     {isHistoryOpen ? (
                       <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -335,47 +335,17 @@ const ReferralCenter = () => {
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   <div className="space-y-3">
-                    {referrals.slice(0, 10).map((referral) => (
-                      <div 
-                        key={referral.id} 
-                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            referral.status === 'joined' 
-                              ? 'bg-green-100 text-green-600' 
-                              : 'bg-orange-100 text-orange-600'
-                          }`}>
-                            {referral.status === 'joined' ? (
-                              <CheckCircle className="w-4 h-4" />
-                            ) : (
-                              <Clock className="w-4 h-4" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {referral.invitee_name || referral.invitee_phone}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(referral.created_at)}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge 
-                          variant={referral.status === 'joined' ? 'secondary' : 'outline'}
-                          className={referral.status === 'joined' 
-                            ? 'bg-green-100 text-green-700 border-green-200' 
-                            : 'border-orange-300 text-orange-600'
-                          }
-                        >
-                          {referral.status === 'joined' ? t('history.joined') : t('history.pending')}
-                        </Badge>
-                      </div>
+                    {inviteesProgress.slice(0, 10).map((invitee) => (
+                      <ReferralHistoryItem
+                        key={invitee.id}
+                        referral={invitee}
+                        formatDate={formatDate}
+                      />
                     ))}
                     
-                    {referrals.length > 10 && (
+                    {inviteesProgress.length > 10 && (
                       <p className="text-center text-sm text-muted-foreground pt-2">
-                        {t('history.more_referrals', { count: referrals.length - 10 })}
+                        {t('history.more_referrals', { count: inviteesProgress.length - 10 })}
                       </p>
                     )}
                   </div>
