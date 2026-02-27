@@ -17,7 +17,6 @@ import {
   Loader2,
   CheckCircle,
   Clock,
-  Send,
   Info,
   UserCheck,
   UserPlus,
@@ -190,10 +189,7 @@ export const PhoneInviteTab = ({
         return;
       }
 
-      // Show warning toast if notification failed but invite was created
-      if (data.warning === "NOTIFY_FAILED") {
-        toast.warning("تم إنشاء الدعوة، لكن تعذر إرسال الإشعار. يمكنك مشاركة الرابط يدويًا.");
-      } else if (data.idempotent) {
+      if (data.idempotent) {
         toast.info(data.message || "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.");
       } else {
         toast.success("تم إنشاء الدعوة بنجاح!");
@@ -265,7 +261,7 @@ export const PhoneInviteTab = ({
     string,
     { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }
   > = {
-    sent: { label: "تم الإرسال", variant: "default", icon: <CheckCircle className="w-3 h-3" /> },
+    sent: { label: "تم الإنشاء", variant: "default", icon: <CheckCircle className="w-3 h-3" /> },
     pending: { label: "قيد الانتظار", variant: "secondary", icon: <Clock className="w-3 h-3" /> },
     revoked: { label: "ملغاة", variant: "destructive", icon: <XCircle className="w-3 h-3" /> },
     expired: { label: "منتهية", variant: "outline", icon: <Clock className="w-3 h-3" /> },
@@ -300,7 +296,7 @@ export const PhoneInviteTab = ({
           <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
             <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              هذا الرقم لديه حساب في Diviso — سيتم إرسال دعوة للموافقة.
+              تم إضافة العضو — بانتظار الموافقة.
             </p>
           </div>
         )}
@@ -354,7 +350,7 @@ export const PhoneInviteTab = ({
         )}
 
         <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={handleReset}>
-          <Send className="w-3 h-3 ml-1" />
+          <UserPlus className="w-3 h-3 ml-1" />
           إنشاء دعوة جديدة
         </Button>
       </div>
@@ -479,9 +475,9 @@ export const PhoneInviteTab = ({
         ) : isFoundUser ? (
           <UserCheck className="w-4 h-4 ml-2" />
         ) : (
-          <Send className="w-4 h-4 ml-2" />
+          <UserPlus className="w-4 h-4 ml-2" />
         )}
-        {isFoundUser ? "دعوة هذا الشخص" : "إضافة وإنشاء دعوة"}
+        إضافة وإنشاء دعوة
       </Button>
     </div>
   );
