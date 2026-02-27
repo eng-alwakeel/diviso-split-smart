@@ -953,9 +953,7 @@ const GroupDetails = () => {
                 currency={currencyLabel}
                 hasUnconfirmedMembers={members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending')}
                 onSettleClick={(toUserId, amount) => {
-                  setPrefillTo(toUserId);
-                  setPrefillAmount(amount);
-                  setSettleOpen(true);
+                  openSettlement(toUserId, amount);
                 }}
                 onSettlementConfirmed={refetch}
               />
