@@ -1,80 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# Fix: Avatar not updating after upload
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
 ## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-The avatar filename is always `{userId}/avatar.{ext}` (line 26 of `useProfileImage.ts`). Since the URL never changes after re-upload, the browser serves the cached old image. Additionally, `AppHeader` loads the profile once via `useEffect` with no refetch mechanism, so even if the URL did change, the header wouldn't update.
+## Fix
 
-## Changes
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 1. `src/hooks/useProfileImage.ts` -- Unique filename + cache busting
+Add detailed logging to the test email code path:
 
-- Change filename from `avatar.{ext}` to `avatar_{timestamp}.{ext}` so each upload produces a new URL
-- Before uploading, delete old avatar files in the user's folder (list + remove)
-- Return the new URL with a `?v={timestamp}` query param for extra cache safety
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### 2. `src/pages/Settings.tsx` -- Trigger header refresh after upload
-
-- After `handleImageUpload` succeeds and sets local profile state, invalidate the `user-profile-header` query so AppHeader refetches
-
-### 3. `src/components/AppHeader.tsx` -- Use React Query instead of one-time useEffect
-
-- Replace the `useEffect` + `useState` pattern with a `useQuery` keyed as `['user-profile-header']`
-- This allows invalidation from Settings to trigger an immediate refetch in the header
-- Append `?v={updated_at}` to the avatar URL when rendering
-
-### 4. `src/components/settings/ProfileTab.tsx` -- Cache-bust rendered avatar
-
-- Append `?v={Date.now()}` to `profile.avatarUrl` in the Avatar component so it always shows the freshest version after upload
-
-## Technical Details
-
-### useProfileImage.ts changes
-```text
-// Before upload: remove old files
-const { data: existingFiles } = await supabase.storage.from('avatars').list(user.id);
-if (existingFiles?.length) {
-  await supabase.storage.from('avatars').remove(existingFiles.map(f => `${user.id}/${f.name}`));
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
 }
-
-// New unique filename
-const fileName = `${user.id}/avatar_${Date.now()}.${fileExt}`;
-
-// Return with cache buster
-return `${publicUrl}?v=${Date.now()}`;
 ```
 
-### AppHeader.tsx changes
-```text
-// Replace useEffect+useState with useQuery
-const { data: userProfile } = useQuery({
-  queryKey: ['user-profile-header'],
-  queryFn: async () => { /* fetch from profiles table */ },
-  staleTime: 2 * 60 * 1000,
-});
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-// In render: append ?v= to avatar_url
-src={`${userProfile?.avatar_url}?v=${userProfile?.updated_at || ''}`}
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
 ```
 
-### Settings.tsx changes
-```text
-const queryClient = useQueryClient();
-
-const handleImageUpload = async (file: File) => {
-  const newAvatarUrl = await uploadProfileImage(file);
-  setProfile(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
-  queryClient.invalidateQueries({ queryKey: ['user-profile-header'] });
-};
-```
-
-## Files affected
-
-| File | Change |
-|---|---|
-| `src/hooks/useProfileImage.ts` | Unique filename + cleanup old files + cache bust |
-| `src/pages/Settings.tsx` | Invalidate header query after upload |
-| `src/components/AppHeader.tsx` | useQuery instead of useEffect for profile |
-| `src/components/settings/ProfileTab.tsx` | Minor: cache-bust avatar src |
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues

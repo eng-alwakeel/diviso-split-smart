@@ -11,7 +11,6 @@ import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, 
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
@@ -43,35 +42,31 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
   const { toast } = useToast();
   const { t } = useTranslation('common');
   const { currentLanguage, changeLanguage } = useLanguage();
-  const [userProfile, setUserProfile] = useState<{ name?: string; avatar_url?: string; email?: string } | null>(null);
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile-header'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('name, display_name, avatar_url, updated_at')
+        .eq('id', user.id)
+        .single();
+      return {
+        name: profileData?.name || profileData?.display_name || user.email?.split('@')[0],
+        avatar_url: profileData?.avatar_url,
+        email: user.email,
+        updated_at: profileData?.updated_at,
+      };
+    },
+    enabled: !minimal,
+    staleTime: 2 * 60 * 1000,
+  });
 
   const handleLanguageSwitch = () => {
     changeLanguage(currentLanguage === 'ar' ? 'en' : 'ar');
   };
-
-  useEffect(() => {
-    if (minimal) return; // Skip profile loading in minimal mode
-    
-    const loadUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('name, display_name, avatar_url')
-          .eq('id', user.id)
-          .single();
-        
-        setUserProfile({
-          name: profileData?.name || profileData?.display_name || user.email?.split('@')[0],
-          avatar_url: profileData?.avatar_url,
-          email: user.email
-        });
-      }
-    };
-    
-    loadUserProfile();
-  }, [minimal]);
 
   const handleLogout = async () => {
     try {

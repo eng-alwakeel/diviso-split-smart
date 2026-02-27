@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
@@ -195,10 +196,13 @@ const Settings = () => {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const handleImageUpload = async (file: File) => {
     try {
       const newAvatarUrl = await uploadProfileImage(file);
       setProfile(prev => ({ ...prev, avatarUrl: newAvatarUrl }));
+      queryClient.invalidateQueries({ queryKey: ['user-profile-header'] });
     } catch (error) {
       // Error is handled in the hook
     }
