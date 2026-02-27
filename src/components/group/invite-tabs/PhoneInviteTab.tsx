@@ -190,10 +190,7 @@ export const PhoneInviteTab = ({
         return;
       }
 
-      // Show warning toast if notification failed but invite was created
-      if (data.warning === "NOTIFY_FAILED") {
-        toast.warning("تم إنشاء الدعوة، لكن تعذر إرسال الإشعار. يمكنك مشاركة الرابط يدويًا.");
-      } else if (data.idempotent) {
+      if (data.idempotent) {
         toast.info(data.message || "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.");
       } else {
         toast.success("تم إنشاء الدعوة بنجاح!");
