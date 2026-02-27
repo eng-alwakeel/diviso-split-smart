@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useProfileImage } from "@/hooks/useProfileImage";
 import { useCurrencies } from "@/hooks/useCurrencies";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { CurrencySelector } from "@/components/ui/currency-selector";
 import { supabase } from "@/integrations/supabase/client";
