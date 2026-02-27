@@ -248,9 +248,9 @@ function PendingInvitesList({
         <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
           <Clock className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="font-medium mb-2">لا توجد دعوات معلقة</h3>
+        <h3 className="font-medium mb-2">لا توجد دعوات معلّقة</h3>
         <p className="text-sm text-muted-foreground">
-          استخدم تبويب "أشخاص تعرفهم" لإرسال دعوات
+          استخدم تبويب "أشخاص" أو "رقم جوال" لإرسال دعوات
         </p>
       </div>
     );
