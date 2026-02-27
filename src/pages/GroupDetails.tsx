@@ -149,7 +149,7 @@ const GroupDetails = () => {
     }
   }, [rawId, navigate, toast]);
 
-  const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch } = useGroupData(id);
+  const { loading, error, group, members, profiles, expenses, balances, pendingAmounts, balanceSummary, settlements, totals, refetch, forceRefresh } = useGroupData(id);
   const isGroupClosed = group?.status === 'closed';
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
@@ -871,7 +871,7 @@ const GroupDetails = () => {
                     isOwner={isOwner}
                     canAdmin={canApprove}
                     groupId={id!}
-                    onMemberRemoved={refetch}
+                    onMemberRemoved={forceRefresh}
                     planConfig={memberPlanConfig}
                     balance={memberBalance}
                     pendingAmount={memberPending}

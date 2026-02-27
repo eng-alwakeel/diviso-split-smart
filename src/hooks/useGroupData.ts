@@ -303,6 +303,19 @@ export const useGroupData = (groupId?: string) => {
     realtimeInitializedRef.current = true;
     console.log("[useGroupData] Setting up realtime listeners for group:", groupId);
 
+    const membersChannel = supabase
+      .channel(`group_members_${groupId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'group_members', filter: `group_id=eq.${groupId}` },
+        (payload) => {
+          console.log("[useGroupData] Members change:", payload);
+          cache.clear();
+          load();
+        }
+      )
+      .subscribe();
+
     const expensesChannel = supabase
       .channel(`expenses_${groupId}`)
       .on(
@@ -350,6 +363,7 @@ export const useGroupData = (groupId?: string) => {
     return () => {
       console.log("[useGroupData] Cleaning up realtime listeners");
       realtimeInitializedRef.current = false;
+      supabase.removeChannel(membersChannel);
       supabase.removeChannel(expensesChannel);
       supabase.removeChannel(settlementsChannel);
       supabase.removeChannel(splitsChannel);
