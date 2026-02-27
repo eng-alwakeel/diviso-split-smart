@@ -23,6 +23,10 @@ function normalizePhone(raw: string): string {
   return cleaned;
 }
 
+function isValidE164(phone: string): boolean {
+  return /^\+\d{8,15}$/.test(phone);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,272 +59,215 @@ Deno.serve(async (req) => {
     }
 
     const phoneE164 = normalizePhone(phone_raw);
+    if (!isValidE164(phoneE164)) {
+      return json({ ok: false, reason: "INVALID_PHONE" }, 400);
+    }
 
-    // ── Service client for cross-user operations ──
+    // ── Service client ──
     const svc = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // ── Verify caller is admin/owner of the group ──
+    // ── Verify caller is admin/owner ──
     const { data: membership } = await svc
       .from("group_members")
       .select("role")
       .eq("group_id", group_id)
       .eq("user_id", callerId)
-      .in("status", ["active"])
+      .eq("status", "active")
+      .is("archived_at", null)
       .maybeSingle();
 
     if (!membership || !["owner", "admin"].includes(membership.role)) {
       return json({ ok: false, reason: "not_admin" }, 403);
     }
 
-    // ── Check existing invites for idempotency ──
-    const { data: existingInvite } = await svc
-      .from("invites")
-      .select("id, status, invite_token")
+    // ── Check existing group_members by phone ──
+    const { data: existingMember } = await svc
+      .from("group_members")
+      .select("id, status, user_id, phone_e164")
       .eq("group_id", group_id)
-      .eq("phone_or_email", phoneE164)
-      .in("status", ["pending", "sent"])
+      .eq("phone_e164", phoneE164)
+      .is("archived_at", null)
       .maybeSingle();
 
-    // Also check with raw phone (in case stored differently)
-    let existingInviteResult = existingInvite;
-    if (!existingInviteResult && phoneE164 !== phone_raw) {
-      const { data: altInvite } = await svc
-        .from("invites")
-        .select("id, status, invite_token")
-        .eq("group_id", group_id)
-        .eq("phone_or_email", phone_raw)
-        .in("status", ["pending", "sent"])
-        .maybeSingle();
-      existingInviteResult = altInvite;
+    if (existingMember) {
+      if (existingMember.status === "active") {
+        return json({ ok: false, reason: "already_active_member" });
+      }
+
+      // Idempotent: invited or pending — find/create token and return
+      const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
+      return json({
+        ok: true,
+        idempotent: true,
+        member_id: existingMember.id,
+        member_status: existingMember.status,
+        invite_url: inviteUrl,
+        is_registered: !!existingMember.user_id,
+        message: "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.",
+      });
     }
 
-    // ── Lookup user by phone ──
+    // ── Also check by user_id if phone belongs to registered user ──
     const { data: profile } = await svc
       .from("profiles")
       .select("id, name, avatar_url")
       .eq("phone", phoneE164)
       .maybeSingle();
 
-    const isRegistered = !!profile;
-
-    // ── Check if already an active member ──
+    // Check if registered user is already a member by user_id
     if (profile) {
-      const { data: existingMember } = await svc
+      const { data: memberByUserId } = await svc
         .from("group_members")
-        .select("status")
+        .select("id, status")
         .eq("group_id", group_id)
         .eq("user_id", profile.id)
-        .in("status", ["active", "invited"])
+        .is("archived_at", null)
         .maybeSingle();
 
-      if (existingMember?.status === "active") {
-        return json({ ok: false, reason: "already_active_member" });
-      }
-
-      if (existingMember?.status === "invited") {
-        // Find existing invite token
-        const { data: existingToken } = await svc
-          .from("group_join_tokens")
-          .select("token, expires_at")
-          .eq("group_id", group_id)
-          .eq("link_type", "phone_invite")
-          .gt("expires_at", new Date().toISOString())
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        const inviteUrl = existingToken?.token
-          ? `https://diviso.app/i/${existingToken.token}`
-          : null;
-
+      if (memberByUserId) {
+        if (memberByUserId.status === "active") {
+          return json({ ok: false, reason: "already_active_member" });
+        }
+        const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
         return json({
           ok: true,
           idempotent: true,
+          member_id: memberByUserId.id,
+          member_status: memberByUserId.status,
           invite_url: inviteUrl,
-          member_status: "invited",
           is_registered: true,
           message: "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.",
         });
       }
     }
 
-    // ── Idempotent: return existing pending invite ──
-    if (existingInviteResult) {
-      // Find or create token for existing invite
-      const { data: existingToken } = await svc
-        .from("group_join_tokens")
-        .select("token, expires_at")
-        .eq("group_id", group_id)
-        .eq("link_type", "phone_invite")
-        .gt("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      let inviteUrl: string | null = null;
-      if (existingToken?.token) {
-        inviteUrl = `https://diviso.app/i/${existingToken.token}`;
-      } else {
-        // Create new token
-        const { data: newTokenData } = await svc.rpc("create_group_join_token", {
-          p_group_id: group_id,
-          p_role: "member",
-          p_link_type: "phone_invite",
-        });
-        const tokenObj = Array.isArray(newTokenData) ? newTokenData[0] : newTokenData;
-        const tk = typeof tokenObj === "object" && tokenObj !== null
-          ? (tokenObj as { token?: string }).token
-          : String(tokenObj);
-        if (tk) inviteUrl = `https://diviso.app/i/${tk}`;
-      }
-
-      return json({
-        ok: true,
-        idempotent: true,
-        invite_id: existingInviteResult.id,
-        invite_url: inviteUrl,
-        member_status: existingInviteResult.status,
-        is_registered: isRegistered,
-        message: "هذا الرقم موجود بالفعل — تم عرض رابط الدعوة الحالي.",
-      });
-    }
-
-    // ── Create invite record ──
-    let inviteId: string | null = null;
+    // ── Create new member ──
+    const isRegistered = !!profile;
+    let memberId: string;
     let memberStatus: string;
-    let warning: string | null = null;
 
     if (isRegistered && profile) {
-      // Registered user → use group_invites table + send_group_invite RPC
+      // Registered user → status='invited', user_id set
       memberStatus = "invited";
-
-      try {
-        const { data: rpcResult, error: rpcErr } = await svc.rpc("send_group_invite", {
-          p_group_id: group_id,
-          p_invited_user_id: profile.id,
-        });
-        if (rpcErr) {
-          console.error("send_group_invite RPC error:", rpcErr);
-          // Fallback: manually insert into group_invites
-          const { data: manualInvite, error: manualErr } = await svc
-            .from("group_invites")
-            .insert({
-              group_id: group_id,
-              invited_user_id: profile.id,
-              invited_by_user_id: callerId,
-              status: "pending",
-            })
-            .select("id")
-            .single();
-
-          if (manualErr) {
-            console.error("Manual group_invites insert error:", manualErr);
-            return json({ ok: false, reason: "db_error", detail: manualErr.message }, 500);
-          }
-          inviteId = manualInvite?.id || null;
-          warning = "NOTIFY_FAILED";
-        }
-      } catch (err) {
-        console.error("send_group_invite exception:", err);
-        warning = "NOTIFY_FAILED";
-      }
-    } else {
-      // Unregistered user → use invites table
-      memberStatus = "pending";
-
-      const { data: inviteData, error: inviteErr } = await svc
-        .from("invites")
+      const { data: newMember, error: memberErr } = await svc
+        .from("group_members")
         .insert({
-          group_id: group_id,
-          phone_or_email: phoneE164,
-          invited_role: "member",
-          created_by: callerId,
-          status: "sent",
-          invite_source: "phone_invite",
+          group_id,
+          user_id: profile.id,
+          phone_e164: phoneE164,
+          display_name: profile.name || invitee_name || "عضو",
+          role: "member",
+          status: "invited",
         })
         .select("id")
         .single();
 
-      if (inviteErr) {
-        console.error("Invite insert error:", inviteErr);
-        return json({ ok: false, reason: "db_error", detail: inviteErr.message }, 500);
+      if (memberErr) {
+        console.error("group_members insert error (registered):", memberErr);
+        return json({ ok: false, reason: "db_error", detail: memberErr.message }, 500);
       }
-      inviteId = inviteData?.id || null;
+      memberId = newMember.id;
+    } else {
+      // Unregistered user → status='pending', require name
+      if (!invitee_name?.trim()) {
+        return json({ ok: false, reason: "NAME_REQUIRED" }, 400);
+      }
+      memberStatus = "pending";
+      const { data: newMember, error: memberErr } = await svc
+        .from("group_members")
+        .insert({
+          group_id,
+          user_id: null,
+          phone_e164: phoneE164,
+          display_name: invitee_name.trim(),
+          role: "member",
+          status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (memberErr) {
+        console.error("group_members insert error (unregistered):", memberErr);
+        return json({ ok: false, reason: "db_error", detail: memberErr.message }, 500);
+      }
+      memberId = newMember.id;
+    }
+
+    // ── Insert into invites table for tracking ──
+    try {
+      await svc.from("invites").insert({
+        group_id,
+        phone_or_email: phoneE164,
+        invited_role: "member",
+        created_by: callerId,
+        status: "sent",
+        invite_source: "phone_invite",
+      });
+    } catch (inviteErr) {
+      // Non-blocking: invites table insert is for tracking only
+      console.error("invites tracking insert error (non-blocking):", inviteErr);
     }
 
     // ── Create join token ──
-    let inviteUrl: string | null = null;
-    try {
-      const { data: tokenData, error: tokenErr } = await svc.rpc("create_group_join_token", {
-        p_group_id: group_id,
-        p_role: "member",
-        p_link_type: "phone_invite",
-      });
-
-      if (tokenErr) {
-        console.error("Token creation error:", tokenErr);
-      } else {
-        const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
-        const tk = typeof tokenObj === "object" && tokenObj !== null
-          ? (tokenObj as { token?: string }).token
-          : String(tokenObj);
-        if (tk) inviteUrl = `https://diviso.app/i/${tk}`;
-      }
-    } catch (err) {
-      console.error("Token creation exception:", err);
-    }
-
-    // ── Best-effort notification (never blocks response) ──
-    try {
-      if (!isRegistered) {
-        // Try smart invite for unregistered users
-        const notifyUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/smart-invite`;
-        const callerProfile = await svc
-          .from("profiles")
-          .select("name")
-          .eq("id", callerId)
-          .single();
-
-        const groupData = await svc
-          .from("groups")
-          .select("name")
-          .eq("id", group_id)
-          .single();
-
-        fetch(notifyUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-          },
-          body: JSON.stringify({
-            groupId: group_id,
-            phoneNumber: phoneE164,
-            groupName: groupData?.data?.name || "المجموعة",
-            senderName: callerProfile?.data?.name || "صديقك",
-          }),
-        }).catch((e) => {
-          console.error("Best-effort smart-invite failed:", e);
-        });
-      }
-    } catch (notifyErr) {
-      console.error("Notification attempt error:", notifyErr);
-      if (!warning) warning = "NOTIFY_FAILED";
-    }
+    const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
 
     return json({
       ok: true,
-      invite_id: inviteId,
-      invite_url: inviteUrl,
+      member_id: memberId,
       member_status: memberStatus,
+      invite_url: inviteUrl,
       is_registered: isRegistered,
-      ...(warning ? { warning } : {}),
     });
   } catch (err) {
     console.error("create-phone-invite error:", err);
     return json({ ok: false, reason: "internal_error" }, 500);
   }
 });
+
+/** Create or reuse an active group_join_token and return the invite URL */
+async function getOrCreateInviteUrl(
+  svc: ReturnType<typeof createClient>,
+  groupId: string
+): Promise<string | null> {
+  // Check for existing active token
+  const { data: existingToken } = await svc
+    .from("group_join_tokens")
+    .select("token, expires_at")
+    .eq("group_id", groupId)
+    .eq("link_type", "phone_invite")
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingToken?.token) {
+    return `https://diviso.app/i/${existingToken.token}`;
+  }
+
+  // Create new token
+  try {
+    const { data: tokenData, error: tokenErr } = await svc.rpc("create_group_join_token", {
+      p_group_id: groupId,
+      p_role: "member",
+      p_link_type: "phone_invite",
+    });
+
+    if (tokenErr) {
+      console.error("Token creation error:", tokenErr);
+      return null;
+    }
+
+    const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
+    const tk =
+      typeof tokenObj === "object" && tokenObj !== null
+        ? (tokenObj as { token?: string }).token
+        : String(tokenObj);
+    return tk ? `https://diviso.app/i/${tk}` : null;
+  } catch (err) {
+    console.error("Token creation exception:", err);
+    return null;
+  }
+}

@@ -476,9 +476,9 @@ export const PhoneInviteTab = ({
         ) : isFoundUser ? (
           <UserCheck className="w-4 h-4 ml-2" />
         ) : (
-          <Send className="w-4 h-4 ml-2" />
+          <UserPlus className="w-4 h-4 ml-2" />
         )}
-        {isFoundUser ? "دعوة هذا الشخص" : "إضافة وإنشاء دعوة"}
+        إضافة وإنشاء دعوة
       </Button>
     </div>
   );
