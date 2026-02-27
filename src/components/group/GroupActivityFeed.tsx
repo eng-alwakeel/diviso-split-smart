@@ -1,7 +1,7 @@
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Receipt, HandCoins, UserPlus, Activity } from 'lucide-react';
+import { Receipt, HandCoins, UserPlus, Activity, UserMinus, UserCheck, Link2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface GroupActivityFeedProps {
@@ -12,6 +12,9 @@ const EVENT_ICONS: Record<string, typeof Receipt> = {
   expense_added: Receipt,
   settlement_made: HandCoins,
   member_joined: UserPlus,
+  invite_accepted: UserCheck,
+  invite_rejected: UserMinus,
+  pending_linked: Link2,
 };
 
 function getRelativeTime(dateStr: string, t: (k: string, opts?: any) => string): string {
