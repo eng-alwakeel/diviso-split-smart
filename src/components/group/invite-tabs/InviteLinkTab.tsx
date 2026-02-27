@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Share } from "@capacitor/share";
 import { Capacitor } from "@capacitor/core";
 import { BRAND_CONFIG } from "@/lib/brandConfig";
+import { useTranslation } from "react-i18next";
 
 interface InviteLinkTabProps {
   groupId: string | undefined;
