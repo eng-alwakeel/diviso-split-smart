@@ -24,6 +24,7 @@ const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}
 export const InviteLinkTab = ({ groupId, groupName, onLinkGenerated, onInviteSent }: InviteLinkTabProps) => {
   const { toast } = useToast();
   const { handleQuotaError } = useQuotaHandler();
+  const { t } = useTranslation(['groups']);
   const [displayLink, setDisplayLink] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [loading, setLoading] = useState(false);
