@@ -167,7 +167,7 @@ const MyExpenses = () => {
           )}
 
           {/* Expenses List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {loading && expenses.length === 0 ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
