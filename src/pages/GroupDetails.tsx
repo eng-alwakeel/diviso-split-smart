@@ -365,7 +365,7 @@ const GroupDetails = () => {
     }
   };
 
-  const nameOf = (uid: string) => (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`);
+  const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
 
   // Note: Real-time listener is handled by useGroupData hook to avoid duplicate channels
 
