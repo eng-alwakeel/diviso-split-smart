@@ -51,6 +51,7 @@ import { RejectExpenseDialog } from "@/components/group/RejectExpenseDialog";
 import { ExpenseDetailsDialog } from "@/components/group/ExpenseDetailsDialog";
 import { BalanceDashboard } from "@/components/group/BalanceDashboard";
 import { MemberCard } from "@/components/group/MemberCard";
+import { PendingMemberCard } from "@/components/group/PendingMemberCard";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useMemberSubscriptions } from "@/hooks/useMemberSubscriptions";
