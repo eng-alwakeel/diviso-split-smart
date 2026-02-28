@@ -345,9 +345,10 @@ const AddExpense = () => {
 
     // Auto-select all members for non-equal splits if none are selected
     if ((splitType === 'percentage' || splitType === 'custom') && memberSplits.length === 0) {
-      const allMembers = members.map(member => ({
-        member_id: member.user_id,
-        share_amount: splitType === 'percentage' ? 100 / members.length : 0
+      const registered = members.filter(m => m.user_id != null);
+      const allMembers = registered.map(member => ({
+        member_id: member.user_id!,
+        share_amount: splitType === 'percentage' ? 100 / registered.length : 0
       }));
       setMemberSplits(allMembers);
       return;
@@ -1148,16 +1149,16 @@ const AddExpense = () => {
                         size="sm"
                         className="text-xs h-7"
                         onClick={() => {
-                          const allNonArchived = members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at);
-                          const allSelected = allNonArchived.every(m => memberSplits.some(sp => sp.member_id === m.user_id));
+                          const eligible = members.filter(m => m.user_id != null && (m as any).status !== 'rejected' && !(m as any).archived_at);
+                          const allSelected = eligible.every(m => memberSplits.some(sp => sp.member_id === m.user_id));
                           if (allSelected) {
                             setMemberSplits([]);
                           } else {
-                            setMemberSplits(allNonArchived.map(m => ({ member_id: m.user_id, share_amount: 0 })));
+                            setMemberSplits(eligible.map(m => ({ member_id: m.user_id!, share_amount: 0 })));
                           }
                         }}
                       >
-                        {members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at).every(m => memberSplits.some(sp => sp.member_id === m.user_id))
+                        {members.filter(m => m.user_id != null && (m as any).status !== 'rejected' && !(m as any).archived_at).every(m => memberSplits.some(sp => sp.member_id === m.user_id))
                           ? 'إلغاء تحديد الكل'
                           : 'تحديد الكل'}
                       </Button>
@@ -1177,7 +1178,7 @@ const AddExpense = () => {
                   ) : (
                     <>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {members.map((member) => {
+                      {members.filter(m => m.user_id != null).map((member) => {
                         const memberStatus = (member as any).status || 'active';
                         return (
                         <div key={member.user_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">

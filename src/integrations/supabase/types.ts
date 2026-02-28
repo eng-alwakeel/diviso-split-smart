@@ -6492,6 +6492,7 @@ export type Database = {
         Args: { p_balance_notification_id: string }
         Returns: boolean
       }
+      merge_duplicate_members: { Args: { p_group_id: string }; Returns: number }
       process_daily_checkin: {
         Args: { p_reward_type: string; p_reward_value: Json; p_user_id: string }
         Returns: Json

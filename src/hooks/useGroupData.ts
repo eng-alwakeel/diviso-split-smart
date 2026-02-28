@@ -14,9 +14,13 @@ type GroupRow = {
 };
 
 type MemberRow = {
+  id: string;
   user_id: string | null;
   role: "owner" | "admin" | "member";
   can_approve_expenses: boolean;
+  status: string | null;
+  phone_e164: string | null;
+  archived_at: string | null;
   profile?: ProfileRow | null;
 };
 
@@ -158,8 +162,9 @@ export const useGroupData = (groupId?: string) => {
         // 2) الأعضاء
         supabase
           .from("group_members")
-          .select("user_id, role, can_approve_expenses")
-          .eq("group_id", groupId),
+          .select("id, user_id, role, can_approve_expenses, status, phone_e164, archived_at")
+          .eq("group_id", groupId)
+          .is("archived_at", null),
         
         // 3) المصاريف مع أسباب الرفض (مع limit للأداء)
         supabase

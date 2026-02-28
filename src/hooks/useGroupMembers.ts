@@ -6,7 +6,7 @@ export type MemberStatus = 'active' | 'invited' | 'pending' | 'rejected';
 
 interface GroupMember {
   id: string;
-  user_id: string;
+  user_id: string | null;
   role: 'owner' | 'admin' | 'member';
   can_approve_expenses: boolean;
   joined_at: string;
@@ -89,16 +89,28 @@ export const useGroupMembers = (groupId: string | null) => {
   }, [groupId]);
 
   const getMemberDisplayName = (member: GroupMember) => {
-    if (!member.profile) return 'مستخدم';
-    return member.profile.display_name || member.profile.name || 'مستخدم';
+    if (!member.profile) return member.phone_e164 || 'مستخدم';
+    return member.profile.display_name || member.profile.name || member.phone_e164 || 'مستخدم';
   };
 
   const getApprovers = () => {
     return members.filter(member => 
-      member.role === 'admin' || 
-      member.role === 'owner' || 
-      member.can_approve_expenses
+      member.user_id != null && (
+        member.role === 'admin' || 
+        member.role === 'owner' || 
+        member.can_approve_expenses
+      )
     );
+  };
+
+  // Only members with user_id (registered users) — for expense splits
+  const getRegisteredMembers = () => {
+    return members.filter((m): m is GroupMember & { user_id: string } => m.user_id != null);
+  };
+
+  // Pending/invited members without user_id
+  const getPendingMembers = () => {
+    return members.filter(m => m.user_id == null || m.status === 'pending' || m.status === 'invited');
   };
 
   return {
@@ -107,5 +119,7 @@ export const useGroupMembers = (groupId: string | null) => {
     refetch: fetchMembers,
     getMemberDisplayName,
     getApprovers,
+    getRegisteredMembers,
+    getPendingMembers,
   };
 };
