@@ -107,27 +107,38 @@ export function GroupDiceCard({
     ? "رمية واحدة… وتتحول لفعل داخل Diviso"
     : "One roll… turns into action inside Diviso";
 
+  // Current dice type label
+  const currentTypeLabel = useMemo(() => {
+    const t = allowedTypes.find(at => at.id === activeType);
+    return t ? (isRTL ? t.name_ar : t.name_en) : "";
+  }, [allowedTypes, activeType, isRTL]);
+
   return (
     <div
       dir={isRTL ? "rtl" : "ltr"}
       className={cn(
-        "rounded-2xl p-4 border border-border/10",
+        "rounded-2xl p-3 border border-border/10",
         className
       )}
       style={{ background: "#2D302F", color: "#F3F4F6" }}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-base font-extrabold">{title}</h3>
-          <p className="text-[13px] opacity-90 mt-1">{subtitle}</p>
+          <h3 className="text-sm font-extrabold leading-tight">{title}</h3>
+          <p className="text-[11px] opacity-75 mt-0.5">{subtitle}</p>
+          {currentTypeLabel && (
+            <p className="text-[11px] opacity-60 mt-0.5">
+              🎯 {isRTL ? "نرد:" : "Dice:"} {currentTypeLabel}
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowTypePicker((v) => !v)}
-          className="shrink-0 rounded-full px-2.5 py-1.5 text-xs border border-white/20 hover:border-white/40 transition-colors bg-transparent"
+          className="shrink-0 rounded-full px-2 py-1 text-[10px] border border-white/20 hover:border-white/40 transition-colors bg-transparent"
           style={{ color: "#F3F4F6" }}
         >
-          {isRTL ? "تغيير النوع" : "Change type"}
+          {isRTL ? "تغيير" : "Change"}
         </button>
       </div>
 
