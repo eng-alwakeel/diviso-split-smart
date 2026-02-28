@@ -14,7 +14,7 @@ type GroupRow = {
 };
 
 type MemberRow = {
-  user_id: string;
+  user_id: string | null;
   role: "owner" | "admin" | "member";
   can_approve_expenses: boolean;
   profile?: ProfileRow | null;
@@ -205,7 +205,7 @@ export const useGroupData = (groupId?: string) => {
       setMembers(memberRows);
 
       // Get profiles for members
-      const ids = Array.from(new Set(memberRows.map((m) => m.user_id).filter(Boolean)));
+      const ids = Array.from(new Set(memberRows.map((m) => m.user_id).filter((id): id is string => !!id)));
       let profilesMap: Record<string, ProfileRow> = {};
       if (ids.length) {
         const { data: profs, error: profErr } = await supabase

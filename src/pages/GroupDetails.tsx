@@ -167,7 +167,7 @@ const GroupDetails = () => {
   const isGroupClosed = group?.status === 'closed';
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
-  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id));
+  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id).filter(Boolean));
   
   // Budget hooks
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
@@ -365,7 +365,7 @@ const GroupDetails = () => {
     }
   };
 
-  const nameOf = (uid: string) => (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`);
+  const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
 
   // Note: Real-time listener is handled by useGroupData hook to avoid duplicate channels
 
@@ -550,7 +550,7 @@ const GroupDetails = () => {
           <GroupDiceCard
             groupId={id}
             groupType={group?.group_type}
-            members={members.map(m => ({
+            members={members.filter(m => m.user_id).map(m => ({
               id: m.user_id,
               name: profiles[m.user_id]?.display_name || profiles[m.user_id]?.name || m.user_id.slice(0, 4),
             }))}
