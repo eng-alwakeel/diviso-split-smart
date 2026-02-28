@@ -54,9 +54,9 @@ export const useNotifications = (includeArchived = false) => {
         });
       case 'new_message':
         return t('descriptions.new_message', { 
-          name: payload.sender_name, 
-          content: payload.content, 
-          group: payload.group_name 
+          name: payload?.sender_name ?? 'مستخدم', 
+          content: payload?.content ?? payload?.message_preview ?? '', 
+          group: payload?.group_name ?? '' 
         });
       case 'group_invite':
       case 'group_invite_request':
