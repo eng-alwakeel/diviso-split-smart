@@ -14,9 +14,13 @@ type GroupRow = {
 };
 
 type MemberRow = {
+  id: string;
   user_id: string | null;
   role: "owner" | "admin" | "member";
   can_approve_expenses: boolean;
+  status: string | null;
+  phone_e164: string | null;
+  archived_at: string | null;
   profile?: ProfileRow | null;
 };
 
