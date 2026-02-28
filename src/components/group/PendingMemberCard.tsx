@@ -23,9 +23,9 @@ interface PendingMemberCardProps {
     id: string;
     user_id: string | null;
     role: string;
-    status: string;
+    status: string | null;
     phone_e164: string | null;
-    profile: {
+    profile?: {
       display_name: string | null;
       name: string | null;
       avatar_url: string | null;
