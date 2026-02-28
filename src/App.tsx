@@ -36,6 +36,7 @@ const LazyGroupInvite = withLazyLoading(lazy(() => import("./pages/GroupInvite")
 const LazyFinancialPlan = withLazyLoading(lazy(() => import("./pages/FinancialPlan")));
 const LazyCreateUnifiedBudget = withLazyLoading(lazy(() => import("./pages/CreateUnifiedBudget")));
 const LazyMyExpenses = withLazyLoading(lazy(() => import("./pages/MyExpenses")));
+const LazyBalanceDrilldown = withLazyLoading(lazy(() => import("./pages/BalanceDrilldown")));
 const LazyMyGroups = withLazyLoading(lazy(() => import("./pages/MyGroups")));
 const LazySettings = withLazyLoading(lazy(() => import("./pages/Settings")));
 const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingProtected")));
