@@ -36,6 +36,7 @@ const LazyGroupInvite = withLazyLoading(lazy(() => import("./pages/GroupInvite")
 const LazyFinancialPlan = withLazyLoading(lazy(() => import("./pages/FinancialPlan")));
 const LazyCreateUnifiedBudget = withLazyLoading(lazy(() => import("./pages/CreateUnifiedBudget")));
 const LazyMyExpenses = withLazyLoading(lazy(() => import("./pages/MyExpenses")));
+const LazyBalanceDrilldown = withLazyLoading(lazy(() => import("./pages/BalanceDrilldown")));
 const LazyMyGroups = withLazyLoading(lazy(() => import("./pages/MyGroups")));
 const LazySettings = withLazyLoading(lazy(() => import("./pages/Settings")));
 const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingProtected")));
@@ -160,6 +161,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/group/:id/settings" element={<ProtectedRoute><PageErrorBoundary><LazyGroupSettings /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-expenses/:type" element={<ProtectedRoute><PageErrorBoundary><LazyBalanceDrilldown /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/financial-plan" element={<ProtectedRoute><PageErrorBoundary><LazyFinancialPlan /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-unified-budget" element={<ProtectedRoute><PageErrorBoundary><LazyCreateUnifiedBudget /></PageErrorBoundary></ProtectedRoute>} />

@@ -225,5 +225,15 @@
     "remaining": "المتبقي:",
     "used_times": "استُخدمت {{count}} مرة",
     "suggested_based_on": "مقترحة بناءً على نوع المجموعة"
+  },
+  "drilldown": {
+    "receivables_title": "لك عند الآخرين",
+    "payables_title": "عليك للآخرين",
+    "receivables_desc": "المجموعات التي لك فيها مبالغ",
+    "payables_desc": "المجموعات التي عليك فيها مبالغ",
+    "open_group": "فتح المجموعة",
+    "no_receivables": "لا يوجد مبالغ لك حالياً",
+    "no_payables": "لا يوجد مبالغ عليك حالياً",
+    "back": "العودة"
   }
 }
