@@ -345,9 +345,10 @@ const AddExpense = () => {
 
     // Auto-select all members for non-equal splits if none are selected
     if ((splitType === 'percentage' || splitType === 'custom') && memberSplits.length === 0) {
-      const allMembers = members.map(member => ({
-        member_id: member.user_id,
-        share_amount: splitType === 'percentage' ? 100 / members.length : 0
+      const registered = members.filter(m => m.user_id != null);
+      const allMembers = registered.map(member => ({
+        member_id: member.user_id!,
+        share_amount: splitType === 'percentage' ? 100 / registered.length : 0
       }));
       setMemberSplits(allMembers);
       return;
