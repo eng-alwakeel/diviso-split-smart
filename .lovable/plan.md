@@ -1,55 +1,59 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# إصلاح مشكلة تكرار الفئات (111 فئة بدل ~70)
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## المشكلة
+في قاعدة البيانات **116 فئة**، لكن الأسماء الفريدة فقط **70**. يعني **46 فئة مكررة**!
 
-## Fix
+مثال على التكرار:
+- "مصاريف متنوعة" = **13 نسخة**
+- "طوارئ" = **12 نسخة**
+- "أساسيات" = **5 نسخ**
+- "المواصلات" = **5 نسخ**
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+## السبب الجذري
+يوجد **4 أماكن** في الكود تُنشئ فئات بدون التحقق من وجودها مسبقاً:
 
-Add detailed logging to the test email code path:
+1. **`useCategories.ts`** → `insertCategory()` — يدخل مباشرة بدون أي تحقق
+2. **`useBudgetFromAI.ts`** → يدخل فئة جديدة إذا `is_new_category` بدون تحقق
+3. **`useAIGroupSuggestions.ts`** → نفس المشكلة عند إنشاء فئات من اقتراحات AI
+4. **`CreateUnifiedBudget.tsx`** → فيه تحقق (`maybeSingle`) لكن يبحث بالاسم فقط بدون فلتر المستخدم
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+بالإضافة إلى ذلك:
+- `fetchCategories()` في `useCategories.ts` يجلب **كل** الفئات بدون فلتر — فكل مستخدم يرى فئات كل المستخدمين الآخرين
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+## خطة الإصلاح
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### المرحلة 1 — تنظيف قاعدة البيانات (حذف المكرر)
+- كتابة SQL لحذف الفئات المكررة مع الحفاظ على أقدم نسخة من كل اسم
+- تحديث أي `expenses.category_id` أو `budget_categories.category_id` يشير للنسخ المحذوفة ليشير للنسخة الأصلية
+- النتيجة: من 116 فئة إلى ~70 فئة
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### المرحلة 2 — منع التكرار مستقبلاً في الكود
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+**ملف `useCategories.ts`:**
+- تعديل `insertCategory` للتحقق من وجود فئة بنفس الاسم قبل الإدخال
+- إذا موجودة يرجع الموجودة بدل إنشاء جديدة
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+**ملف `useBudgetFromAI.ts`:**
+- إضافة بحث بالاسم قبل `insert` حتى لو `is_new_category = true`
+
+**ملف `useAIGroupSuggestions.ts`:**
+- نفس المنطق: بحث بالاسم أولاً، وإذا موجودة يستخدم الموجودة
+
+**ملف `CreateUnifiedBudget.tsx`:**
+- الملف فيه تحقق بالفعل لكن بدون `created_by` filter — يُبقى كما هو (صحيح)
+
+### المرحلة 3 — فلترة العرض
+**ملف `useCategories.ts`:**
+- تعديل `fetchCategories` لعرض الفئات الافتراضية (`created_by IS NULL`) + فئات المستخدم الحالي فقط
+- أو الاحتفاظ بعرض الكل لكن مع إزالة المكرر بالاسم (deduplicate)
+
+### المرحلة 4 — إضافة قيد في قاعدة البيانات
+- إضافة unique constraint على `(name_ar)` في جدول `categories` لمنع التكرار نهائياً على مستوى قاعدة البيانات
+
+## التأثير المتوقع
+- الفئات تنخفض من 116 إلى ~70
+- لن يظهر "أساسيات" 5 مرات في القائمة
+- أي إضافة مستقبلية ستتحقق أولاً قبل الإنشاء
+
