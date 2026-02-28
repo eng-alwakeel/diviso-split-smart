@@ -423,7 +423,7 @@ const GroupDetails = () => {
         onOpenChange={setOpenInvite} 
         groupId={id} 
         groupName={group?.name}
-        existingMembers={members.map(m => m.user_id).filter(Boolean)}
+        existingMembers={registeredMembers.map(m => m.user_id)}
       />
       {/* GroupSettingsDialog moved to /group/:id/settings page */}
 
