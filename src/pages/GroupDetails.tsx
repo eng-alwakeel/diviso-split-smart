@@ -551,7 +551,7 @@ const GroupDetails = () => {
           <GroupDiceCard
             groupId={id}
             groupType={group?.group_type}
-            members={members.filter(m => m.user_id).map(m => ({
+            members={registeredMembers.map(m => ({
               id: m.user_id,
               name: profiles[m.user_id]?.display_name || profiles[m.user_id]?.name || m.user_id.slice(0, 4),
             }))}
