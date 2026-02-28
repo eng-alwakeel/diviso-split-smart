@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, Receipt, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Receipt, Users, ChevronLeft } from "lucide-react";
 import { ExpenseStats as StatsType } from "@/hooks/useMyExpenses";
 
 interface ExpenseStatsProps {
@@ -9,20 +10,35 @@ interface ExpenseStatsProps {
 }
 
 export const ExpenseStats = ({ stats, currency = 'SAR' }: ExpenseStatsProps) => {
-  const { t } = useTranslation('expenses');
+  const { t, i18n } = useTranslation('expenses');
+  const navigate = useNavigate();
+  const isRTL = i18n.dir() === 'rtl';
   const netPositive = stats.total_net > 0;
   const netNegative = stats.total_net < 0;
 
   const approvalRate = stats.total_count > 0 ? ((stats.total_count - stats.rejected_count) / stats.total_count * 100) : 0;
 
+  const handleNetBalanceClick = () => {
+    if (netPositive) navigate('/my-expenses/receivables');
+    else if (netNegative) navigate('/my-expenses/payables');
+  };
+
   return (
     <div className="grid grid-cols-2 gap-3">
-      {/* Net Balance */}
-      <Card className={`border-s-4 ${netPositive ? 'border-s-success' : netNegative ? 'border-s-destructive' : 'border-s-muted-foreground'}`}>
+      {/* Net Balance — Clickable */}
+      <Card
+        className={`border-s-4 ${netPositive ? 'border-s-success' : netNegative ? 'border-s-destructive' : 'border-s-muted-foreground'} ${(netPositive || netNegative) ? 'cursor-pointer hover:bg-accent/50 active:scale-[0.98] transition-all' : ''}`}
+        onClick={handleNetBalanceClick}
+      >
         <CardContent className="p-3">
-          <div className="flex items-center gap-1 mb-1">
-            {netPositive ? <TrendingUp className="h-3.5 w-3.5 text-success" /> : netNegative ? <TrendingDown className="h-3.5 w-3.5 text-destructive" /> : <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />}
-            <span className="text-[11px] text-muted-foreground">{t('stats.net_balance')}</span>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1">
+              {netPositive ? <TrendingUp className="h-3.5 w-3.5 text-success" /> : netNegative ? <TrendingDown className="h-3.5 w-3.5 text-destructive" /> : <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />}
+              <span className="text-[11px] text-muted-foreground">{t('stats.net_balance')}</span>
+            </div>
+            {(netPositive || netNegative) && (
+              <ChevronLeft className={`h-3.5 w-3.5 text-muted-foreground ${!isRTL ? 'rotate-180' : ''}`} />
+            )}
           </div>
           <p className={`text-2xl font-black ${netPositive ? 'text-success' : netNegative ? 'text-destructive' : 'text-muted-foreground'}`}>
             {netPositive ? '+' : ''}{stats.total_net.toLocaleString()}

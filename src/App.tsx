@@ -161,6 +161,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/group/:id/settings" element={<ProtectedRoute><PageErrorBoundary><LazyGroupSettings /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/add-expense" element={<ProtectedRoute><PageErrorBoundary><LazyAddExpense /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-expenses" element={<ProtectedRoute><PageErrorBoundary><LazyMyExpenses /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/my-expenses/:type" element={<ProtectedRoute><PageErrorBoundary><LazyBalanceDrilldown /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/my-groups" element={<ProtectedRoute><PageErrorBoundary><LazyMyGroups /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/financial-plan" element={<ProtectedRoute><PageErrorBoundary><LazyFinancialPlan /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-unified-budget" element={<ProtectedRoute><PageErrorBoundary><LazyCreateUnifiedBudget /></PageErrorBoundary></ProtectedRoute>} />
