@@ -1,55 +1,39 @@
 
-# Fix: Test Email Not Being Delivered
+# إصلاح أخطاء الدوال في قاعدة البيانات (مشكلة عامة عند المستخدمين)
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+## المشكلة
+يوجد 3 أخطاء في دوال SQL تمنع عمل التطبيق بشكل صحيح لجميع المستخدمين:
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+### الخطأ 1: `function is_group_member(uuid) does not exist`
+الدوال `get_balance_summary` و `get_pending_amounts` معرّفة بـ `SET search_path TO ''` (فارغ)، فعند استدعائها لـ `is_group_member()` لا تجدها لأنها في schema `public`.
 
-## Fix
+### الخطأ 2: `column bt.status does not exist`
+الدالة `check_budget_alerts` تستدعي `get_group_budget_tracking_v2` وتستخدم أعمدة غير موجودة في نتائجها:
+- `bt.status` (الصحيح: يجب حسابه من `percentage_used`)
+- `bt.budgeted_amount` (الصحيح: `allocated_amount`)
+- `bt.spent_percentage` (الصحيح: `percentage_used`)
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+## خطة الإصلاح
 
-Add detailed logging to the test email code path:
+### Migration واحد يعالج الثلاثة:
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+**1. إعادة إنشاء `get_balance_summary`:**
+- تغيير `SET search_path TO ''` إلى `SET search_path TO 'public'`
+- أو تأهيل الاستدعاء: `public.is_group_member(p_group_id)`
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+**2. إعادة إنشاء `get_pending_amounts`:**
+- نفس الإصلاح: تصحيح `search_path`
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+**3. إعادة إنشاء `check_budget_alerts`:**
+- تصحيح `search_path` من `''` إلى `'public'`
+- تصحيح أسماء الأعمدة:
+  - `bt.status` -> حساب الحالة من `bt.percentage_used` (warning > 80%, critical > 95%, exceeded > 100%)
+  - `bt.budgeted_amount` -> `bt.allocated_amount`
+  - `bt.spent_percentage` -> `bt.percentage_used`
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+## الملفات المتأثرة
+- Migration SQL جديد فقط (لا تغيير في كود الفرونتند)
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
-
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+## التأثير المتوقع
+- اختفاء جميع الأخطاء التي تظهر عند المستخدمين
+- عمل صفحات المجموعة والأرصدة والميزانية بشكل صحيح
