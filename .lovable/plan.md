@@ -1,46 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-## اصلاح نهائي لتدفق دعوة الجوال
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-### السبب الجذري الحالي
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-الـ Edge Function `create-phone-invite` ترجع **401 Unauthorized** لأن `anonClient.auth.getClaims(token)` تفشل. هذه الدالة إما غير متوفرة أو تتصرف بشكل مختلف في بيئة Deno. الحل المعتمد في Supabase هو استخدام `auth.getUser()`.
+## Fix
 
-من سجلات Edge Logs:
-```
-POST | 401 | create-phone-invite
-```
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### الخطة
+Add detailed logging to the test email code path:
 
-#### 1. إصلاح Edge Function: `create-phone-invite/index.ts`
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-استبدال authentication من `getClaims` إلى `getUser`:
-
+**Before (lines 96-105):**
 ```typescript
-// قبل (يفشل):
-const { data: claimsData, error: claimsErr } = await anonClient.auth.getClaims(token);
-const callerId = claimsData.claims.sub;
-
-// بعد (يعمل):
-const { data: { user }, error: userErr } = await anonClient.auth.getUser(token);
-const callerId = user.id;
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-باقي المنطق يبقى كما هو - الـ member creation وtoken generation صحيحة.
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-#### 2. لا تغييرات أخرى مطلوبة
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-- الـ triggers تم إصلاحها سابقاً (تتعامل مع `user_id = NULL`)
-- الـ schema صحيح (`display_name` موجود، `user_id` nullable)
-- الـ UI (`PhoneInviteTab.tsx`) صحيحة ولا تحتاج تعديل
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-### الملفات المتأثرة
-
-| ملف | تغيير |
-|---|---|
-| `supabase/functions/create-phone-invite/index.ts` | استبدال `getClaims` بـ `getUser` |
-
-### لماذا سينجح؟
-
-السبب مؤكد 100% من سجلات Edge Function: الدالة ترجع 401 قبل أي عملية DB. بعد استبدال `getClaims` بـ `getUser` (المعتمدة رسمياً) سيمر الـ auth وتعمل باقي العمليات بشكل طبيعي.
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
