@@ -260,11 +260,16 @@ export const GroupSettlementDialog = ({
                       <SelectValue placeholder="اختر العضو المستلم" />
                     </SelectTrigger>
                     <SelectContent>
-                      {members.filter(m => m.user_id !== currentUserId).map(m => (
-                        <SelectItem key={m.user_id} value={m.user_id}>
-                          {formatName(m.user_id, profiles)}
-                        </SelectItem>
-                      ))}
+                      {members
+                        .filter((m) => !!m.user_id && m.user_id !== currentUserId)
+                        .map((m) => {
+                          const uid = m.user_id!;
+                          return (
+                            <SelectItem key={uid} value={uid}>
+                              {formatName(uid, profiles)}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
