@@ -68,26 +68,40 @@ export const useAIGroupSuggestions = () => {
 
     for (const suggestion of suggestions) {
       if (suggestion.is_new_category) {
-        // Create new category
-        const { data: newCategory, error } = await supabase
+        // Check if category already exists before creating
+        const { data: existingCat } = await supabase
           .from('categories')
-          .insert([{ 
-            name_ar: suggestion.category_name, 
-            created_by: user.id 
-          }])
           .select('id, name_ar')
-          .single();
+          .eq('name_ar', suggestion.category_name)
+          .maybeSingle();
 
-        if (error) {
-          console.error('Error creating category:', error);
-          continue;
+        if (existingCat) {
+          categoriesWithAmounts.push({
+            id: existingCat.id,
+            name_ar: existingCat.name_ar,
+            amount: suggestion.suggested_amount
+          });
+        } else {
+          const { data: newCategory, error } = await supabase
+            .from('categories')
+            .insert([{ 
+              name_ar: suggestion.category_name, 
+              created_by: user.id 
+            }])
+            .select('id, name_ar')
+            .single();
+
+          if (error) {
+            console.error('Error creating category:', error);
+            continue;
+          }
+
+          categoriesWithAmounts.push({
+            id: newCategory.id,
+            name_ar: newCategory.name_ar,
+            amount: suggestion.suggested_amount
+          });
         }
-
-        categoriesWithAmounts.push({
-          id: newCategory.id,
-          name_ar: newCategory.name_ar,
-          amount: suggestion.suggested_amount
-        });
       } else if (suggestion.category_id) {
         // Use existing category
         categoriesWithAmounts.push({
