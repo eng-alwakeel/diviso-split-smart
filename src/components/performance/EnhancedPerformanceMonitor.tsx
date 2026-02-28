@@ -126,8 +126,8 @@ export const EnhancedPerformanceMonitor = () => {
       }
     };
 
-    // Log comprehensive metrics periodically (development only)
-    const metricsInterval = setInterval(() => {
+    // Send GA4 metrics once after page stabilizes (10s), then stop
+    const metricsTimeout = setTimeout(() => {
       monitorMemory();
       
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -137,42 +137,14 @@ export const EnhancedPerformanceMonitor = () => {
         sendMetricToGA4('TTFB', ttfb);
       }
 
-      // Send CLS after page has stabilized (after 5 seconds)
-      if (metricsRef.current.cls !== undefined && !sentToGA4Ref.current.has('CLS')) {
+      if (metricsRef.current.cls !== undefined) {
         sendMetricToGA4('CLS', metricsRef.current.cls);
       }
 
-      // Send INP after page interactions stabilize
-      if (metricsRef.current.inp !== undefined && !sentToGA4Ref.current.has('INP')) {
+      if (metricsRef.current.inp !== undefined) {
         sendMetricToGA4('INP', metricsRef.current.inp);
       }
-
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        const hasMetrics = Object.values(metricsRef.current).some(value => value && value > 0);
-        if (hasMetrics) {
-          console.group('📊 Performance Dashboard');
-          console.table({
-            'First Contentful Paint': metricsRef.current.fcp ? `${Math.round(metricsRef.current.fcp)}ms` : 'N/A',
-            'Largest Contentful Paint': metricsRef.current.lcp ? `${Math.round(metricsRef.current.lcp)}ms` : 'N/A',
-            'Cumulative Layout Shift': metricsRef.current.cls ? metricsRef.current.cls.toFixed(3) : 'N/A',
-            'First Input Delay': metricsRef.current.fid ? `${Math.round(metricsRef.current.fid)}ms` : 'N/A',
-            'Interaction to Next Paint': metricsRef.current.inp ? `${Math.round(metricsRef.current.inp)}ms` : 'N/A',
-            'Time to First Byte': metricsRef.current.ttfb ? `${Math.round(metricsRef.current.ttfb)}ms` : 'N/A',
-            'Memory Usage': metricsRef.current.memoryUsage ? `${Math.round(metricsRef.current.memoryUsage)}MB` : 'N/A',
-          });
-          console.groupEnd();
-          
-          // Performance scoring
-          const score = calculatePerformanceScore(metricsRef.current);
-          if (score < 70) {
-            console.warn(`⚠️ Performance Score: ${score}/100 - Consider optimizations`);
-          } else if (score >= 90) {
-            console.log(`✅ Excellent Performance Score: ${score}/100`);
-          }
-        }
-      }
-    }, 10000); // Every 10 seconds
+    }, 10000);
 
     observersRef.current = observers;
 
