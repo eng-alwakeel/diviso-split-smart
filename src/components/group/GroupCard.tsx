@@ -229,7 +229,7 @@ function CompactCard({
   );
 }
 
-// ─── Expanded Card ─────────────────────────────────────────────
+// ─── Expanded Card (V2 Compact) ────────────────────────────────
 function ExpandedCard({
   group,
   currentUserId,
@@ -252,155 +252,92 @@ function ExpandedCard({
   const isClosed = group.status === "closed";
 
   return (
-    <div className="relative rounded-3xl border border-border/50 bg-gradient-card shadow-elevated p-6 md:p-8 backdrop-blur overflow-visible md:overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        {/* Info section */}
-        <div className="flex items-center gap-4 min-w-0">
-          <Avatar className="w-10 h-10 md:w-14 md:h-14">
-            <AvatarFallback className="bg-primary/10 text-primary text-xl md:text-2xl font-bold">
-              {(group.name || "م").slice(0, 1)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg md:text-2xl font-extrabold break-words">
-                {group.name ?? "..."}
-              </h1>
-              {groupTypeLabel && (
-                <Badge variant="outline" className="text-xs">
-                  {groupTypeLabel}
-                </Badge>
-              )}
-              <StatusBadge status={group.status} />
-              <RoleBadge role={role} />
-            </div>
-            <div className="flex items-center gap-2 mt-2 text-[11px] md:text-sm text-muted-foreground flex-wrap">
-              <span>
-                {memberCount ?? 0}{" "}
-                {(memberCount ?? 0) === 1
-                  ? t("groups:stats.member")
-                  : t("groups:stats.members")}
-              </span>
-              <span className="opacity-40">•</span>
-              <span>
-                {(totalExpenses ?? 0).toLocaleString()} {currencyLabel}
-              </span>
-            </div>
+    <div className="relative rounded-2xl border border-border/50 bg-gradient-card shadow-card p-4 backdrop-blur">
+      {/* Top row: name + badges */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg font-extrabold break-words leading-tight">
+            {group.name ?? "..."}
+          </h1>
+          <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+            <StatusBadge status={group.status} />
+            <RoleBadge role={role} />
+            {groupTypeLabel && (
+              <Badge variant="outline" className="text-[10px]">
+                {groupTypeLabel}
+              </Badge>
+            )}
           </div>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            {memberCount ?? 0} {(memberCount ?? 0) === 1 ? t("groups:stats.member") : t("groups:stats.members")}
+            <span className="opacity-40 mx-1">·</span>
+            {(totalExpenses ?? 0).toLocaleString()} {currencyLabel}
+          </p>
         </div>
 
-        {/* Actions */}
-        <div className="grid grid-cols-3 gap-2 w-full md:w-auto md:flex">
-          <Button
-            className="w-full md:w-auto text-xs md:text-sm"
-            variant="outline"
-            size="sm"
-            onClick={onOpenReport}
-            disabled={isLoading || !group}
-          >
-            <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-            {t("groups:card.report")}
-          </Button>
-
-          {!isClosed ? (
-            <div className="w-full md:w-auto">
-              <Button
-                variant="hero"
-                size="icon"
-                className="w-10 h-10 md:hidden mx-auto"
-                onClick={onAddExpense}
-              >
-                <Plus className="w-4 h-4" />
-                <span className="sr-only">{t("groups:card.add_expense")}</span>
-              </Button>
-              <Button
-                variant="hero"
-                size="sm"
-                className="hidden md:inline-flex text-xs md:text-sm"
-                onClick={onAddExpense}
-              >
-                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                {t("groups:card.add_expense")}
-              </Button>
-            </div>
-          ) : (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="w-full md:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full md:w-auto text-xs md:text-sm opacity-50"
-                      disabled
-                    >
-                      <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-                      {t("groups:card.add_expense")}
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("groups:card.closed_no_expense")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          {/* Close group — admin/owner only, active groups */}
-          {isAdmin && !isClosed && (
-            <Button
-              className="w-full md:w-auto text-xs md:text-sm"
-              variant="outline"
-              size="sm"
-              onClick={onCloseGroup}
-            >
-              <Lock className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-              {t("groups:card.close_group")}
+        {/* Overflow menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+              <MoreVertical className="w-4 h-4" />
             </Button>
-          )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="z-50 min-w-[10rem] bg-popover border border-border shadow-lg">
+            <DropdownMenuItem onClick={onOpenSettings} className="cursor-pointer">
+              <Settings className="h-4 w-4 me-2" />
+              {t("groups:details.settings")}
+            </DropdownMenuItem>
+            {isAdmin && !isClosed && (
+              <DropdownMenuItem onClick={onCloseGroup} className="cursor-pointer">
+                <Lock className="h-4 w-4 me-2" />
+                {t("groups:card.close_group")}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            {isOwner ? (
+              <DropdownMenuItem onClick={onDeleteGroup} className="cursor-pointer text-destructive focus:text-destructive">
+                <Trash2 className="h-4 w-4 me-2" />
+                {t("groups:card.delete")}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onLeaveGroup} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4 me-2" />
+                {t("groups:card.leave")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
+      {/* Action buttons row */}
+      <div className="flex gap-2 mt-3">
+        {!isClosed ? (
           <Button
-            className="w-full md:w-auto text-xs md:text-sm"
-            variant="outline"
+            variant="hero"
             size="sm"
-            onClick={onOpenSettings}
+            className="flex-1 text-xs font-bold"
+            onClick={onAddExpense}
+            disabled={isLoading}
           >
-            <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2" />
-            {t("groups:details.settings")}
+            <Plus className="w-3.5 h-3.5 me-1" />
+            {t("groups:card.add_expense")}
           </Button>
-
-          {/* Dangerous actions in dropdown only */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full md:w-auto text-xs md:text-sm"
-              >
-                <MoreVertical className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="z-50 min-w-[8rem] bg-popover border border-border shadow-lg">
-              {isOwner ? (
-                <DropdownMenuItem
-                  onClick={onDeleteGroup}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 me-2" />
-                  {t("groups:card.delete")}
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={onLeaveGroup}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="h-4 w-4 me-2" />
-                  {t("groups:card.leave")}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        ) : (
+          <Button variant="outline" size="sm" className="flex-1 text-xs opacity-50" disabled>
+            <Plus className="w-3.5 h-3.5 me-1" />
+            {t("groups:card.add_expense")}
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs"
+          onClick={onOpenReport}
+          disabled={isLoading || !group}
+        >
+          <FileText className="w-3.5 h-3.5 me-1" />
+          {t("groups:card.report")}
+        </Button>
       </div>
     </div>
   );

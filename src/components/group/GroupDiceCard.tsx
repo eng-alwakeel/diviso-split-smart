@@ -172,11 +172,11 @@ export function GroupDiceCard({
       )}
 
       {/* Roll button */}
-      <div className="mt-3">
+      <div className="mt-2">
         <Button
           onClick={handleRoll}
           disabled={busy}
-          className="w-full rounded-xl text-sm font-black h-11"
+          className="w-full rounded-xl text-sm font-black h-10"
           style={{
             background: "#C8F169",
             color: "#1A1C1E",
@@ -188,6 +188,13 @@ export function GroupDiceCard({
             : isRTL ? "🎲 ارم النرد" : "🎲 Roll"}
         </Button>
       </div>
+
+      {/* Last outcome summary (when no current outcome showing) */}
+      {!outcome && forcedType === null && (
+        <p className="text-[10px] opacity-50 mt-1.5 text-center">
+          {isRTL ? "ارمِ النرد واتخذ قرارك!" : "Roll and decide!"}
+        </p>
+      )}
 
       {/* Outcome */}
       {outcome && (
