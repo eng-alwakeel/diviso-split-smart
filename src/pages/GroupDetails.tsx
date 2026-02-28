@@ -649,13 +649,13 @@ const GroupDetails = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="expenses">المصاريف</TabsTrigger>
-            <TabsTrigger value="members">الأعضاء</TabsTrigger>
-            <TabsTrigger value="settlements">التسويات</TabsTrigger>
-            <TabsTrigger value="budget">الميزانية</TabsTrigger>
-            <TabsTrigger value="chat">الدردشة</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-5 bg-muted/60">
+            <TabsTrigger value="expenses" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">المصاريف</TabsTrigger>
+            <TabsTrigger value="members" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">الأعضاء</TabsTrigger>
+            <TabsTrigger value="settlements" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">التسويات</TabsTrigger>
+            <TabsTrigger value="budget" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">الميزانية</TabsTrigger>
+            <TabsTrigger value="chat" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">الدردشة</TabsTrigger>
           </TabsList>
 
           {/* Expenses Tab */}
