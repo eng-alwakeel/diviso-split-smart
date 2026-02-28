@@ -17,7 +17,7 @@ import { useUsageCredits } from "@/hooks/useUsageCredits";
 import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 
 export interface MemberRow {
-  user_id: string;
+  user_id: string | null;
   role: "owner" | "admin" | "member";
 }
 
