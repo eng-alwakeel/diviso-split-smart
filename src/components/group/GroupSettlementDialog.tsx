@@ -62,7 +62,8 @@ interface GroupSettlementDialogProps {
   groupCurrency?: string;
 }
 
-const formatName = (id: string, profiles: Record<string, ProfileRow>) => {
+const formatName = (id: string | null | undefined, profiles: Record<string, ProfileRow>) => {
+  if (!id) return "عضو معلق";
   const p = profiles[id];
   return (p?.display_name || p?.name || `${id.slice(0, 4)}...`);
 };
