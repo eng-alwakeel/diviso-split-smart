@@ -225,5 +225,15 @@
     "remaining": "Remaining:",
     "used_times": "Used {{count}} times",
     "suggested_based_on": "Suggested based on group type"
+  },
+  "drilldown": {
+    "receivables_title": "Owed to You",
+    "payables_title": "You Owe",
+    "receivables_desc": "Groups where you have money owed to you",
+    "payables_desc": "Groups where you owe money",
+    "open_group": "Open Group",
+    "no_receivables": "No amounts owed to you currently",
+    "no_payables": "No amounts you owe currently",
+    "back": "Go Back"
   }
 }
