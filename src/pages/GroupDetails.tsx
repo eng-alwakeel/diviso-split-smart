@@ -90,6 +90,7 @@ const GroupDetails = () => {
   const { id: rawId } = useParams();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("expenses");
+  const [expenseFilter, setExpenseFilter] = useState<"all" | "approved" | "pending" | "rejected">("all");
   const [openInvite, setOpenInvite] = useState(false);
   
   // Auto-open invite dialog or profile completion if coming from group creation/join
