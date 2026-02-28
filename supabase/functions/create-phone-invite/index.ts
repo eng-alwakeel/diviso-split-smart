@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
         if (memberByUserId.status === "active") {
           return json({ ok: false, reason: "already_active_member" });
         }
-        const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
+        const inviteUrl = await getOrCreateInviteUrl(svc, group_id, callerId);
         return json({
           ok: true,
           idempotent: true,
