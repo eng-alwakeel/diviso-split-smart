@@ -179,12 +179,17 @@ export const PhoneInviteTab = ({
       }
 
       if (!data?.ok) {
-        if (data?.reason === "already_active_member") {
+        const reason = data?.reason;
+        if (reason === "already_active_member") {
           toast.error("هذا الشخص موجود بالفعل في المجموعة كعضو فعّال");
-        } else if (data?.reason === "not_admin") {
-          toast.error("يجب أن تكون مالك أو مدير المجموعة لإرسال الدعوات");
+        } else if (reason === "INVALID_PHONE") {
+          toast.error("رقم الجوال غير صحيح");
+        } else if (reason === "NAME_REQUIRED") {
+          toast.error("اسم المدعو مطلوب");
+        } else if (reason === "not_admin") {
+          toast.error("ليس لديك صلاحية لإنشاء الدعوات");
         } else {
-          toast.error(data?.detail || "خطأ في إنشاء الدعوة");
+          toast.error("تعذر إنشاء رابط الدعوة");
         }
         return;
       }
@@ -296,7 +301,16 @@ export const PhoneInviteTab = ({
           <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
             <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground">
-              تم إضافة العضو — بانتظار الموافقة.
+              تم إضافة العضو كدعوة بانتظار الموافقة
+            </p>
+          </div>
+        )}
+
+        {!inviteResult.isRegistered && !inviteResult.idempotent && (
+          <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg border border-accent/20">
+            <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">
+              تم إضافة العضو — شارك الرابط لإتمام التسجيل
             </p>
           </div>
         )}

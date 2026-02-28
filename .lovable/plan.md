@@ -1,72 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-## إصلاح تدفق دعوة الجوال - السبب الجذري النهائي
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-### المشكلة الحالية (من السجلات)
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-عند إدراج عضو pending بـ `user_id = NULL`، يفشل trigger `trg_member_joined_activity_feed` لأنه يدرج `NEW.user_id` (null) في عمود `actor_user_id` الذي لا يقبل null:
+## Fix
 
-```text
-null value in column "actor_user_id" of relation "group_activity_feed" violates not-null constraint
+### File: `supabase/functions/send-broadcast-email/index.ts`
+
+Add detailed logging to the test email code path:
+
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
+
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-كذلك triggers أخرى (`update_known_contacts_on_member_join`, `update_invite_task_on_member_join`) تفترض أن `user_id` دائماً موجود.
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-الـ schema الآن صحيح (display_name موجود، user_id nullable) لكن الـ triggers هي التي تكسر العملية.
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
----
-
-### خطة التنفيذ
-
-#### 1. Migration: إصلاح 3 triggers لتتعامل مع user_id = NULL
-
-**`trg_log_member_joined_event`** - تعديل ليتخطى التسجيل في activity feed عندما user_id فارغ:
-
-```sql
--- إذا user_id فارغ (عضو pending)، لا نسجل في activity feed
-IF NEW.user_id IS NULL THEN
-  RETURN NEW;
-END IF;
--- ... باقي المنطق كما هو
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
 ```
 
-**`update_invite_task_on_member_join`** - نفس التعديل:
-```sql
-IF NEW.user_id IS NULL THEN
-  RETURN NEW;
-END IF;
-```
-
-**`update_known_contacts_on_member_join`** - نفس التعديل:
-```sql
-IF NEW.user_id IS NULL THEN
-  RETURN NEW;
-END IF;
-```
-
-#### 2. Edge Function (`create-phone-invite`) - بدون تغيير
-
-الدالة الحالية صحيحة بالكامل. المشكلة فقط في الـ triggers. بعد إصلاحها ستعمل الدالة مباشرة.
-
-#### 3. واجهة المستخدم (`PhoneInviteTab.tsx`) - تحسينات طفيفة
-
-- إضافة ملاحظة حالة pending: "تم إضافة العضو — شارك الرابط لإتمام التسجيل"
-- تعديل رسالة خطأ `not_admin` لإزالة كلمة "إرسال" واستبدالها بـ "إنشاء"
-- تعديل error mapping ليشمل `INVALID_PHONE` و `NAME_REQUIRED` كرسائل واضحة
-
----
-
-### الملفات المتأثرة
-
-| ملف | تغيير |
-|---|---|
-| DB Migration | إصلاح 3 triggers لتتعامل مع `user_id = NULL` |
-| `src/components/group/invite-tabs/PhoneInviteTab.tsx` | تحسين رسائل الخطأ وإضافة ملاحظة pending |
-
-### لماذا سينجح هذه المرة؟
-
-السبب الجذري مؤكد من سجلات الـ Edge Function:
-- الخطأ بالضبط: `null value in column "actor_user_id"` 
-- مصدره: trigger `trg_log_member_joined_event` يُدرج `NEW.user_id` (null) في جدول `group_activity_feed`
-- الحل: إضافة `IF NEW.user_id IS NULL THEN RETURN NEW; END IF;` في بداية كل trigger
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
