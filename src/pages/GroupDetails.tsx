@@ -571,104 +571,78 @@ const GroupDetails = () => {
         <GroupActivityFeed groupId={id} />
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">المصاريف المعتمدة</p>
-                  <p className="text-2xl font-bold text-green-600">{totals.approvedExpenses.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
-                  {totals.pendingExpenses > 0 && (
-                    <p className="text-xs text-amber-600 mt-0.5">معلق: {totals.pendingExpenses.toLocaleString()}</p>
-                  )}
-                  {totals.rejectedExpenses > 0 && (
-                    <p className="text-xs text-red-600 mt-0.5">مرفوض: {totals.rejectedExpenses.toLocaleString()}</p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-                  <Receipt className="w-6 h-6 text-accent" />
-                </div>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Expenses card */}
+          <Card className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer" onClick={() => setActiveTab("expenses")}>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Receipt className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-[11px] font-medium text-muted-foreground">المصاريف</p>
               </div>
+              <p className="text-2xl font-black text-green-600 leading-none">{totals.approvedExpenses.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{currencyLabel} معتمد</p>
+              {totals.pendingExpenses > 0 && (
+                <p className="text-[10px] text-amber-600 mt-0.5">معلّق: {totals.pendingExpenses.toLocaleString()}</p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">رصيدي المعتمد</p>
-                  <p className="text-2xl font-bold text-accent">
-                    {myBalances.confirmed >= 0 ? '+' : ''}{myBalances.confirmed.toLocaleString()}
-                  </p>
-                  {Math.abs(myBalances.pending) > 0 && (
-                    <p className="text-xs text-amber-600 mt-1">معلق: {myBalances.pending >= 0 ? '+' : ''}{myBalances.pending.toLocaleString()}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
-                </div>
-                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-accent" />
-                </div>
+          {/* Balance card */}
+          <Card className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer" onClick={() => setActiveTab("settlements")}>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-[11px] font-medium text-muted-foreground">رصيدي</p>
               </div>
+              <p className={cn("text-2xl font-black leading-none", myBalances.confirmed >= 0 ? "text-green-600" : "text-destructive")}>
+                {myBalances.confirmed >= 0 ? '+' : ''}{myBalances.confirmed.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{currencyLabel}</p>
+              {Math.abs(myBalances.pending) > 0 && (
+                <p className="text-[10px] text-amber-600 mt-0.5">معلّق: {myBalances.pending >= 0 ? '+' : ''}{myBalances.pending.toLocaleString()}</p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm" onClick={() => setActiveTab("budget")}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الميزانية</p>
-                  <p className="text-2xl font-bold text-accent">
-                    {budgetTotals.total > 0 ? `${budgetTotals.total.toLocaleString()}` : "قريباً"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{currencyLabel}</p>
-                  {budgetTotals.total > 0 && (
-                    <>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        مصروف: {budgetTotals.spent.toLocaleString()} {currencyLabel}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        متبقي: {(budgetTotals.total - budgetTotals.spent).toLocaleString()} {currencyLabel}
-                      </p>
-                    </>
-                  )}
-                  <div className="flex items-center gap-2 mt-2">
-                    <Progress 
-                      value={budgetTotals.percentage} 
-                      className="flex-1 h-2" 
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {budgetTotals.total > 0 ? `${budgetTotals.percentage.toFixed(0)}%` : "0%"}
-                    </span>
+          {/* Budget card */}
+          <Card className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer" onClick={() => setActiveTab("budget")}>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-[11px] font-medium text-muted-foreground">الميزانية</p>
+              </div>
+              <p className="text-2xl font-black text-accent leading-none">
+                {budgetTotals.total > 0 ? budgetTotals.total.toLocaleString() : "—"}
+              </p>
+              {budgetTotals.total > 0 ? (
+                <>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Progress value={budgetTotals.percentage} className="flex-1 h-1.5" />
+                    <span className="text-[10px] text-muted-foreground">{budgetTotals.percentage.toFixed(0)}%</span>
                   </div>
                   {budgetAlerts.length > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <AlertTriangle className="w-3 h-3 text-amber-500" />
-                      <span className="text-xs text-amber-600">{budgetAlerts.length} تنبيه</span>
-                    </div>
+                    <p className="text-[10px] text-amber-600 mt-0.5 flex items-center gap-0.5">
+                      <AlertTriangle className="w-2.5 h-2.5" />{budgetAlerts.length} تنبيه
+                    </p>
                   )}
-                </div>
-                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-accent" />
-                </div>
-              </div>
+                </>
+              ) : (
+                <p className="text-[10px] text-muted-foreground mt-0.5">لم تُحدد بعد</p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 rounded-2xl backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">الأعضاء</p>
-                  <p className="text-2xl font-bold text-accent">{memberCount}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {onlineCount > 0 ? `${onlineCount} متصل الآن` : 'أعضاء'}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-accent" />
-                </div>
+          {/* Members card */}
+          <Card className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer" onClick={() => setActiveTab("members")}>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                <p className="text-[11px] font-medium text-muted-foreground">الأعضاء</p>
               </div>
+              <p className="text-2xl font-black text-accent leading-none">{memberCount}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {onlineCount > 0 ? `${onlineCount} متصل الآن` : membersLabel(memberCount)}
+              </p>
             </CardContent>
           </Card>
         </div>
