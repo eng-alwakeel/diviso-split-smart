@@ -101,10 +101,11 @@ export const ExpenseFilters = ({
       </div>
 
       {/* Quick Status Filters */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1.5 overflow-x-auto flex-nowrap pb-1" style={{ scrollbarWidth: 'none' }}>
         <Button
           variant={(!filters.status || filters.status === 'all') ? "default" : "outline"}
           size="sm"
+          className="h-7 text-xs shrink-0"
           onClick={() => onFiltersChange({ ...filters, status: 'all' })}
           disabled={loading}
         >
@@ -113,6 +114,7 @@ export const ExpenseFilters = ({
         <Button
           variant={filters.status === 'pending' ? "default" : "outline"}
           size="sm"
+          className="h-7 text-xs shrink-0"
           onClick={() => onFiltersChange({ ...filters, status: 'pending' })}
           disabled={loading}
         >
@@ -121,6 +123,7 @@ export const ExpenseFilters = ({
         <Button
           variant={filters.status === 'approved' ? "default" : "outline"}
           size="sm"
+          className="h-7 text-xs shrink-0"
           onClick={() => onFiltersChange({ ...filters, status: 'approved' })}
           disabled={loading}
         >
@@ -129,6 +132,7 @@ export const ExpenseFilters = ({
         <Button
           variant={filters.status === 'rejected' ? "default" : "outline"}
           size="sm"
+          className="h-7 text-xs shrink-0"
           onClick={() => onFiltersChange({ ...filters, status: 'rejected' })}
           disabled={loading}
         >

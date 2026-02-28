@@ -3,9 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Calendar, DollarSign, Users, MapPin, MessageSquare, Receipt, Trash2, Pencil, Coins } from "lucide-react";
+import { Calendar, Receipt, Trash2, Pencil, Coins, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { MyExpense } from "@/hooks/useMyExpenses";
@@ -30,12 +29,12 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-success/10 text-success border-success/20 hover:bg-success/20';
-      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20';
-      case 'pending': return 'bg-warning/10 text-warning border-warning/20 hover:bg-warning/20';
-      default: return 'bg-muted/10 text-muted-foreground border-muted/20 hover:bg-muted/20';
+      case 'approved': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'rejected': return 'bg-muted text-muted-foreground border-muted';
+      case 'pending': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+      default: return 'bg-muted text-muted-foreground border-muted';
     }
   };
 
@@ -51,6 +50,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   const isPayer = expense.payer_id === currentUserId;
   const userSplit = expense.splits.find(split => split.member_id === currentUserId);
   const shareAmount = userSplit?.share_amount || 0;
+  const netAmount = isPayer ? expense.amount - shareAmount : -shareAmount;
   const canEdit = (expense.created_by === currentUserId || isPayer) && 
                   (expense.status === 'pending' || expense.status === 'rejected');
   const canDelete = canEdit;
@@ -65,125 +65,73 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
   };
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-card hover:border-primary/30 bg-card/50 backdrop-blur-sm">
-      <CardContent className="p-3 sm:p-4">
-        {/* Header: Status badge on its own row for mobile */}
-        <div className="flex justify-end mb-2">
-          <Badge variant="outline" className={`${getStatusColor(expense.status)} whitespace-nowrap text-xs`}>
+    <Card 
+      className="transition-all duration-200 hover:shadow-card hover:border-primary/30 bg-card/50 backdrop-blur-sm cursor-pointer"
+      onClick={() => onViewDetails?.(expense)}
+    >
+      <CardContent className="p-3">
+        {/* Row 1: Badge + Amount + Chevron */}
+        <div className="flex items-center justify-between mb-1.5">
+          <Badge variant="outline" className={`${getStatusBadgeClass(expense.status)} text-[10px] px-1.5 py-0`}>
             {getStatusText(expense.status)}
           </Badge>
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg font-black text-foreground">
+              {expense.amount.toLocaleString()} {expense.currency}
+            </span>
+            <ChevronLeft className="h-4 w-4 text-muted-foreground rtl:rotate-0 ltr:rotate-180" />
+          </div>
         </div>
-        
-        {/* Main content row */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className="flex-shrink-0">
+
+        {/* Row 2: Icon + Title + Group/Date */}
+        <div className="flex items-start gap-2.5">
+          <div className="flex-shrink-0 mt-0.5">
             {expense.category_icon ? (
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-base sm:text-lg">{expense.category_icon}</span>
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm">{expense.category_icon}</span>
               </div>
             ) : (
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center">
-                <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
             )}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-foreground text-sm sm:text-base line-clamp-2">
+            <p className="font-medium text-sm text-foreground line-clamp-1">
               {expense.description || expense.note_ar || t('card.no_description')}
-            </h3>
-            
-            {/* Group and category on separate lines for mobile */}
-            <div className="flex flex-col gap-0.5 mt-1 text-xs sm:text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3 w-3 shrink-0" />
-                <span className="truncate">{expense.group_name}</span>
-              </div>
-              {expense.category_name && (
-                <span className="truncate text-xs text-muted-foreground/80 ps-4">
-                  {expense.category_name}
-                </span>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3 shrink-0" />
-              <span>
-                {format(new Date(expense.spent_at), 'dd MMM yyyy', { locale: dateLocale })}
-              </span>
-            </div>
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+              <span className="truncate">{expense.group_name}</span>
+              <span>·</span>
+              <Calendar className="h-2.5 w-2.5 shrink-0 inline" />
+              <span>{format(new Date(expense.spent_at), 'dd MMM', { locale: dateLocale })}</span>
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          {/* Amount and members row - improved for mobile */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-sm">
-              <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="font-medium whitespace-nowrap">
-                {expense.amount.toLocaleString()} {expense.currency}
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
-              <Users className="h-3 w-3 shrink-0" />
-              <span className="whitespace-nowrap">{expense.splits.length} {t('card.members')}</span>
-            </div>
+        {/* Row 3: Your share (single line) */}
+        {shareAmount > 0 && (
+          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/30 text-xs">
+            <span className="text-muted-foreground">{t('card.your_share')}</span>
+            <span className={`font-semibold ${netAmount > 0 ? 'text-success' : 'text-destructive'}`}>
+              {netAmount > 0 ? '+' : ''}{netAmount.toLocaleString()} {expense.currency}
+            </span>
           </div>
+        )}
 
-          {/* User's financial involvement */}
-          <div className="bg-gradient-card rounded-lg p-2 sm:p-3 space-y-1 border border-border/30">
-            {isPayer && (
-              <div className="flex justify-between gap-2 text-xs sm:text-sm">
-                <span className="text-muted-foreground shrink-0">{t('card.paid')}</span>
-                <span className="font-medium text-primary whitespace-nowrap">
-                  +{expense.amount.toLocaleString()} {expense.currency}
-                </span>
-              </div>
-            )}
-            
-            {shareAmount > 0 && (
-              <div className="flex justify-between gap-2 text-xs sm:text-sm">
-                <span className="text-muted-foreground shrink-0">{t('card.your_share')}</span>
-                <span className="font-medium text-destructive whitespace-nowrap">
-                  -{shareAmount.toLocaleString()} {expense.currency}
-                </span>
-              </div>
-            )}
-            
-            {isPayer && shareAmount > 0 && (
-              <div className="flex justify-between gap-2 text-xs sm:text-sm border-t border-border pt-1">
-                <span className="text-muted-foreground shrink-0">{t('card.net')}</span>
-                <span className={`font-medium whitespace-nowrap ${
-                  (expense.amount - shareAmount) > 0 ? 'text-success' : 'text-destructive'
-                }`}>
-                  {(expense.amount - shareAmount) > 0 ? '+' : ''}
-                  {(expense.amount - shareAmount).toLocaleString()} {expense.currency}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDetails?.(expense)}
-              className="flex-1"
-            >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              {t('card.view_details')}
-            </Button>
-            
+        {/* Action buttons - small, low prominence */}
+        {(canEdit || canDelete) && (
+          <div className="flex items-center gap-1.5 mt-2 pt-1.5 border-t border-border/30" onClick={(e) => e.stopPropagation()}>
             {canEdit && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setEditDialogOpen(true)}
-                className="text-primary hover:bg-primary/10"
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-primary opacity-70"
               >
-                <Pencil className="h-3 w-3" />
+                <Pencil className="h-3 w-3 me-1" />
+                {t('card.edit')}
               </Button>
             )}
             
@@ -191,14 +139,14 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="text-destructive hover:bg-destructive/10"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive opacity-70"
                     disabled={deleting}
                   >
-                    <Trash2 className="h-3 w-3" />
-                    <Badge variant="outline" className="mr-1 text-[10px] px-1 py-0 bg-destructive/10 border-destructive/20">
-                      <Coins className="w-2 h-2 ml-0.5" />
+                    <Trash2 className="h-3 w-3 me-1" />
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 bg-destructive/10 border-destructive/20">
+                      <Coins className="w-2 h-2 ms-0.5" />
                       {deleteCost}
                     </Badge>
                   </Button>
@@ -232,7 +180,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
               </AlertDialog>
             )}
           </div>
-        </div>
+        )}
       </CardContent>
       
       {/* Edit Expense Dialog */}
@@ -250,7 +198,7 @@ export const ExpenseCard = ({ expense, onViewDetails, currentUserId, onExpenseDe
           note_ar: expense.note_ar
         }}
         onUpdated={() => {
-          if (onExpenseDeleted) onExpenseDeleted(); // Refresh the list
+          if (onExpenseDeleted) onExpenseDeleted();
         }}
       />
       

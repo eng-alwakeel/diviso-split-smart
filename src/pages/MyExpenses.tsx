@@ -202,7 +202,7 @@ const MyExpenses = () => {
               </Card>
             ) : (
               <>
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {expenses.map((expense) => (
                     <ExpenseCard
                       key={expense.id}
