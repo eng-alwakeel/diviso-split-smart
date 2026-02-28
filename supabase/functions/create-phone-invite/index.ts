@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Create join token ──
-    const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
+    const inviteUrl = await getOrCreateInviteUrl(svc, group_id, callerId);
 
     return json({
       ok: true,
