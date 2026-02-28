@@ -81,7 +81,7 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      refetchOnMount: 'always', // Changed: always refetch on mount for fresh data
+      refetchOnMount: true, // Refetch only when data is stale (respects staleTime)
       refetchOnReconnect: true, // Changed: refetch when reconnecting
       networkMode: 'offlineFirst',
     },

@@ -150,7 +150,7 @@ export const EnhancedPerformanceMonitor = () => {
 
     return () => {
       observers.forEach(observer => observer.disconnect());
-      clearInterval(metricsInterval);
+      clearTimeout(metricsTimeout);
     };
   }, [trackWebVitals]);
 
