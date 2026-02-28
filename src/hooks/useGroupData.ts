@@ -14,7 +14,7 @@ type GroupRow = {
 };
 
 type MemberRow = {
-  user_id: string;
+  user_id: string | null;
   role: "owner" | "admin" | "member";
   can_approve_expenses: boolean;
   profile?: ProfileRow | null;
