@@ -913,6 +913,29 @@ const GroupDetails = () => {
                 <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
               )}
             </div>
+
+            {/* Pending/Invited Members Section */}
+            {(() => {
+              const pendingMembers = members.filter(m => !m.user_id || m.status === 'pending' || m.status === 'invited');
+              if (pendingMembers.length === 0) return null;
+              return (
+                <div className="space-y-3 mt-6">
+                  <h3 className="text-base font-semibold text-muted-foreground flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    أعضاء بانتظار التسجيل ({pendingMembers.length})
+                  </h3>
+                  {pendingMembers.map((member) => (
+                    <PendingMemberCard
+                      key={member.id}
+                      member={member}
+                      isAdmin={isAdmin || isOwner}
+                      groupId={id!}
+                      onRemoved={forceRefresh}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Settlements Tab */}

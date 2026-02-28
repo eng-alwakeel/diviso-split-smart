@@ -1177,7 +1177,7 @@ const AddExpense = () => {
                   ) : (
                     <>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {members.map((member) => {
+                      {members.filter(m => m.user_id != null).map((member) => {
                         const memberStatus = (member as any).status || 'active';
                         return (
                         <div key={member.user_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
