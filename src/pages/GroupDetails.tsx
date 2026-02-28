@@ -1172,7 +1172,7 @@ const GroupDetails = () => {
         onOpenChange={setSettleOpen}
         groupId={id}
         currentUserId={currentUserId}
-        members={members}
+        members={registeredMembers}
         profiles={profiles}
         balances={balances}
         pendingAmounts={pendingAmounts}
