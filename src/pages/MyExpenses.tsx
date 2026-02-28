@@ -138,13 +138,13 @@ const MyExpenses = () => {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-2 h-9">
+          <TabsTrigger value="list" className="flex items-center gap-1.5 text-xs data-[state=active]:shadow-sm data-[state=active]:font-bold">
+            <List className="h-3.5 w-3.5" />
             {t('expenses:list')}
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
+          <TabsTrigger value="analytics" className="flex items-center gap-1.5 text-xs data-[state=active]:shadow-sm data-[state=active]:font-bold">
+            <BarChart3 className="h-3.5 w-3.5" />
             {t('expenses:analytics')}
           </TabsTrigger>
         </TabsList>
