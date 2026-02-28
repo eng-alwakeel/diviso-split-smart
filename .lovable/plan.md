@@ -1,55 +1,114 @@
 
-# Fix: Test Email Not Being Delivered
+# Diviso UI V2 — صفحة المجموعة + المصاريف
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+## ملخص التغييرات
+تحسين بصري شامل لصفحة تفاصيل المجموعة وكروت المصاريف، مع الحفاظ على جميع الوظائف والنرد في مكانه.
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+---
 
-## Fix
+## A) صفحة المجموعة (GroupDetails.tsx) — إعادة ترتيب
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+### 1. Group Hero Compact
+**الملف:** `src/components/group/GroupCard.tsx` — تعديل `ExpandedCard`
 
-Add detailed logging to the test email code path:
+التغييرات:
+- تقليل padding من `p-6` إلى `p-4`
+- إزالة Avatar الكبير (14×14) واستبداله بأيقونة صغيرة أو إخفاؤه
+- ملخص سريع في سطر واحد: "7 أعضاء · 95 ر.س"
+- الأزرار: زر أساسي "+ إضافة مصروف" + زر "تقرير" + قائمة (⋯) تحتوي على الإعدادات + إنهاء النشاط + حذف/مغادرة
+- إزالة زر "إنهاء النشاط" و"إعدادات" من الأزرار المباشرة ونقلها داخل الـ DropdownMenu
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+### 2. قسم النرد (ثابت بعد الهيدر)
+**الملف:** `src/components/group/GroupDiceCard.tsx` — تحسين بصري
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+التغييرات:
+- إضافة سطر يوضح نوع النرد الحالي (مثل: "نرد: اختيار مطبخ اليوم")
+- إضافة سطر "آخر نتيجة" إن كان outcome متاحاً (يظهر آخر نتيجة حتى بعد إعادة فتح الصفحة من الـ state)
+- تقليل padding قليلاً لتقليل الارتفاع
+- لا تغيير في الترتيب — يبقى بعد الهيدر مباشرة (كما هو حالياً)
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### 3. لوحة المؤشرات — Grid 2×2
+**الملف:** `src/pages/GroupDetails.tsx` — سطور 574-674
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+التغييرات:
+- تغيير `grid-cols-1 md:grid-cols-4` إلى `grid-cols-2` مع `gap-3`
+- تقليل padding الكروت من `p-6` إلى `p-3`
+- الأرقام أكبر (text-3xl font-black)
+- العناوين أصغر (text-xs)
+- إزالة الأيقونة الكبيرة (w-12 h-12) واستبدالها بأيقونة صغيرة بجانب العنوان
+- كل كرت قابل للنقر (`onClick` → يفتح التبويب المناسب)
+- المصاريف: عرض "معتمد: 95" و "معلّق: 550" بوضوح
+- fallback عمود واحد للشاشات الصغيرة جداً: `grid-cols-1 min-[340px]:grid-cols-2`
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### 4. آخر الأحداث — مضغوط
+**الملف:** `src/components/group/GroupActivityFeed.tsx`
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+التغييرات:
+- تقليل ارتفاع كل عنصر: سطر واحد فقط (الرسالة + الزمن في نفس السطر)
+- الزمن مختصر ("2س" / "1ي" بدل "قبل 2 ساعة")
+- أيقونات أصغر (w-5 h-5)
+- تلوين خفيف حسب النوع (انضمام: أخضر خفيف، مصروف: أصفر خفيف، تسوية: أزرق خفيف)
+
+### 5. ترتيب الصفحة النهائي
+في `GroupDetails.tsx` بعد كروت المجموعة:
+1. Group Hero (Compact) — موجود حالياً
+2. النرد — موجود حالياً بالترتيب الصحيح
+3. Dashboard Grid 2×2 — تحويل من 4 أعمدة
+4. آخر الأحداث — موجود حالياً
+5. Tabs (المصاريف/الأعضاء/التسويات/الميزانية/الدردشة)
+
+---
+
+## B) كروت المصاريف — Card V2
+
+### 1. فلاتر أفقية
+**الملف:** `src/pages/GroupDetails.tsx` — داخل TabsContent "expenses"
+
+إضافة شريط فلاتر scrollable أفقي قبل قائمة المصاريف:
+- أزرار: الكل | معتمد | معلّق | مرفوض
+- فلترة عرض فقط (useState محلي)
+
+### 2. كرت المصروف V2
+**الملف:** `src/pages/GroupDetails.tsx` — سطور 702-856
+
+التغييرات:
+- إزالة تكرار Badge الحالة (يظهر مرة واحدة فقط في أعلى يسار الكرت)
+- المبلغ يبقى أكبر عنصر (text-2xl font-black) لكن ليس text-4xl
+- تقليل padding من `p-5` إلى `p-3`
+- أيقونة التصنيف أصغر (w-10 h-10 بدل w-14 h-14)
+- ترتيب RTL: يمين: أيقونة | وسط: عنوان + دافع | يسار: مبلغ + تاريخ + badge
+- أزرار الموافقة/الرفض أصغر (h-7 w-7) وأقل سطوعاً (opacity-70)
+- زر الحذف أقل بروزاً (ghost بدل outline)
+
+### 3. ألوان الحالة
+- معتمد: `bg-green-500/10 text-green-600 border-green-500/20`
+- معلّق: `bg-amber-500/10 text-amber-600 border-amber-500/20`
+- مرفوض: `bg-muted text-muted-foreground`
+
+---
+
+## C) تحسين Tabs
+**الملف:** `src/pages/GroupDetails.tsx` — سطر 678
+
+- إضافة تأثير glow خفيف على التبويب النشط
+- تحسين بصري عبر className مخصص على TabsTrigger النشط
+
+---
+
+## D) الملفات المتأثرة
+
+| الملف | نوع التغيير |
+|-------|-------------|
+| `src/components/group/GroupCard.tsx` | تعديل ExpandedCard لجعله compact |
+| `src/components/group/GroupDiceCard.tsx` | تحسين بصري + سطر نوع النرد |
+| `src/components/group/GroupActivityFeed.tsx` | ضغط العناصر + تلوين خفيف |
+| `src/pages/GroupDetails.tsx` | Grid 2×2 + فلاتر + كرت V2 + ترتيب |
+
+---
+
+## E) قيود مُلتزم بها
+- النرد يبقى ظاهراً دائماً بعد الهيدر
+- لا تغيير في API calls أو schemas
+- RTL محفوظ 100%
+- جميع الوظائف (إضافة/اعتماد/رفض/حذف) تعمل كما هي
+- Bottom Nav لا يتداخل مع المحتوى
