@@ -45,12 +45,11 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await anonClient.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
+    const { data: { user }, error: userErr } = await anonClient.auth.getUser();
+    if (userErr || !user) {
       return json({ ok: false, reason: "unauthorized" }, 401);
     }
-    const callerId = claimsData.claims.sub as string;
+    const callerId = user.id;
 
     // ── Input ──
     const { group_id, phone_raw, invitee_name } = await req.json();
