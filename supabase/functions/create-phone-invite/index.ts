@@ -229,7 +229,8 @@ Deno.serve(async (req) => {
 /** Create or reuse an active group_join_token and return the invite URL */
 async function getOrCreateInviteUrl(
   svc: ReturnType<typeof createClient>,
-  groupId: string
+  groupId: string,
+  callerId: string
 ): Promise<string | null> {
   // Check for existing active token
   const { data: existingToken } = await svc
@@ -246,25 +247,27 @@ async function getOrCreateInviteUrl(
     return `https://diviso.app/i/${existingToken.token}`;
   }
 
-  // Create new token
+  // Create new token via direct insert (bypasses RPC's auth.uid() check)
   try {
-    const { data: tokenData, error: tokenErr } = await svc.rpc("create_group_join_token", {
-      p_group_id: groupId,
-      p_role: "member",
-      p_link_type: "phone_invite",
-    });
+    const { data: tokenRow, error: tokenErr } = await svc
+      .from("group_join_tokens")
+      .insert({
+        group_id: groupId,
+        role: "member",
+        link_type: "phone_invite",
+        created_by: callerId,
+        max_uses: -1,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select("token")
+      .single();
 
     if (tokenErr) {
       console.error("Token creation error:", tokenErr);
       return null;
     }
 
-    const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
-    const tk =
-      typeof tokenObj === "object" && tokenObj !== null
-        ? (tokenObj as { token?: string }).token
-        : String(tokenObj);
-    return tk ? `https://diviso.app/i/${tk}` : null;
+    return tokenRow?.token ? `https://diviso.app/i/${tokenRow.token}` : null;
   } catch (err) {
     console.error("Token creation exception:", err);
     return null;
