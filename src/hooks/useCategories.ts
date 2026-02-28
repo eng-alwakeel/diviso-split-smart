@@ -23,6 +23,14 @@ async function insertCategory(name_ar: string): Promise<Category> {
   const user = userData?.user;
   if (!user) throw new Error("Not authenticated");
 
+  // Check if category already exists
+  const { data: existing } = await supabase
+    .from("categories")
+    .select("id,name_ar,created_by")
+    .eq("name_ar", name_ar)
+    .maybeSingle();
+  if (existing) return existing as Category;
+
   const { data, error } = await supabase
     .from("categories")
     .insert([{ name_ar, created_by: user.id }])

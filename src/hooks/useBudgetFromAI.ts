@@ -52,22 +52,33 @@ export const useBudgetFromAI = () => {
       for (const suggestion of suggestions) {
         let categoryId = suggestion.category_id;
 
-        // If it's a new category, create it first
+        // If it's a new category, check if it exists first then create
         if (suggestion.is_new_category || !categoryId) {
-          const { data: newCategory, error: categoryError } = await supabase
+          // Check for existing category with same name
+          const { data: existingCat } = await supabase
             .from('categories')
-            .insert([{ 
-              name_ar: suggestion.category_name, 
-              created_by: user.id 
-            }])
             .select('id')
-            .single();
+            .eq('name_ar', suggestion.category_name)
+            .maybeSingle();
 
-          if (categoryError) {
-            console.error('Error creating category:', categoryError);
-            continue;
+          if (existingCat) {
+            categoryId = existingCat.id;
+          } else {
+            const { data: newCategory, error: categoryError } = await supabase
+              .from('categories')
+              .insert([{ 
+                name_ar: suggestion.category_name, 
+                created_by: user.id 
+              }])
+              .select('id')
+              .single();
+
+            if (categoryError) {
+              console.error('Error creating category:', categoryError);
+              continue;
+            }
+            categoryId = newCategory.id;
           }
-          categoryId = newCategory.id;
         }
 
         // Create budget category with proper category_id link
