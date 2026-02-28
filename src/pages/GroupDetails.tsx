@@ -659,170 +659,164 @@ const GroupDetails = () => {
           </TabsList>
 
           {/* Expenses Tab */}
-          <TabsContent value="expenses" className="space-y-4">
+          <TabsContent value="expenses" className="space-y-3">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">المصاريف</h2>
+              <h2 className="text-base font-bold">المصاريف</h2>
               {!isGroupClosed && (
-                <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero">
-                  <Plus className="w-4 h-4 ml-2" />
-                  إضافة مصروف جديد
+                <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero" size="sm" className="text-xs">
+                  <Plus className="w-3.5 h-3.5 me-1" />
+                  إضافة مصروف
                 </Button>
               )}
             </div>
 
+            {/* Expense Filters */}
+            <ExpenseFilters />
+
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
             
-            <div className="space-y-4">
-              {expenses.map((expense) => {
+            <div className="space-y-2.5">
+              {filteredExpenses.map((expense) => {
                 const payerName =
                   (expense.payer_id && (profiles[expense.payer_id]?.display_name || profiles[expense.payer_id]?.name)) ||
                   "عضو";
                 return (
                   <Card 
                     key={expense.id} 
-                    className="bg-card/90 border border-border/50 shadow-card hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl backdrop-blur-sm"
+                    className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer"
                     onClick={() => setSelectedExpenseForDetails(expense)}
                   >
-                    <CardContent className="p-5 md:p-6">
-                      <div className="flex items-center justify-between gap-4">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
                         {/* Icon */}
-                        <div className="w-14 h-14 md:w-16 md:h-16 bg-accent/20 rounded-2xl flex items-center justify-center shrink-0">
-                          <Receipt className="w-7 h-7 md:w-8 md:h-8 text-accent" />
+                        <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
+                          <Receipt className="w-5 h-5 text-accent" />
                         </div>
 
                         {/* Details */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="font-extrabold text-lg md:text-xl text-foreground leading-snug line-clamp-2">
-                              {expense.description ?? "مصروف"}
-                            </h3>
-                            {getStatusBadge(expense.status)}
-                          </div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
-                            <span>دفع بواسطة {payerName}</span>
-                          </div>
+                          <h3 className="font-bold text-sm text-foreground leading-tight line-clamp-1">
+                            {expense.description ?? "مصروف"}
+                          </h3>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            دفع بواسطة {payerName}
+                          </p>
                           
-                          {/* إظهار سبب الرفض للمصاريف المرفوضة */}
+                          {/* Rejection reason */}
                           {expense.status === "rejected" && expense.expense_rejections && expense.expense_rejections.length > 0 && (
-                            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                              <div className="flex items-start gap-2">
-                                <div className="w-4 h-4 bg-destructive/20 rounded-full flex items-center justify-center mt-0.5 shrink-0">
-                                  <XCircle className="w-3 h-3 text-destructive" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-destructive mb-1">سبب الرفض:</p>
-                                  <p className="text-xs text-destructive/80 leading-relaxed">
-                                    {expense.expense_rejections[0].rejection_reason || "لم يتم تحديد سبب"}
-                                  </p>
-                                  <p className="text-xs text-destructive/60 mt-1">
-                                    تم الرفض في {new Date(expense.expense_rejections[0].rejected_at).toLocaleDateString('ar-SA')}
-                                  </p>
-                                </div>
-                              </div>
+                            <div className="mt-1.5 p-2 bg-destructive/5 border border-destructive/10 rounded-lg">
+                              <p className="text-[10px] text-destructive/80 leading-relaxed line-clamp-2">
+                                {expense.expense_rejections[0].rejection_reason || "لم يتم تحديد سبب"}
+                              </p>
                             </div>
                           )}
                         </div>
 
-                        {/* Amount & Actions */}
-                        <div className="text-right shrink-0">
-                          <div className="flex items-center justify-end gap-2 mb-1">
-                            {/* Show status on small screens above amount */}
-                            <div className="md:hidden">{getStatusBadge(expense.status)}</div>
-                          </div>
-                          <p className="text-3xl md:text-4xl font-black text-accent leading-none">
-                            {Number(expense.amount).toLocaleString()}{" "}
-                            <span className="text-base md:text-lg font-semibold text-muted-foreground align-middle">
-                              {expense.currency || "SAR"}
-                            </span>
+                        {/* Amount & Status */}
+                        <div className="text-left shrink-0 flex flex-col items-end gap-1">
+                          <p className="text-xl font-black text-accent leading-none">
+                            {Number(expense.amount).toLocaleString()}
+                            <span className="text-[10px] font-medium text-muted-foreground ms-0.5">{expense.currency || "SAR"}</span>
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-[10px] text-muted-foreground">
                             {(expense.spent_at ?? expense.created_at ?? "").toString().slice(0, 10)}
                           </p>
+                          {/* Single status badge */}
+                          {expense.status === "approved" && (
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[9px] px-1.5 py-0" variant="outline">
+                              <CheckCircle className="w-2.5 h-2.5 me-0.5" />معتمد
+                            </Badge>
+                          )}
+                          {expense.status === "pending" && (
+                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[9px] px-1.5 py-0" variant="outline">
+                              <Clock className="w-2.5 h-2.5 me-0.5" />معلّق
+                            </Badge>
+                          )}
+                          {expense.status === "rejected" && (
+                            <Badge className="bg-muted text-muted-foreground text-[9px] px-1.5 py-0" variant="outline">
+                              <XCircle className="w-2.5 h-2.5 me-0.5" />مرفوض
+                            </Badge>
+                          )}
 
+                          {/* Action buttons - smaller and less prominent */}
                           {expense.status === "pending" && canApprove && (
-                            <div className="flex gap-2 mt-3 justify-end">
+                            <div className="flex gap-1 mt-1">
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={(e) => { e.stopPropagation(); handleExpenseApproval(expense.id, "approve"); }}
-                                className="bg-accent/20 border-accent/30 text-accent hover:bg-accent/30 rounded-full h-8 w-8 p-0"
+                                className="h-6 w-6 p-0 opacity-70 hover:opacity-100 text-green-600"
                                 aria-label="اعتماد"
                               >
-                                <CheckCircle className="w-4 h-4" />
+                                <CheckCircle className="w-3.5 h-3.5" />
                               </Button>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={(e) => { e.stopPropagation(); handleExpenseApproval(expense.id, "reject"); }}
-                                className="bg-destructive/20 border-destructive/30 text-destructive hover:bg-destructive/30 rounded-full h-8 w-8 p-0"
+                                className="h-6 w-6 p-0 opacity-70 hover:opacity-100 text-destructive"
                                 aria-label="رفض"
                               >
-                                <XCircle className="w-4 h-4" />
+                                <XCircle className="w-3.5 h-3.5" />
                               </Button>
                               {isAdmin && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
+                                  variant="ghost"
                                   onClick={(e) => { 
                                     e.stopPropagation(); 
                                     setExpenseToDelete(expense);
                                     setDeleteExpenseConfirmOpen(true);
                                   }}
-                                  className="bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20 rounded-full h-8 w-8 p-0"
+                                  className="h-6 w-6 p-0 opacity-50 hover:opacity-100 text-destructive"
                                   aria-label="حذف"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3" />
                                 </Button>
                               )}
                             </div>
                           )}
                           
-                          {/* Quick delete button for admin on non-pending expenses */}
+                          {/* Delete for non-pending (admin) */}
                           {isAdmin && expense.status !== "pending" && (
-                            <div className="flex gap-2 mt-3 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => { 
-                                  e.stopPropagation(); 
-                                  setExpenseToDelete(expense);
-                                  setDeleteExpenseConfirmOpen(true);
-                                }}
-                                className="bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20 rounded-full h-8 w-8 p-0"
-                                aria-label="حذف"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setExpenseToDelete(expense);
+                                setDeleteExpenseConfirmOpen(true);
+                              }}
+                              className="h-6 w-6 p-0 opacity-50 hover:opacity-100 text-destructive mt-1"
+                              aria-label="حذف"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           )}
                           
                           {expense.status === "rejected" && currentUserId === expense.payer_id && (
-                            <div className="flex gap-2 mt-3 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
-                                className="bg-warning/20 border-warning/30 text-warning hover:bg-warning/30"
-                              >
-                                <Edit className="w-4 h-4 ml-1" />
-                                تعديل وإعادة تقديم
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
+                              className="text-[10px] h-6 px-2 opacity-70 hover:opacity-100 mt-1"
+                            >
+                              <Edit className="w-3 h-3 me-0.5" />
+                              تعديل
+                            </Button>
                           )}
                           
                           {(expense.status === "pending" || expense.status === "rejected") && currentUserId === expense.payer_id && !canApprove && (
-                            <div className="flex gap-2 mt-3 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
-                                className="bg-secondary/20 border-secondary/30 text-secondary hover:bg-secondary/30"
-                              >
-                                <Edit className="w-4 h-4 ml-1" />
-                                تعديل
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
+                              className="text-[10px] h-6 px-2 opacity-70 hover:opacity-100 mt-1"
+                            >
+                              <Edit className="w-3 h-3 me-0.5" />
+                              تعديل
+                            </Button>
                           )}
                         </div>
                       </div>
