@@ -102,29 +102,29 @@ const MyExpenses = () => {
         showTopBanner={true}
         showBottomBanner={false}
       >
-        <div className="page-container space-y-6">
+        <div className="page-container space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">{t('expenses:my_expenses')}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl font-bold">{t('expenses:my_expenses')}</h1>
+              <p className="text-xs text-muted-foreground">
                 {t('expenses:my_expenses_desc')}
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={refreshExpenses}
                 disabled={loading}
+                className="h-8 px-2"
               >
-                <RefreshCw className={`h-4 w-4 me-1 ${loading ? 'animate-spin' : ''}`} />
-                {t('expenses:refresh')}
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               </Button>
               
-              <Button onClick={() => navigate('/add-expense')}>
-                <Plus className="h-4 w-4 me-1" />
+              <Button size="sm" className="h-8" onClick={() => navigate('/add-expense')}>
+                <Plus className="h-3.5 w-3.5 me-1" />
                 {t('expenses:add')}
               </Button>
             </div>
@@ -138,13 +138,13 @@ const MyExpenses = () => {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-2 h-9">
+          <TabsTrigger value="list" className="flex items-center gap-1.5 text-xs data-[state=active]:shadow-sm data-[state=active]:font-bold">
+            <List className="h-3.5 w-3.5" />
             {t('expenses:list')}
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
+          <TabsTrigger value="analytics" className="flex items-center gap-1.5 text-xs data-[state=active]:shadow-sm data-[state=active]:font-bold">
+            <BarChart3 className="h-3.5 w-3.5" />
             {t('expenses:analytics')}
           </TabsTrigger>
         </TabsList>
@@ -167,7 +167,7 @@ const MyExpenses = () => {
           )}
 
           {/* Expenses List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {loading && expenses.length === 0 ? (
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
@@ -202,7 +202,7 @@ const MyExpenses = () => {
               </Card>
             ) : (
               <>
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {expenses.map((expense) => (
                     <ExpenseCard
                       key={expense.id}
