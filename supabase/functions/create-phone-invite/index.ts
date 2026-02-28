@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       }
 
       // Idempotent: invited or pending — find/create token and return
-      const inviteUrl = await getOrCreateInviteUrl(svc, group_id);
+      const inviteUrl = await getOrCreateInviteUrl(svc, group_id, callerId);
       return json({
         ok: true,
         idempotent: true,
