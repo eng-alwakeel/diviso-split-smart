@@ -2133,35 +2133,38 @@ export type Database = {
         Row: {
           archived_at: string | null
           can_approve_expenses: boolean
+          display_name: string | null
           group_id: string
           id: string
           joined_at: string | null
           phone_e164: string | null
           role: Database["public"]["Enums"]["member_role"]
           status: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           archived_at?: string | null
           can_approve_expenses?: boolean
+          display_name?: string | null
           group_id: string
           id?: string
           joined_at?: string | null
           phone_e164?: string | null
           role?: Database["public"]["Enums"]["member_role"]
           status?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           archived_at?: string | null
           can_approve_expenses?: boolean
+          display_name?: string | null
           group_id?: string
           id?: string
           joined_at?: string | null
           phone_e164?: string | null
           role?: Database["public"]["Enums"]["member_role"]
           status?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
