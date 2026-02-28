@@ -167,7 +167,8 @@ const GroupDetails = () => {
   const isGroupClosed = group?.status === 'closed';
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
-  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id).filter(Boolean));
+  const registeredMembers = useMemo(() => members.filter((m): m is typeof m & { user_id: string } => !!m.user_id), [members]);
+  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(registeredMembers.map(m => m.user_id));
   
   // Budget hooks
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
@@ -422,7 +423,7 @@ const GroupDetails = () => {
         onOpenChange={setOpenInvite} 
         groupId={id} 
         groupName={group?.name}
-        existingMembers={members.map(m => m.user_id).filter(Boolean)}
+        existingMembers={registeredMembers.map(m => m.user_id)}
       />
       {/* GroupSettingsDialog moved to /group/:id/settings page */}
 
@@ -521,17 +522,17 @@ const GroupDetails = () => {
           </Card>
         )}
 
-        {isGroupClosed && members.length > 0 && (
+        {isGroupClosed && registeredMembers.length > 0 && (
           <PendingRatingsNotification
             groupId={id!}
-            members={members.map(m => ({
+            members={registeredMembers.map(m => ({
               user_id: m.user_id,
               display_name: profiles[m.user_id]?.display_name,
               name: profiles[m.user_id]?.name,
             }))}
             onStartRating={() => {
               // Find first unrated member to start with
-              const firstMember = members.find(m => m.user_id !== currentUserId);
+              const firstMember = registeredMembers.find(m => m.user_id !== currentUserId);
               if (firstMember) {
                 setMemberToRate({
                   user_id: firstMember.user_id,
@@ -550,7 +551,7 @@ const GroupDetails = () => {
           <GroupDiceCard
             groupId={id}
             groupType={group?.group_type}
-            members={members.filter(m => m.user_id).map(m => ({
+            members={registeredMembers.map(m => ({
               id: m.user_id,
               name: profiles[m.user_id]?.display_name || profiles[m.user_id]?.name || m.user_id.slice(0, 4),
             }))}
@@ -878,7 +879,7 @@ const GroupDetails = () => {
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
 
             <div className="space-y-4">
-              {members.map((member) => {
+              {registeredMembers.map((member) => {
                 const memberSubscription = memberSubscriptions[member.user_id];
                 const memberPlan = memberSubscription?.plan || 'free';
                 const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
@@ -907,7 +908,7 @@ const GroupDetails = () => {
                   />
                 );
               })}
-              {!loading && members.length === 0 && (
+              {!loading && registeredMembers.length === 0 && (
                 <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
               )}
             </div>
@@ -1171,7 +1172,7 @@ const GroupDetails = () => {
         onOpenChange={setSettleOpen}
         groupId={id}
         currentUserId={currentUserId}
-        members={members}
+        members={registeredMembers}
         profiles={profiles}
         balances={balances}
         pendingAmounts={pendingAmounts}

@@ -17,7 +17,7 @@ import { useUsageCredits } from "@/hooks/useUsageCredits";
 import { ZeroCreditsPaywall } from '@/components/credits/ZeroCreditsPaywall';
 
 export interface MemberRow {
-  user_id: string;
+  user_id: string | null;
   role: "owner" | "admin" | "member";
 }
 
@@ -62,7 +62,8 @@ interface GroupSettlementDialogProps {
   groupCurrency?: string;
 }
 
-const formatName = (id: string, profiles: Record<string, ProfileRow>) => {
+const formatName = (id: string | null | undefined, profiles: Record<string, ProfileRow>) => {
+  if (!id) return "عضو معلق";
   const p = profiles[id];
   return (p?.display_name || p?.name || `${id.slice(0, 4)}...`);
 };
@@ -259,11 +260,16 @@ export const GroupSettlementDialog = ({
                       <SelectValue placeholder="اختر العضو المستلم" />
                     </SelectTrigger>
                     <SelectContent>
-                      {members.filter(m => m.user_id !== currentUserId).map(m => (
-                        <SelectItem key={m.user_id} value={m.user_id}>
-                          {formatName(m.user_id, profiles)}
-                        </SelectItem>
-                      ))}
+                      {members
+                        .filter((m) => !!m.user_id && m.user_id !== currentUserId)
+                        .map((m) => {
+                          const uid = m.user_id!;
+                          return (
+                            <SelectItem key={uid} value={uid}>
+                              {formatName(uid, profiles)}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
