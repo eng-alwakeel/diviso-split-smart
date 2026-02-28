@@ -879,7 +879,7 @@ const GroupDetails = () => {
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
 
             <div className="space-y-4">
-              {members.map((member) => {
+              {registeredMembers.map((member) => {
                 const memberSubscription = memberSubscriptions[member.user_id];
                 const memberPlan = memberSubscription?.plan || 'free';
                 const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
@@ -908,7 +908,7 @@ const GroupDetails = () => {
                   />
                 );
               })}
-              {!loading && members.length === 0 && (
+              {!loading && registeredMembers.length === 0 && (
                 <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
               )}
             </div>
