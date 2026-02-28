@@ -12,8 +12,6 @@ const PRECACHE_ASSETS = [
 ];
 
 const STATIC_ASSETS = [
-  '/src/main.tsx',
-  '/src/index.css',
   '/placeholder.svg'
 ];
 

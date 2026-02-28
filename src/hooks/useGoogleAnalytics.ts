@@ -15,7 +15,6 @@ export function useGoogleAnalytics() {
         event: eventName,
         ...params
       });
-      console.log(`[GA4] Event: ${eventName}`, params);
     }
   }, []);
 

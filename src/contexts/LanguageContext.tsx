@@ -31,7 +31,15 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Load language from user settings on mount
   useEffect(() => {
-    const loadUserLanguage = async () => {
+    // Check localStorage first to avoid unnecessary API calls
+    const savedLang = localStorage.getItem('i18nextLng');
+    if (savedLang && savedLang !== i18n.language) {
+      i18n.changeLanguage(savedLang);
+      setCurrentLanguage(savedLang);
+    }
+
+    // Sync with DB in background (non-blocking)
+    const syncLanguageFromDB = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -44,14 +52,17 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
           if (data?.language && data.language !== i18n.language) {
             await i18n.changeLanguage(data.language);
             setCurrentLanguage(data.language);
+            localStorage.setItem('i18nextLng', data.language);
           }
         }
       } catch (error) {
-        console.error('Error loading user language:', error);
+        console.error('Error syncing user language:', error);
       }
     };
 
-    loadUserLanguage();
+    // Defer DB sync to not block initial render
+    const timeoutId = setTimeout(syncLanguageFromDB, 1000);
+    return () => clearTimeout(timeoutId);
   }, [i18n]);
 
   // Update state when i18n language changes

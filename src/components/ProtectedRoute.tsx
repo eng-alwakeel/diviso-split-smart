@@ -84,8 +84,8 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Initial auth check with delay to avoid race conditions
-    authCheckTimeout.current = setTimeout(checkAuth, 100);
+    // Initial auth check immediately
+    checkAuth();
 
     return () => {
       isMounted = false;
@@ -93,7 +93,7 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
       if (authCheckTimeout.current) clearTimeout(authCheckTimeout.current);
       if (redirectTimeout.current) clearTimeout(redirectTimeout.current);
     };
-  }, [navigate, authed]);
+  }, [navigate]);
 
   if (loading) {
     return (
