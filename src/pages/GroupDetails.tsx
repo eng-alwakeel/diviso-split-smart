@@ -678,7 +678,27 @@ const GroupDetails = () => {
             </div>
 
             {/* Expense Filters */}
-            <ExpenseFilters />
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+              {([
+                { key: "all" as const, label: "الكل" },
+                { key: "approved" as const, label: "معتمد" },
+                { key: "pending" as const, label: "معلّق" },
+                { key: "rejected" as const, label: "مرفوض" },
+              ]).map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setExpenseFilter(f.key)}
+                  className={cn(
+                    "shrink-0 rounded-full px-3 py-1 text-[11px] font-medium border transition-colors",
+                    expenseFilter === f.key
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
 
             {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
             {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
