@@ -167,7 +167,7 @@ const GroupDetails = () => {
   const isGroupClosed = group?.status === 'closed';
   const { isUserOnline, onlineCount } = useOnlinePresence(id);
   const { getPlanBadgeConfig } = usePlanBadge();
-  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id));
+  const { subscriptions: memberSubscriptions } = useMemberSubscriptions(members.map(m => m.user_id).filter(Boolean));
   
   // Budget hooks
   const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
