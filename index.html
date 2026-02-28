@@ -350,11 +350,11 @@
           document.body.appendChild(noscript2);
         }
         
-        // Load on user interaction or after 3 seconds
+        // Load on user interaction or after 5 seconds
         document.addEventListener('scroll', loadThirdPartyScripts, { once: true, passive: true });
         document.addEventListener('click', loadThirdPartyScripts, { once: true });
         document.addEventListener('touchstart', loadThirdPartyScripts, { once: true, passive: true });
-        setTimeout(loadThirdPartyScripts, 3000);
+        setTimeout(loadThirdPartyScripts, 5000);
       })();
     </script>
     
