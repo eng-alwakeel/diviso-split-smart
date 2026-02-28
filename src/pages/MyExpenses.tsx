@@ -102,29 +102,29 @@ const MyExpenses = () => {
         showTopBanner={true}
         showBottomBanner={false}
       >
-        <div className="page-container space-y-6">
+        <div className="page-container space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">{t('expenses:my_expenses')}</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl font-bold">{t('expenses:my_expenses')}</h1>
+              <p className="text-xs text-muted-foreground">
                 {t('expenses:my_expenses_desc')}
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={refreshExpenses}
                 disabled={loading}
+                className="h-8 px-2"
               >
-                <RefreshCw className={`h-4 w-4 me-1 ${loading ? 'animate-spin' : ''}`} />
-                {t('expenses:refresh')}
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               </Button>
               
-              <Button onClick={() => navigate('/add-expense')}>
-                <Plus className="h-4 w-4 me-1" />
+              <Button size="sm" className="h-8" onClick={() => navigate('/add-expense')}>
+                <Plus className="h-3.5 w-3.5 me-1" />
                 {t('expenses:add')}
               </Button>
             </div>
