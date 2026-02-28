@@ -1148,16 +1148,16 @@ const AddExpense = () => {
                         size="sm"
                         className="text-xs h-7"
                         onClick={() => {
-                          const allNonArchived = members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at);
-                          const allSelected = allNonArchived.every(m => memberSplits.some(sp => sp.member_id === m.user_id));
+                          const eligible = members.filter(m => m.user_id != null && (m as any).status !== 'rejected' && !(m as any).archived_at);
+                          const allSelected = eligible.every(m => memberSplits.some(sp => sp.member_id === m.user_id));
                           if (allSelected) {
                             setMemberSplits([]);
                           } else {
-                            setMemberSplits(allNonArchived.map(m => ({ member_id: m.user_id, share_amount: 0 })));
+                            setMemberSplits(eligible.map(m => ({ member_id: m.user_id!, share_amount: 0 })));
                           }
                         }}
                       >
-                        {members.filter(m => (m as any).status !== 'rejected' && !(m as any).archived_at).every(m => memberSplits.some(sp => sp.member_id === m.user_id))
+                        {members.filter(m => m.user_id != null && (m as any).status !== 'rejected' && !(m as any).archived_at).every(m => memberSplits.some(sp => sp.member_id === m.user_id))
                           ? 'إلغاء تحديد الكل'
                           : 'تحديد الكل'}
                       </Button>
