@@ -447,7 +447,7 @@ const GroupDetails = () => {
         totalExpenses={totals.totalExpenses}
       />
 
-      <div className="page-container space-y-6">
+      <div className="page-container space-y-4">
         {/* Recommendation Notification */}
         {recommendationsEnabled && showRecommendation && (
           <RecommendationNotification
