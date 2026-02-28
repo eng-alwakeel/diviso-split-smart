@@ -251,6 +251,12 @@ const GroupDetails = () => {
     };
   }, [balances, pendingAmounts, balanceSummary, currentUserId]);
 
+  // Filtered expenses for display
+  const filteredExpenses = useMemo(() => {
+    if (expenseFilter === "all") return expenses;
+    return expenses.filter(e => e.status === expenseFilter);
+  }, [expenses, expenseFilter]);
+
   const sendMessage = () => {
     toast({
       title: "اكتب رسالتك في صندوق الدردشة أسفل التبويب",
