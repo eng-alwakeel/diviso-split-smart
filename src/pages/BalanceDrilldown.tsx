@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import useMyExpenses from "@/hooks/useMyExpenses";
 import { useGroupBalances, GroupBalance } from "@/hooks/useGroupBalances";
-import BottomNav from "@/components/BottomNav";
+import { BottomNav } from "@/components/BottomNav";
 
 const BalanceDrilldown = () => {
   const { type } = useParams<{ type: string }>();
