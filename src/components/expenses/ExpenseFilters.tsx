@@ -82,7 +82,7 @@ export const ExpenseFilters = ({
               onFiltersChange(localFilters);
             }
           }}
-          className="pr-10"
+          className="pr-10 h-9"
           disabled={loading}
         />
         {localFilters.search && (
