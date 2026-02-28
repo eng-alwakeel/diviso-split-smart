@@ -522,17 +522,17 @@ const GroupDetails = () => {
           </Card>
         )}
 
-        {isGroupClosed && members.length > 0 && (
+        {isGroupClosed && registeredMembers.length > 0 && (
           <PendingRatingsNotification
             groupId={id!}
-            members={members.map(m => ({
+            members={registeredMembers.map(m => ({
               user_id: m.user_id,
               display_name: profiles[m.user_id]?.display_name,
               name: profiles[m.user_id]?.name,
             }))}
             onStartRating={() => {
               // Find first unrated member to start with
-              const firstMember = members.find(m => m.user_id !== currentUserId);
+              const firstMember = registeredMembers.find(m => m.user_id !== currentUserId);
               if (firstMember) {
                 setMemberToRate({
                   user_id: firstMember.user_id,
