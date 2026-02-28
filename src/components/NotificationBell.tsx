@@ -65,9 +65,10 @@ export const NotificationBell = () => {
           currency: payload.currency 
         });
       case 'new_message':
-        const content = payload.content.substring(0, 50) + (payload.content.length > 50 ? '...' : '');
+        const raw = payload?.content ?? payload?.message_preview ?? '';
+        const content = typeof raw === 'string' ? raw.substring(0, 50) + (raw.length > 50 ? '...' : '') : '';
         return t('types.new_message', { 
-          name: payload.sender_name, 
+          name: payload?.sender_name ?? 'مستخدم', 
           content 
         });
       case 'group_invite':
