@@ -205,7 +205,7 @@ export const useGroupData = (groupId?: string) => {
       setMembers(memberRows);
 
       // Get profiles for members
-      const ids = Array.from(new Set(memberRows.map((m) => m.user_id).filter(Boolean)));
+      const ids = Array.from(new Set(memberRows.map((m) => m.user_id).filter((id): id is string => !!id)));
       let profilesMap: Record<string, ProfileRow> = {};
       if (ids.length) {
         const { data: profs, error: profErr } = await supabase
