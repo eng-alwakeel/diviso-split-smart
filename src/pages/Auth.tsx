@@ -481,7 +481,7 @@ const Auth = () => {
       return;
     }
     
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       toast({ title: t('common:error'), description: t('auth:toast.password_too_short'), variant: "destructive" });
       return;
     }
@@ -544,7 +544,7 @@ const Auth = () => {
       return;
     }
     
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       toast({ title: t('common:error'), description: t('auth:toast.password_too_short'), variant: "destructive" });
       return;
     }

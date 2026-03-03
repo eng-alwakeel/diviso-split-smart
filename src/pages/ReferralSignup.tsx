@@ -114,8 +114,8 @@ export default function ReferralSignup() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    if (formData.password.length < 8) {
+      toast.error("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
       return;
     }
 

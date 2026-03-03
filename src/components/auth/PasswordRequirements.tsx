@@ -13,12 +13,15 @@ interface PasswordRequirementsProps {
 
 export const validatePasswordRequirements = (password: string) => {
   return {
-    minLength: password.length >= 6,
+    minLength: password.length >= 8,
+    hasNumber: /\d/.test(password),
+    hasLetter: /[a-zA-Z]/.test(password),
   };
 };
 
 export const isPasswordValid = (password: string): boolean => {
-  return password.length >= 6;
+  const v = validatePasswordRequirements(password);
+  return v.minLength && v.hasNumber && v.hasLetter;
 };
 
 export const PasswordRequirements = ({ password }: PasswordRequirementsProps) => {
@@ -27,6 +30,8 @@ export const PasswordRequirements = ({ password }: PasswordRequirementsProps) =>
 
   const requirements: PasswordRequirement[] = [
     { key: 'minLength', label: t('password_requirements.min_length'), met: validation.minLength },
+    { key: 'hasNumber', label: t('password_requirements.has_number'), met: validation.hasNumber },
+    { key: 'hasLetter', label: t('password_requirements.has_letter'), met: validation.hasLetter },
   ];
 
   return (
