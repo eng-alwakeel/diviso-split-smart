@@ -98,6 +98,19 @@ export const SettlementAnnouncementCard = ({
             تأكيد الاستلام
           </Button>
         )}
+
+        {/* Show payout methods button to the payer */}
+        {currentUserId === settlement.from_user_id && status === "pending" && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-xs gap-1.5"
+            onClick={() => setPayoutSheetOpen(true)}
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            طرق الدفع لـ {toName}
+          </Button>
+        )}
       </div>
 
       <ConfirmSettlementDialog
