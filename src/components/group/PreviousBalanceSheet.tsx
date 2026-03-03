@@ -112,7 +112,7 @@ export const PreviousBalanceSheet = ({
             <Label>الدائن (له مبلغ)</Label>
             <Select value={toUserId} onValueChange={setToUserId}>
               <SelectTrigger><SelectValue placeholder="اختر الدائن" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[1100]">
                 {members.filter(m => m.user_id !== fromUserId).map(m => (
                   <SelectItem key={m.user_id} value={m.user_id}>{m.name}</SelectItem>
                 ))}
