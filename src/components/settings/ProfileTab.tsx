@@ -27,6 +27,7 @@ import {
   saveNotificationPreference,
   getNotificationPreference 
 } from "@/lib/browserNotifications";
+import { PayoutMethodsSection } from "./PayoutMethodsSection";
 
 interface ProfileTabProps {
   profile: {
