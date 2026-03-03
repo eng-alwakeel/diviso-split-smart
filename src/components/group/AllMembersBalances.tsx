@@ -221,7 +221,7 @@ export const AllMembersBalances = ({
                   onClick={async () => {
                     const text = buildSettlementShareText(groupName, currency, optimalSettlements, formatName);
                     try {
-                      await Share.share({ title: t('settlement_share.title'), text, dialogTitle: t('settlement_share.share') });
+                      await Share.share({ text, dialogTitle: t('settlement_share.share', 'مشاركة') });
                     } catch {
                       if (navigator.share) {
                         navigator.share({ text }).catch(() => {});
