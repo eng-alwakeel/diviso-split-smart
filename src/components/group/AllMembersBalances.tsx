@@ -51,8 +51,14 @@ export const AllMembersBalances = ({
   profiles,
   currentUserId,
   currency,
-  onSettleClick
+  groupName = "",
+  groupId,
+  onSettleClick,
+  onRemindDebtor,
 }: AllMembersBalancesProps) => {
+  const { toast } = useToast();
+  const { t } = useTranslation('groups');
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const formatName = (userId: string) => {
     const profile = profiles[userId];
     return profile?.display_name || profile?.name || `${userId.slice(0, 4)}...`;
