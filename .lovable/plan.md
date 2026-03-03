@@ -1,45 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تحسين دردشة المجموعة لتصبح احترافية (Telegram/WhatsApp style)
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## التغييرات المطلوبة
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-### 1. MessageBubble.tsx — إعادة كتابة شبه كاملة
+## Fix
 
-**المشاكل الحالية:**
-- كل MessageBubble تستدعي `supabase.auth.getSession()` + query للـ subscription = أداء سيء جداً
-- لا يوجد دعم للرسائل المتتالية (consecutive messages grouping)
-- لا يوجد دعم لرسائل النظام (system messages)
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-**التعديلات:**
-- تمرير `currentUserId` كـ prop بدل استدعاء getSession في كل رسالة
-- إضافة props: `showSenderInfo: boolean` (يتحكم فيها GroupChat)
-- Avatar بحجم 36px (w-9 h-9) مع إخفاءه عند الرسائل المتتالية (invisible placeholder للحفاظ على المحاذاة)
-- اسم المرسل بـ `text-[12px] font-medium`
-- الوقت بـ `text-[11px]` ولون خافت
-- رسائل المستخدم الحالي: بدون اسم/صورة، محاذاة يمين، لون `bg-primary`
-- فقاعات بـ `rounded-2xl` مع tail effect (rounded corners مختلفة للطرف)
+Add detailed logging to the test email code path:
 
-### 2. GroupChat.tsx — تحسين الأداء + التجميع
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-**التعديلات:**
-- حساب `showSenderInfo` لكل رسالة: إذا الرسالة السابقة من نفس المرسل وخلال 5 دقائق → `false`
-- تمرير `currentUserId` لـ MessageBubble بدل ما كل واحدة تجيبه
-- Smart scroll: يتتبع هل المستخدم في الأسفل قبل إضافة رسالة جديدة، يعمل auto-scroll فقط إذا كان في الأسفل
-- رسائل النظام (system): تُعرض كنص في المنتصف بخلفية رمادية خفيفة بدون فقاعة
-- استخدام `React.memo` على MessageBubble
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-### 3. SystemMessage component — مكون جديد بسيط
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-رسالة وسط الشاشة بـ:
-- `text-center text-[11px] text-muted-foreground`
-- `bg-muted/50 rounded-full px-3 py-1 mx-auto w-fit`
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-## الملفات المتأثرة
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-| الملف | التغيير |
-|-------|---------|
-| `src/components/chat/MessageBubble.tsx` | إعادة كتابة: إزالة getSession، إضافة props جديدة، تحسين التصميم |
-| `src/components/group/GroupChat.tsx` | إضافة consecutive grouping logic، smart scroll، تمرير currentUserId |
-| `src/components/chat/SystemMessage.tsx` | مكون جديد لرسائل النظام |
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
