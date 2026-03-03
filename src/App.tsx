@@ -75,6 +75,7 @@ const LazyPlans = withLazyLoading(lazy(() => import("./pages/Plans")));
 const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")));
 const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
 const LazyOnboarding = withLazyLoading(lazy(() => import("./pages/Onboarding")));
+const LazyChangelog = withLazyLoading(lazy(() => import("./pages/Changelog")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
