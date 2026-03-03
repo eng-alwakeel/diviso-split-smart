@@ -57,6 +57,18 @@ const Auth = () => {
   const [showLoginOptions, setShowLoginOptions] = useState(false);
   const [canResendEmail, setCanResendEmail] = useState(true);
   
+  // Google One Tap - only show on signup/login modes when not loading
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useGoogleOneTap({
+    enabled: !isLoggedIn && (mode === "signup" || mode === "login"),
+    onSuccess: () => {
+      // Auth state change listener will handle navigation
+    },
+    onError: (error) => {
+      console.warn("[Auth] One Tap error:", error);
+    },
+  });
+  
 
   // Read mode from URL parameter
   useEffect(() => {
