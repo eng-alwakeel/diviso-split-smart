@@ -253,6 +253,12 @@ const GroupDetails = () => {
     return expenses.filter(e => e.status === expenseFilter);
   }, [expenses, expenseFilter]);
 
+  const groupCurrency = group?.currency || 'SAR';
+  const currency = currencies.find(c => c.code === groupCurrency);
+  const currencyLabel = currency?.symbol || groupCurrency;
+  const memberCount = members.length;
+  const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
+
   // Debtors for payment request dialog
   const debtors = useMemo(() => {
     return balanceSummary
@@ -268,7 +274,6 @@ const GroupDetails = () => {
   // Member badges (Phase 3)
   const memberBadges = useMemo(() => {
     const msgCounts: Record<string, number> = {};
-    // We can't easily get message counts here without extra query, so leave empty for now
     return computeMemberBadges(
       registeredMembers.map(m => m.user_id),
       balances,
@@ -279,9 +284,8 @@ const GroupDetails = () => {
 
   // Trip summary data (Phase 3)
   const tripSummaryData = useMemo(() => {
-    const topPayer = balances.reduce((best, b) => 
-      b.amount_paid > (best?.amount_paid ?? 0) ? b : best, balances[0]);
-    const diceCount = settlements.filter((s: any) => s.settlement_type === 'dice').length; // approximate
+    const topPayer = balances.length > 0 ? balances.reduce((best, b) => 
+      b.amount_paid > (best?.amount_paid ?? 0) ? b : best, balances[0]) : null;
     return {
       groupName: group?.name || "",
       totalExpenses: totals.approvedExpenses,
@@ -293,12 +297,6 @@ const GroupDetails = () => {
       topPayer: topPayer ? { name: nameOf(topPayer.user_id), amount: topPayer.amount_paid } : undefined,
     };
   }, [group?.name, totals.approvedExpenses, currencyLabel, memberCount, expenses.length, settlements, balances]);
-
-  const groupCurrency = group?.currency || 'SAR';
-  const currency = currencies.find(c => c.code === groupCurrency);
-  const currencyLabel = currency?.symbol || groupCurrency;
-  const memberCount = members.length;
-  const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
 
   // Handlers
   const handleDeleteGroup = async () => {
