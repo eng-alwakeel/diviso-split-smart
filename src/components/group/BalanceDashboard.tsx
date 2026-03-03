@@ -53,6 +53,12 @@ interface BalanceDashboardProps {
   currency?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
   hasUnconfirmedMembers?: boolean;
+  groupName?: string;
+  groupId?: string;
+  onRemindDebtor?: (debtorUserId: string, amount: number) => void;
+  isOwner?: boolean;
+  isGroupClosed?: boolean;
+  onCloseGroup?: () => void;
 }
 
 export const BalanceDashboard = ({
