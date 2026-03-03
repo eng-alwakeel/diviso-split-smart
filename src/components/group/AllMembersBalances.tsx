@@ -256,6 +256,7 @@ export const AllMembersBalances = ({
                             currency={currency}
                             settlements={optimalSettlements}
                             formatName={formatName}
+                            exportMode={true}
                           />
                         );
                       });
