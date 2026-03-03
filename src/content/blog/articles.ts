@@ -1288,7 +1288,7 @@ Friendship is more important than money. Use Diviso and make your hangouts enjoy
     category: "guides",
     readTime: 6,
     publishDate: "2026-03-03",
-    content: \`
+    content: `
 ## المشكلة: ديون قديمة بدون سجل
 
 كلنا مررنا بهالموقف — أصدقاء يتبادلون الدفع في الطلعات والرحلات بدون تسجيل، وبعد فترة ما أحد يتذكر المبالغ بالضبط. النتيجة؟ إحراج، خلافات، أو حتى خسارة صداقات.
