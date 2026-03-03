@@ -759,7 +759,7 @@ const GroupDetails = () => {
                     أعضاء بانتظار التسجيل ({pendingMembers.length})
                   </h3>
                   {pendingMembers.map((member) => (
-                    <PendingMemberCard key={member.id} member={member} isAdmin={isAdmin || isOwner} groupId={id!} onRemoved={forceRefresh} />
+                    <PendingMemberCard key={member.id} member={member} isAdmin={isAdmin || isOwner} groupId={id!} groupName={group?.name} onRemoved={forceRefresh} />
                   ))}
                 </div>
               );
