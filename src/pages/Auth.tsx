@@ -114,6 +114,7 @@ const Auth = () => {
 
     // Listen first, then get existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
       if (session?.user) {
         // Track signup completion for email/Google users (SIGNED_IN event after signup)
         if (event === 'SIGNED_IN') {
