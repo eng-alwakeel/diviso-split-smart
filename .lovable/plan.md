@@ -1,55 +1,105 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# إعادة بناء صفحة المجموعة — خطة مرحلية (4 مراحل)
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## الهيكل الجديد
 
-## Fix
+الدردشة تكون في قلب الصفحة (بدون tab) والتبويبات تبقى للمحتوى الآخر (المصاريف، الأعضاء، التسويات، الميزانية).
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
-
-Add detailed logging to the test email code path:
-
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
-
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+```text
+┌──────────────────────────┐
+│  Header (90px)           │  ← اسم + حالة + ⋮
+├──────────────────────────┤
+│  Compact Summary (70px)  │  ← رصيدك | المصاريف | الأعضاء
+├──────────────────────────┤
+│  Settlement Progress Bar │  ← فقط إذا يوجد ديون
+├──────────────────────────┤
+│  Dynamic Status Banner   │  ← حسب حالة المجموعة
+├──────────────────────────┤
+│  ➕ Add Expense Button   │  ← فقط إذا نشطة
+├──────────────────────────┤
+│                          │
+│  💬 Chat (Main Area)     │  ← يأخذ الجزء الأكبر
+│  + Filter tabs           │  ← الكل | مالي | رسائل
+│  + Fixed input bar       │  ← 🎲 + ➕ + رسالة
+│                          │
+├──────────────────────────┤
+│  Tabs: مصاريف|أعضاء|     │  ← بدون tab دردشة
+│  تسويات|ميزانية          │
+└──────────────────────────┘
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+---
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+## المرحلة 1: الهيكل + الحالات + الدردشة كمحور (هذه المرحلة)
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### التغييرات:
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+**1. إضافة حالة `finished` للمجموعة (DB migration)**
+- حالياً: `active` و `closed` فقط
+- المطلوب: إضافة `finished` (منتهية — لا مصاريف، فقط تسوية)
+- وإضافة `balanced` كحالة محسوبة (ليست في DB — عند جميع الأرصدة = 0)
+
+**2. إعادة هيكلة `GroupDetails.tsx`**
+- Header جديد compact (90px): اسم المجموعة + Badge حالة + زر ⋮
+- Compact Summary (70px): 3 أعمدة (رصيدك بـ 20px Bold | إجمالي المصاريف | عدد الأعضاء)
+- Settlement Progress Bar: يظهر فقط عند وجود ديون
+- Dynamic Status Banner: 4 حالات بألوان مختلفة (نشطة/منتهية/متوازنة/مغلقة)
+- زر إضافة مصروف: يختفي إذا ليست نشطة
+- **الدردشة تظهر مباشرة في الصفحة** (ليست في tab)
+- إزالة tab الدردشة من التبويبات — تبقى 4 tabs فقط
+- Tabs يتحولون لمحتوى ثانوي أسفل الدردشة
+
+**3. تحديث `GroupChat.tsx`**
+- إضافة filter tabs أعلى الدردشة: الكل | مالي فقط | رسائل فقط
+- تكبير مساحة الدردشة (تأخذ ~60% من الشاشة)
+- Fixed bottom input bar مع أزرار 🎲 + ➕ (إضافة مصروف)
+
+**4. تحديث `useGroupStatus.ts`**
+- إضافة `finishGroup()` (يغير الحالة لـ `finished`)
+- إضافة `reopenGroup()` (يعيدها لـ `active`)
+- تعديل `closeGroup()` ليتطلب أن تكون `finished` أولاً + أرصدة = 0
+
+**5. إنشاء `FinishGroupDialog.tsx`**
+- حوار تأكيد "إنهاء الرحلة"
+- يشرح أنه لن يمكن إضافة مصاريف لكن يمكن التسوية
+
+### الملفات المتأثرة:
+
+| الملف | التغيير |
+|-------|---------|
+| DB Migration | إضافة `finished` كحالة |
+| `src/pages/GroupDetails.tsx` | إعادة هيكلة كاملة للصفحة |
+| `src/components/group/GroupChat.tsx` | إضافة فلترة + تكبير المساحة |
+| `src/hooks/useGroupStatus.ts` | إضافة `finishGroup` + `reopenGroup` |
+| `src/components/group/FinishGroupDialog.tsx` | **جديد** — حوار إنهاء الرحلة |
+| `src/components/group/GroupStatusBanner.tsx` | **جديد** — Banner ديناميكي للحالة |
+| `src/components/group/GroupCompactSummary.tsx` | **جديد** — شريط الملخص المالي |
+| `src/components/group/SettlementProgressBar.tsx` | **جديد** — مؤشر تقدم التسوية |
+
+---
+
+## المرحلة 2 (لاحقاً): التسويات + التأكيد المزدوج + طلب سداد واتساب
+
+- تسجيل الدفع مع تأكيد مزدوج (المرسل يعلن → المستلم يؤكد)
+- بطاقات إعلان الدفع في الدردشة
+- إرسال طلب سداد عبر واتساب
+- تذكير المدينين بعد 48 ساعة
+
+## المرحلة 3 (لاحقاً): السمعة + الملخص النهائي
+
+- نظام السمعة داخل المجموعة (Badge لكل عضو)
+- ملخص نهائي قابل للمشاركة عند الإغلاق
+- مرحلة الإغلاق النهائي مع الأرشفة
+
+## المرحلة 4 (لاحقاً): الأرصدة السابقة + التذكيرات
+
+- إضافة أرصدة سابقة (Bottom Sheet + نشر في الدردشة)
+- بطاقات الرصيد السابق في الدردشة
+- إدارة الأعضاء غير المنضمين + إعادة الدعوة
+- تذكيرات ذكية
+
+---
+
+## هل نبدأ بالمرحلة 1؟
+
