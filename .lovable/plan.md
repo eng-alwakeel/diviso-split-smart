@@ -1,55 +1,22 @@
 
-# Fix: Test Email Not Being Delivered
+# تحديث متطلبات كلمة المرور
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+## المشكلة
+المتطلبات المعروضة حالياً: "6 أحرف على الأقل" فقط — وهذا ضعيف جداً. بينما `usePasswordValidation` في `useSecureValidation.ts` يتطلب 8 أحرف + رقم + حرف، لكن هذا الـ hook غير مستخدم في صفحة التسجيل.
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## التعديل
+توحيد المتطلبات في كل مكان لتكون:
+- **8 أحرف على الأقل**
+- **رقم واحد على الأقل**
+- **حرف واحد على الأقل (إنجليزي)**
 
-## Fix
+### الملفات المتأثرة
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+| الملف | التغيير |
+|-------|---------|
+| `src/components/auth/PasswordRequirements.tsx` | إضافة 3 شروط بدل 1 + تحديث `isPasswordValid` |
+| `src/i18n/locales/ar/auth.json` | إضافة ترجمة الشروط الجديدة |
+| `src/i18n/locales/en/auth.json` | إضافة ترجمة الشروط الجديدة |
+| `src/pages/Auth.tsx` | تحديث فحص الطول من 6 إلى 8 في reset password |
+| `src/pages/ReferralSignup.tsx` | تحديث فحص الطول من 6 إلى 8 |
 
-Add detailed logging to the test email code path:
-
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
-
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
-
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
-
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
-
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
