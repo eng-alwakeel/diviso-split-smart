@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React from "react";
 import { User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlanBadge } from "@/components/ui/plan-badge";
@@ -21,91 +20,71 @@ interface Message {
 interface MessageBubbleProps {
   message: Message;
   profiles: Record<string, any>;
+  currentUserId: string | null;
+  showSenderInfo: boolean;
 }
 
-export const MessageBubble = ({ message, profiles }: MessageBubbleProps) => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userSubscription, setUserSubscription] = useState<any>(null);
+export const MessageBubble = React.memo(({ message, profiles, currentUserId, showSenderInfo }: MessageBubbleProps) => {
   const { getPlanBadgeConfig } = usePlanBadge();
   const { badgeConfig: adminBadgeConfig } = useAdminBadge();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUserId(data.session?.user?.id || null);
-      
-      if (message.sender_id) {
-        const { data: subData } = await supabase
-          .from("user_subscriptions")
-          .select("*")
-          .eq("user_id", message.sender_id)
-          .maybeSingle();
-        setUserSubscription(subData);
-      }
-    };
-    
-    fetchUserData();
-  }, [message.sender_id]);
-
-  const isMe = userId && message.sender_id === userId;
+  const isMe = currentUserId === message.sender_id;
   const senderProfile = profiles[message.sender_id];
   const senderName = senderProfile?.display_name || senderProfile?.name || senderProfile?.phone || 'مستخدم';
   const senderAvatar = senderProfile?.avatar_url;
   const senderIsAdmin = senderProfile?.is_admin || false;
-  
-  const senderPlan = (() => {
-    if (!userSubscription) return "free";
-    if (userSubscription.status === "active" || 
-        (userSubscription.status === "trialing" && new Date(userSubscription.expires_at) > new Date())) {
-      return userSubscription.plan;
-    }
-    return "free";
-  })();
 
+  const timeStr = new Date(message.created_at).toLocaleTimeString('ar-SA', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  // Current user messages — right aligned, no avatar/name
+  if (isMe) {
+    return (
+      <div className="flex justify-end mb-1">
+        <div className="max-w-[75%]">
+          <div className="bg-primary text-primary-foreground p-3 rounded-2xl rounded-br-md">
+            <p className="text-sm leading-relaxed">{message.content}</p>
+            <p className="text-[11px] opacity-60 mt-1 text-left">{timeStr}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Other user messages
   return (
-    <div className={`flex ${isMe ? "justify-end" : "justify-start"} mb-3`}>
-      <div className={`flex items-start gap-2 max-w-[70%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-        {!isMe && (
-          <Avatar className="w-8 h-8 mt-1 shrink-0">
+    <div className={`flex justify-start ${showSenderInfo ? 'mt-3' : 'mt-0.5'}`}>
+      {/* Avatar column — fixed width for alignment */}
+      <div className="w-9 shrink-0 mr-2">
+        {showSenderInfo ? (
+          <Avatar className="w-9 h-9">
             <AvatarImage src={senderAvatar} alt={senderName} />
-            <AvatarFallback className="text-xs">
+            <AvatarFallback className="text-xs bg-muted">
               <User className="w-4 h-4" />
             </AvatarFallback>
           </Avatar>
+        ) : (
+          <div className="w-9 h-0" /> // invisible placeholder
         )}
-        <div
-          className={`p-3 rounded-lg ${
-            isMe
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted'
-          }`}
-        >
-          {!isMe && (
-            <div className="text-xs font-medium mb-1 text-muted-foreground flex items-center gap-2">
-              <span>{senderName}</span>
-              <div className="flex items-center gap-1">
-                {senderIsAdmin && (
-                  <AdminBadge 
-                    config={adminBadgeConfig} 
-                    size="sm"
-                  />
-                )}
-                <PlanBadge 
-                  config={getPlanBadgeConfig(senderPlan as any)} 
-                  size="sm"
-                />
-              </div>
-            </div>
-          )}
-          <div className="text-sm leading-relaxed">{message.content}</div>
-          <div className="text-xs opacity-70 mt-1">
-            {new Date(message.created_at).toLocaleTimeString('ar-SA', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+      </div>
+
+      <div className="max-w-[75%]">
+        {showSenderInfo && (
+          <div className="flex items-center gap-1.5 mb-0.5 px-1">
+            <span className="text-[12px] font-medium text-muted-foreground">{senderName}</span>
+            {senderIsAdmin && <AdminBadge config={adminBadgeConfig} size="sm" />}
+            <PlanBadge config={getPlanBadgeConfig("free")} size="sm" />
           </div>
+        )}
+        <div className="bg-muted p-3 rounded-2xl rounded-bl-md">
+          <p className="text-sm leading-relaxed">{message.content}</p>
+          <p className="text-[11px] text-muted-foreground/60 mt-1">{timeStr}</p>
         </div>
       </div>
     </div>
   );
-};
+});
+
+MessageBubble.displayName = "MessageBubble";
