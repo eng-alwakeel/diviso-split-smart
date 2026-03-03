@@ -38,7 +38,7 @@ interface PendingMemberCardProps {
   onRemoved: () => void;
 }
 
-export const PendingMemberCard = ({ member, isAdmin, groupId, onRemoved }: PendingMemberCardProps) => {
+export const PendingMemberCard = ({ member, isAdmin, groupId, groupName, onRemoved }: PendingMemberCardProps) => {
   const { toast } = useToast();
   const [removing, setRemoving] = useState(false);
 
