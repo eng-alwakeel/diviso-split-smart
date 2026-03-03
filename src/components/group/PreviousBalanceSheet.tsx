@@ -83,7 +83,7 @@ export const PreviousBalanceSheet = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export const PreviousBalanceSheet = ({
             <Label>المدين (عليه مبلغ)</Label>
             <Select value={fromUserId} onValueChange={setFromUserId}>
               <SelectTrigger><SelectValue placeholder="اختر المدين" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[1100]">
                 {members.map(m => (
                   <SelectItem key={m.user_id} value={m.user_id}>{m.name}</SelectItem>
                 ))}
@@ -112,7 +112,7 @@ export const PreviousBalanceSheet = ({
             <Label>الدائن (له مبلغ)</Label>
             <Select value={toUserId} onValueChange={setToUserId}>
               <SelectTrigger><SelectValue placeholder="اختر الدائن" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[1100]">
                 {members.filter(m => m.user_id !== fromUserId).map(m => (
                   <SelectItem key={m.user_id} value={m.user_id}>{m.name}</SelectItem>
                 ))}
