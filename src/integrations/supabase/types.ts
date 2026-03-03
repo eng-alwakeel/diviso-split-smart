@@ -5341,6 +5341,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_payout_methods: {
+        Row: {
+          account_name: string | null
+          account_value: string
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          method_type: string
+          note: string | null
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_value: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          method_type: string
+          note?: string | null
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_value?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          method_type?: string
+          note?: string | null
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       user_push_tokens: {
         Row: {
           created_at: string | null
@@ -6565,6 +6607,10 @@ export type Database = {
       share_achievement: {
         Args: { p_achievement_id: string; p_platform: string }
         Returns: Json
+      }
+      shares_group_with: {
+        Args: { owner_id: string; viewer_id: string }
+        Returns: boolean
       }
       spend_coins: {
         Args: {

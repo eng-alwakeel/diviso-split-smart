@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, AlertCircle, X } from "lucide-react";
+import { Check, Clock, AlertCircle, X, Wallet } from "lucide-react";
 import { ConfirmSettlementDialog } from "./ConfirmSettlementDialog";
+import { PayoutMethodsSheet } from "./PayoutMethodsSheet";
 import { cn } from "@/lib/utils";
 
 interface SettlementAnnouncementCardProps {
@@ -30,6 +31,7 @@ export const SettlementAnnouncementCard = ({
   onConfirmed,
 }: SettlementAnnouncementCardProps) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [payoutSheetOpen, setPayoutSheetOpen] = useState(false);
 
   const isRecipient = currentUserId === settlement.to_user_id;
   const status = settlement.status || "pending";
@@ -96,6 +98,19 @@ export const SettlementAnnouncementCard = ({
             تأكيد الاستلام
           </Button>
         )}
+
+        {/* Show payout methods button to the payer */}
+        {currentUserId === settlement.from_user_id && status === "pending" && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-xs gap-1.5"
+            onClick={() => setPayoutSheetOpen(true)}
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            طرق الدفع لـ {toName}
+          </Button>
+        )}
       </div>
 
       <ConfirmSettlementDialog
@@ -107,6 +122,13 @@ export const SettlementAnnouncementCard = ({
         onConfirmed={() => {
           onConfirmed?.();
         }}
+      />
+
+      <PayoutMethodsSheet
+        open={payoutSheetOpen}
+        onOpenChange={setPayoutSheetOpen}
+        userId={settlement.to_user_id}
+        userName={toName}
       />
     </>
   );

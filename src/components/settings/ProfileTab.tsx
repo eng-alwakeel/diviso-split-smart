@@ -27,6 +27,7 @@ import {
   saveNotificationPreference,
   getNotificationPreference 
 } from "@/lib/browserNotifications";
+import { PayoutMethodsSection } from "./PayoutMethodsSection";
 
 interface ProfileTabProps {
   profile: {
@@ -609,6 +610,9 @@ export function ProfileTab({
           </div>
         </CardContent>
       </Card>
+
+      {/* قسم طرق الاستلام */}
+      <PayoutMethodsSection />
 
       {/* قسم إشعارات المتصفح */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
