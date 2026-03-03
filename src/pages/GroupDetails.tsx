@@ -419,6 +419,12 @@ const GroupDetails = () => {
               <DropdownMenuItem onClick={() => setReportOpen(true)}>
                 <FileText className="w-4 h-4 me-2" /> التقرير
               </DropdownMenuItem>
+              {/* Previous Balance - admin only */}
+              {isAdmin && !isGroupClosed && (
+                <DropdownMenuItem onClick={() => setPreviousBalanceOpen(true)}>
+                  <Scale className="w-4 h-4 me-2" /> إضافة رصيد سابق
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               
               {/* Finish / Reopen trip */}
