@@ -214,14 +214,13 @@ const GroupDetails = () => {
 
   // Compute group state
   const groupState: GroupState = useMemo(() => {
-    if (group?.status === 'closed') return 'closed';
-    if (group?.status === 'finished') {
-      // Check if all balances are zero → balanced
+    const status = group?.status as string | null;
+    if (status === 'closed') return 'closed';
+    if (status === 'finished') {
       const allZero = balanceSummary.every(b => Math.abs(Number(b.total_net ?? 0)) < 0.01);
       if (allZero && balanceSummary.length > 0) return 'balanced';
       return 'finished';
     }
-    // active — also check if balanced
     const allZero = balanceSummary.every(b => Math.abs(Number(b.total_net ?? 0)) < 0.01);
     if (allZero && balanceSummary.length > 0 && expenses.length > 0) return 'balanced';
     return 'active';
