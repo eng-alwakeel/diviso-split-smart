@@ -1385,7 +1385,7 @@ Sara and Fatima have been roommates for 6 months. Sara paid many bills. She reco
 Don't let old debts affect your relationships. Record them in Diviso, settle with one tap, and start a new page.
 
 **Try Diviso now** and record your legacy balances!
-    \`
+    `
   }
 ];
 
