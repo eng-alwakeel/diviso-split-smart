@@ -161,42 +161,50 @@ export const BalanceDashboard = ({
       .slice(0, 10); // Show last 10 settlements
   }, [settlements, currentUserId]);
 
-  // Balance trends (who owes what to whom) - works for both debtors and creditors
+  // Balance trends - optimal two-pointer greedy algorithm
   const balanceTrends = useMemo(() => {
     const myBalance = balances.find(b => b.user_id === currentUserId);
-    if (!myBalance) return [];
+    if (!myBalance || Math.abs(myBalance.net_balance) < 0.01) return [];
 
-    // If I owe money (negative balance), find creditors to pay
-    if (myBalance.net_balance < 0) {
-      const creditors = balances
-        .filter(b => b.user_id !== currentUserId && b.net_balance > 0)
-        .sort((a, b) => b.net_balance - a.net_balance);
+    // Build sorted copies of debtors and creditors
+    const debtors = balances
+      .filter(b => b.net_balance < -0.01)
+      .map(b => ({ user_id: b.user_id, remaining: Math.abs(b.net_balance) }))
+      .sort((a, b) => b.remaining - a.remaining);
 
-      return creditors.map(creditor => ({
-        user_id: creditor.user_id,
-        name: formatName(creditor.user_id),
-        amount: creditor.net_balance,
-        type: 'pay_to' as const,
-        suggestedSettlement: Math.min(Math.abs(myBalance.net_balance), creditor.net_balance)
-      }));
+    const creditors = balances
+      .filter(b => b.net_balance > 0.01)
+      .map(b => ({ user_id: b.user_id, remaining: b.net_balance }))
+      .sort((a, b) => b.remaining - a.remaining);
+
+    // Two-pointer greedy: compute all optimal settlements
+    const allSettlements: Array<{ from: string; to: string; amount: number }> = [];
+    let di = 0, ci = 0;
+    while (di < debtors.length && ci < creditors.length) {
+      const amount = Math.min(debtors[di].remaining, creditors[ci].remaining);
+      if (amount > 0.01) {
+        allSettlements.push({ from: debtors[di].user_id, to: creditors[ci].user_id, amount });
+      }
+      debtors[di].remaining -= amount;
+      creditors[ci].remaining -= amount;
+      if (debtors[di].remaining < 0.01) di++;
+      if (creditors[ci].remaining < 0.01) ci++;
     }
 
-    // If I am owed money (positive balance), find debtors who should pay me
-    if (myBalance.net_balance > 0) {
-      const debtors = balances
-        .filter(b => b.user_id !== currentUserId && b.net_balance < 0)
-        .sort((a, b) => a.net_balance - b.net_balance); // Most in debt first
-
-      return debtors.map(debtor => ({
-        user_id: debtor.user_id,
-        name: formatName(debtor.user_id),
-        amount: Math.abs(debtor.net_balance),
-        type: 'receive_from' as const,
-        suggestedSettlement: Math.min(myBalance.net_balance, Math.abs(debtor.net_balance))
-      }));
-    }
-
-    return [];
+    // Filter to current user only
+    return allSettlements
+      .filter(s => s.from === currentUserId || s.to === currentUserId)
+      .map(s => {
+        const isPayTo = s.from === currentUserId;
+        const otherUserId = isPayTo ? s.to : s.from;
+        return {
+          user_id: otherUserId,
+          name: formatName(otherUserId),
+          amount: s.amount,
+          type: isPayTo ? 'pay_to' as const : 'receive_from' as const,
+          suggestedSettlement: s.amount,
+        };
+      });
   }, [balances, currentUserId, profiles]);
 
   const myBalance = balances.find(b => b.user_id === currentUserId);
