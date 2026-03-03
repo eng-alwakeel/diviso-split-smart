@@ -90,6 +90,22 @@ export const PendingMemberCard = ({ member, isAdmin, groupId, groupName, onRemov
           {member.status === 'pending' ? 'بانتظار التسجيل' : 'بانتظار الموافقة'}
         </Badge>
 
+        {/* Re-invite via WhatsApp */}
+        {isAdmin && member.phone_e164 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-green-600 hover:bg-green-500/10"
+            onClick={() => {
+              const msg = `مرحباً 👋\n\nأنت مدعو للانضمام إلى مجموعة "${groupName || 'المجموعة'}" على تطبيق Diviso.\n\nحمّل التطبيق وسجّل بنفس الرقم:\nhttps://diviso-split-smart.lovable.app`;
+              openWhatsAppDirect(member.phone_e164!, msg);
+            }}
+            title="إعادة دعوة عبر واتساب"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        )}
+
         {isAdmin && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
