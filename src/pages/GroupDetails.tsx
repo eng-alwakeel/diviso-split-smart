@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { 
   ArrowRight, Users, Receipt, MessageCircle, Target, Plus, Settings,
   DollarSign, MoreHorizontal, UserPlus, Edit, CheckCircle, Clock,
-  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw
+  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw, Scale
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
