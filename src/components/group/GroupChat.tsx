@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Send, User } from "lucide-react";
+import { Send, User, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlanBadge } from "@/components/ui/plan-badge";
 import { AdminBadge } from "@/components/ui/admin-badge";
@@ -14,6 +14,7 @@ import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { messageSchema, safeValidateInput } from "@/lib/validation";
 import { ChatDiceButton } from "@/components/chat/ChatDiceButton";
 import { DiceDecisionMessage } from "@/components/chat/messages/DiceDecisionMessage";
+import { cn } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -25,19 +26,26 @@ interface Message {
   dice_decision_id?: string | null;
 }
 
+type ChatFilter = 'all' | 'financial' | 'messages';
+
 interface GroupChatProps {
   groupId: string;
+  isGroupActive?: boolean;
+  onAddExpense?: () => void;
+  /** Make the chat taller — used when chat is main content */
+  expanded?: boolean;
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const GroupChat = ({ groupId }: GroupChatProps) => {
+export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expanded = false }: GroupChatProps) => {
   const { toast } = useToast();
   const { t } = useTranslation(['groups', 'common', 'errors']);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
+  const [filter, setFilter] = useState<ChatFilter>('all');
   const listRef = useRef<HTMLDivElement>(null);
 
   const canUseRealtime = useMemo(() => isUUID(groupId), [groupId]);
@@ -50,12 +58,10 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 
   useEffect(() => {
     if (!canUseRealtime) return;
-    console.log("[GroupChat] fetching messages for group:", groupId);
 
     let active = true;
     
     const fetchMessagesAndProfiles = async () => {
-      // Fetch messages
       const { data: messagesData, error: messagesError } = await supabase
         .from("messages")
         .select("*")
@@ -64,14 +70,12 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
 
       if (!active) return;
       if (messagesError) {
-        console.error("[GroupChat] fetch error", messagesError);
         toast({ title: t('groups:chat_tab.load_error', 'Failed to load messages'), description: messagesError.message, variant: "destructive" });
         return;
       }
 
       setMessages((messagesData as Message[]) || []);
 
-      // Fetch profiles for all message senders
       if (messagesData && messagesData.length > 0) {
         const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
         const { data: profilesData, error: profilesError } = await supabase
@@ -104,18 +108,25 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
           filter: `group_id=eq.${groupId}`,
         },
         (payload) => {
-          console.log("[GroupChat] new message payload:", payload);
           setMessages((prev) => [...prev, payload.new as Message]);
           scrollToBottom();
         }
       )
-      .subscribe((status) => console.log("[GroupChat] realtime status:", status));
+      .subscribe();
 
     return () => {
       active = false;
       supabase.removeChannel(channel);
     };
   }, [groupId, canUseRealtime, toast, t]);
+
+  // Filter messages
+  const filteredMessages = useMemo(() => {
+    if (filter === 'all') return messages;
+    if (filter === 'financial') return messages.filter(m => m.message_type === 'dice_decision' || m.dice_decision_id);
+    // messages only — exclude financial
+    return messages.filter(m => m.message_type !== 'dice_decision' && !m.dice_decision_id);
+  }, [messages, filter]);
 
   const sendMessage = async () => {
     const content = newMessage.trim();
@@ -129,23 +140,17 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
       return;
     }
 
-    // Validate input before sending
     const validation = safeValidateInput(messageSchema, {
       content,
       group_id: groupId
     });
 
     if (validation.success === false) {
-      toast({
-        title: t('common:toast.validation_error'),
-        description: validation.error,
-        variant: "destructive",
-      });
+      toast({ title: t('common:toast.validation_error'), description: validation.error, variant: "destructive" });
       return;
     }
 
     setSending(true);
-    console.log("[GroupChat] inserting message:", { groupId, content });
     const { error } = await supabase.from("messages").insert({
       group_id: validation.data.group_id,
       content: validation.data.content,
@@ -155,17 +160,11 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     setSending(false);
 
     if (error) {
-      console.error("[GroupChat] insert error", error);
-      toast({
-        title: t('common:toast.send_failed'),
-        description: error.message || t('common:toast.send_failed_desc'),
-        variant: "destructive",
-      });
+      toast({ title: t('common:toast.send_failed'), description: error.message || t('common:toast.send_failed_desc'), variant: "destructive" });
       return;
     }
 
     setNewMessage("");
-    // لا نضيف محلياً، سنستقبلها من Realtime لضمان الترتيب
   };
 
   if (!canUseRealtime) {
@@ -178,31 +177,70 @@ export const GroupChat = ({ groupId }: GroupChatProps) => {
     );
   }
 
+  const filterTabs: { key: ChatFilter; label: string }[] = [
+    { key: 'all', label: 'الكل' },
+    { key: 'financial', label: '💰 مالي' },
+    { key: 'messages', label: '💬 رسائل' },
+  ];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
+      {/* Filter tabs */}
+      <div className="flex gap-1.5 px-1">
+        {filterTabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setFilter(tab.key)}
+            className={cn(
+              "shrink-0 rounded-full px-3 py-1 text-[11px] font-medium border transition-colors",
+              filter === tab.key
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Messages area */}
       <div
-        className="h-96 overflow-y-auto space-y-3 p-4 bg-muted/50 rounded-lg"
+        className={cn(
+          "overflow-y-auto space-y-3 p-4 bg-muted/30 rounded-xl",
+          expanded ? "h-[50vh]" : "h-80"
+        )}
         ref={listRef}
       >
-        {messages.map((m) => (
+        {filteredMessages.map((m) => (
           m.message_type === 'dice_decision' && m.dice_decision_id
             ? <DiceDecisionMessage key={m.id} decisionId={m.dice_decision_id} groupId={groupId} />
             : <MessageBubble key={m.id} message={m} profiles={profiles} />
         ))}
-        {messages.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground">{t('groups:chat_tab.no_messages', 'No messages yet.')}</p>
+        {filteredMessages.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">
+            {filter === 'all' 
+              ? t('groups:chat_tab.no_messages', 'لا توجد رسائل بعد.')
+              : 'لا توجد رسائل من هذا النوع'}
+          </p>
         )}
       </div>
 
-      <div className="flex gap-2">
+      {/* Input bar */}
+      <div className="flex gap-2 items-center">
         <Input
           placeholder={t('groups:chat_tab.write_message')}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !sending && sendMessage()}
+          className="flex-1"
         />
         <ChatDiceButton groupId={groupId} onDecisionCreated={scrollToBottom} />
-        <Button onClick={sendMessage} variant="hero" disabled={sending}>
+        {isGroupActive && onAddExpense && (
+          <Button onClick={onAddExpense} variant="outline" size="icon" className="shrink-0">
+            <Plus className="w-4 h-4" />
+          </Button>
+        )}
+        <Button onClick={sendMessage} variant="hero" size="icon" disabled={sending} className="shrink-0">
           <Send className="w-4 h-4" />
         </Button>
       </div>
@@ -221,7 +259,6 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
       const { data } = await supabase.auth.getSession();
       setUserId(data.session?.user?.id || null);
       
-      // Fetch sender's subscription for badge
       if (message.sender_id) {
         const { data: subData } = await supabase
           .from("user_subscriptions")
@@ -241,7 +278,6 @@ const MessageBubble = ({ message, profiles }: { message: Message; profiles: Reco
   const senderAvatar = senderProfile?.avatar_url;
   const senderIsAdmin = senderProfile?.is_admin || false;
   
-  // Determine sender's plan for badge
   const senderPlan = (() => {
     if (!userSubscription) return "free";
     if (userSubscription.status === "active" || 
