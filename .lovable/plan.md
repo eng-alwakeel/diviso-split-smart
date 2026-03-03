@@ -1,55 +1,104 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# مشاركة/طباعة التسويات المقترحة + إشعار "عليك مبلغ" + إنهاء الرحلة
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## ملخص
+3 ميزات مرتبطة بتبويب التسويات داخل المجموعة:
 
-## Fix
+1. **مشاركة/طباعة التسويات المقترحة كصورة PDF-like** مع watermark "Diviso"
+2. **إشعار "عليك مبلغ ارجو تسويته"** لكل مدين من التسويات المقترحة
+3. **إنهاء الرحلة** (إغلاق المجموعة لمنع مصاريف جديدة) — موجود أصلاً (`closeGroup`)، نضيف زر واضح في تبويب التسويات
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+---
 
-Add detailed logging to the test email code path:
+## A) مشاركة/طباعة التسويات المقترحة
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+### مكون جديد: `SettlementShareCard.tsx`
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+**الملف:** `src/components/group/SettlementShareCard.tsx`
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+مكون يعرض التسويات المقترحة بتنسيق "كرت قابل للمشاركة":
+- عنوان: "التسويات المقترحة" + اسم المجموعة
+- قائمة التسويات (من → إلى → المبلغ) بنفس الشكل الحالي في `AllMembersBalances`
+- Watermark "Diviso" شفاف في الخلفية (نمط `ReportWatermark` الموجود)
+- تاريخ التصدير
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+**أزرار المشاركة** (تضاف في `AllMembersBalances.tsx` أو `BalanceDashboard.tsx`):
+- زر "📤 مشاركة" → يستخدم `html2canvas` لتحويل الكرت إلى صورة + مشاركة عبر Web Share API / Capacitor Share
+- زر "🖨️ طباعة" → `window.print()` بنفس نمط `GroupReportDialog`
+- زر "📋 نسخ" → نسخ نص التسويات المقترحة (نص عادي)
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+**تقنياً:**
+- تثبيت `html2canvas` (أو استخدام DOM-to-image pattern بسيط)
+- إنشاء div مخفي بتنسيق جميل → تحويله لصورة → مشاركة
+- بديل أبسط: بناء نص formatted + مشاركة كنص (مثل `ShareDiceResult`) مع رابط التطبيق
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+**النهج المختار (الأبسط والأفعل):**
+- نسخة نصية جاهزة للمشاركة (WhatsApp/Social) مع watermark نصي "Diviso"
+- نسخة طباعة عبر `window.print()` مع CSS print styles
+- استخدام Web Share API / Capacitor Share للمشاركة الأصلية
+
+### تعديل: `AllMembersBalances.tsx`
+- إضافة أزرار "مشاركة" و"طباعة" أعلى قسم التسويات المقترحة
+- إضافة زر "تذكير المدينين" (إشعارات)
+
+---
+
+## B) إشعار "عليك مبلغ ارجو تسويته"
+
+### تعديل: `AllMembersBalances.tsx` أو `BalanceDashboard.tsx`
+
+إضافة زر "🔔 تذكير" بجانب كل تسوية مقترحة حيث المستخدم الحالي هو الدائن (creditor):
+- عند الضغط → إرسال إشعار من نوع `balance_due` للمدين
+- الإشعار يحتوي: اسم المجموعة + المبلغ + رسالة "عليك مبلغ X ارجو تسويته"
+- استخدام `useGroupNotifications.sendNotifications()` الموجود أو `useBalanceNotification.sendBalanceNotifications()` 
+
+**منطق الإشعار:**
+- إدراج صف في جدول `notifications` بنوع `settlement_reminder` (نوع جديد)
+- أو إعادة استخدام نوع `balance_due` مع payload مختلف
+- زر التذكير يظهر فقط إذا المستخدم الحالي هو الدائن (الشخص الذي ينتظر المبلغ)
+- بعد الإرسال: toast نجاح + تعطيل الزر مؤقتاً
+
+### تعديل: `useGroupNotifications.ts`
+- إضافة دالة `notifySettlementReminder(groupId, groupName, debtorUserId, amount, currency)`
+
+### تعديل i18n:
+- إضافة مفاتيح ترجمة للتذكير في `notifications.json` و `groups.json`
+
+---
+
+## C) إنهاء الرحلة — زر واضح في التسويات
+
+### تعديل: `BalanceDashboard.tsx` أو `GroupDetails.tsx` (تبويب التسويات)
+
+الميزة موجودة أصلاً (`closeGroup` في `useGroupStatus` + `CloseGroupDialog`). المطلوب:
+- إضافة زر "🏁 إنهاء الرحلة" بارز في أعلى أو أسفل تبويب التسويات
+- يظهر فقط لمالك/مدير المجموعة
+- عند الضغط → يفتح `CloseGroupDialog` الموجود
+- بعد الإغلاق: تُمنع إضافة مصاريف جديدة (السلوك الحالي) ويمكن فقط عمل تسويات
+
+---
+
+## D) الملفات المتأثرة
+
+| الملف | نوع التغيير |
+|-------|-------------|
+| `src/components/group/SettlementShareCard.tsx` | **جديد** — كرت المشاركة/الطباعة |
+| `src/components/group/AllMembersBalances.tsx` | تعديل — أزرار مشاركة + تذكير |
+| `src/components/group/BalanceDashboard.tsx` | تعديل — تمرير props + زر إنهاء الرحلة |
+| `src/hooks/useGroupNotifications.ts` | تعديل — إضافة `notifySettlementReminder` |
+| `src/pages/GroupDetails.tsx` | تعديل — تمرير props جديدة لـ BalanceDashboard |
+| `src/i18n/locales/ar/groups.json` | تعديل — مفاتيح ترجمة |
+| `src/i18n/locales/en/groups.json` | تعديل — مفاتيح ترجمة |
+| `src/i18n/locales/ar/notifications.json` | تعديل — نوع إشعار جديد |
+| `src/i18n/locales/en/notifications.json` | تعديل — نوع إشعار جديد |
+
+---
+
+## E) القيود المُلتزم بها
+- لا تغيير في منطق الحسابات
+- لا API calls جديدة (الإشعارات تستخدم جدول notifications الموجود)
+- RTL صحيح 100%
+- Watermark "Diviso" في المشاركة/الطباعة
+- المشاركة تعمل على الويب (Web Share API) وعلى Native (Capacitor Share)
+
