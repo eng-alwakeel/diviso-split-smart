@@ -2,10 +2,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Phone, Trash2, UserX } from "lucide-react";
+import { Clock, Phone, Trash2, UserX, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { openWhatsAppDirect } from "@/lib/native";
 import {
   AlertDialog,
   AlertDialogAction,
