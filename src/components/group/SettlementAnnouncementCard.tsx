@@ -31,6 +31,7 @@ export const SettlementAnnouncementCard = ({
   onConfirmed,
 }: SettlementAnnouncementCardProps) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [payoutSheetOpen, setPayoutSheetOpen] = useState(false);
 
   const isRecipient = currentUserId === settlement.to_user_id;
   const status = settlement.status || "pending";
