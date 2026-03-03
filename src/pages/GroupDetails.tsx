@@ -151,7 +151,7 @@ const GroupDetails = () => {
   const [memberToRate, setMemberToRate] = useState<any>(null);
   
   const { t } = useTranslation(['groups', 'common']);
-  const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
+  const { notifyMemberLeft, notifyGroupDeleted, notifySettlementReminder } = useGroupNotifications();
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
