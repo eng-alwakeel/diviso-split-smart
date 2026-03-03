@@ -149,6 +149,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/from" element={<LazyInfluencerPage />} />
             <Route path="/founding" element={<LazyFoundingProgram />} />
             <Route path="/install" element={<LazyInstall />} />
+            <Route path="/changelog" element={<LazyChangelog />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />
