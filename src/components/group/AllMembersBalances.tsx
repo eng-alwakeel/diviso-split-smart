@@ -328,6 +328,19 @@ export const AllMembersBalances = ({
         </Card>
       )}
 
+      {/* Hidden print-only share card */}
+      {optimalSettlements.length > 0 && (
+        <div className="hidden print:block">
+          <SettlementShareCard
+            ref={shareCardRef}
+            groupName={groupName}
+            currency={currency}
+            settlements={optimalSettlements}
+            formatName={formatName}
+          />
+        </div>
+      )}
+
       {/* Empty state when all balanced */}
       {optimalSettlements.length === 0 && balances.length > 0 && (
         <Card className="bg-card/50 border-border/50">
