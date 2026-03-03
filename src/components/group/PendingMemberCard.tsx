@@ -34,6 +34,7 @@ interface PendingMemberCardProps {
   };
   isAdmin: boolean;
   groupId: string;
+  groupName?: string;
   onRemoved: () => void;
 }
 
