@@ -71,6 +71,12 @@ export const BalanceDashboard = ({
   onSettleClick,
   onSettlementConfirmed,
   hasUnconfirmedMembers = false,
+  groupName = "",
+  groupId,
+  onRemindDebtor,
+  isOwner = false,
+  isGroupClosed = false,
+  onCloseGroup,
 }: BalanceDashboardProps) => {
   const { t } = useTranslation('groups');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
