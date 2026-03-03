@@ -23,6 +23,7 @@ import { SignupValueBanner } from "@/components/auth/SignupValueBanner";
 import { FoundingProgramBanner } from "@/components/auth/FoundingProgramBanner";
 import { SocialProofText } from "@/components/auth/SocialProofText";
 import { trackGAEvent } from "@/hooks/useGoogleAnalytics";
+import { useGoogleOneTap } from "@/hooks/useGoogleOneTap";
 const Auth = () => {
   const { toast, dismiss } = useToast();
   const navigate = useNavigate();
