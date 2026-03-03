@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +9,16 @@ import {
   ArrowRight,
   Users,
   Wallet,
-  MinusCircle
+  MinusCircle,
+  Share2,
+  Printer,
+  Copy,
+  Bell
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { SettlementShareCard, buildSettlementShareText } from "./SettlementShareCard";
+import { Share } from "@capacitor/share";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   display_name?: string | null;
