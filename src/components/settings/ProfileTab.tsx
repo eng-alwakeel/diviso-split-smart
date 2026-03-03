@@ -611,6 +611,9 @@ export function ProfileTab({
         </CardContent>
       </Card>
 
+      {/* قسم طرق الاستلام */}
+      <PayoutMethodsSection />
+
       {/* قسم إشعارات المتصفح */}
       <Card className="bg-card/90 border border-border/50 shadow-card rounded-2xl backdrop-blur-sm">
         <CardHeader>

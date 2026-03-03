@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, AlertCircle, X } from "lucide-react";
+import { Check, Clock, AlertCircle, X, Wallet } from "lucide-react";
 import { ConfirmSettlementDialog } from "./ConfirmSettlementDialog";
+import { PayoutMethodsSheet } from "./PayoutMethodsSheet";
 import { cn } from "@/lib/utils";
 
 interface SettlementAnnouncementCardProps {
