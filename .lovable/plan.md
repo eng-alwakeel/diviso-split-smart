@@ -1,64 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تحسين واجهة نفاذ الرصيد — إضافة اختيار مباشر من نفس المكان
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## الوضع الحالي
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-`ZeroCreditsPaywall.tsx` يعرض 4 خيارات عند نفاذ النقاط:
-1. **ترقية الخطة** → يحوّل المستخدم لصفحة `/pricing-protected` (يخرج من المكان)
-2. **شراء نقاط** → يحوّل لصفحة `/credit-store` (يخرج من المكان)
-3. **مشاهدة إعلان** → يفتح Offerwall dialog
-4. **إحالة صديق** → يحوّل لصفحة `/referral`
+## Fix
 
-## المطلوب (مستوحى من تصميم Lovable في الصور)
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-تحويل الخيارين الأولين لكاردات قابلة للتوسيع مع dropdowns داخلية:
+Add detailed logging to the test email code path:
 
-### A) كارد "ترقية الخطة" — Expandable
-- Radio button للتحديد
-- عند التحديد يظهر dropdown يعرض الخطط الثلاث (Starter/Pro/Max) مع أسعارها ونقاطها
-- toggle شهري/سنوي (موجود حالياً)
-- زر الإجراء يتغير لـ "ترقية الخطة"
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### B) كارد "شراء نقاط" — Expandable
-- Radio button للتحديد
-- عند التحديد يظهر dropdown يعرض باقات النقاط المتاحة (من `credit_packages` في Supabase)
-- يعرض السعر بجانب كل باقة
-- زر الإجراء يتغير لـ "شراء النقاط"
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-### C) خياران 3 و 4 يبقون كما هم (إعلان + إحالة)
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-### D) زر الإجراء الرئيسي في الأسفل
-- بدل أزرار منفصلة لكل كارد، زر واحد في الأسفل يتغير حسب الخيار المحدد:
-  - "ترقية الخطة" / "Upgrade Plan"
-  - "شراء النقاط" / "Buy Credits"
-- زر إلغاء بجانبه
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-## التغييرات التقنية
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-### ملف واحد: `src/components/credits/ZeroCreditsPaywall.tsx`
-
-1. **State جديدة:**
-   - `selectedOption: 'upgrade' | 'topup' | null`
-   - `selectedPlan: 'starter' | 'pro' | 'max'`
-   - `selectedPackageId: string | null`
-   - `packages: CreditPackage[]` (جلب من Supabase)
-
-2. **جلب الباقات:** `useEffect` لجلب `credit_packages` من Supabase عند فتح الـ dialog
-
-3. **كارد الترقية:** يعرض Select/dropdown بالخطط الثلاث مع السعر والنقاط — عند التحديد يتوسع ويعرض التفاصيل
-
-4. **كارد الشراء:** يعرض Select/dropdown بباقات النقاط — عند التحديد يعرض السعر
-
-5. **زر الإجراء:** في الأسفل، يوجّه حسب الخيار المحدد:
-   - ترقية → صفحة التسعير مع الخطة المختارة
-   - شراء → يفتح `MoyasarPaymentDialog` مباشرة أو يوجّه للمتجر
-
-6. **الخيارات 3 و 4** (إعلان + إحالة) تبقى كما هي بدون تغيير
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| `src/components/credits/ZeroCreditsPaywall.tsx` | إعادة هيكلة الخيارين الأولين مع dropdowns + زر إجراء موحد |
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
