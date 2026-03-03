@@ -1,10 +1,11 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { useGoogleOneTap } from "@/hooks/useGoogleOneTap";
 
 // Lazy load below-the-fold components for faster FCP
 const AnimatedHowItWorks = lazy(() => import("@/components/landing/AnimatedHowItWorks").then(m => ({ default: m.AnimatedHowItWorks })));
@@ -38,7 +39,19 @@ const BelowFoldSkeleton = () => (
 
 const Index = () => {
   const { t } = useTranslation('landing');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Check auth for One Tap
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setIsLoggedIn(!!session));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Google One Tap on landing page for non-logged-in users
+  useGoogleOneTap({
+    enabled: !isLoggedIn,
+  });
   // Handle pending invite tokens after Google OAuth redirect
   useEffect(() => {
     const handlePendingInvites = async () => {

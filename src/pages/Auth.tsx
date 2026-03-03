@@ -23,6 +23,7 @@ import { SignupValueBanner } from "@/components/auth/SignupValueBanner";
 import { FoundingProgramBanner } from "@/components/auth/FoundingProgramBanner";
 import { SocialProofText } from "@/components/auth/SocialProofText";
 import { trackGAEvent } from "@/hooks/useGoogleAnalytics";
+import { useGoogleOneTap } from "@/hooks/useGoogleOneTap";
 const Auth = () => {
   const { toast, dismiss } = useToast();
   const navigate = useNavigate();
@@ -55,6 +56,18 @@ const Auth = () => {
   // Login other options collapsed state
   const [showLoginOptions, setShowLoginOptions] = useState(false);
   const [canResendEmail, setCanResendEmail] = useState(true);
+  
+  // Google One Tap - only show on signup/login modes when not loading
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useGoogleOneTap({
+    enabled: !isLoggedIn && (mode === "signup" || mode === "login"),
+    onSuccess: () => {
+      // Auth state change listener will handle navigation
+    },
+    onError: (error) => {
+      console.warn("[Auth] One Tap error:", error);
+    },
+  });
   
 
   // Read mode from URL parameter
@@ -101,6 +114,7 @@ const Auth = () => {
 
     // Listen first, then get existing session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
       if (session?.user) {
         // Track signup completion for email/Google users (SIGNED_IN event after signup)
         if (event === 'SIGNED_IN') {
