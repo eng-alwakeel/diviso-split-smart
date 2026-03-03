@@ -14,6 +14,8 @@ import { useAdminBadge } from "@/hooks/useAdminBadge";
 import { messageSchema, safeValidateInput } from "@/lib/validation";
 import { ChatDiceButton } from "@/components/chat/ChatDiceButton";
 import { DiceDecisionMessage } from "@/components/chat/messages/DiceDecisionMessage";
+import { SettlementAnnouncementCard } from "./SettlementAnnouncementCard";
+import { LegacyBalanceCard } from "./LegacyBalanceCard";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -22,8 +24,9 @@ interface Message {
   created_at: string;
   sender_id: string;
   group_id: string;
-  message_type?: 'text' | 'dice_decision';
+  message_type?: 'text' | 'dice_decision' | 'settlement_announcement';
   dice_decision_id?: string | null;
+  settlement_id?: string | null;
 }
 
 type ChatFilter = 'all' | 'financial' | 'messages';
@@ -32,13 +35,21 @@ interface GroupChatProps {
   groupId: string;
   isGroupActive?: boolean;
   onAddExpense?: () => void;
-  /** Make the chat taller — used when chat is main content */
   expanded?: boolean;
+  settlements?: any[];
+  profiles?: Record<string, any>;
+  currency?: string;
+  currentUserId?: string | null;
+  onSettlementConfirmed?: () => void;
 }
 
 const isUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expanded = false }: GroupChatProps) => {
+export const GroupChat = ({ 
+  groupId, isGroupActive = true, onAddExpense, expanded = false,
+  settlements = [], profiles: externalProfiles = {}, currency = "ر.س",
+  currentUserId: externalUserId = null, onSettlementConfirmed,
+}: GroupChatProps) => {
   const { toast } = useToast();
   const { t } = useTranslation(['groups', 'common', 'errors']);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -46,15 +57,32 @@ export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expande
   const [sending, setSending] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [filter, setFilter] = useState<ChatFilter>('all');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(externalUserId);
   const listRef = useRef<HTMLDivElement>(null);
 
   const canUseRealtime = useMemo(() => isUUID(groupId), [groupId]);
+
+  // Merge external profiles
+  const mergedProfiles = useMemo(() => ({ ...profiles, ...externalProfiles }), [profiles, externalProfiles]);
+
+  // Build settlement lookup
+  const settlementMap = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const s of settlements) map[s.id] = s;
+    return map;
+  }, [settlements]);
 
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
     });
   };
+
+  useEffect(() => {
+    if (!externalUserId) {
+      supabase.auth.getSession().then(({ data }) => setCurrentUserId(data.session?.user?.id ?? null));
+    }
+  }, [externalUserId]);
 
   useEffect(() => {
     if (!canUseRealtime) return;
@@ -123,9 +151,13 @@ export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expande
   // Filter messages
   const filteredMessages = useMemo(() => {
     if (filter === 'all') return messages;
-    if (filter === 'financial') return messages.filter(m => m.message_type === 'dice_decision' || m.dice_decision_id);
-    // messages only — exclude financial
-    return messages.filter(m => m.message_type !== 'dice_decision' && !m.dice_decision_id);
+    if (filter === 'financial') return messages.filter(m => 
+      m.message_type === 'dice_decision' || m.dice_decision_id || m.message_type === 'settlement_announcement'
+    );
+    // messages only
+    return messages.filter(m => 
+      m.message_type !== 'dice_decision' && !m.dice_decision_id && m.message_type !== 'settlement_announcement'
+    );
   }, [messages, filter]);
 
   const sendMessage = async () => {
@@ -167,6 +199,11 @@ export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expande
     setNewMessage("");
   };
 
+  const formatName = (uid: string) => {
+    const p = mergedProfiles[uid];
+    return p?.display_name || p?.name || `${uid.slice(0, 4)}...`;
+  };
+
   if (!canUseRealtime) {
     return (
       <div className="space-y-3">
@@ -182,6 +219,46 @@ export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expande
     { key: 'financial', label: '💰 مالي' },
     { key: 'messages', label: '💬 رسائل' },
   ];
+
+  const renderMessage = (m: Message) => {
+    // Dice decision
+    if (m.message_type === 'dice_decision' && m.dice_decision_id) {
+      return <DiceDecisionMessage key={m.id} decisionId={m.dice_decision_id} groupId={groupId} />;
+    }
+    
+    // Settlement announcement
+    if (m.message_type === 'settlement_announcement' && m.settlement_id) {
+      const settlement = settlementMap[m.settlement_id];
+      if (settlement) {
+        // Check if legacy balance
+        if (settlement.settlement_type === 'legacy_balance') {
+          return (
+            <LegacyBalanceCard
+              key={m.id}
+              fromName={formatName(settlement.from_user_id)}
+              toName={formatName(settlement.to_user_id)}
+              amount={Number(settlement.amount)}
+              currency={currency}
+              note={settlement.note}
+            />
+          );
+        }
+        return (
+          <SettlementAnnouncementCard
+            key={m.id}
+            settlement={settlement}
+            fromName={formatName(settlement.from_user_id)}
+            toName={formatName(settlement.to_user_id)}
+            currency={currency}
+            currentUserId={currentUserId}
+            onConfirmed={onSettlementConfirmed}
+          />
+        );
+      }
+    }
+    
+    return <MessageBubble key={m.id} message={m} profiles={mergedProfiles} />;
+  };
 
   return (
     <div className="space-y-2">
@@ -211,11 +288,7 @@ export const GroupChat = ({ groupId, isGroupActive = true, onAddExpense, expande
         )}
         ref={listRef}
       >
-        {filteredMessages.map((m) => (
-          m.message_type === 'dice_decision' && m.dice_decision_id
-            ? <DiceDecisionMessage key={m.id} decisionId={m.dice_decision_id} groupId={groupId} />
-            : <MessageBubble key={m.id} message={m} profiles={profiles} />
-        ))}
+        {filteredMessages.map(renderMessage)}
         {filteredMessages.length === 0 && (
           <p className="text-center text-sm text-muted-foreground py-8">
             {filter === 'all' 

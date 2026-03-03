@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { 
   ArrowRight, Users, Receipt, MessageCircle, Target, Plus, Settings,
   DollarSign, MoreHorizontal, UserPlus, Edit, CheckCircle, Clock,
-  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw
+  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw, Scale
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -62,6 +62,10 @@ import { GroupStatusBanner, GroupStateBadge, type GroupState } from "@/component
 import { GroupCompactSummary } from "@/components/group/GroupCompactSummary";
 import { SettlementProgressBar } from "@/components/group/SettlementProgressBar";
 import { FinishGroupDialog } from "@/components/group/FinishGroupDialog";
+import { RequestPaymentDialog } from "@/components/group/RequestPaymentDialog";
+import { TripSummarySheet } from "@/components/group/TripSummarySheet";
+import { PreviousBalanceSheet } from "@/components/group/PreviousBalanceSheet";
+import { computeMemberBadges, MemberBadge } from "@/components/group/GroupMemberBadges";
 
 import {
   DropdownMenu,
@@ -132,6 +136,9 @@ const GroupDetails = () => {
   
   const [ratingSheetOpen, setRatingSheetOpen] = useState(false);
   const [memberToRate, setMemberToRate] = useState<any>(null);
+  const [requestPaymentOpen, setRequestPaymentOpen] = useState(false);
+  const [tripSummaryOpen, setTripSummaryOpen] = useState(false);
+  const [previousBalanceOpen, setPreviousBalanceOpen] = useState(false);
   
   const { t } = useTranslation(['groups', 'common']);
   const { notifyMemberLeft, notifyGroupDeleted, notifySettlementReminder } = useGroupNotifications();
@@ -251,6 +258,45 @@ const GroupDetails = () => {
   const currencyLabel = currency?.symbol || groupCurrency;
   const memberCount = members.length;
   const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
+
+  // Debtors for payment request dialog
+  const debtors = useMemo(() => {
+    return balanceSummary
+      .filter(b => Number(b.total_net ?? 0) < -0.01 && b.user_id !== currentUserId)
+      .map(b => ({
+        user_id: b.user_id,
+        name: nameOf(b.user_id),
+        phone: profiles[b.user_id]?.phone || null,
+        amount: Math.abs(Number(b.total_net ?? 0)),
+      }));
+  }, [balanceSummary, currentUserId, profiles]);
+
+  // Member badges (Phase 3)
+  const memberBadges = useMemo(() => {
+    const msgCounts: Record<string, number> = {};
+    return computeMemberBadges(
+      registeredMembers.map(m => m.user_id),
+      balances,
+      settlements,
+      msgCounts,
+    );
+  }, [registeredMembers, balances, settlements]);
+
+  // Trip summary data (Phase 3)
+  const tripSummaryData = useMemo(() => {
+    const topPayer = balances.length > 0 ? balances.reduce((best, b) => 
+      b.amount_paid > (best?.amount_paid ?? 0) ? b : best, balances[0]) : null;
+    return {
+      groupName: group?.name || "",
+      totalExpenses: totals.approvedExpenses,
+      currency: currencyLabel,
+      memberCount,
+      expenseCount: expenses.length,
+      settlementCount: settlements.length,
+      diceCount: 0,
+      topPayer: topPayer ? { name: nameOf(topPayer.user_id), amount: topPayer.amount_paid } : undefined,
+    };
+  }, [group?.name, totals.approvedExpenses, currencyLabel, memberCount, expenses.length, settlements, balances]);
 
   // Handlers
   const handleDeleteGroup = async () => {
@@ -373,6 +419,12 @@ const GroupDetails = () => {
               <DropdownMenuItem onClick={() => setReportOpen(true)}>
                 <FileText className="w-4 h-4 me-2" /> التقرير
               </DropdownMenuItem>
+              {/* Previous Balance - admin only */}
+              {isAdmin && !isGroupClosed && (
+                <DropdownMenuItem onClick={() => setPreviousBalanceOpen(true)}>
+                  <Scale className="w-4 h-4 me-2" /> إضافة رصيد سابق
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               
               {/* Finish / Reopen trip */}
@@ -431,7 +483,10 @@ const GroupDetails = () => {
           myBalance={myBalances.confirmed}
           currencyLabel={currencyLabel}
           onSettleNow={() => openSettlement()}
+          onSendRequest={() => setRequestPaymentOpen(true)}
           onFinalClose={() => setCloseGroupDialogOpen(true)}
+          onViewSummary={() => setTripSummaryOpen(true)}
+          hasDebtors={debtors.length > 0}
         />
 
         {/* Pending ratings for closed groups */}
@@ -505,6 +560,11 @@ const GroupDetails = () => {
               expanded={true}
               isGroupActive={canAddExpenses}
               onAddExpense={() => navigate(`/add-expense?groupId=${id}`)}
+              settlements={settlements}
+              profiles={profiles}
+              currency={currencyLabel}
+              currentUserId={currentUserId}
+              onSettlementConfirmed={refetch}
             />
           )}
         </div>
@@ -699,7 +759,7 @@ const GroupDetails = () => {
                     أعضاء بانتظار التسجيل ({pendingMembers.length})
                   </h3>
                   {pendingMembers.map((member) => (
-                    <PendingMemberCard key={member.id} member={member} isAdmin={isAdmin || isOwner} groupId={id!} onRemoved={forceRefresh} />
+                    <PendingMemberCard key={member.id} member={member} isAdmin={isAdmin || isOwner} groupId={id!} groupName={group?.name} onRemoved={forceRefresh} />
                   ))}
                 </div>
               );
@@ -916,12 +976,49 @@ const GroupDetails = () => {
         groupName={group?.name || ""} onConfirm={handleLeaveGroup} isLeaving={isLeavingGroup}
       />
       <CloseGroupDialog open={closeGroupDialogOpen} onOpenChange={setCloseGroupDialogOpen}
-        onConfirm={async () => { const success = await closeGroup(); if (success) { setCloseGroupDialogOpen(false); refetch(); } }}
+        onConfirm={async () => { 
+          const success = await closeGroup(); 
+          if (success) { 
+            setCloseGroupDialogOpen(false); 
+            refetch(); 
+            // Auto-open trip summary after closing
+            setTimeout(() => setTripSummaryOpen(true), 500);
+          } 
+        }}
         loading={closingGroup} groupName={group?.name}
       />
       <FinishGroupDialog open={finishGroupDialogOpen} onOpenChange={setFinishGroupDialogOpen}
         onConfirm={handleFinishGroup} loading={finishingGroup} groupName={group?.name}
       />
+      {/* Phase 2: Request Payment Dialog */}
+      <RequestPaymentDialog
+        open={requestPaymentOpen}
+        onOpenChange={setRequestPaymentOpen}
+        debtors={debtors}
+        currency={currencyLabel}
+        groupName={group?.name || ""}
+      />
+      {/* Phase 3: Trip Summary Sheet */}
+      <TripSummarySheet
+        open={tripSummaryOpen}
+        onOpenChange={setTripSummaryOpen}
+        {...tripSummaryData}
+      />
+      {/* Phase 4: Previous Balance Sheet */}
+      {id && currentUserId && (
+        <PreviousBalanceSheet
+          open={previousBalanceOpen}
+          onOpenChange={setPreviousBalanceOpen}
+          groupId={id}
+          currentUserId={currentUserId}
+          members={registeredMembers.map(m => ({
+            user_id: m.user_id,
+            name: nameOf(m.user_id),
+          }))}
+          currency={currencyLabel}
+          onCreated={refetch}
+        />
+      )}
       {memberToRate && (
         <RatingSheet open={ratingSheetOpen} onOpenChange={setRatingSheetOpen} groupId={id!} member={memberToRate}
           onRatingSubmitted={() => { setMemberToRate(null); refetch(); }}

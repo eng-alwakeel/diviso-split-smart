@@ -1,12 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
-  Scale, 
-  Flag, 
-  PartyPopper, 
-  Lock, 
-  Send,
-  ArrowDownToLine
+  Scale, Flag, PartyPopper, Lock, Send,
+  ArrowDownToLine, FileText, MessageCircle
 } from "lucide-react";
 
 export type GroupState = 'active' | 'finished' | 'balanced' | 'closed';
@@ -18,6 +14,8 @@ interface GroupStatusBannerProps {
   onSettleNow?: () => void;
   onSendRequest?: () => void;
   onFinalClose?: () => void;
+  onViewSummary?: () => void;
+  hasDebtors?: boolean;
 }
 
 const stateConfig: Record<GroupState, {
@@ -68,12 +66,8 @@ const stateConfig: Record<GroupState, {
 };
 
 export const GroupStatusBanner = ({
-  state,
-  myBalance,
-  currencyLabel,
-  onSettleNow,
-  onSendRequest,
-  onFinalClose,
+  state, myBalance, currencyLabel,
+  onSettleNow, onSendRequest, onFinalClose, onViewSummary, hasDebtors = false,
 }: GroupStatusBannerProps) => {
   const config = stateConfig[state];
   const Icon = config.icon;
@@ -106,11 +100,19 @@ export const GroupStatusBanner = ({
         }
         if (myBalance > 0) {
           return (
-            <div className="flex-1">
-              <p className={`text-sm font-bold ${config.textClass}`}>
-                لك {myBalance.toLocaleString()} {currencyLabel} عند الأعضاء
-              </p>
-            </div>
+            <>
+              <div className="flex-1">
+                <p className={`text-sm font-bold ${config.textClass}`}>
+                  لك {myBalance.toLocaleString()} {currencyLabel} عند الأعضاء
+                </p>
+              </div>
+              {hasDebtors && onSendRequest && (
+                <Button size="sm" variant="outline" onClick={onSendRequest} className="text-xs h-8 shrink-0">
+                  <MessageCircle className="w-3.5 h-3.5 me-1" />
+                  طلب سداد
+                </Button>
+              )}
+            </>
           );
         }
         return (
@@ -130,11 +132,19 @@ export const GroupStatusBanner = ({
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">يمكنك فقط تسوية المبالغ المعلقة</p>
             </div>
-            {myBalance < 0 && onSettleNow && (
-              <Button size="sm" variant="hero" onClick={onSettleNow} className="text-xs h-8 shrink-0">
-                تسوية الآن
-              </Button>
-            )}
+            <div className="flex gap-2 shrink-0">
+              {myBalance < 0 && onSettleNow && (
+                <Button size="sm" variant="hero" onClick={onSettleNow} className="text-xs h-8">
+                  تسوية الآن
+                </Button>
+              )}
+              {hasDebtors && onSendRequest && (
+                <Button size="sm" variant="outline" onClick={onSendRequest} className="text-xs h-8">
+                  <MessageCircle className="w-3.5 h-3.5 me-1" />
+                  طلب سداد
+                </Button>
+              )}
+            </div>
           </>
         );
 
@@ -157,11 +167,19 @@ export const GroupStatusBanner = ({
 
       case 'closed':
         return (
-          <div className="flex-1">
-            <p className={`text-sm font-medium ${config.textClass}`}>
-              🔒 المجموعة مغلقة — عرض الملخص فقط
-            </p>
-          </div>
+          <>
+            <div className="flex-1">
+              <p className={`text-sm font-medium ${config.textClass}`}>
+                🔒 المجموعة مغلقة
+              </p>
+            </div>
+            {onViewSummary && (
+              <Button size="sm" variant="outline" onClick={onViewSummary} className="text-xs h-8 shrink-0">
+                <FileText className="w-3.5 h-3.5 me-1" />
+                عرض الملخص
+              </Button>
+            )}
+          </>
         );
     }
   };

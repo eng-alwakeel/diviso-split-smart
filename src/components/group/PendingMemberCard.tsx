@@ -2,10 +2,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Phone, Trash2, UserX } from "lucide-react";
+import { Clock, Phone, Trash2, UserX, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { openWhatsAppDirect } from "@/lib/native";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,10 +34,11 @@ interface PendingMemberCardProps {
   };
   isAdmin: boolean;
   groupId: string;
+  groupName?: string;
   onRemoved: () => void;
 }
 
-export const PendingMemberCard = ({ member, isAdmin, groupId, onRemoved }: PendingMemberCardProps) => {
+export const PendingMemberCard = ({ member, isAdmin, groupId, groupName, onRemoved }: PendingMemberCardProps) => {
   const { toast } = useToast();
   const [removing, setRemoving] = useState(false);
 
@@ -87,6 +89,22 @@ export const PendingMemberCard = ({ member, isAdmin, groupId, onRemoved }: Pendi
           <Clock className="w-3 h-3 ltr:mr-1 rtl:ml-1" />
           {member.status === 'pending' ? 'بانتظار التسجيل' : 'بانتظار الموافقة'}
         </Badge>
+
+        {/* Re-invite via WhatsApp */}
+        {isAdmin && member.phone_e164 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 text-green-600 hover:bg-green-500/10"
+            onClick={() => {
+              const msg = `مرحباً 👋\n\nأنت مدعو للانضمام إلى مجموعة "${groupName || 'المجموعة'}" على تطبيق Diviso.\n\nحمّل التطبيق وسجّل بنفس الرقم:\nhttps://diviso-split-smart.lovable.app`;
+              openWhatsAppDirect(member.phone_e164!, msg);
+            }}
+            title="إعادة دعوة عبر واتساب"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        )}
 
         {isAdmin && (
           <AlertDialog>

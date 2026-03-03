@@ -188,9 +188,21 @@ export const GroupSettlementDialog = ({
         });
       }
       
-      const { error } = await supabase.from("settlements").insert(validatedPayload);
+      const { data: insertedSettlements, error } = await supabase.from("settlements").insert(validatedPayload).select("id, from_user_id, to_user_id, amount, note");
       if (error) {
         throw error;
+      }
+      
+      // Auto-post settlement announcements in chat
+      if (insertedSettlements && groupId) {
+        const chatMessages = insertedSettlements.map((s: any) => ({
+          group_id: groupId,
+          sender_id: currentUserId!,
+          content: `💸 ${formatName(s.from_user_id, profiles)} أعلن دفع ${Number(s.amount).toLocaleString()} ${groupCurrency} لـ ${formatName(s.to_user_id, profiles)}`,
+          message_type: 'settlement_announcement',
+          settlement_id: s.id,
+        }));
+        await supabase.from("messages").insert(chatMessages);
       }
       
       // Consume credits after successful settlement
