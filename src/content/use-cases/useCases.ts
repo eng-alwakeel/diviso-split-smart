@@ -417,6 +417,70 @@ export const useCases: UseCase[] = [
     ],
     keywords: ['طلب الفلوس من صديق', 'مواقف الفلوس المحرجة', 'تجنب الإحراج مع الأصدقاء', 'تسوية الديون بين الأصدقاء', 'كيف أطلب فلوسي'],
     keywordsEn: ['asking friend for money', 'awkward money situations', 'avoiding money embarrassment', 'settling debts between friends', 'how to ask for money back']
+  },
+  {
+    slug: 'existing-group-debts',
+    icon: 'HandCoins',
+    title: 'مجموعة بدأت خارج Diviso — أرصدة سابقة',
+    titleEn: 'Groups Started Outside Diviso — Legacy Balances',
+    question: 'عندكم ديون قديمة بين الأصدقاء؟ كيف تسجلونها في Diviso؟',
+    questionEn: 'Have existing debts between friends? How to record them in Diviso?',
+    intro: 'Diviso يتيح لك تسجيل الأرصدة والديون السابقة التي تراكمت قبل استخدام التطبيق. ابدأ صفحة جديدة مع أصدقائك بسجل واضح ومنظم.',
+    introEn: 'Diviso lets you record pre-existing balances and debts from before using the app. Start fresh with friends with a clear, organized record.',
+    problems: [
+      'ديون متراكمة غير موثقة بين الأصدقاء',
+      'نسيان المبالغ الحقيقية المستحقة',
+      'خلافات بسبب عدم وجود سجل واضح',
+      'صعوبة تتبع من يدين لمن بعد فترة طويلة',
+      'إحراج عند محاولة تذكير الآخرين بديون قديمة'
+    ],
+    problemsEn: [
+      'Undocumented accumulated debts between friends',
+      'Forgetting the actual amounts owed',
+      'Disputes due to lack of clear records',
+      'Difficulty tracking who owes whom after a long time',
+      'Awkwardness when reminding others of old debts'
+    ],
+    solutions: [
+      'إضافة أرصدة سابقة من تبويب التسويات',
+      'تحديد الدائن والمدين والمبلغ بدقة',
+      'ظهور الأرصدة كبطاقات خاصة في الدردشة',
+      'دمج الأرصدة القديمة مع المصاريف الجديدة تلقائياً',
+      'طلب السداد عبر واتساب بضغطة زر'
+    ],
+    solutionsEn: [
+      'Add legacy balances from the Settlements tab',
+      'Specify creditor, debtor, and amount precisely',
+      'Balances appear as special cards in chat',
+      'Old balances merge automatically with new expenses',
+      'Request payment via WhatsApp with one tap'
+    ],
+    steps: [
+      { title: 'أنشئ المجموعة', description: 'أنشئ مجموعة وأضف جميع الأصدقاء المعنيين' },
+      { title: 'أضف الأرصدة السابقة', description: 'من التسويات، سجل كل دين قديم مع تحديد الدائن والمدين' },
+      { title: 'راجع الأرصدة', description: 'تأكد من صحة المبالغ مع الجميع' },
+      { title: 'ابدأ التسوية', description: 'استخدم طلب السداد عبر واتساب أو سوِّ مباشرة' }
+    ],
+    stepsEn: [
+      { title: 'Create the group', description: 'Create a group and add all relevant friends' },
+      { title: 'Add legacy balances', description: 'From Settlements, record each old debt with creditor and debtor' },
+      { title: 'Review balances', description: 'Verify amounts with everyone' },
+      { title: 'Start settling', description: 'Use WhatsApp payment request or settle directly' }
+    ],
+    faqs: [
+      { question: 'هل الأرصدة السابقة تؤثر على حسابات المجموعة؟', answer: 'نعم، تُضاف مباشرة لأرصدة الأعضاء وتُحسب ضمن التسويات النهائية تماماً كالمصاريف العادية.' },
+      { question: 'هل يمكنني إضافة أكثر من رصيد سابق؟', answer: 'نعم، يمكنك إضافة أي عدد من الأرصدة السابقة بين أعضاء مختلفين.' },
+      { question: 'هل يشوف الأعضاء الأرصدة السابقة؟', answer: 'نعم، تظهر كبطاقة خاصة في الدردشة ويتلقى الأعضاء المعنيون إشعاراً.' },
+      { question: 'ماذا لو كان الدين بالتقريب وليس مبلغ دقيق؟', answer: 'يمكنك إضافة ملاحظة توضيحية مع الرصيد السابق لتوثيق التفاصيل والاتفاق مع الطرف الآخر.' }
+    ],
+    faqsEn: [
+      { question: 'Do legacy balances affect group accounts?', answer: 'Yes, they are added directly to member balances and counted in final settlements just like regular expenses.' },
+      { question: 'Can I add multiple legacy balances?', answer: 'Yes, you can add any number of legacy balances between different members.' },
+      { question: 'Do members see legacy balances?', answer: 'Yes, they appear as a special card in chat and relevant members receive a notification.' },
+      { question: 'What if the debt is approximate?', answer: 'You can add an explanatory note with the legacy balance to document details and agree with the other party.' }
+    ],
+    keywords: ['أرصدة سابقة', 'ديون قديمة', 'ديون قبل التطبيق', 'تسجيل ديون الأصدقاء', 'مجموعة قبل diviso', 'إضافة رصيد سابق'],
+    keywordsEn: ['legacy balances', 'old debts', 'pre-existing debts', 'record friend debts', 'group before diviso', 'add previous balance']
   }
 ];
 

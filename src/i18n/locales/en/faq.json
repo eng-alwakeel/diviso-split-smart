@@ -93,7 +93,31 @@
     },
     "group_chat": {
       "question": "How do I use the group chat?",
-      "answer": "From within any group, tap the chat icon. You can discuss expenses with members, send messages, and easily agree on how to split costs."
+      "answer": "From within any group, tap the chat icon. Messages are broadcast instantly with real-time typing indicators. You can filter messages by type (text, expenses, settlements), and financial transactions appear as interactive cards within the conversation."
+    },
+    "legacy_balances": {
+      "question": "How do I add previous balances or debts from before using <brand>Diviso</brand>?",
+      "answer": "From the Settlements tab in the group, tap 'Add Previous Balance'. Select the creditor, debtor, amount, and an optional note. The balance is added directly to the group accounts and appears as a special card in the chat. Perfect for groups that started outside Diviso."
+    },
+    "group_lifecycle": {
+      "question": "What are the group lifecycle stages?",
+      "answer": "A group goes through three stages: 'Active' (expenses can be added), 'Finished' (after finishing the trip — only settlements and chat allowed), and 'Permanently Closed' (archive, no modifications). The admin controls transitions between stages."
+    },
+    "settlement_confirmation": {
+      "question": "How does the settlement confirmation system work?",
+      "answer": "When a member records a settlement (that they paid someone), the recipient receives a notification to confirm receipt. This dual confirmation ensures everyone agrees on debt status and prevents disputes."
+    },
+    "whatsapp_payment_request": {
+      "question": "Can I request payment via WhatsApp?",
+      "answer": "Yes! From the Settlements screen, tap 'Request Payment' next to the debtor's name. It opens WhatsApp with a formatted message including the amount owed and a link to the group in Diviso for easy collection."
+    },
+    "trip_summary": {
+      "question": "What is the shareable trip summary?",
+      "answer": "After finishing a trip, Diviso generates a summary including total expenses, number of transactions, and settlements. You can share it as formatted text or export it as an image with the Diviso watermark."
+    },
+    "group_dice": {
+      "question": "What is the Group Dice?",
+      "answer": "A fun tool for making random decisions within the group. For example: Who pays today? Where do we go? What do we order? Choose a dice type and roll it — the result appears instantly for everyone with the option to vote."
     },
     "reports_analytics": {
       "question": "How do I get a detailed report?",

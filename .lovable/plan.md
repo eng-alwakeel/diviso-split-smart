@@ -1,72 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# إضافة الميزات الجديدة في FAQ + Blog + Use Cases + SEO
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## التحليل: ميزات موجودة لكن غير موثقة
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-### ميزات جديدة لم تُذكر في أي مكان:
-1. **الأرصدة السابقة (Legacy Balances)** — إضافة ديون قبل استخدام Diviso
-2. **إنهاء الرحلة + الإغلاق النهائي** — دورة حياة المجموعة (active → finished → closed)
-3. **التأكيد المزدوج للتسويات** — المستلم يؤكد الاستلام
-4. **طلب السداد عبر واتساب** — إرسال طلب دفع مباشر
-5. **الملخص النهائي القابل للمشاركة** — بطاقة ملخص الرحلة
-6. **شارات السمعة** (أكثر مساهمة، أسرع سداد، روح المجموعة)
-7. **النرد الجماعي** — أداة قرار عشوائية داخل المجموعة
-8. **الدردشة الفورية (Realtime Broadcast)** — رسائل فورية + مؤشر الكتابة
-9. **إعادة دعوة الأعضاء عبر واتساب**
+## Fix
 
-### ميزات مذكورة جزئياً ولكن بحاجة تحديث:
-- الدردشة الجماعية (FAQ) — لا تذكر الفلترة أو البطاقات المالية
-- التسويات — لا تذكر التأكيد المزدوج أو طلب السداد
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
----
+Add detailed logging to the test email code path:
 
-## التعديلات المطلوبة
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### 1. FAQ (ar + en) — إضافة 6 أسئلة جديدة
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-| المفتاح | السؤال (عربي) |
-|---------|-------------|
-| `legacy_balances` | كيف أضيف أرصدة/ديون سابقة قبل استخدام Diviso؟ |
-| `group_lifecycle` | ما هي مراحل حياة المجموعة؟ (نشطة → منتهية → مغلقة) |
-| `settlement_confirmation` | كيف يعمل نظام تأكيد التسويات؟ |
-| `whatsapp_payment_request` | هل يمكنني طلب السداد عبر واتساب؟ |
-| `trip_summary` | ما هو ملخص الرحلة القابل للمشاركة؟ |
-| `group_dice` | ما هو النرد الجماعي؟ |
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-أيضاً تحديث سؤال `group_chat` الموجود ليذكر الدردشة الفورية + الفلترة + البطاقات المالية.
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-### 2. Use Cases — إضافة حالة استخدام جديدة
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-إضافة use case جديد بـ slug `existing-group-debts`:
-- **العنوان**: "مجموعة بدأت خارج Diviso — كيف تضيف أرصدة سابقة؟"
-- **المشاكل**: ديون متراكمة غير موثقة، نسيان المبالغ، خلافات
-- **الحلول**: إضافة أرصدة سابقة، تسجيل الديون القديمة، بداية نظيفة
-- **FAQ**: أسئلة عن كيفية الإضافة + هل تؤثر على الحسابات الحالية
-- **Keywords**: أرصدة سابقة، ديون قديمة، مجموعة قبل diviso
-
-### 3. Blog — إضافة مقال جديد
-
-مقال بـ slug `manage-existing-debts`:
-- **العنوان**: "عندك ديون مع أصدقائك؟ كيف تسجلها في Diviso"
-- يشرح ميزة الأرصدة السابقة + دورة حياة المجموعة + التأكيد المزدوج
-- يتضمن أمثلة عملية
-
-### 4. SEO Keywords — تحديث
-
-تحديث `defaultSEO.keywords` في `SEO.tsx` لإضافة:
-- أرصدة سابقة، ديون قبل التطبيق، تأكيد التسوية، طلب سداد واتساب، ملخص رحلة
-- legacy balances, settlement confirmation, WhatsApp payment request, trip summary
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| `src/i18n/locales/ar/faq.json` | +6 أسئلة جديدة + تحديث `group_chat` |
-| `src/i18n/locales/en/faq.json` | +6 أسئلة جديدة + تحديث `group_chat` |
-| `src/content/use-cases/useCases.ts` | +1 use case جديد (existing-group-debts) |
-| `src/content/blog/articles.ts` | +1 مقال جديد (manage-existing-debts) |
-| `src/components/SEO.tsx` | تحديث keywords الافتراضية |
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
