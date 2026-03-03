@@ -469,5 +469,16 @@
     "invite_declined": "تم رفض الدعوة",
     "invite_declined_desc": "تم رفض دعوة الانضمام",
     "decline_failed": "تعذر رفض الدعوة"
+  },
+  "settlement_share": {
+    "title": "التسويات المقترحة",
+    "share": "مشاركة",
+    "print": "طباعة",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "remind": "تذكير",
+    "reminder_sent": "تم إرسال التذكير بنجاح! 🔔",
+    "finish_trip": "🏁 إنهاء الرحلة",
+    "finish_trip_desc": "يمنع إضافة مصاريف جديدة ويسمح بعمل التسويات فقط"
   }
 }

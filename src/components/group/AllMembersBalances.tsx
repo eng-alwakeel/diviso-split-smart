@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +9,16 @@ import {
   ArrowRight,
   Users,
   Wallet,
-  MinusCircle
+  MinusCircle,
+  Share2,
+  Printer,
+  Copy,
+  Bell
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { SettlementShareCard, buildSettlementShareText } from "./SettlementShareCard";
+import { Share } from "@capacitor/share";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   display_name?: string | null;
@@ -32,7 +40,10 @@ interface AllMembersBalancesProps {
   profiles: Record<string, Profile>;
   currentUserId: string;
   currency: string;
+  groupName?: string;
+  groupId?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
+  onRemindDebtor?: (debtorUserId: string, amount: number) => void;
 }
 
 export const AllMembersBalances = ({
@@ -40,8 +51,14 @@ export const AllMembersBalances = ({
   profiles,
   currentUserId,
   currency,
-  onSettleClick
+  groupName = "",
+  groupId,
+  onSettleClick,
+  onRemindDebtor,
 }: AllMembersBalancesProps) => {
+  const { toast } = useToast();
+  const { t } = useTranslation('groups');
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const formatName = (userId: string) => {
     const profile = profiles[userId];
     return profile?.display_name || profile?.name || `${userId.slice(0, 4)}...`;
@@ -189,10 +206,57 @@ export const AllMembersBalances = ({
       {optimalSettlements.length > 0 && (
         <Card className="bg-card/50 border-border/50">
           <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Wallet className="w-4 h-4" />
-              التسويات المقترحة (أقل عدد تحويلات)
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Wallet className="w-4 h-4" />
+                {t('settlement_share.title', 'التسويات المقترحة (أقل عدد تحويلات)')}
+              </CardTitle>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  title={t('settlement_share.share', 'مشاركة')}
+                  onClick={async () => {
+                    const text = buildSettlementShareText(groupName, currency, optimalSettlements, formatName);
+                    try {
+                      await Share.share({ title: t('settlement_share.title'), text, dialogTitle: t('settlement_share.share') });
+                    } catch {
+                      if (navigator.share) {
+                        navigator.share({ text }).catch(() => {});
+                      } else {
+                        navigator.clipboard.writeText(text);
+                        toast({ title: t('settlement_share.copied', 'تم النسخ!') });
+                      }
+                    }
+                  }}
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  title={t('settlement_share.print', 'طباعة')}
+                  onClick={() => window.print()}
+                >
+                  <Printer className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  title={t('settlement_share.copy', 'نسخ')}
+                  onClick={() => {
+                    const text = buildSettlementShareText(groupName, currency, optimalSettlements, formatName);
+                    navigator.clipboard.writeText(text);
+                    toast({ title: t('settlement_share.copied', 'تم النسخ!') });
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/30 rounded-lg">
@@ -236,6 +300,17 @@ export const AllMembersBalances = ({
                     <span className="font-bold text-accent">
                       {formatAmount(settlement.amount)}
                     </span>
+                    {isToMe && onRemindDebtor && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 gap-1"
+                        onClick={() => onRemindDebtor(settlement.from, settlement.amount)}
+                      >
+                        <Bell className="w-3 h-3" />
+                        {t('settlement_share.remind', 'تذكير')}
+                      </Button>
+                    )}
                     {isFromMe && onSettleClick && (
                       <Button 
                         size="sm" 
@@ -251,6 +326,19 @@ export const AllMembersBalances = ({
             })}
           </CardContent>
         </Card>
+      )}
+
+      {/* Hidden print-only share card */}
+      {optimalSettlements.length > 0 && (
+        <div className="hidden print:block">
+          <SettlementShareCard
+            ref={shareCardRef}
+            groupName={groupName}
+            currency={currency}
+            settlements={optimalSettlements}
+            formatName={formatName}
+          />
+        </div>
       )}
 
       {/* Empty state when all balanced */}

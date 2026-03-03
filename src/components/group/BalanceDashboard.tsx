@@ -53,6 +53,12 @@ interface BalanceDashboardProps {
   currency?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
   hasUnconfirmedMembers?: boolean;
+  groupName?: string;
+  groupId?: string;
+  onRemindDebtor?: (debtorUserId: string, amount: number) => void;
+  isOwner?: boolean;
+  isGroupClosed?: boolean;
+  onCloseGroup?: () => void;
 }
 
 export const BalanceDashboard = ({
@@ -65,6 +71,12 @@ export const BalanceDashboard = ({
   onSettleClick,
   onSettlementConfirmed,
   hasUnconfirmedMembers = false,
+  groupName = "",
+  groupId,
+  onRemindDebtor,
+  isOwner = false,
+  isGroupClosed = false,
+  onCloseGroup,
 }: BalanceDashboardProps) => {
   const { t } = useTranslation('groups');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -281,7 +293,10 @@ export const BalanceDashboard = ({
             profiles={profiles}
             currentUserId={currentUserId}
             currency={currency}
+            groupName={groupName}
+            groupId={groupId}
             onSettleClick={onSettleClick}
+            onRemindDebtor={onRemindDebtor}
           />
         </TabsContent>
 
@@ -458,6 +473,24 @@ export const BalanceDashboard = ({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Finish Trip / Close Group Button */}
+      {isOwner && !isGroupClosed && onCloseGroup && (
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+              onClick={onCloseGroup}
+            >
+              🏁 {t('settlement_share.finish_trip', 'إنهاء الرحلة')}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              {t('settlement_share.finish_trip_desc', 'يمنع إضافة مصاريف جديدة ويسمح بعمل التسويات فقط')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Confirm Settlement Dialog */}
       <ConfirmSettlementDialog

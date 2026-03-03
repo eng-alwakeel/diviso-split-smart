@@ -469,5 +469,16 @@
     "invite_declined": "Invite Declined",
     "invite_declined_desc": "You declined the group invitation",
     "decline_failed": "Failed to decline invite"
+  },
+  "settlement_share": {
+    "title": "Suggested Settlements",
+    "share": "Share",
+    "print": "Print",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "remind": "Remind",
+    "reminder_sent": "Reminder sent successfully! 🔔",
+    "finish_trip": "🏁 Finish Trip",
+    "finish_trip_desc": "Prevents new expenses and allows settlements only"
   }
 }

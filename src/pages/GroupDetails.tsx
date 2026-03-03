@@ -151,7 +151,7 @@ const GroupDetails = () => {
   const [memberToRate, setMemberToRate] = useState<any>(null);
   
   const { t } = useTranslation(['groups', 'common']);
-  const { notifyMemberLeft, notifyGroupDeleted } = useGroupNotifications();
+  const { notifyMemberLeft, notifyGroupDeleted, notifySettlementReminder } = useGroupNotifications();
 
   // تحقق من صحة معرف المجموعة وتوجيه في حال كان غير صالح
   const isValidUUID = (v?: string) => !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -972,7 +972,17 @@ const GroupDetails = () => {
                 settlements={settlements}
                 profiles={profiles}
                 currency={currencyLabel}
+                groupName={group?.name || ""}
+                groupId={id}
                 hasUnconfirmedMembers={members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending')}
+                isOwner={isOwner}
+                isGroupClosed={isGroupClosed}
+                onCloseGroup={() => setCloseGroupDialogOpen(true)}
+                onRemindDebtor={async (debtorUserId, amount) => {
+                  if (!id || !group?.name) return;
+                  await notifySettlementReminder(id, group.name, debtorUserId, amount, currencyLabel);
+                  toast({ title: t('groups:settlement_share.reminder_sent', 'تم إرسال التذكير بنجاح! 🔔') });
+                }}
                 onSettleClick={(toUserId, amount) => {
                   openSettlement(toUserId, amount);
                 }}

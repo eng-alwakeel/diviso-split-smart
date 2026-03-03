@@ -35,7 +35,8 @@
     "group_deleted": "🗑️ {{name}} deleted \"{{group}}\"",
     "new_notification": "New notification",
     "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}",
-    "daily_engagement": "📊 Daily reminder"
+    "daily_engagement": "📊 Daily reminder",
+    "settlement_reminder": "💸 {{name}} reminds you to settle {{amount}} {{currency}} in \"{{group}}\""
   },
   "titles": {
     "expense_created": "New Expense",
@@ -58,6 +59,7 @@
     "group_deleted": "Group Deleted 🗑️",
     "balance_due": "Outstanding Balance 💸",
     "daily_engagement": "Daily Reminder 📊",
+    "settlement_reminder": "Settlement Reminder 💸",
     "default": "New Notification"
   },
   "descriptions": {

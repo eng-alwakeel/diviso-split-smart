@@ -37,7 +37,8 @@
     "balance_due": "💸 عليك {{amount}} {{currency}} في مجموعة {{group}}",
     "dice_posted": "🎲 قرار جديد في \"{{group}}\" - صوّتوا واعتمدوا!",
     "dice_accepted": "✅ تم اعتماد القرار في \"{{group}}\"",
-    "dice_rerolled": "🔄 تم إعادة الرمي في \"{{group}}\""
+    "dice_rerolled": "🔄 تم إعادة الرمي في \"{{group}}\"",
+    "settlement_reminder": "💸 {{name}} يذكّرك بتسوية {{amount}} {{currency}} في \"{{group}}\""
   },
   "titles": {
     "expense_created": "مصروف جديد",
@@ -61,6 +62,7 @@
     "dice_posted": "قرار جديد 🎲",
     "dice_accepted": "تم الاعتماد ✅",
     "dice_rerolled": "إعادة الرمي 🔄",
+    "settlement_reminder": "تذكير بالتسوية 💸",
     "balance_due": "مبلغ مستحق 💸",
     "daily_engagement": "تذكير يومي 📊",
     "default": "إشعار جديد"

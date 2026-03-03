@@ -11,7 +11,8 @@ type GroupNotificationType =
   | "balance_due"
   | "invite_accepted"
   | "invite_rejected"
-  | "pending_linked";
+  | "pending_linked"
+  | "settlement_reminder";
 
 interface NotificationPayload {
   group_name: string;
@@ -241,6 +242,27 @@ export function useGroupNotifications() {
     });
   };
 
+  /**
+   * Notify a debtor to settle their balance
+   */
+  const notifySettlementReminder = async (
+    groupId: string,
+    groupName: string,
+    debtorUserId: string,
+    amount: number,
+    currency: string
+  ) => {
+    const creditorName = await getCurrentUserName();
+    
+    await sendNotifications([debtorUserId], "settlement_reminder", {
+      group_name: groupName,
+      group_id: groupId,
+      member_name: creditorName,
+      amount: amount as unknown as string,
+      currency,
+    });
+  };
+
   return {
     notifyMemberJoined,
     notifyMemberLeft,
@@ -251,5 +273,6 @@ export function useGroupNotifications() {
     notifyInviteAccepted,
     notifyInviteRejected,
     notifyPendingLinked,
+    notifySettlementReminder,
   };
 }
