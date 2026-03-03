@@ -972,7 +972,17 @@ const GroupDetails = () => {
                 settlements={settlements}
                 profiles={profiles}
                 currency={currencyLabel}
+                groupName={group?.name || ""}
+                groupId={id}
                 hasUnconfirmedMembers={members.some(m => (m as any).status === 'invited' || (m as any).status === 'pending')}
+                isOwner={isOwner}
+                isGroupClosed={isGroupClosed}
+                onCloseGroup={() => setCloseGroupDialogOpen(true)}
+                onRemindDebtor={async (debtorUserId, amount) => {
+                  if (!id || !group?.name) return;
+                  await notifySettlementReminder(id, group.name, debtorUserId, amount, currencyLabel);
+                  toast({ title: t('groups:settlement_share.reminder_sent', 'تم إرسال التذكير بنجاح! 🔔') });
+                }}
                 onSettleClick={(toUserId, amount) => {
                   openSettlement(toUserId, amount);
                 }}

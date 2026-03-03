@@ -474,6 +474,24 @@ export const BalanceDashboard = ({
         </TabsContent>
       </Tabs>
 
+      {/* Finish Trip / Close Group Button */}
+      {isOwner && !isGroupClosed && onCloseGroup && (
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+              onClick={onCloseGroup}
+            >
+              🏁 {t('settlement_share.finish_trip', 'إنهاء الرحلة')}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              {t('settlement_share.finish_trip_desc', 'يمنع إضافة مصاريف جديدة ويسمح بعمل التسويات فقط')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Confirm Settlement Dialog */}
       <ConfirmSettlementDialog
         open={confirmDialogOpen}
