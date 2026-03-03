@@ -123,6 +123,13 @@ export const SettlementAnnouncementCard = ({
           onConfirmed?.();
         }}
       />
+
+      <PayoutMethodsSheet
+        open={payoutSheetOpen}
+        onOpenChange={setPayoutSheetOpen}
+        userId={settlement.to_user_id}
+        userName={toName}
+      />
     </>
   );
 };
