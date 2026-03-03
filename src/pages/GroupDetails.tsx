@@ -136,6 +136,9 @@ const GroupDetails = () => {
   
   const [ratingSheetOpen, setRatingSheetOpen] = useState(false);
   const [memberToRate, setMemberToRate] = useState<any>(null);
+  const [requestPaymentOpen, setRequestPaymentOpen] = useState(false);
+  const [tripSummaryOpen, setTripSummaryOpen] = useState(false);
+  const [previousBalanceOpen, setPreviousBalanceOpen] = useState(false);
   
   const { t } = useTranslation(['groups', 'common']);
   const { notifyMemberLeft, notifyGroupDeleted, notifySettlementReminder } = useGroupNotifications();
