@@ -1,55 +1,52 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# إصلاح مشاركة التسويات — النص والصورة لا تظهر
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## المشكلة
 
-## Fix
+من الصور:
+1. **زر المشاركة (Share2)**: يرسل فقط العنوان "التسويات المقترحة" بدون محتوى التسويات
+2. **زر حفظ الصورة (ImageDown)**: الصورة لا تُولّد بشكل صحيح — `html2canvas` يفشل مع العناصر المخفية off-screen لأن CSS variables (مثل `bg-card`, `text-foreground`) لا تُحسب بشكل صحيح
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+## الحلول
 
-Add detailed logging to the test email code path:
+### A) إصلاح زر المشاركة النصية
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+**الملف:** `src/components/group/AllMembersBalances.tsx`
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+المشكلة في السطر 224: `Share.share({ title, text })` — على iOS، الـ Capacitor Share يعرض العنوان فقط في واجهة المشاركة. الحل:
+- دمج النص الكامل في حقل `text` مباشرة (بدون الاعتماد على `title`)
+- إضافة رابط التطبيق في نهاية النص
+
+### B) إصلاح تصدير الصورة
+
+**الملف:** `src/components/group/AllMembersBalances.tsx`
+
+المشكلة: `html2canvas` لا يلتقط CSS variables بشكل صحيح من عنصر off-screen. الحل:
+1. إنشاء `SettlementShareCard` بأنماط مدمجة (inline styles) بدل CSS variables
+2. أو الأفضل: تحديث `SettlementShareCard` ليدعم وضع "export" بألوان ثابتة (أبيض/أسود) بدل CSS variables
+3. بعد التقاط الصورة: مشاركتها مباشرة عبر `Share.share({ files })` مع النص
+
+### C) تحديث `SettlementShareCard.tsx`
+
+**الملف:** `src/components/group/SettlementShareCard.tsx`
+
+إضافة prop `exportMode` يستخدم ألوان ثابتة (خلفية بيضاء، نص أسود) بدل CSS variables — يضمن عمل `html2canvas` بشكل صحيح:
+```
+exportMode=true → bg-white, text-black, border-gray-200
+exportMode=false → bg-card, text-foreground (الوضع العادي)
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### D) دمج النص مع الصورة عند المشاركة
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+عند الضغط على زر المشاركة:
+- مشاركة النص + الصورة معاً عبر `Share.share({ text, files })`
+- على الويب: تنزيل الصورة + نسخ النص
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+## الملفات المتأثرة
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+| الملف | التغيير |
+|-------|---------|
+| `src/components/group/AllMembersBalances.tsx` | إصلاح منطق المشاركة + تصدير الصورة |
+| `src/components/group/SettlementShareCard.tsx` | إضافة `exportMode` بألوان ثابتة |
+
