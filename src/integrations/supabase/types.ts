@@ -2753,6 +2753,7 @@ export type Database = {
           id: string
           message_type: string | null
           sender_id: string
+          settlement_id: string | null
         }
         Insert: {
           content: string
@@ -2762,6 +2763,7 @@ export type Database = {
           id?: string
           message_type?: string | null
           sender_id: string
+          settlement_id?: string | null
         }
         Update: {
           content?: string
@@ -2771,6 +2773,7 @@ export type Database = {
           id?: string
           message_type?: string | null
           sender_id?: string
+          settlement_id?: string | null
         }
         Relationships: [
           {
@@ -2792,6 +2795,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "settlements"
             referencedColumns: ["id"]
           },
         ]
@@ -4525,6 +4535,7 @@ export type Database = {
           group_id: string
           id: string
           note: string | null
+          settlement_type: string
           status: string | null
           to_user_id: string
         }
@@ -4539,6 +4550,7 @@ export type Database = {
           group_id: string
           id?: string
           note?: string | null
+          settlement_type?: string
           status?: string | null
           to_user_id: string
         }
@@ -4553,6 +4565,7 @@ export type Database = {
           group_id?: string
           id?: string
           note?: string | null
+          settlement_type?: string
           status?: string | null
           to_user_id?: string
         }
