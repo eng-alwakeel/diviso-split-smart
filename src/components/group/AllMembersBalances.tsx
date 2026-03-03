@@ -11,10 +11,11 @@ import {
   Wallet,
   MinusCircle,
   Share2,
-  Printer,
+  ImageDown,
   Copy,
   Bell
 } from "lucide-react";
+import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
 import { SettlementShareCard, buildSettlementShareText } from "./SettlementShareCard";
 import { Share } from "@capacitor/share";
