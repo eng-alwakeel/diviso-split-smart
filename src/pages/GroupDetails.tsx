@@ -997,6 +997,8 @@ const GroupDetails = () => {
         debtors={debtors}
         currency={currencyLabel}
         groupName={group?.name || ""}
+        currentUserId={currentUserId}
+        currentUserName={profiles[currentUserId || '']?.display_name || profiles[currentUserId || '']?.name || ''}
       />
       {/* Phase 3: Trip Summary Sheet */}
       <TripSummarySheet
