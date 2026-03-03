@@ -40,7 +40,10 @@ interface AllMembersBalancesProps {
   profiles: Record<string, Profile>;
   currentUserId: string;
   currency: string;
+  groupName?: string;
+  groupId?: string;
   onSettleClick?: (toUserId: string, amount: number) => void;
+  onRemindDebtor?: (debtorUserId: string, amount: number) => void;
 }
 
 export const AllMembersBalances = ({
