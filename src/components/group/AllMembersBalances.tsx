@@ -300,6 +300,17 @@ export const AllMembersBalances = ({
                     <span className="font-bold text-accent">
                       {formatAmount(settlement.amount)}
                     </span>
+                    {isToMe && onRemindDebtor && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7 gap-1"
+                        onClick={() => onRemindDebtor(settlement.from, settlement.amount)}
+                      >
+                        <Bell className="w-3 h-3" />
+                        {t('settlement_share.remind', 'تذكير')}
+                      </Button>
+                    )}
                     {isFromMe && onSettleClick && (
                       <Button 
                         size="sm" 
