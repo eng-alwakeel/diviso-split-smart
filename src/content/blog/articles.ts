@@ -1276,6 +1276,116 @@ Friendship is more important than money. Use Diviso and make your hangouts enjoy
 
 **Try Diviso now** and simplify your life with friends!
     `
+  },
+  {
+    slug: "manage-existing-debts",
+    title: "عندك ديون مع أصدقائك؟ كيف تسجلها في Diviso",
+    titleEn: "Have Debts with Friends? How to Record Them in Diviso",
+    description: "تعرف على ميزة الأرصدة السابقة في Diviso لتسجيل الديون القديمة بين الأصدقاء وبدء صفحة جديدة منظمة",
+    descriptionEn: "Learn about Diviso's Legacy Balances feature to record old debts between friends and start a fresh organized page",
+    keywords: ["أرصدة سابقة", "ديون الأصدقاء", "تسجيل ديون قديمة", "إدارة الديون", "تسوية الحسابات"],
+    keywordsEn: ["legacy balances", "friend debts", "record old debts", "debt management", "settle accounts"],
+    category: "guides",
+    readTime: 6,
+    publishDate: "2026-03-03",
+    content: \`
+## المشكلة: ديون قديمة بدون سجل
+
+كلنا مررنا بهالموقف — أصدقاء يتبادلون الدفع في الطلعات والرحلات بدون تسجيل، وبعد فترة ما أحد يتذكر المبالغ بالضبط. النتيجة؟ إحراج، خلافات، أو حتى خسارة صداقات.
+
+## الحل: ميزة الأرصدة السابقة في Diviso
+
+Diviso يتيح لك تسجيل أي دين قديم بين الأصدقاء حتى لو حصل قبل ما تستخدم التطبيق.
+
+### كيف تضيف رصيد سابق؟
+
+1. **ادخل المجموعة** أو أنشئ مجموعة جديدة
+2. **روح لتبويب التسويات**
+3. **اضغط "إضافة رصيد سابق"**
+4. **حدد الدائن والمدين والمبلغ**
+5. **أضف ملاحظة** (اختياري) — مثلاً: "فلوس عشا الأسبوع الماضي"
+
+الرصيد يُضاف فوراً لحسابات المجموعة ويظهر كبطاقة خاصة في الدردشة.
+
+## ميزات إضافية تساعدك
+
+### إنهاء الرحلة وإغلاق المجموعة
+
+بعد ما تنتهي من تسجيل كل شيء، المشرف يقدر:
+- **ينهي الرحلة** — تتوقف إضافة المصاريف ويبقى فقط التسوية والدردشة
+- **يغلق المجموعة نهائياً** — تصير أرشيف
+
+### تأكيد التسويات المزدوج
+
+لما عضو يسجل إنه دفع لشخص آخر، المستلم يتلقى إشعار لتأكيد الاستلام. كذا ما في مجال للخلاف.
+
+### طلب السداد عبر واتساب
+
+من شاشة التسويات، اضغط "طلب سداد" وبيفتح واتساب برسالة جاهزة فيها المبلغ ورابط المجموعة.
+
+## أمثلة عملية
+
+### مثال 1: شلة السفر
+محمد دفع عن أحمد 300 ريال في رحلة سابقة. يفتح Diviso، يضيف رصيد سابق: أحمد يدين لمحمد 300 ريال. خلاص، مسجل رسمياً.
+
+### مثال 2: شركاء السكن
+سارة وفاطمة ساكنين مع بعض من 6 شهور. سارة دافعة فواتير كثير. تسجل الفرق كرصيد سابق وتبدأ من اليوم بسجل نظيف.
+
+## الخلاصة
+
+لا تخلي الديون القديمة تأثر على علاقاتك. سجلها في Diviso، سوِّها بضغطة زر، وابدأ صفحة جديدة.
+
+**جرب Diviso الآن** وسجل أرصدتك السابقة!
+    \`,
+    contentEn: \`
+## The Problem: Old Debts Without Records
+
+We've all been there — friends paying for each other during outings and trips without keeping track, and after a while nobody remembers the exact amounts. The result? Awkwardness, disputes, or even lost friendships.
+
+## The Solution: Legacy Balances in Diviso
+
+Diviso lets you record any old debt between friends, even if it happened before you started using the app.
+
+### How to Add a Legacy Balance
+
+1. **Enter the group** or create a new one
+2. **Go to the Settlements tab**
+3. **Tap "Add Previous Balance"**
+4. **Select the creditor, debtor, and amount**
+5. **Add a note** (optional) — e.g., "Last week's dinner money"
+
+The balance is added immediately to group accounts and appears as a special card in chat.
+
+## Additional Features That Help
+
+### Finishing Trips and Closing Groups
+
+After recording everything, the admin can:
+- **Finish the trip** — stops expense additions, only settlements and chat remain
+- **Permanently close the group** — becomes an archive
+
+### Dual Settlement Confirmation
+
+When a member records that they paid someone, the recipient gets a notification to confirm receipt. This eliminates any room for disputes.
+
+### WhatsApp Payment Request
+
+From the Settlements screen, tap "Request Payment" and WhatsApp opens with a pre-formatted message containing the amount and group link.
+
+## Practical Examples
+
+### Example 1: Travel Group
+Mohammed paid 300 SAR for Ahmed on a previous trip. He opens Diviso, adds a legacy balance: Ahmed owes Mohammed 300 SAR. Done, officially recorded.
+
+### Example 2: Roommates
+Sara and Fatima have been roommates for 6 months. Sara paid many bills. She records the difference as a legacy balance and starts fresh from today.
+
+## Conclusion
+
+Don't let old debts affect your relationships. Record them in Diviso, settle with one tap, and start a new page.
+
+**Try Diviso now** and record your legacy balances!
+    \`
   }
 ];
 
