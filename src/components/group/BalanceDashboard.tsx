@@ -293,7 +293,10 @@ export const BalanceDashboard = ({
             profiles={profiles}
             currentUserId={currentUserId}
             currency={currency}
+            groupName={groupName}
+            groupId={groupId}
             onSettleClick={onSettleClick}
+            onRemindDebtor={onRemindDebtor}
           />
         </TabsContent>
 
