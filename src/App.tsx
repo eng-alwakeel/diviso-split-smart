@@ -75,6 +75,7 @@ const LazyPlans = withLazyLoading(lazy(() => import("./pages/Plans")));
 const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")));
 const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
 const LazyOnboarding = withLazyLoading(lazy(() => import("./pages/Onboarding")));
+const LazyChangelog = withLazyLoading(lazy(() => import("./pages/Changelog")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -148,6 +149,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/from" element={<LazyInfluencerPage />} />
             <Route path="/founding" element={<LazyFoundingProgram />} />
             <Route path="/install" element={<LazyInstall />} />
+            <Route path="/changelog" element={<LazyChangelog />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />
