@@ -30,6 +30,8 @@ export const PasswordRequirements = ({ password }: PasswordRequirementsProps) =>
 
   const requirements: PasswordRequirement[] = [
     { key: 'minLength', label: t('password_requirements.min_length'), met: validation.minLength },
+    { key: 'hasNumber', label: t('password_requirements.has_number'), met: validation.hasNumber },
+    { key: 'hasLetter', label: t('password_requirements.has_letter'), met: validation.hasLetter },
   ];
 
   return (
