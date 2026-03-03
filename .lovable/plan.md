@@ -1,43 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تحسين مشاركة/تصدير التسويات
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشاكل الحالية
-1. **زر الطباعة** يطبع الصفحة كاملة (`window.print()`) بدل تصدير كرت التسوية فقط كصورة/PDF
-2. **رسالة المشاركة** تحتاج مراجعة للتنسيق
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## التغييرات المطلوبة
+## Fix
 
-### A) استبدال الطباعة بتصدير صورة
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-**الملف:** `src/components/group/AllMembersBalances.tsx`
+Add detailed logging to the test email code path:
 
-- تثبيت `html2canvas` لتحويل كرت التسوية (`SettlementShareCard`) إلى صورة
-- زر الطباعة يصبح "حفظ كصورة" (أيقونة `ImageDown` أو `Download`)
-- عند الضغط:
-  1. يعرض `SettlementShareCard` مؤقتاً (off-screen) بتنسيق جميل
-  2. `html2canvas` يحوله لصورة PNG
-  3. يفتح رابط تنزيل أو يشاركه عبر Share API
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### B) مراجعة رسالة المشاركة
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-**الملف:** `src/components/group/SettlementShareCard.tsx`
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-الرسالة الحالية تعمل (كما في الصورة المرفوعة). تحسينات بسيطة:
-- إضافة اسم العملة بشكل أوضح (مثلاً "ريال" بدل "SAR")
-- التأكد من ترتيب RTL صحيح في النص المشارك
-- إضافة رابط التطبيق في نهاية الرسالة
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-### C) تحسين تجربة التصدير
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-- جعل `SettlementShareCard` يظهر مؤقتاً بـ `position: fixed; left: -9999px` أثناء التقاط الصورة
-- بعد التقاط الصورة: مشاركة عبر `Share.share({ files })` على Native أو تنزيل مباشر على الويب
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| `src/components/group/AllMembersBalances.tsx` | استبدال `window.print()` بـ html2canvas export |
-| `src/components/group/SettlementShareCard.tsx` | تحسين رسالة المشاركة + إضافة رابط التطبيق |
-| `package.json` | تثبيت `html2canvas` |
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues

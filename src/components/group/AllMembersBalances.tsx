@@ -11,10 +11,11 @@ import {
   Wallet,
   MinusCircle,
   Share2,
-  Printer,
+  ImageDown,
   Copy,
   Bell
 } from "lucide-react";
+import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
 import { SettlementShareCard, buildSettlementShareText } from "./SettlementShareCard";
 import { Share } from "@capacitor/share";
@@ -237,10 +238,62 @@ export const AllMembersBalances = ({
                   size="icon"
                   variant="ghost"
                   className="h-8 w-8"
-                  title={t('settlement_share.print', 'طباعة')}
-                  onClick={() => window.print()}
+                  title={t('settlement_share.save_image', 'حفظ كصورة')}
+                  onClick={async () => {
+                    try {
+                      // Render off-screen card
+                      const wrapper = document.createElement("div");
+                      wrapper.style.cssText = "position:fixed;left:-9999px;top:0;z-index:-1;width:400px;";
+                      document.body.appendChild(wrapper);
+
+                      const { createRoot } = await import("react-dom/client");
+                      const { flushSync } = await import("react-dom");
+                      const root = createRoot(wrapper);
+                      flushSync(() => {
+                        root.render(
+                          <SettlementShareCard
+                            groupName={groupName}
+                            currency={currency}
+                            settlements={optimalSettlements}
+                            formatName={formatName}
+                          />
+                        );
+                      });
+
+                      await new Promise(r => setTimeout(r, 100));
+                      const canvas = await html2canvas(wrapper, { backgroundColor: null, scale: 2 });
+                      root.unmount();
+                      document.body.removeChild(wrapper);
+
+                      canvas.toBlob(async (blob) => {
+                        if (!blob) return;
+                        const file = new File([blob], `settlements-${groupName}.png`, { type: "image/png" });
+                        try {
+                          const { Filesystem, Directory } = await import("@capacitor/filesystem");
+                          const base64 = canvas.toDataURL("image/png").split(",")[1];
+                          const saved = await Filesystem.writeFile({
+                            path: `settlements-${groupName}.png`,
+                            data: base64,
+                            directory: Directory.Cache,
+                          });
+                          await Share.share({ files: [saved.uri], title: t('settlement_share.title') });
+                        } catch {
+                          // Web fallback: download
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `settlements-${groupName}.png`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                          toast({ title: t('settlement_share.image_saved', 'تم حفظ الصورة!') });
+                        }
+                      }, "image/png");
+                    } catch {
+                      toast({ title: "حدث خطأ", variant: "destructive" });
+                    }
+                  }}
                 >
-                  <Printer className="w-4 h-4" />
+                  <ImageDown className="w-4 h-4" />
                 </Button>
                 <Button
                   size="icon"
