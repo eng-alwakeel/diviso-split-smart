@@ -560,6 +560,11 @@ const GroupDetails = () => {
               expanded={true}
               isGroupActive={canAddExpenses}
               onAddExpense={() => navigate(`/add-expense?groupId=${id}`)}
+              settlements={settlements}
+              profiles={profiles}
+              currency={currencyLabel}
+              currentUserId={currentUserId}
+              onSettlementConfirmed={refetch}
             />
           )}
         </div>
