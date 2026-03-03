@@ -976,12 +976,49 @@ const GroupDetails = () => {
         groupName={group?.name || ""} onConfirm={handleLeaveGroup} isLeaving={isLeavingGroup}
       />
       <CloseGroupDialog open={closeGroupDialogOpen} onOpenChange={setCloseGroupDialogOpen}
-        onConfirm={async () => { const success = await closeGroup(); if (success) { setCloseGroupDialogOpen(false); refetch(); } }}
+        onConfirm={async () => { 
+          const success = await closeGroup(); 
+          if (success) { 
+            setCloseGroupDialogOpen(false); 
+            refetch(); 
+            // Auto-open trip summary after closing
+            setTimeout(() => setTripSummaryOpen(true), 500);
+          } 
+        }}
         loading={closingGroup} groupName={group?.name}
       />
       <FinishGroupDialog open={finishGroupDialogOpen} onOpenChange={setFinishGroupDialogOpen}
         onConfirm={handleFinishGroup} loading={finishingGroup} groupName={group?.name}
       />
+      {/* Phase 2: Request Payment Dialog */}
+      <RequestPaymentDialog
+        open={requestPaymentOpen}
+        onOpenChange={setRequestPaymentOpen}
+        debtors={debtors}
+        currency={currencyLabel}
+        groupName={group?.name || ""}
+      />
+      {/* Phase 3: Trip Summary Sheet */}
+      <TripSummarySheet
+        open={tripSummaryOpen}
+        onOpenChange={setTripSummaryOpen}
+        {...tripSummaryData}
+      />
+      {/* Phase 4: Previous Balance Sheet */}
+      {id && currentUserId && (
+        <PreviousBalanceSheet
+          open={previousBalanceOpen}
+          onOpenChange={setPreviousBalanceOpen}
+          groupId={id}
+          currentUserId={currentUserId}
+          members={registeredMembers.map(m => ({
+            user_id: m.user_id,
+            name: nameOf(m.user_id),
+          }))}
+          currency={currencyLabel}
+          onCreated={refetch}
+        />
+      )}
       {memberToRate && (
         <RatingSheet open={ratingSheetOpen} onOpenChange={setRatingSheetOpen} groupId={id!} member={memberToRate}
           onRatingSubmitted={() => { setMemberToRate(null); refetch(); }}
