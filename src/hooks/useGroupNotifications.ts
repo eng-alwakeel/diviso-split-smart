@@ -11,7 +11,8 @@ type GroupNotificationType =
   | "balance_due"
   | "invite_accepted"
   | "invite_rejected"
-  | "pending_linked";
+  | "pending_linked"
+  | "settlement_reminder";
 
 interface NotificationPayload {
   group_name: string;
