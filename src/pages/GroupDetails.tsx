@@ -483,7 +483,10 @@ const GroupDetails = () => {
           myBalance={myBalances.confirmed}
           currencyLabel={currencyLabel}
           onSettleNow={() => openSettlement()}
+          onSendRequest={() => setRequestPaymentOpen(true)}
           onFinalClose={() => setCloseGroupDialogOpen(true)}
+          onViewSummary={() => setTripSummaryOpen(true)}
+          hasDebtors={debtors.length > 0}
         />
 
         {/* Pending ratings for closed groups */}
