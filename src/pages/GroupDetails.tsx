@@ -253,6 +253,47 @@ const GroupDetails = () => {
     return expenses.filter(e => e.status === expenseFilter);
   }, [expenses, expenseFilter]);
 
+  // Debtors for payment request dialog
+  const debtors = useMemo(() => {
+    return balanceSummary
+      .filter(b => Number(b.total_net ?? 0) < -0.01 && b.user_id !== currentUserId)
+      .map(b => ({
+        user_id: b.user_id,
+        name: nameOf(b.user_id),
+        phone: profiles[b.user_id]?.phone || null,
+        amount: Math.abs(Number(b.total_net ?? 0)),
+      }));
+  }, [balanceSummary, currentUserId, profiles]);
+
+  // Member badges (Phase 3)
+  const memberBadges = useMemo(() => {
+    const msgCounts: Record<string, number> = {};
+    // We can't easily get message counts here without extra query, so leave empty for now
+    return computeMemberBadges(
+      registeredMembers.map(m => m.user_id),
+      balances,
+      settlements,
+      msgCounts,
+    );
+  }, [registeredMembers, balances, settlements]);
+
+  // Trip summary data (Phase 3)
+  const tripSummaryData = useMemo(() => {
+    const topPayer = balances.reduce((best, b) => 
+      b.amount_paid > (best?.amount_paid ?? 0) ? b : best, balances[0]);
+    const diceCount = settlements.filter((s: any) => s.settlement_type === 'dice').length; // approximate
+    return {
+      groupName: group?.name || "",
+      totalExpenses: totals.approvedExpenses,
+      currency: currencyLabel,
+      memberCount,
+      expenseCount: expenses.length,
+      settlementCount: settlements.length,
+      diceCount: 0,
+      topPayer: topPayer ? { name: nameOf(topPayer.user_id), amount: topPayer.amount_paid } : undefined,
+    };
+  }, [group?.name, totals.approvedExpenses, currencyLabel, memberCount, expenses.length, settlements, balances]);
+
   const groupCurrency = group?.currency || 'SAR';
   const currency = currencies.find(c => c.code === groupCurrency);
   const currencyLabel = currency?.symbol || groupCurrency;
