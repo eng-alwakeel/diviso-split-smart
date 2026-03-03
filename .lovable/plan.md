@@ -1,55 +1,68 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# مراجعة حسابات اقتراحات التسوية — خطأ في المنطق
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## المشكلة
 
-## Fix
+تبويب **"اقتراحات"** في `BalanceDashboard.tsx` (سطر 164-200) فيه خطأ في حساب `balanceTrends`. المنطق الحالي يعرض لكل مستخدم **جميع** الأطراف المقابلة مع `suggestedSettlement = min(رصيدي, رصيد_الطرف_الآخر)` — بدون خصم المبالغ المخصصة مسبقاً.
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+### مثال عملي من الصور:
 
-Add detailed logging to the test email code path:
-
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
-
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
+**الأرصدة:**
+```text
+Mohammed Adas:    +967.72 (دائن)
+Saud Thawab:     +494.72 (دائن)
+ibrahim alshaya:  -17.28 (مدين)
+adel alwakeel:    -90.43 (مدين)
+وسام وكيل:       -185.43 (مدين)
+Habroon Mohammed:-1,169.28 (مدين)
 ```
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+**ما يظهر حالياً لمحمد عدس (الصورة الأخيرة):**
+- Habroon يدين لك: 967.72
+- وسام يدين لك: 185.43
+- adel يدين لك: 90.43
+- ibrahim يدين لك: 17.28
+- **المجموع = 1,260.86** — لكن محمد عدس له فقط **967.72**!
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+**ما يظهر لعادل (صورة IMG_6272):**
+- ادفع لمحمد: 90.43
+- ادفع لسعود: 90.43
+- **المجموع = 180.86** — لكن عادل عليه فقط **90.43**!
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
+### السبب:
+السطر 180: `suggestedSettlement: Math.min(Math.abs(myBalance.net_balance), creditor.net_balance)` يستخدم نفس الرصيد الكامل لكل طرف بدون خصم ما تم تخصيصه للأطراف السابقة.
+
+## الحل الصحيح
+
+استبدال منطق `balanceTrends` بنفس خوارزمية التسوية المثلى (two-pointer greedy) المستخدمة في `AllMembersBalances.tsx` → ثم تصفية النتائج للمستخدم الحالي فقط.
+
+```text
+الخوارزمية الصحيحة:
+1. Habroon (-1169.28) → Mohammed (+967.72): 967.72
+2. Habroon (-201.56)  → Saud (+494.72):    201.56
+3. وسام (-185.43)     → Saud (+293.16):    185.43
+4. adel (-90.43)      → Saud (+107.73):     90.43
+5. ibrahim (-17.28)   → Saud (+17.30):      17.28
 ```
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+**لمحمد عدس:** يستلم 967.72 من Habroon فقط (صحيح).
+**لعادل:** يدفع 90.43 لسعود فقط (صحيح).
+
+## التعديل المطلوب
+
+**ملف واحد:** `src/components/group/BalanceDashboard.tsx`
+
+استبدال `balanceTrends` (سطر 164-200) بالمنطق التالي:
+1. حساب التسويات المثلى باستخدام نفس الخوارزمية الموجودة في `AllMembersBalances`
+2. تصفية النتائج: فقط التسويات التي تخص المستخدم الحالي (كدافع أو مستلم)
+3. تحويل النتائج لنفس الشكل (`type: 'pay_to' | 'receive_from'`, `suggestedSettlement`, etc.)
+
+لا تغيير في UI أو في `AllMembersBalances` — فقط إصلاح المنطق الحسابي في تبويب الاقتراحات.
+
+## الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| `src/components/group/BalanceDashboard.tsx` | إصلاح `balanceTrends` useMemo (سطر 164-200) |
+
