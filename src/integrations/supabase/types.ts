@@ -6207,7 +6207,7 @@ export type Database = {
         Returns: {
           activated_users: number
           activation_rate: number
-          avg_time_to_first_value: unknown
+          avg_time_to_first_value: string
           conversion_rate: number
           converted_to_paid: number
           retention_to_7d: number
