@@ -53,6 +53,52 @@
     "currency": "SAR",
     "cta": "Start Free Now"
   },
+  "demoSandbox": {
+    "badge": "Try Diviso Now",
+    "title": "Try Splitting Expenses Yourself!",
+    "subtitle": "Create a demo group and see results instantly",
+    "currency": "SAR",
+    "next": "Next",
+    "back": "Back",
+    "stepLabels": {
+      "step1": "Group",
+      "step2": "Expenses",
+      "step3": "Results",
+      "step4": "Save"
+    },
+    "step1": {
+      "title": "Create Your Demo Group",
+      "groupName": "Group Name",
+      "members": "Members",
+      "addMember": "Add Member"
+    },
+    "step2": {
+      "title": "Add Expenses",
+      "expenseName": "Expense name",
+      "addExpense": "Add New Expense"
+    },
+    "step3": {
+      "title": "Results — Who Pays Whom?",
+      "total": "Total Expenses",
+      "perPerson": "Per Person",
+      "balances": "Balances",
+      "settlements": "Required Settlements",
+      "saveGroup": "Save Group"
+    },
+    "step4": {
+      "title": "Ready to save your group?",
+      "description": "Sign up now to keep this group, invite real members, and track payments",
+      "benefits": {
+        "save": "Save your group",
+        "invite": "Invite members",
+        "track": "Track payments",
+        "addLater": "Add expenses later"
+      },
+      "cta": "Create Account & Continue",
+      "tryAgain": "Start Over",
+      "tryScenarios": "🧩 Try Different Scenarios"
+    }
+  },
   "animatedHowItWorks": {
     "title": "How does Diviso work?",
     "subtitle": "Three simple steps and you're done",

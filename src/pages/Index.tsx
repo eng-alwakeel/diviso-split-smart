@@ -95,8 +95,8 @@ const Index = () => {
       <Header />
       <HeroSection />
       
-      {/* Above the fold - not lazy */}
-      <InteractiveSplitDemo />
+      {/* Interactive Demo Sandbox */}
+      <DemoSandbox />
       
       {/* PWA Install Prompt */}
       <div className="page-container !py-0 !pb-0">
