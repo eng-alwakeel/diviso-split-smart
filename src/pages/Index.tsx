@@ -15,7 +15,7 @@ const QuickStartSection = lazy(() => import("@/components/landing/QuickStartSect
 const PricingSection = lazy(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
 
 // Import non-lazy for above-the-fold
-import { InteractiveSplitDemo } from "@/components/landing/InteractiveSplitDemo";
+import { DemoSandbox } from "@/components/landing/DemoSandbox";
 
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 
