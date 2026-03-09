@@ -1,74 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تحويل حاسبة الصفحة الرئيسية إلى تجربة تفاعلية (Demo Sandbox)
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## الفكرة
-استبدال `InteractiveSplitDemo` الحالي (حاسبة بسيطة) بـ wizard تفاعلي من 4 خطوات يحاكي تجربة Diviso الحقيقية، مع بيانات تجريبية جاهزة وانتقالات سلسة.
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## الهيكل
+## Fix
 
-```text
-Step 1: إنشاء مجموعة     Step 2: إضافة مصاريف     Step 3: النتيجة     Step 4: CTA تسجيل
-┌─────────────────┐    ┌─────────────────────┐   ┌──────────────┐   ┌──────────────────┐
-│ اسم المجموعة    │    │ قائمة مصاريف         │   │ إجمالي       │   │ سجل الآن وحفظ    │
-│ أسماء الأعضاء   │ →  │ من دفع + المبلغ      │ → │ أرصدة        │ → │ المجموعة         │
-│ +/- أعضاء       │    │ ➕ إضافة مصروف       │   │ تسويات       │   │ أو تجربة جديدة   │
-└─────────────────┘    └─────────────────────┘   └──────────────┘   └──────────────────┘
+### File: `supabase/functions/send-broadcast-email/index.ts`
+
+Add detailed logging to the test email code path:
+
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
+
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
 ```
 
-## التفاصيل التقنية
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-### 1. مكوّن جديد: `src/components/landing/DemoSandbox.tsx`
-يستبدل `InteractiveSplitDemo` في `Index.tsx`.
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-**State:**
-- `step`: 1 | 2 | 3 | 4
-- `groupName`: string (افتراضي: "رحلة نهاية الأسبوع")
-- `members`: array (افتراضي: أحمد، خالد، سارة، نورة)
-- `expenses`: array (افتراضي: فندق 500 أحمد، بنزين 180 خالد، عشاء 240 سارة)
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
-**Step 1 — المجموعة:**
-- حقل اسم المجموعة (pre-filled)
-- قائمة أعضاء قابلة للتعديل (2-8 أعضاء)
-- أزرار +/- لإضافة/حذف عضو
-- زر "التالي"
-
-**Step 2 — المصاريف:**
-- 3 مصاريف تجريبية جاهزة
-- كل مصروف: اسم + مبلغ + من دفع (dropdown)
-- زر ➕ إضافة مصروف (حد أقصى 8)
-- زر حذف لكل مصروف
-- زر "التالي" + "السابق"
-
-**Step 3 — النتيجة:**
-- إجمالي المصاريف + نصيب كل شخص
-- أرصدة كل عضو (له/عليه) — إعادة استخدام منطق `calculateBalances` من `demoScenarios.ts`
-- تسويات مقترحة (من يدفع لمن) — خوارزمية greedy بسيطة
-- بطاقات ملونة (أخضر = له، أحمر = عليه)
-- زر "حفظ المجموعة"
-
-**Step 4 — CTA:**
-- رسالة إقناع
-- زر رئيسي: "إنشاء حساب ومتابعة" → `/auth`
-- زر ثانوي: "تجربة جديدة" → إعادة الـ wizard
-- رابط: "جرّب سيناريوهات أخرى" → `/launch`
-
-### 2. Progress Indicator
-شريط تقدم بسيط (4 نقاط/خطوات) أعلى الـ wizard.
-
-### 3. تحديث `Index.tsx`
-- استبدال `<InteractiveSplitDemo />` بـ `<DemoSandbox />`
-
-### 4. تحديث الترجمة
-- إضافة مفاتيح جديدة في `ar/landing.json` و `en/landing.json` تحت `demoSandbox`
-
-### 5. رابط صفحة التجارب
-إضافة رابط في Step 3 أو Step 4: "🧩 جرّب سيناريوهات مختلفة" يوجّه إلى `/launch`
-
-## ملاحظات
-- يُعاد استخدام `DemoBalanceView` و`formatAmount` الموجودين
-- بيانات تجريبية جاهزة من أول ثانية — لا حقول فارغة
-- انتقالات CSS سلسة بين الخطوات
-- RTL/LTR مدعوم عبر `i18n.language`
-- لا يحتاج أي backend — كل الحسابات client-side
-
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
