@@ -209,7 +209,7 @@ export const useChatBroadcast = ({ groupId, userId, enabled = true }: UseChatBro
       config: { broadcast: { self: false } },
     });
 
-    // Listen for new messages
+    // Listen for new messages via broadcast (fast path)
     channel.on('broadcast', { event: 'message_new' }, ({ payload }) => {
       if (!payload) return;
       const msg = payload as ChatMessage;
@@ -217,6 +217,22 @@ export const useChatBroadcast = ({ groupId, userId, enabled = true }: UseChatBro
         // Dedup by client_msg_id or id
         if (msg.client_msg_id && prev.some(m => m.client_msg_id === msg.client_msg_id)) return prev;
         if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    });
+
+    // Listen for new messages via Postgres Realtime (catches DB-only inserts like settlements)
+    channel.on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `group_id=eq.${groupId}`
+    }, (payload) => {
+      if (!payload.new) return;
+      const msg = payload.new as ChatMessage;
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        if (msg.client_msg_id && prev.some(m => m.client_msg_id === msg.client_msg_id)) return prev;
         return [...prev, msg];
       });
     });
