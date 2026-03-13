@@ -1394,7 +1394,7 @@ Don't let old debts affect your relationships. Record them in Diviso, settle wit
     description: "دليلك الشامل لتقسيم حساب المطعم مع الأصدقاء بدون إحراج. اكتشف أفضل الطرق والتطبيقات لتقسيم الفاتورة بعدل.",
     descriptionEn: "Your complete guide to splitting restaurant bills with friends without awkwardness. Discover the best methods and apps.",
     keywords: ["تقسيم حساب المطعم", "تقسيم الفاتورة", "حساب المطعم بين الأصدقاء", "تقسيم فاتورة المطعم", "من يدفع الحساب", "حساب المطعم"],
-    keywordsEn: ["split restaurant bill", "splitting the check", "restaurant bill calculator", "who pays the bill", "bill splitting etiquette"],
+    keywordsEn: ["how to split restaurant bill with friends app", "splitting the check fairly", "restaurant bill calculator app", "who pays the bill etiquette", "bill splitting app for restaurants"],
     category: "guides",
     readTime: 7,
     publishDate: "2026-03-10",
