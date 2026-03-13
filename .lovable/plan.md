@@ -1,55 +1,26 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# المشكلة: دالة `complete_onboarding_task` القديمة تتجاهل المهام الجديدة
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## السبب الجذري
 
-## Fix
+يوجد **نسختين** من الدالة في قاعدة البيانات:
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+1. **القديمة** (migration `20251231`): `complete_onboarding_task(p_user_id UUID, p_task_name TEXT)` — تدعم فقط: profile, group, expense, invite, referral. تُرجع `invalid_task` لأي مهمة أخرى.
+2. **الجديدة** (migration `20260313`): `complete_onboarding_task(p_task_name TEXT, p_user_id UUID)` — تدعم كل المهام الـ 8.
 
-Add detailed logging to the test email code path:
+بما أن ترتيب المعاملات مختلف، PostgreSQL يعتبرهم **دالتين منفصلتين** (function overloading). عند الاستدعاء، قد يتم تنفيذ الدالة القديمة التي ترفض `close_group` و `dice` و `plan` و `install_app`.
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+لذلك المهام الـ 4 الأصلية (profile, group, invite, expense) اشتغلت، لكن الـ 4 الجديدة (install_app, close_group, dice, plan) ما اتحدثت.
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+## الحل
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### Migration جديد يعمل:
+1. **حذف** الدالة القديمة: `DROP FUNCTION IF EXISTS complete_onboarding_task(UUID, TEXT)`
+2. **إعادة إنشاء** دالة واحدة شاملة بترتيب معاملات موحد `(p_user_id UUID, p_task_name TEXT)` تدعم كل المهام الـ 8
+3. تحديث `tasks_completed` بعدّ كل الأعمدة الـ 9 (بما فيها referral)
+4. تحديث `v_all_completed` ليشمل كل الأعمدة
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### ملف واحد يتأثر:
+- Migration SQL جديد
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
-
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
