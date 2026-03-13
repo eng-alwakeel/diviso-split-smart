@@ -1386,7 +1386,7 @@ Don't let old debts affect your relationships. Record them in Diviso, settle wit
 
 **Try Diviso now** and record your legacy balances!
     `
-  }
+  },
   {
     slug: "split-restaurant-bill",
     title: "تقسيم حساب المطعم: 7 طرق ذكية تنهي الإحراج نهائياً",
