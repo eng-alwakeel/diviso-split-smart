@@ -27,11 +27,11 @@ interface SEOProps {
 }
 
 const defaultSEO = {
-  title: 'Diviso | قسّم بذكاء، سافر براحة',
-  description: 'Diviso - تطبيق تقسيم المصاريف الأول في السعودية. قسّم فواتير السفر والمطاعم بين الأصدقاء والعائلة بذكاء. بديل Splitwise العربي.',
+  title: 'Diviso | Split Expenses Smartly — Best Bill Splitting App',
+  description: 'Diviso — the smartest way to split expenses with friends & family. Track group bills, travel costs, and restaurant checks effortlessly. Free Splitwise alternative with AI.',
   ogImage: 'https://diviso.app/og-image.png',
   siteUrl: 'https://diviso.app',
-  keywords: 'تقسيم مصاريف, إدارة نفقات, مصاريف مشتركة, حساب مصاريف, تطبيق تقسيم الفاتورة, تسوية الديون, إدارة ميزانية, مصاريف السفر, مصاريف الرحلات, تطبيق مصاريف سعودي, تطبيق مالي عربي, تتبع النفقات, مصاريف المجموعات, تقسيم فاتورة المطعم, حساب الديون, أرصدة سابقة, ديون قبل التطبيق, تأكيد التسوية, طلب سداد واتساب, ملخص رحلة, نرد جماعي, دردشة فورية, إنهاء الرحلة, expense splitting, split bills, travel expenses, expense tracker, bill splitting app, group expense manager, shared expenses, travel budget app, splitwise alternative, money management, budget tracker, Saudi finance app, legacy balances, settlement confirmation, WhatsApp payment request, trip summary, group dice, real-time chat',
+  keywords: 'split expenses app, bill splitting app, expense tracker, splitwise alternative, group expense manager, shared expenses calculator, travel expense splitter, roommate expense tracker, split restaurant bill, travel budget app, money splitting app, best expense sharing app 2026, how to split bills with friends, group travel expense tracker, تقسيم مصاريف, تطبيق تقسيم الفاتورة, مصاريف مشتركة',
 };
 
 export const SEO = ({

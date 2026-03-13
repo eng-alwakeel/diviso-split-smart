@@ -79,7 +79,7 @@ export const FAQSection = () => {
         </Accordion>
       </div>
 
-      {/* FAQ Schema JSON-LD */}
+      {/* FAQ Schema JSON-LD — English for search engines */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -88,10 +88,10 @@ export const FAQSection = () => {
             "@type": "FAQPage",
             mainEntity: faqItems.map((item) => ({
               "@type": "Question",
-              name: item.q,
+              name: item.qEn,
               acceptedAnswer: {
                 "@type": "Answer",
-                text: item.a,
+                text: item.aEn,
               },
             })),
           }),
