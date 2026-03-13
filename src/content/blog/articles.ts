@@ -2048,7 +2048,7 @@ The best money splitting app is the one all group members actually use. Diviso m
     description: "دليل تنظيم مصاريف رمضان الجماعية: الإفطارات، العزومات، الهدايا، والصدقات. نظّم كل شيء مع أصدقائك بسهولة.",
     descriptionEn: "Guide to organizing group Ramadan expenses: iftar, gatherings, gifts, and charity. Organize everything with friends easily.",
     keywords: ["مصاريف رمضان", "تقسيم مصاريف رمضان", "إفطار جماعي", "عزومات رمضان", "مصاريف رمضان مع الأصدقاء", "ميزانية رمضان"],
-    keywordsEn: ["Ramadan expenses", "split Ramadan costs", "group iftar", "Ramadan gatherings", "Ramadan budget"],
+    keywordsEn: ["Ramadan group expense manager", "split Ramadan costs with friends", "group iftar expenses tracker", "Ramadan budget planner", "Ramadan gathering expenses app"],
     category: "tips",
     readTime: 7,
     publishDate: "2026-02-25",
