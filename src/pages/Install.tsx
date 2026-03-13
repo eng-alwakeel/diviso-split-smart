@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 import { ShareInstallButton } from "@/components/pwa/ShareInstallButton";
 import { Download } from "lucide-react";
+import { InstallSteps } from "@/components/pwa/InstallSteps";
 
 const Install = () => {
   const { t } = useTranslation("install");

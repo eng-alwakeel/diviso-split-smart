@@ -56,5 +56,19 @@
     "step3Label": "Add to Home Screen",
     "step4": "اضغط <bold>Add</bold> وخلاص! 🎉",
     "doneButton": "فهمت، شكراً"
+  },
+  "steps": {
+    "title": "طريقة التثبيت",
+    "iosTab": "آيفون",
+    "androidTab": "أندرويد",
+    "iosTitle": "على الآيفون (Safari)",
+    "androidTitle": "على الأندرويد (Chrome)",
+    "android": {
+      "step1": "افتح diviso.app في Chrome",
+      "step2": "اضغط على القائمة",
+      "step3": "اختر",
+      "step3Label": "تثبيت التطبيق",
+      "step4": "اضغط تثبيت وخلاص!"
+    }
   }
 }

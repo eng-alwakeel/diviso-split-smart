@@ -56,5 +56,19 @@
     "step3Label": "Add to Home Screen",
     "step4": "Tap <bold>Add</bold> and you're done! 🎉",
     "doneButton": "Got it, thanks"
+  },
+  "steps": {
+    "title": "How to install",
+    "iosTab": "iPhone",
+    "androidTab": "Android",
+    "iosTitle": "On iPhone (Safari)",
+    "androidTitle": "On Android (Chrome)",
+    "android": {
+      "step1": "Open diviso.app in Chrome",
+      "step2": "Tap the menu",
+      "step3": "Choose",
+      "step3Label": "Install App",
+      "step4": "Tap Install and you're done!"
+    }
   }
 }
