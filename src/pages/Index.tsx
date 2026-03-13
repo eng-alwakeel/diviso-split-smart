@@ -13,6 +13,7 @@ const FeaturesSection = lazy(() => import("@/components/FeaturesSection").then(m
 const TestimonialsSection = lazy(() => import("@/components/landing/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const QuickStartSection = lazy(() => import("@/components/landing/QuickStartSection").then(m => ({ default: m.QuickStartSection })));
 const PricingSection = lazy(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
+const FAQSection = lazy(() => import("@/components/landing/FAQSection").then(m => ({ default: m.FAQSection })));
 
 // Import non-lazy for above-the-fold
 import { DemoSandbox } from "@/components/landing/DemoSandbox";
