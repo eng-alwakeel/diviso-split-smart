@@ -103,9 +103,19 @@ export function usePlans() {
       if (error) throw error;
       return data as string;
     },
-    onSuccess: (planId) => {
+    onSuccess: async (planId) => {
       toast({ title: t('create.success') });
       queryClient.invalidateQueries({ queryKey: ['plans'] });
+      // Complete onboarding task
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.rpc('complete_onboarding_task', {
+            p_task_name: 'plan',
+            p_user_id: user.id,
+          });
+        }
+      } catch {}
       navigate(`/plan/${planId}`);
     },
     onError: () => {

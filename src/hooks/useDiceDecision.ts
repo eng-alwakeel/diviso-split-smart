@@ -118,7 +118,7 @@ export function useDiceDecision(): UseDiceDecisionReturn {
     // Consume credit after successful roll
     await consumeCredits('roll_dice');
 
-    // Log for streak tracking
+    // Log for streak tracking + complete onboarding
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -126,6 +126,11 @@ export function useDiceDecision(): UseDiceDecisionReturn {
           p_user_id: user.id,
           p_action_type: 'dice_roll',
           p_metadata: { dice_type: selectedDice.id, face: face.id },
+        });
+        // Complete onboarding task
+        await supabase.rpc('complete_onboarding_task', {
+          p_task_name: 'dice',
+          p_user_id: user.id,
         });
       }
     } catch {
