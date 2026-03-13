@@ -870,7 +870,7 @@ Good financial planning for the wedding = comfortable start to married life. Don
     description: "دليل شامل لتخطيط ميزانية رحلة العمرة وتقسيم المصاريف بين أفراد العائلة",
     descriptionEn: "Comprehensive guide to planning Umrah trip budget and splitting expenses among family members",
     keywords: ["ميزانية العمرة", "تكاليف العمرة", "رحلة العمرة العائلية", "مصاريف العمرة"],
-    keywordsEn: ["Umrah budget", "Umrah costs", "family Umrah trip", "Umrah expenses"],
+    keywordsEn: ["Umrah budget planner", "Umrah trip costs 2026", "family Umrah trip expenses", "Umrah expense calculator", "how much does Umrah cost"],
     category: "guides",
     readTime: 8,
     publishDate: "2026-01-02",
