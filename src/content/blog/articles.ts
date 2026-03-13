@@ -1284,7 +1284,7 @@ Friendship is more important than money. Use Diviso and make your hangouts enjoy
     description: "تعرف على ميزة الأرصدة السابقة في Diviso لتسجيل الديون القديمة بين الأصدقاء وبدء صفحة جديدة منظمة",
     descriptionEn: "Learn about Diviso's Legacy Balances feature to record old debts between friends and start a fresh organized page",
     keywords: ["أرصدة سابقة", "ديون الأصدقاء", "تسجيل ديون قديمة", "إدارة الديون", "تسوية الحسابات"],
-    keywordsEn: ["legacy balances", "friend debts", "record old debts", "debt management", "settle accounts"],
+    keywordsEn: ["legacy balances app", "record old debts between friends", "debt management app", "settle old accounts", "track who owes you money"],
     category: "guides",
     readTime: 6,
     publishDate: "2026-03-03",
