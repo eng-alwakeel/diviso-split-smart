@@ -694,7 +694,7 @@ Don't let money ruin your friendships. Use Diviso and keep the bill transparent 
     description: "دليل شامل لتقسيم تكاليف الزواج بين العائلتين وتتبع مصاريف العرس في السعودية",
     descriptionEn: "Comprehensive guide to splitting wedding costs between families and tracking wedding expenses in Saudi Arabia",
     keywords: ["تكاليف الزواج", "مصاريف العرس", "ميزانية الزواج السعودية", "تخطيط العرس"],
-    keywordsEn: ["wedding costs", "wedding expenses", "Saudi wedding budget", "wedding planning"],
+    keywordsEn: ["wedding cost calculator", "wedding expense tracker", "split wedding costs between families", "wedding budget planner app", "wedding planning expenses"],
     category: "guides",
     readTime: 10,
     publishDate: "2026-01-04",
