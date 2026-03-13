@@ -154,6 +154,31 @@ const Dashboard = React.memo(() => {
   // Use unified real-time listener
   useDashboardRealtimeListener(userId || null);
 
+  // Auto-complete install_app onboarding task when running as standalone PWA
+  useEffect(() => {
+    const checkStandaloneAndComplete = async () => {
+      const isStandalone =
+        (window.navigator as any).standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches;
+
+      if (!isStandalone) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      try {
+        await supabase.rpc('complete_onboarding_task', {
+          p_task_name: 'install_app',
+          p_user_id: user.id,
+        });
+        console.log('[Dashboard] install_app task completed (standalone)');
+      } catch (e) {
+        console.error('[Dashboard] install_app task error:', e);
+      }
+    };
+    checkStandaloneAndComplete();
+  }, []);
+
   // Dashboard mode hook
   const dashboardMode = useDashboardMode(userId);
   
