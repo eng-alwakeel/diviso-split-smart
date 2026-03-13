@@ -1387,6 +1387,798 @@ Don't let old debts affect your relationships. Record them in Diviso, settle wit
 **Try Diviso now** and record your legacy balances!
     `
   }
+  {
+    slug: "split-restaurant-bill",
+    title: "تقسيم حساب المطعم: 7 طرق ذكية تنهي الإحراج نهائياً",
+    titleEn: "Splitting the Restaurant Bill: 7 Smart Ways to End Awkwardness",
+    description: "دليلك الشامل لتقسيم حساب المطعم مع الأصدقاء بدون إحراج. اكتشف أفضل الطرق والتطبيقات لتقسيم الفاتورة بعدل.",
+    descriptionEn: "Your complete guide to splitting restaurant bills with friends without awkwardness. Discover the best methods and apps.",
+    keywords: ["تقسيم حساب المطعم", "تقسيم الفاتورة", "حساب المطعم بين الأصدقاء", "تقسيم فاتورة المطعم", "من يدفع الحساب", "حساب المطعم"],
+    keywordsEn: ["split restaurant bill", "splitting the check", "restaurant bill calculator", "who pays the bill", "bill splitting etiquette"],
+    category: "guides",
+    readTime: 7,
+    publishDate: "2026-03-10",
+    content: `
+## المشكلة اللي يعرفها الكل
+
+وصل الحساب... وبدأ الصمت المحرج. مين يدفع؟ نقسم بالتساوي ولا كل واحد يدفع اللي طلبه؟ هذا الموقف يتكرر يومياً في مطاعم السعودية.
+
+## لماذا تقسيم حساب المطعم صعب؟
+
+- **اختلاف الطلبات**: واحد طلب ستيك بـ 200 وواحد طلب سلطة بـ 35
+- **الإحراج الاجتماعي**: ما أحد يبغى يطلع بخيل
+- **عدم وجود فكة**: خاصة مع الدفع الإلكتروني
+- **المجاملة الزائدة**: "لا لا أنا أدفع" ثم ما أحد يدفع
+
+## 7 طرق ذكية لتقسيم الحساب
+
+### 1. التقسيم المتساوي البسيط
+قسّم المبلغ ÷ عدد الأشخاص. مناسب لما الطلبات متقاربة.
+
+### 2. كل شخص يدفع اللي طلبه
+الأعدل لكن يحتاج حساب دقيق. هنا يجي دور التطبيقات الذكية.
+
+### 3. نظام الدور (التناوب)
+كل مرة واحد يدفع. عدل على المدى الطويل مع نفس المجموعة.
+
+### 4. التقسيم حسب النسبة
+اللي طلب أكثر يدفع نسبة أعلى. Diviso يحسبها تلقائياً.
+
+### 5. صندوق المجموعة
+كل شخص يحول مبلغ ثابت شهرياً لصندوق الطلعات.
+
+### 6. شخص يدفع والباقي يحولون
+أسهل طريقة: واحد يدفع الكل ويسجلها في Diviso، والتطبيق يحسب نصيب كل شخص.
+
+### 7. التقسيم الذكي بالتطبيق
+سجل المصروف في Diviso واختر طريقة التقسيم: متساوي، بالنسبة، أو مخصص.
+
+## كيف Diviso يحل المشكلة نهائياً؟
+
+- ✅ سجل المصروف بثانيتين
+- ✅ اختر طريقة التقسيم المناسبة
+- ✅ كل شخص يشوف نصيبه فوراً
+- ✅ تذكيرات أوتوماتيكية للتسوية
+- ✅ بالعربي وبالريال السعودي
+
+## نصيحة ذهبية
+
+اتفقوا على طريقة التقسيم **قبل** ما تطلبون. كذا ما أحد يحس بالإحراج.
+
+## الخلاصة
+
+تقسيم حساب المطعم ما يحتاج يكون محرج. مع Diviso، سجل وقسم وسوِّ الحساب بثواني.
+
+**جرب Diviso مجاناً** — خلك ذكي وقسّم بذكاء!
+    `,
+    contentEn: `
+## The Problem Everyone Knows
+
+The bill arrives... and the awkward silence begins. Who pays? Split equally or each pays what they ordered? This happens daily in restaurants worldwide.
+
+## Why is Splitting Restaurant Bills Hard?
+
+- **Different orders**: One person orders a 200 SAR steak, another orders a 35 SAR salad
+- **Social pressure**: Nobody wants to look cheap
+- **No change**: Especially with digital payments
+- **Over-politeness**: "No no, I'll pay" then nobody pays
+
+## 7 Smart Ways to Split the Bill
+
+### 1. Simple Equal Split
+Divide total ÷ number of people. Good when orders are similar.
+
+### 2. Pay What You Ordered
+Fairest but requires precise calculation. Smart apps shine here.
+
+### 3. Rotation System
+Each person pays for a full meal in turns. Fair long-term with the same group.
+
+### 4. Proportional Split
+Whoever ordered more pays a higher percentage. Diviso calculates automatically.
+
+### 5. Group Fund
+Everyone contributes a fixed monthly amount for group outings.
+
+### 6. One Pays, Others Transfer
+Easiest: one person pays everything, logs it in Diviso, and the app calculates each share.
+
+### 7. Smart App Splitting
+Log the expense in Diviso and choose: equal, proportional, or custom split.
+
+## How Diviso Solves This Permanently
+
+- ✅ Log expenses in 2 seconds
+- ✅ Choose the right splitting method
+- ✅ Everyone sees their share instantly
+- ✅ Automatic settlement reminders
+- ✅ Full Arabic & Saudi Riyal support
+
+## Golden Tip
+
+Agree on the splitting method **before** ordering. No awkwardness that way.
+
+## Conclusion
+
+Splitting restaurant bills doesn't have to be awkward. With Diviso, log, split, and settle in seconds.
+
+**Try Diviso free** — be smart, split smart!
+    `
+  },
+  {
+    slug: "trip-expenses-app",
+    title: "أفضل تطبيق مصاريف الرحلة 2026: نظّم رحلتك بدون فوضى",
+    titleEn: "Best Trip Expenses App 2026: Organize Your Trip Without Chaos",
+    description: "تبحث عن تطبيق مصاريف الرحلة؟ اكتشف كيف تنظم مصاريف رحلتك مع الأصدقاء وتتابع كل ريال بسهولة.",
+    descriptionEn: "Looking for a trip expenses app? Discover how to organize your travel expenses with friends and track every riyal easily.",
+    keywords: ["تطبيق مصاريف الرحلة", "تطبيق مصاريف السفر", "حساب مصاريف الرحلة", "تقسيم مصاريف الرحلة", "ميزانية الرحلة", "مصاريف السفر مع الأصدقاء"],
+    keywordsEn: ["trip expenses app", "travel expenses app", "trip cost calculator", "split travel costs", "travel budget app"],
+    category: "guides",
+    readTime: 8,
+    publishDate: "2026-03-08",
+    content: `
+## كل رحلة تبدأ بميزانية
+
+سواء كانت رحلة عمرة، سفر لدبي، أو كشتة مع الشباب — تنظيم المصاريف من البداية يخليك تستمتع بدون قلق.
+
+## ليش تحتاج تطبيق مصاريف الرحلة؟
+
+### المشاكل بدون تطبيق:
+- **النسيان**: "مين دفع البنزين أمس؟"
+- **الحسابات الخاطئة**: "أنا دفعت أكثر!" 
+- **الإحراج بعد الرحلة**: المطالبة بالفلوس تحرج
+- **ضياع الفواتير**: ما تقدر تتذكر كل شيء
+
+### الحل مع التطبيق:
+- ✅ كل مصروف مسجل لحظياً
+- ✅ الكل يشوف الحسابات
+- ✅ التسوية واضحة ودقيقة
+- ✅ ما فيه مجال للنسيان
+
+## مقارنة تطبيقات مصاريف الرحلة
+
+### Diviso 🏆
+- **اللغة**: عربي كامل
+- **العملة**: ريال سعودي + 50 عملة
+- **المميز**: مصمم للسعودية، واجهة عربية، دعم فوري
+- **السعر**: مجاني
+
+### Splitwise
+- **اللغة**: إنجليزي فقط
+- **العملة**: دولار افتراضياً
+- **المميز**: شهرة عالمية
+- **السعر**: مدفوع للميزات الكاملة
+
+### Excel / الملاحظات
+- **اللغة**: حسب إعداداتك
+- **المميز**: مرونة كاملة
+- **المشكلة**: يحتاج وقت ومجهود كبير
+
+## كيف تستخدم Diviso في رحلتك؟
+
+### قبل الرحلة
+1. أنشئ مجموعة بالتطبيق
+2. أضف أعضاء الرحلة عبر رابط أو QR
+3. حدد العملة وطريقة التقسيم
+
+### أثناء الرحلة
+1. أي شخص يدفع يسجل المصروف فوراً
+2. الكل يشوف التحديثات لحظياً
+3. التطبيق يحسب الأرصدة تلقائياً
+
+### بعد الرحلة
+1. راجع ملخص المصاريف
+2. شوف من يدين لمن
+3. سوِّ الحسابات بضغطة واحدة
+
+## 5 نصائح لرحلة بدون مشاكل مالية
+
+1. **افتح المجموعة قبل الرحلة** — لا تنتظر
+2. **سجل كل مصروف فوراً** — ما تنسى بعدين
+3. **صوروا الفواتير** — دليل للجميع
+4. **اتفقوا على طريقة التقسيم** — متساوي ولا بالاستهلاك
+5. **سووا الحسابات خلال الرحلة** — لا تراكمون
+
+## الخلاصة
+
+تطبيق مصاريف الرحلة الصح يحول رحلتك من فوضى مالية إلى تنظيم تام. Diviso صُمم لهذا بالضبط.
+
+**حمّل Diviso** وابدأ رحلتك القادمة صح!
+    `,
+    contentEn: `
+## Every Trip Starts With a Budget
+
+Whether it's Umrah, a Dubai trip, or camping with friends — organizing expenses from the start lets you enjoy worry-free.
+
+## Why You Need a Trip Expenses App
+
+### Problems Without an App:
+- **Forgetting**: "Who paid for gas yesterday?"
+- **Wrong calculations**: "I paid more!"
+- **Post-trip awkwardness**: Asking for money is uncomfortable
+- **Lost receipts**: Can't remember everything
+
+### Solution With an App:
+- ✅ Every expense logged instantly
+- ✅ Everyone sees the accounts
+- ✅ Settlement is clear and accurate
+- ✅ No room for forgetting
+
+## Comparing Trip Expense Apps
+
+### Diviso 🏆
+- **Language**: Full Arabic
+- **Currency**: Saudi Riyal + 50 currencies
+- **Highlight**: Designed for Saudi Arabia, Arabic interface, instant support
+- **Price**: Free
+
+### Splitwise
+- **Language**: English only
+- **Currency**: USD default
+- **Highlight**: Global popularity
+- **Price**: Paid for full features
+
+### Excel / Notes
+- **Language**: Depends on your settings
+- **Highlight**: Full flexibility
+- **Problem**: Takes too much time and effort
+
+## How to Use Diviso on Your Trip
+
+### Before the Trip
+1. Create a group in the app
+2. Add trip members via link or QR
+3. Set currency and splitting method
+
+### During the Trip
+1. Whoever pays logs the expense instantly
+2. Everyone sees live updates
+3. App calculates balances automatically
+
+### After the Trip
+1. Review expense summary
+2. See who owes whom
+3. Settle accounts with one tap
+
+## 5 Tips for a Financially Smooth Trip
+
+1. **Open the group before the trip** — don't wait
+2. **Log every expense immediately** — you'll forget later
+3. **Photo receipts** — proof for everyone
+4. **Agree on splitting method** — equal or by consumption
+5. **Settle during the trip** — don't accumulate
+
+## Conclusion
+
+The right trip expenses app transforms your trip from financial chaos to total organization. Diviso was built for exactly this.
+
+**Download Diviso** and start your next trip right!
+    `
+  },
+  {
+    slug: "monthly-expense-calculator",
+    title: "كيف أحسب مصاريفي الشهرية؟ دليل عملي خطوة بخطوة",
+    titleEn: "How to Calculate Monthly Expenses: A Step-by-Step Guide",
+    description: "تعلم كيف تحسب مصاريفك الشهرية وتنظم ميزانيتك بطريقة بسيطة. دليل شامل مع أدوات مجانية لتتبع النفقات.",
+    descriptionEn: "Learn how to calculate your monthly expenses and organize your budget simply. Comprehensive guide with free tracking tools.",
+    keywords: ["كيف احسب مصاريفي الشهرية", "حساب المصاريف", "ميزانية شهرية", "تتبع المصاريف", "إدارة المصاريف الشخصية", "تطبيق حساب مصاريف"],
+    keywordsEn: ["calculate monthly expenses", "monthly budget", "expense tracking", "personal finance", "budget calculator"],
+    category: "tips",
+    readTime: 9,
+    publishDate: "2026-03-05",
+    content: `
+## هل تحس فلوسك تضيع بدون ما تدري؟
+
+أغلب الناس ما يعرفون وين تروح رواتبهم. الخطوة الأولى للسيطرة المالية هي **معرفة مصاريفك الفعلية**.
+
+## خطوات حساب مصاريفك الشهرية
+
+### الخطوة 1: اجمع كل مصادر الدخل
+- الراتب الأساسي
+- دخل إضافي
+- بدلات وحوافز
+
+### الخطوة 2: صنّف مصاريفك
+**مصاريف ثابتة (ما تتغير):**
+- إيجار / قسط المنزل
+- فواتير الجوال والإنترنت
+- تأمين السيارة
+- اشتراكات (نتفلكس، صالة رياضية)
+
+**مصاريف متغيرة (تتغير كل شهر):**
+- البقالة والأكل
+- البنزين والمواصلات
+- الترفيه والطلعات
+- الملابس والتسوق
+
+**مصاريف مشتركة (مع آخرين):**
+- إيجار السكن المشترك
+- مصاريف الرحلات
+- العشاء مع الأصدقاء
+- هدايا المناسبات
+
+### الخطوة 3: تتبع لمدة شهر كامل
+سجل **كل** مصروف مهما كان صغير. القهوة اليومية بـ 15 ريال = 450 ريال شهرياً!
+
+### الخطوة 4: حلل النتائج
+- وين تصرف أكثر شيء؟
+- هل فيه مصاريف ممكن تقللها؟
+- كم تحتاج تدخر؟
+
+## قاعدة 50/30/20 للميزانية
+
+- **50%** للاحتياجات (إيجار، فواتير، أكل)
+- **30%** للرغبات (ترفيه، تسوق، طلعات)
+- **20%** للادخار والاستثمار
+
+### مثال براتب 10,000 ريال:
+| الفئة | المبلغ |
+|-------|--------|
+| احتياجات | 5,000 ريال |
+| رغبات | 3,000 ريال |
+| ادخار | 2,000 ريال |
+
+## أين يدخل Diviso؟
+
+المصاريف المشتركة (الثلث اللي مع ناس) هي الأصعب في التتبع. Diviso يساعدك:
+
+- ✅ تتبع كل مصروف مشترك
+- ✅ تعرف بالضبط كم تصرف مع الأصدقاء
+- ✅ تسوي حسابات واضحة
+- ✅ تقارير شهرية تبين أنماط صرفك
+
+## أدوات مفيدة لحساب المصاريف
+
+1. **Diviso** — للمصاريف المشتركة والجماعية
+2. **جداول Excel** — للميزانية الشخصية الشاملة
+3. **تطبيق البنك** — لمراجعة العمليات
+
+## 5 عادات تغير حياتك المالية
+
+1. **سجل مصاريفك يومياً** — خذ 30 ثانية بس
+2. **راجع ميزانيتك أسبوعياً** — تأكد إنك ماشي صح
+3. **حدد سقف للإنفاق** — خاصة الترفيه
+4. **ادخر أول الراتب** — مو آخره
+5. **شارك أهدافك** — المحاسبة الجماعية تساعد
+
+## الخلاصة
+
+حساب مصاريفك الشهرية مو صعب — يحتاج بس التزام بسيط. ابدأ اليوم وشوف الفرق خلال شهر.
+
+**حمّل Diviso** وابدأ تتبع مصاريفك المشتركة!
+    `,
+    contentEn: `
+## Do You Feel Like Your Money Disappears?
+
+Most people don't know where their salary goes. The first step to financial control is **knowing your actual expenses**.
+
+## Steps to Calculate Your Monthly Expenses
+
+### Step 1: Gather All Income Sources
+- Base salary
+- Side income
+- Allowances and bonuses
+
+### Step 2: Categorize Your Expenses
+**Fixed (don't change):**
+- Rent / mortgage
+- Phone and internet bills
+- Car insurance
+- Subscriptions (Netflix, gym)
+
+**Variable (change monthly):**
+- Groceries and food
+- Gas and transportation
+- Entertainment and outings
+- Shopping and clothes
+
+**Shared (with others):**
+- Shared housing rent
+- Trip expenses
+- Dinner with friends
+- Occasion gifts
+
+### Step 3: Track for One Full Month
+Record **every** expense no matter how small. Daily coffee at 15 SAR = 450 SAR monthly!
+
+### Step 4: Analyze Results
+- Where do you spend the most?
+- Are there expenses you can reduce?
+- How much should you save?
+
+## The 50/30/20 Budget Rule
+
+- **50%** for needs (rent, bills, food)
+- **30%** for wants (entertainment, shopping, outings)
+- **20%** for savings and investment
+
+### Example with 10,000 SAR salary:
+| Category | Amount |
+|----------|--------|
+| Needs | 5,000 SAR |
+| Wants | 3,000 SAR |
+| Savings | 2,000 SAR |
+
+## Where Does Diviso Fit?
+
+Shared expenses (the third that involves others) are hardest to track. Diviso helps you:
+
+- ✅ Track every shared expense
+- ✅ Know exactly how much you spend with friends
+- ✅ Clear settlements
+- ✅ Monthly reports showing spending patterns
+
+## Useful Expense Tracking Tools
+
+1. **Diviso** — for shared and group expenses
+2. **Excel spreadsheets** — for comprehensive personal budgeting
+3. **Bank app** — for reviewing transactions
+
+## 5 Habits That Change Your Financial Life
+
+1. **Log expenses daily** — takes just 30 seconds
+2. **Review budget weekly** — ensure you're on track
+3. **Set spending limits** — especially entertainment
+4. **Save at paycheck start** — not the end
+5. **Share your goals** — group accountability helps
+
+## Conclusion
+
+Calculating monthly expenses isn't hard — it just needs simple commitment. Start today and see the difference in a month.
+
+**Download Diviso** and start tracking your shared expenses!
+    `
+  },
+  {
+    slug: "best-money-splitting-app-2026",
+    title: "أفضل تطبيق تقسيم فلوس 2026: مقارنة شاملة",
+    titleEn: "Best Money Splitting App 2026: Comprehensive Comparison",
+    description: "مقارنة بين أفضل تطبيقات تقسيم الفلوس والمصاريف في 2026. اكتشف أي تطبيق يناسبك ويناسب أصدقائك.",
+    descriptionEn: "Comparison of the best money splitting apps in 2026. Discover which app suits you and your friends.",
+    keywords: ["أفضل تطبيق تقسيم فلوس", "تطبيق تقسيم المصاريف", "أفضل تطبيق حساب المصاريف", "بديل Splitwise عربي", "تطبيق تقسيم الحساب", "تقسيم الفلوس بين الأصدقاء"],
+    keywordsEn: ["best money splitting app", "expense splitting app", "best expense calculator", "Splitwise alternative Arabic", "bill splitting app"],
+    category: "comparisons",
+    readTime: 10,
+    publishDate: "2026-03-01",
+    content: `
+## لماذا تحتاج تطبيق تقسيم فلوس؟
+
+كل ما طلعت مع الشباب أو سافرت مع العائلة، تقسيم المصاريف يصير مشكلة. تطبيق واحد يحل كل هالفوضى.
+
+## المعايير اللي قيّمنا عليها
+
+1. **دعم العربية** — أساسي للمستخدم السعودي
+2. **سهولة الاستخدام** — مو كل الناس تقنيين
+3. **المزايا** — تقسيم ذكي، تقارير، تذكيرات
+4. **السعر** — مجاني ولا مدفوع؟
+5. **الخصوصية** — بياناتك آمنة؟
+
+## المقارنة الشاملة
+
+### 1. Diviso ⭐⭐⭐⭐⭐ الأفضل عربياً
+
+**المميزات:**
+- واجهة عربية 100% مع دعم RTL كامل
+- ريال سعودي + 50 عملة أخرى
+- تقسيم ذكي (متساوي، نسبي، مخصص)
+- مجموعات غير محدودة في النسخة المجانية
+- إشعارات ذكية للتسوية
+- تقارير مفصلة بالرسوم البيانية
+- دعوة الأصدقاء برابط أو QR
+- يعمل بدون إنترنت (PWA)
+
+**العيوب:**
+- جديد نسبياً في السوق
+- تطبيق ويب (PWA) وليس تطبيق أصلي بعد
+
+**السعر:** مجاني مع خطة Pro بميزات إضافية
+
+### 2. Splitwise ⭐⭐⭐⭐
+
+**المميزات:**
+- الأشهر عالمياً
+- تاريخ طويل ومستقر
+- تكامل مع PayPal وVenmo
+
+**العيوب:**
+- لا يدعم العربية
+- الريال السعودي مو افتراضي
+- النسخة المجانية محدودة جداً
+- الإعلانات مزعجة
+
+**السعر:** $4.99/شهر للنسخة الكاملة
+
+### 3. Tricount ⭐⭐⭐
+
+**المميزات:**
+- بسيط ومباشر
+- مجاني بالكامل
+- بدون تسجيل
+
+**العيوب:**
+- لا يدعم العربية
+- ميزات محدودة
+- بدون إشعارات ذكية
+
+**السعر:** مجاني
+
+### 4. ملاحظات الجوال / Excel ⭐⭐
+
+**المميزات:**
+- مرونة كاملة
+- ما يحتاج تطبيق إضافي
+
+**العيوب:**
+- يحتاج وقت ومجهود كبير
+- خطأ بشري في الحسابات
+- مو مشترك — شخص واحد يشوفه
+- ما فيه تذكيرات
+
+## جدول المقارنة السريع
+
+| الميزة | Diviso | Splitwise | Tricount |
+|--------|--------|-----------|----------|
+| العربية | ✅ | ❌ | ❌ |
+| مجاني | ✅ | ⚠️ | ✅ |
+| الريال SAR | ✅ | ⚠️ | ✅ |
+| تقسيم ذكي | ✅ | ✅ | ⚠️ |
+| تذكيرات | ✅ | ✅ | ❌ |
+| تقارير | ✅ | ✅ | ⚠️ |
+| بدون نت | ✅ | ❌ | ❌ |
+
+## التوصية النهائية
+
+**إذا كنت في السعودية أو الخليج**: Diviso هو الخيار الأمثل — عربي، مجاني، ومصمم لاحتياجاتك.
+
+**إذا كنت تسافر مع أجانب**: Splitwise خيار جيد لأنهم يعرفونه.
+
+**إذا تبغى البساطة**: Tricount يكفي للاستخدام البسيط.
+
+## الخلاصة
+
+أفضل تطبيق تقسيم فلوس هو اللي يستخدمه كل أعضاء المجموعة. Diviso يسهّل هالشيء بواجهته العربية وسهولة دعوة الأصدقاء.
+
+**جرب Diviso اليوم** — مجاناً وبدون تسجيل معقد!
+    `,
+    contentEn: `
+## Why Do You Need a Money Splitting App?
+
+Every time you go out with friends or travel with family, splitting expenses becomes a problem. One app solves all this chaos.
+
+## Our Evaluation Criteria
+
+1. **Arabic support** — essential for Saudi users
+2. **Ease of use** — not everyone is tech-savvy
+3. **Features** — smart splitting, reports, reminders
+4. **Price** — free or paid?
+5. **Privacy** — is your data safe?
+
+## Comprehensive Comparison
+
+### 1. Diviso ⭐⭐⭐⭐⭐ Best for Arabic Users
+
+**Pros:**
+- 100% Arabic interface with full RTL support
+- Saudi Riyal + 50 other currencies
+- Smart splitting (equal, proportional, custom)
+- Unlimited groups in free version
+- Smart settlement notifications
+- Detailed reports with charts
+- Invite friends via link or QR
+- Works offline (PWA)
+
+**Cons:**
+- Relatively new in the market
+- Web app (PWA) not native app yet
+
+**Price:** Free with Pro plan for extra features
+
+### 2. Splitwise ⭐⭐⭐⭐
+
+**Pros:**
+- Most popular globally
+- Long stable history
+- PayPal and Venmo integration
+
+**Cons:**
+- No Arabic support
+- SAR not default currency
+- Very limited free version
+- Annoying ads
+
+**Price:** $4.99/month for full version
+
+### 3. Tricount ⭐⭐⭐
+
+**Pros:**
+- Simple and direct
+- Completely free
+- No registration required
+
+**Cons:**
+- No Arabic support
+- Limited features
+- No smart notifications
+
+**Price:** Free
+
+### 4. Phone Notes / Excel ⭐⭐
+
+**Pros:**
+- Full flexibility
+- No extra app needed
+
+**Cons:**
+- Takes lots of time and effort
+- Human calculation errors
+- Not shared — only one person sees it
+- No reminders
+
+## Quick Comparison Table
+
+| Feature | Diviso | Splitwise | Tricount |
+|---------|--------|-----------|----------|
+| Arabic | ✅ | ❌ | ❌ |
+| Free | ✅ | ⚠️ | ✅ |
+| SAR | ✅ | ⚠️ | ✅ |
+| Smart Split | ✅ | ✅ | ⚠️ |
+| Reminders | ✅ | ✅ | ❌ |
+| Reports | ✅ | ✅ | ⚠️ |
+| Offline | ✅ | ❌ | ❌ |
+
+## Final Recommendation
+
+**If you're in Saudi Arabia or the Gulf**: Diviso is the best choice — Arabic, free, designed for your needs.
+
+**If traveling with international friends**: Splitwise is good since they know it.
+
+**If you want simplicity**: Tricount is enough for basic use.
+
+## Conclusion
+
+The best money splitting app is the one all group members actually use. Diviso makes this easy with its Arabic interface and simple friend invitations.
+
+**Try Diviso today** — free and no complicated registration!
+    `
+  },
+  {
+    slug: "ramadan-group-expenses",
+    title: "مصاريف رمضان مع الأصدقاء: كيف تنظمها بدون صداع",
+    titleEn: "Ramadan Group Expenses: How to Organize Without Headaches",
+    description: "دليل تنظيم مصاريف رمضان الجماعية: الإفطارات، العزومات، الهدايا، والصدقات. نظّم كل شيء مع أصدقائك بسهولة.",
+    descriptionEn: "Guide to organizing group Ramadan expenses: iftar, gatherings, gifts, and charity. Organize everything with friends easily.",
+    keywords: ["مصاريف رمضان", "تقسيم مصاريف رمضان", "إفطار جماعي", "عزومات رمضان", "مصاريف رمضان مع الأصدقاء", "ميزانية رمضان"],
+    keywordsEn: ["Ramadan expenses", "split Ramadan costs", "group iftar", "Ramadan gatherings", "Ramadan budget"],
+    category: "tips",
+    readTime: 7,
+    publishDate: "2026-02-25",
+    content: `
+## رمضان = مصاريف جماعية كثيرة
+
+رمضان شهر الكرم والتجمعات. بس المصاريف الجماعية تتراكم بسرعة: إفطارات، عزومات، هدايا، وصدقات مشتركة.
+
+## أنواع المصاريف الجماعية في رمضان
+
+### 1. إفطارات المطاعم
+الشباب يتجمعون على إفطار كل يوم أو يومين. الحساب يتراكم!
+
+### 2. العزومات المنزلية
+كل واحد يعزم مرة. بس المصاريف مو متساوية — عزومة بحري غير عزومة بسيطة.
+
+### 3. القرقيعان والهدايا
+تجهيزات القرقيعان للأطفال، هدايا العيد — تحتاج تنسيق.
+
+### 4. الصدقات الجماعية
+إفطار صائم، سلال رمضانية — المجموعة تساهم سوا.
+
+### 5. تجهيزات العيد
+ملابس، حلويات، زينة — بعضها مشترك.
+
+## كيف تنظم مصاريف رمضان؟
+
+### أسبوع قبل رمضان
+1. أنشئ مجموعة "رمضان" في Diviso
+2. أضف كل الأصدقاء
+3. اتفقوا على الميزانية التقريبية
+4. حددوا جدول العزومات
+
+### خلال رمضان
+1. سجل كل مصروف فوراً
+2. صنّف المصاريف (إفطار، هدايا، صدقة)
+3. تابع الأرصدة أسبوعياً
+4. سوّ حسابات مرحلية
+
+### بعد العيد
+1. راجع إجمالي المصاريف
+2. سوِّ الحسابات النهائية
+3. خطط لرمضان الجاي
+
+## نصائح ذهبية لرمضان اقتصادي
+
+- 🌙 **حددوا سقف** للإفطارات الخارجية
+- 🌙 **تناوبوا** على العزومات — كل واحد يوم
+- 🌙 **اشتروا بالجملة** — أرخص بكثير
+- 🌙 **استخدموا Diviso** — لا تضيّعون وقت رمضان بالحسابات
+- 🌙 **خصصوا ميزانية للصدقة** — ما تضغط على المصاريف الأخرى
+
+## كيف Diviso يخلي رمضانك أسهل؟
+
+- ✅ مجموعة خاصة لرمضان
+- ✅ تصنيف المصاريف (إفطار/هدايا/صدقة)
+- ✅ متابعة لحظية — الكل يشوف
+- ✅ تسوية سهلة بعد العيد
+- ✅ تقرير شامل لمصاريف الشهر
+
+## الخلاصة
+
+رمضان شهر العبادة والكرم، مو شهر القلق المالي. مع التنظيم الصح وتطبيق Diviso، استمتع بالشهر الكريم وخلِّ التطبيق يحسب.
+
+**سجل في Diviso مجاناً** واستعد لرمضان!
+    `,
+    contentEn: `
+## Ramadan = Lots of Group Expenses
+
+Ramadan is the month of generosity and gatherings. But group expenses pile up fast: iftars, dinner invitations, gifts, and shared charity.
+
+## Types of Group Expenses in Ramadan
+
+### 1. Restaurant Iftars
+Friends gather for iftar every day or two. The bill accumulates!
+
+### 2. Home Dinner Invitations
+Everyone hosts once. But expenses aren't equal — a seafood dinner isn't a simple one.
+
+### 3. Gifts and Celebrations
+Children's celebration preparations, Eid gifts — need coordination.
+
+### 4. Group Charity
+Feeding fasting people, Ramadan food baskets — the group contributes together.
+
+### 5. Eid Preparations
+Clothes, sweets, decorations — some are shared.
+
+## How to Organize Ramadan Expenses
+
+### Week Before Ramadan
+1. Create a "Ramadan" group in Diviso
+2. Add all friends
+3. Agree on approximate budget
+4. Set dinner hosting schedule
+
+### During Ramadan
+1. Log every expense immediately
+2. Categorize (iftar, gifts, charity)
+3. Review balances weekly
+4. Do interim settlements
+
+### After Eid
+1. Review total expenses
+2. Final settlements
+3. Plan for next Ramadan
+
+## Golden Tips for an Economical Ramadan
+
+- 🌙 **Set a cap** for eating out
+- 🌙 **Take turns** hosting — one person per day
+- 🌙 **Buy in bulk** — much cheaper
+- 🌙 **Use Diviso** — don't waste Ramadan time on calculations
+- 🌙 **Allocate charity budget** — so it doesn't pressure other expenses
+
+## How Diviso Makes Your Ramadan Easier
+
+- ✅ Dedicated Ramadan group
+- ✅ Expense categorization (iftar/gifts/charity)
+- ✅ Real-time tracking — everyone sees
+- ✅ Easy settlement after Eid
+- ✅ Comprehensive monthly expense report
+
+## Conclusion
+
+Ramadan is a month of worship and generosity, not financial stress. With proper organization and Diviso, enjoy the holy month and let the app calculate.
+
+**Sign up for Diviso free** and get ready for Ramadan!
+    `
+  },
 ];
 
 export const getArticleBySlug = (slug: string): BlogArticle | undefined => {
