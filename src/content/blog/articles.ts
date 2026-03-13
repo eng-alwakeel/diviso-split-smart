@@ -398,7 +398,7 @@ Successful shared housing needs good organization. With Diviso, you'll never wor
     description: "كيف تخطط ميزانية رحلة الكشتة وتقسم المصاريف مع المجموعة - دليل شامل للسعودية",
     descriptionEn: "How to plan your camping trip budget and split expenses with the group",
     keywords: ["ميزانية الكشتة", "مصاريف التخييم", "رحلات البر", "تخطيط الرحلات"],
-    keywordsEn: ["camping budget", "camping expenses", "desert trips", "trip planning"],
+    keywordsEn: ["camping budget planner", "camping trip expenses", "desert camping costs", "outdoor trip expense splitter", "group camping budget app"],
     category: "guides",
     readTime: 9,
     publishDate: "2026-01-01",
