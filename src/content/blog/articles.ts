@@ -22,7 +22,7 @@ export const blogArticles: BlogArticle[] = [
     description: "دليل شامل لتقسيم مصاريف الرحلات والسفر بين الأصدقاء بدون مشاكل أو إحراج",
     descriptionEn: "A comprehensive guide to splitting travel expenses among friends without issues",
     keywords: ["تقسيم مصاريف السفر", "مصاريف الرحلات", "حساب المصاريف", "السفر مع الأصدقاء", "تقسيم الفاتورة"],
-    keywordsEn: ["split travel expenses", "trip costs", "travel with friends", "expense sharing"],
+    keywordsEn: ["split travel expenses", "trip costs calculator", "travel with friends expenses", "expense sharing app", "how to split travel costs with friends", "group travel expense tracker", "travel budget splitter"],
     category: "guides",
     readTime: 8,
     publishDate: "2026-01-07",
