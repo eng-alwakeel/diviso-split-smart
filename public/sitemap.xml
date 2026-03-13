@@ -293,4 +293,86 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- SEO Landing Pages — English-first -->
+  <url>
+    <loc>https://diviso.app/split-expenses</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/split-expenses" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/split-bills</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/travel-expense-splitter</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/roommate-expense-tracker</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/group-expense-tracker</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/split-dinner-bill</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/splitwise-alternative</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- New English SEO Blog Articles -->
+  <url>
+    <loc>https://diviso.app/blog/how-to-split-expenses-with-friends</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/how-to-split-expenses-with-friends" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/blog/best-apps-to-split-bills</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/best-apps-to-split-bills" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/blog/how-to-track-group-expenses</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/how-to-track-group-expenses" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/blog/best-splitwise-alternatives</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/best-splitwise-alternatives" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://diviso.app/blog/how-to-split-travel-expenses</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://diviso.app/blog/how-to-split-travel-expenses" />
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 </urlset>

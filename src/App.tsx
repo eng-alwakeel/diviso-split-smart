@@ -76,6 +76,7 @@ const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")))
 const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
 const LazyOnboarding = withLazyLoading(lazy(() => import("./pages/Onboarding")));
 const LazyChangelog = withLazyLoading(lazy(() => import("./pages/Changelog")));
+const LazySEOLandingPage = withLazyLoading(lazy(() => import("./pages/SEOLandingPageRoute")));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -150,6 +151,14 @@ const AppRoutes: React.FC = () => {
             <Route path="/founding" element={<LazyFoundingProgram />} />
             <Route path="/install" element={<LazyInstall />} />
             <Route path="/changelog" element={<LazyChangelog />} />
+            {/* SEO Landing Pages — English-first, indexable */}
+            <Route path="/split-expenses" element={<LazySEOLandingPage />} />
+            <Route path="/split-bills" element={<LazySEOLandingPage />} />
+            <Route path="/travel-expense-splitter" element={<LazySEOLandingPage />} />
+            <Route path="/roommate-expense-tracker" element={<LazySEOLandingPage />} />
+            <Route path="/group-expense-tracker" element={<LazySEOLandingPage />} />
+            <Route path="/split-dinner-bill" element={<LazySEOLandingPage />} />
+            <Route path="/splitwise-alternative" element={<LazySEOLandingPage />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />

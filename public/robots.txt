@@ -5,6 +5,13 @@
 User-agent: Googlebot
 Allow: /
 Allow: /use-cases/
+Allow: /split-expenses
+Allow: /split-bills
+Allow: /travel-expense-splitter
+Allow: /roommate-expense-tracker
+Allow: /group-expense-tracker
+Allow: /split-dinner-bill
+Allow: /splitwise-alternative
 Disallow: /dashboard
 Disallow: /my-groups
 Disallow: /my-expenses
