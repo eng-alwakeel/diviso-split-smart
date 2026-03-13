@@ -1,37 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# إضافة شرح خطوات التثبيت في صفحة /install
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشكلة
-صفحة `/install` تعرض فقط العنوان والفوائد، لكن لا تحتوي على شرح واضح لطريقة التثبيت خطوة بخطوة. الـ `InstallWidget` يعتمد على `shouldShow` ويختفي إذا تم رفضه أو التثبيت، وتعليمات iOS مخفية داخل bottom sheet تظهر فقط عند الضغط على زر.
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-## الحل
-إضافة قسم جديد في صفحة `/install` يعرض خطوات التثبيت مباشرة على الصفحة لكل نظام (iOS و Android/Desktop) بدون ما يحتاج المستخدم يضغط على شيء.
+## Fix
 
-### التغييرات
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-#### 1. `src/pages/Install.tsx`
-- إضافة قسم "كيف تثبّت التطبيق" بعد قسم الفوائد
-- عرض تعليمات iOS (خطوات Safari + Share + Add to Home Screen) دائماً
-- عرض تعليمات Android/Chrome (قائمة المتصفح + Install App)
-- استخدام tabs أو أقسام منفصلة حسب النظام
-- إبقاء زر التثبيت المباشر للأجهزة التي تدعم `beforeinstallprompt`
+Add detailed logging to the test email code path:
 
-#### 2. `src/i18n/locales/en/install.json` و `src/i18n/locales/ar/install.json`
-- إضافة مفاتيح ترجمة جديدة لقسم الخطوات:
-  - `steps.title` — "How to install"
-  - `steps.iosTitle` — "On iPhone (Safari)"
-  - `steps.androidTitle` — "On Android (Chrome)"
-  - خطوات Android: Open menu → tap "Install App" / "Add to Home Screen"
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-#### 3. `src/components/pwa/InstallSteps.tsx` (ملف جديد)
-- كمبوننت يعرض خطوات التثبيت لكل نظام
-- يكتشف النظام تلقائياً ويعرض الخطوات المناسبة أولاً
-- تصميم بصري واضح بأرقام وأيقونات (مشابه لـ `IosInstallSheet`)
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-### الملفات المتأثرة
-- `src/pages/Install.tsx` — إضافة قسم الخطوات
-- `src/components/pwa/InstallSteps.tsx` — كمبوننت جديد
-- `src/i18n/locales/en/install.json` — مفاتيح ترجمة جديدة
-- `src/i18n/locales/ar/install.json` — مفاتيح ترجمة جديدة
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
+
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues

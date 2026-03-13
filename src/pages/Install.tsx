@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { InstallWidget } from "@/components/pwa/InstallWidget";
 import { ShareInstallButton } from "@/components/pwa/ShareInstallButton";
 import { Download } from "lucide-react";
+import { InstallSteps } from "@/components/pwa/InstallSteps";
 
 const Install = () => {
   const { t } = useTranslation("install");
@@ -46,7 +47,7 @@ const Install = () => {
         </section>
 
         {/* Benefits */}
-        <section className="max-w-2xl mx-auto pb-16">
+        <section className="max-w-2xl mx-auto pb-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {benefits.map((item) => (
               <div key={item.title} className="unified-card p-4 text-center">
@@ -57,6 +58,9 @@ const Install = () => {
             ))}
           </div>
         </section>
+
+        {/* Install Steps */}
+        <InstallSteps />
       </main>
 
       <Footer />
