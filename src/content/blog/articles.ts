@@ -1068,7 +1068,7 @@ The Umrah trip should be a spiritual experience, not financial stress. Plan well
     description: "كيف تدير مصاريف طلعات الشلة الأسبوعية وتتجنب مشاكل 'من يدفع اليوم؟'",
     descriptionEn: "How to manage weekly friend hangout expenses and avoid 'who pays today?' problems",
     keywords: ["مصاريف الطلعات", "تقسيم حساب الشلة", "مصاريف التجمعات", "طلعات الأصدقاء"],
-    keywordsEn: ["hangout expenses", "friend group bills", "gathering costs", "friend outings"],
+    keywordsEn: ["hangout expenses tracker", "friend group bill splitter", "group gathering costs app", "split dinner with friends", "who pays for dinner app"],
     category: "tips",
     readTime: 6,
     publishDate: "2025-12-28",
