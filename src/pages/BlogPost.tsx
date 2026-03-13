@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getArticleBySlug } from "@/content/blog/articles";
 import { BlogHeader } from "@/components/blog/BlogHeader";
 import { ShareButtons } from "@/components/blog/ShareButtons";
-import { RelatedPosts } from "@/components/blog/RelatedPosts";
+import { RelatedArticles } from "@/components/blog/RelatedArticles";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -105,7 +105,7 @@ const BlogPost = () => {
             </a>
           </div>
 
-          <RelatedPosts currentSlug={article.slug} category={article.category} />
+          <RelatedArticles currentSlug={article.slug} category={article.category} />
         </div>
       </main>
 
