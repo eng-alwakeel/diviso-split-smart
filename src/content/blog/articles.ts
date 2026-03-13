@@ -574,7 +574,7 @@ Good financial planning = enjoyable trip. Use Diviso and enjoy your camping with
     description: "كيف تتجنب الإحراج عند تقسيم فاتورة المطعم مع الأصدقاء - قواعد الإتيكيت والنصائح العملية",
     descriptionEn: "How to avoid awkwardness when splitting restaurant bills with friends - etiquette rules and practical tips",
     keywords: ["تقسيم فاتورة المطعم", "إتيكيت الدفع", "الحساب في المطعم", "تقسيم الحساب"],
-    keywordsEn: ["split restaurant bill", "payment etiquette", "restaurant check", "bill splitting"],
+    keywordsEn: ["how to split restaurant bill with friends", "payment etiquette restaurant", "restaurant check splitting app", "bill splitting tips", "who pays the bill etiquette"],
     category: "tips",
     readTime: 5,
     publishDate: "2026-01-06",
