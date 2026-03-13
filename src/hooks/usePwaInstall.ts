@@ -89,7 +89,7 @@ export function usePwaInstall() {
             p_user_id: user.id,
           });
         }
-      } catch {}
+      } catch (e) { console.error('[usePwaInstall] appinstalled task error:', e); }
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
