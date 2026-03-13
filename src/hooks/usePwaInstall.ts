@@ -49,8 +49,23 @@ export function usePwaInstall() {
   const isInAppBrowser = useMemo(() => getIsInAppBrowser(), []);
 
   useEffect(() => {
-    // Check standalone mode
-    setIsInstalled(getIsStandalone());
+    const standalone = getIsStandalone();
+    setIsInstalled(standalone);
+
+    // Auto-complete onboarding task if running as installed PWA
+    if (standalone) {
+      (async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.rpc('complete_onboarding_task', {
+              p_task_name: 'install_app',
+              p_user_id: user.id,
+            });
+          }
+        } catch {}
+      })();
+    }
 
     // Check localStorage
     try {
