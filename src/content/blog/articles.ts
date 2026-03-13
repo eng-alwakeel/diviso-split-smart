@@ -268,7 +268,7 @@ If you're in Saudi Arabia, Diviso is the optimal choice for splitting expenses w
     description: "كيف تدير مصاريف السكن المشترك مع الشركاء بدون مشاكل - الإيجار والفواتير والمصاريف اليومية",
     descriptionEn: "How to manage shared housing expenses with roommates - rent, bills, and daily expenses",
     keywords: ["مصاريف السكن المشترك", "تقسيم الإيجار", "فواتير الشقة", "شركاء السكن"],
-    keywordsEn: ["shared housing expenses", "split rent", "apartment bills", "roommates"],
+    keywordsEn: ["shared housing expenses app", "split rent with roommates", "apartment bills tracker", "roommate expense calculator", "how to split bills with roommates"],
     category: "guides",
     readTime: 7,
     publishDate: "2026-01-03",
