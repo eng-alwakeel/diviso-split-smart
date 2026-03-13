@@ -23,6 +23,18 @@ export const useGroupStatus = (groupId?: string) => {
         return false;
       }
       toast({ title: '🏁 تم إنهاء الرحلة بنجاح' });
+
+      // Complete onboarding task
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.rpc('complete_onboarding_task', {
+            p_task_name: 'close_group',
+            p_user_id: user.id,
+          });
+        }
+      } catch {}
+
       return true;
     } catch (error: any) {
       toast({ title: 'حدث خطأ', description: error.message, variant: 'destructive' });
