@@ -1,48 +1,55 @@
 
+# Fix: Test Email Not Being Delivered
 
-# تحسين SEO للغة الإنجليزية — استهداف كلمات بحث عالمية
+## Problem
+The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
 
-## المشاكل الحالية
+## Root Cause
+The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
 
-1. **`index.html` بالكامل عربي** — العنوان، الوصف، OG tags، Structured Data، FAQ schema، BreadcrumbList، و noscript كلها عربي فقط
-2. **SEO component defaults عربية** — `defaultSEO` في `SEO.tsx` كل النصوص عربية
-3. **Structured Data بدون إنجليزي** — الـ `featureList` و `description` في JSON-LD عربية فقط
-4. **FAQ Schema عربي فقط** — الأسئلة في `index.html` و `FAQSection.tsx` تُرسل عربي فقط في الـ schema حتى لو المستخدم إنجليزي
-5. **English keywords ضعيفة** — المقالات الإنجليزية موجودة لكن keywords قليلة ومش مُستهدفة
+## Fix
 
-## الخطة
+### File: `supabase/functions/send-broadcast-email/index.ts`
 
-### 1. تحديث `index.html` — إضافة English-first SEO
-- تغيير `<title>` ليشمل الإنجليزي أولاً: `"Diviso | Split Expenses Smartly — Best Bill Splitting App"`
-- تحديث `meta description` ليكون bilingual مع الإنجليزي أولاً
-- تحديث `og:title` و `og:description` و `twitter:title/description` لتشمل إنجليزي
-- إضافة English keywords مستهدفة: `"split expenses app, bill splitting app, expense tracker, splitwise alternative, group expense manager, shared expenses calculator, travel expense splitter, roommate expense tracker"`
-- تحديث Structured Data (`SoftwareApplication`) — إضافة `description` إنجليزية و `featureList` إنجليزية
-- تحديث FAQ Schema — إضافة الأسئلة بالإنجليزي
-- تحديث BreadcrumbList — أسماء إنجليزية
-- تحديث `<noscript>` — محتوى إنجليزي أولاً
+Add detailed logging to the test email code path:
 
-### 2. تحديث `src/components/SEO.tsx`
-- تحديث `defaultSEO` بعنوان ووصف و keywords إنجليزية
-- الـ component يحدد اللغة ديناميكياً حسب `lang` prop
+1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
+2. Check if the response contains an error and handle it properly
+3. Return the Resend response data in the success response for debugging
 
-### 3. تحديث `src/components/landing/FAQSection.tsx`
-- الـ JSON-LD schema يُرسل الأسئلة بالإنجليزي والعربي معاً (أو الإنجليزي فقط لأن Google يفضل لغة واحدة per page)
+**Before (lines 96-105):**
+```typescript
+try {
+  await resend.emails.send({...});
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email }),
+    ...
+  );
+}
+```
 
-### 4. تحسين English keywords في المقالات الموجودة
-- تحديث `keywordsEn` في المقالات الـ 5 الجديدة لتشمل long-tail keywords مستهدفة:
-  - `"how to split restaurant bill with friends app"`
-  - `"best expense splitting app 2026"`
-  - `"travel expense tracker for groups"`
-  - `"shared apartment expense calculator"`
-  - `"ramadan group expense manager"`
+**After:**
+```typescript
+try {
+  const result = await resend.emails.send({...});
+  console.log("Test email Resend response:", JSON.stringify(result));
 
-### 5. إضافة English `og:locale:alternate`
-- إضافة `<meta property="og:locale:alternate" content="en_US" />` في `index.html`
+  if (result.error) {
+    console.error("Resend returned error:", result.error);
+    return new Response(
+      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
+      { status: 500, ... }
+    );
+  }
 
-## الملفات المتأثرة
-- `index.html` — تحديث العنوان والوصف و Structured Data و FAQ Schema
-- `src/components/SEO.tsx` — تحديث defaults لتكون bilingual
-- `src/components/landing/FAQSection.tsx` — FAQ schema bilingual
-- `src/content/blog/articles.ts` — تحسين English keywords
+  return new Response(
+    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
+    ...
+  );
+}
+```
 
+This way:
+- We will see the exact Resend response in the edge function logs
+- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
+- The Resend email ID will be returned so we can trace delivery issues
