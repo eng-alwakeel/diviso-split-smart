@@ -27,8 +27,8 @@ export function useSecurityHeaders() {
     // Feature Policy
     addMetaTag('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     
-    // Content Security Policy
-    addMetaTag('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' data:");
+    // Content Security Policy - permissive to allow Google Fonts, Analytics, Supabase, etc.
+    addMetaTag('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://analytics.tiktok.com https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://www.google-analytics.com https://analytics.tiktok.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://www.googletagmanager.com;");
     
     // Additional security headers
     addMetaTag('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
