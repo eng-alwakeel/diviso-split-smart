@@ -105,7 +105,7 @@ const BlogPost = () => {
             </a>
           </div>
 
-          <RelatedPosts currentSlug={article.slug} category={article.category} />
+          <RelatedArticles currentSlug={article.slug} category={article.category} />
         </div>
       </main>
 
