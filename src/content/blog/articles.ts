@@ -2179,6 +2179,638 @@ Ramadan is a month of worship and generosity, not financial stress. With proper 
 **Sign up for Diviso free** and get ready for Ramadan!
     `
   },
+  // ===== NEW SEO-TARGETED ENGLISH ARTICLES =====
+  {
+    slug: "how-to-split-expenses-with-friends",
+    title: "كيف تقسم المصاريف مع أصدقائك بعدالة",
+    titleEn: "How to Split Expenses with Friends — The Complete Guide",
+    description: "دليل شامل لتقسيم المصاريف بين الأصدقاء بدون مشاكل",
+    descriptionEn: "Learn proven methods to split expenses with friends fairly. From dinners to trips, here's how to avoid awkwardness and keep friendships strong.",
+    keywords: ["تقسيم مصاريف", "مصاريف الأصدقاء", "تقسيم الحساب"],
+    keywordsEn: ["how to split expenses with friends", "split expenses fairly", "expense sharing tips", "divide costs with friends", "fair expense splitting methods", "share bills with friends app"],
+    category: "guides",
+    readTime: 10,
+    publishDate: "2026-03-13",
+    content: `
+## مقدمة
+
+تقسيم المصاريف مع الأصدقاء مهم للحفاظ على العلاقات. إليك أفضل الطرق.
+
+## طرق التقسيم
+
+### 1. التقسيم المتساوي
+الطريقة الأسهل — قسّم على الجميع بالتساوي.
+
+### 2. حسب الاستهلاك
+كل شخص يدفع ما استهلكه بالضبط.
+
+### 3. استخدم تطبيق ذكي
+Diviso يحسب تلقائياً ويتابع الأرصدة.
+
+## الخلاصة
+
+استخدم Diviso لتقسيم المصاريف بسهولة وبدون إحراج.
+    `,
+    contentEn: `
+## Introduction
+
+Splitting expenses with friends is one of those things that sounds simple but can quickly become complicated — and even damage relationships if handled poorly. Whether you're sharing a dinner bill, splitting costs on a group vacation, or managing ongoing expenses with roommates, having a clear system makes all the difference.
+
+This guide covers everything you need to know about splitting expenses fairly, avoiding common pitfalls, and using the right tools to make the process painless.
+
+## Why Splitting Expenses Gets Awkward
+
+Money is emotional. Even among close friends, conversations about who owes what can feel uncomfortable. Here are the most common reasons expense splitting goes wrong:
+
+- **Unequal spending**: One person orders the expensive dish, another just has a salad
+- **The "I'll pay you back" trap**: Verbal promises that are forgotten
+- **Mental math errors**: Manual calculations that don't add up
+- **Tracking fatigue**: Losing track of who paid for what over multiple days
+- **Avoidance**: Nobody wants to be "that person" who brings up money
+
+## 5 Proven Methods to Split Expenses Fairly
+
+### 1. Equal Split
+The simplest approach: divide the total equally. This works best when everyone's spending is roughly similar — like splitting a pizza or a shared Uber.
+
+**Best for**: Group dinners with similar orders, shared transportation, group activity tickets.
+
+### 2. Pay for What You Ordered
+Each person pays exactly what they consumed. This is the fairest method when spending varies significantly.
+
+**Best for**: Restaurant meals with different price points, trips where some people do more expensive activities.
+
+### 3. Rotating Payment
+Take turns paying for the group. Over time, it evens out — and it's the simplest to execute in the moment.
+
+**Best for**: Regular friend groups that meet weekly, recurring coffee runs, lunch groups.
+
+### 4. Proportional Split
+Split based on income or ability to pay. This is common among friend groups with different financial situations.
+
+**Best for**: Mixed-income friend groups, couples with salary differences.
+
+### 5. Use an Expense Splitting App
+The modern solution: everyone logs expenses in an app, and the app calculates who owes whom. No mental math, no forgotten payments, no awkwardness.
+
+**Best for**: Any group that wants transparency and accuracy. Especially useful for trips and ongoing shared expenses.
+
+## How Diviso Makes Expense Splitting Effortless
+
+[Diviso](/split-expenses) is designed specifically for group expense management. Here's how it works:
+
+1. **Create a group** — Add your friends by name, phone, or invite link
+2. **Log expenses as they happen** — "Ahmed paid $120 for dinner" takes 5 seconds to add
+3. **See real-time balances** — Everyone knows exactly who owes what at any moment
+4. **Settle up with minimal transfers** — Diviso's algorithm minimizes the number of payments needed
+
+Unlike spreadsheets or group chats, Diviso gives everyone visibility and removes the burden of tracking from any single person.
+
+## Common Mistakes to Avoid
+
+- **Don't wait until the end**: Track expenses as they happen, not from memory later
+- **Don't assume equal is always fair**: Different people have different consumption — use the right method
+- **Don't rely on memory**: Use an app or at least a shared note
+- **Don't avoid the conversation**: The longer you wait, the more awkward it gets
+- **Don't over-complicate it**: Sometimes an equal split is good enough
+
+## Tips for Different Scenarios
+
+### Group Trips
+Create a dedicated trip group in Diviso. Assign one person per major expense (hotel, car rental, restaurants) and log everything in real-time. At the end of the trip, settle up with one round of transfers.
+
+### Roommates
+Set up recurring expenses for rent and utilities. Log shared groceries and household items as they happen. Review balances monthly.
+
+### Regular Friend Meetups
+Use a persistent group that carries balances forward. Over time, the rotating payments and shared expenses balance out naturally.
+
+## Conclusion
+
+The key to splitting expenses without awkwardness is transparency and consistency. Pick a method that works for your group, use a tool like [Diviso](/split-expenses) to track everything, and settle up regularly.
+
+**[Try Diviso free](/auth?mode=signup)** — split your next expense in under 30 seconds.
+    `
+  },
+  {
+    slug: "best-apps-to-split-bills",
+    title: "أفضل تطبيقات تقسيم الفاتورة",
+    titleEn: "Best Apps to Split Bills in 2026 — Honest Comparison",
+    description: "مقارنة شاملة بين أفضل تطبيقات تقسيم الفواتير",
+    descriptionEn: "We compared the top bill splitting apps of 2026 — features, pricing, and user experience. Here's which one actually works best.",
+    keywords: ["تطبيقات تقسيم الفاتورة", "أفضل تطبيق تقسيم"],
+    keywordsEn: ["best apps to split bills", "bill splitting app comparison", "best expense splitting app 2026", "splitwise vs diviso", "top bill splitter apps", "free bill splitting app"],
+    category: "comparisons",
+    readTime: 12,
+    publishDate: "2026-03-13",
+    content: `
+## مقدمة
+
+مقارنة بين أفضل تطبيقات تقسيم الفواتير المتاحة.
+
+## التطبيقات
+
+### 1. Diviso
+تطبيق مجاني وسريع لتقسيم المصاريف مع دعم عملات متعددة.
+
+### 2. Splitwise
+تطبيق شهير لكن بعض الميزات خلف الدفع.
+
+## الخلاصة
+
+Diviso يقدم أفضل تجربة مجانية لتقسيم الفواتير.
+    `,
+    contentEn: `
+## Introduction
+
+Looking for the best app to split bills with friends? With dozens of options on the market, it's hard to know which one actually delivers. We tested the most popular bill splitting apps in 2026 and compared them on features, ease of use, pricing, and overall experience.
+
+Here's what we found.
+
+## What Makes a Great Bill Splitting App?
+
+Before diving into specific apps, here's what matters most:
+
+- **Speed of entry**: How fast can you log an expense?
+- **Split flexibility**: Equal, custom, percentage — does it support your needs?
+- **Group management**: Can you handle multiple groups easily?
+- **Multi-currency**: Essential for international travel
+- **Settlement tracking**: Does it show who owes whom clearly?
+- **Free vs. paid**: Which features require a subscription?
+
+## The Top Bill Splitting Apps of 2026
+
+### 1. Diviso — Best Overall
+**Rating: 4.8/5**
+
+[Diviso](/split-expenses) stands out with its clean design, fast expense entry, and genuinely free core experience. It handles unlimited groups and expenses without a paywall, supports multiple currencies, and offers smart settlement optimization.
+
+**Pros:**
+- ✅ Free unlimited groups and expenses
+- ✅ Multi-currency support included free
+- ✅ Clean, modern interface
+- ✅ Real-time balance updates
+- ✅ Smart settlement minimization
+
+**Cons:**
+- ❌ Newer app — smaller user base than Splitwise
+- ❌ No native app yet (PWA works great though)
+
+**Best for**: Anyone who wants a fast, free, and feature-rich splitting experience.
+
+### 2. Splitwise
+**Rating: 4.2/5**
+
+The pioneer of expense splitting. Splitwise has a large user base and solid functionality, but many essential features now require a Pro subscription ($4.99/month).
+
+**Pros:**
+- ✅ Large user base
+- ✅ Available on iOS, Android, and web
+- ✅ Good group management
+
+**Cons:**
+- ❌ Itemized splits require Pro
+- ❌ Multi-currency requires Pro
+- ❌ Interface feels dated
+- ❌ Ads in free version
+
+**Best for**: Users already invested in the Splitwise ecosystem.
+
+### 3. Tricount
+**Rating: 4.0/5**
+
+A simple option for basic expense splitting. Good for occasional use but lacks advanced features.
+
+**Pros:**
+- ✅ Very simple interface
+- ✅ Works offline
+
+**Cons:**
+- ❌ Limited customization
+- ❌ No smart settlements
+- ❌ Basic reporting
+
+**Best for**: Occasional, simple splits with small groups.
+
+### 4. Settle Up
+**Rating: 3.8/5**
+
+Open-source expense sharing app with decent features but less polish.
+
+**Pros:**
+- ✅ Open source
+- ✅ Multi-currency support
+
+**Cons:**
+- ❌ Dated interface
+- ❌ Fewer users
+- ❌ Slower development
+
+**Best for**: Users who prioritize open-source software.
+
+## Feature Comparison Table
+
+| Feature | Diviso | Splitwise | Tricount | Settle Up |
+|---------|--------|-----------|----------|-----------|
+| Free unlimited groups | ✅ | ✅ | ✅ | ✅ |
+| Free multi-currency | ✅ | ❌ (Pro) | ✅ | ✅ |
+| Smart settlements | ✅ | ✅ | ❌ | ✅ |
+| Expense categories | ✅ | ❌ (Pro) | ❌ | ✅ |
+| Receipt scanning | ✅ | ❌ (Pro) | ❌ | ❌ |
+| Clean modern UI | ✅ | ❌ | ✅ | ❌ |
+| Real-time sync | ✅ | ✅ | ✅ | ✅ |
+| No ads | ✅ | ❌ | ✅ | ✅ |
+
+## Our Verdict
+
+For most users, **[Diviso](/split-expenses)** offers the best balance of features, usability, and value. It does everything Splitwise does — and more — without charging for essential features. If you're starting fresh or considering switching from another app, Diviso is the clear choice in 2026.
+
+**[Try Diviso free](/auth?mode=signup)** — no credit card required.
+    `
+  },
+  {
+    slug: "how-to-track-group-expenses",
+    title: "كيف تتبع مصاريف المجموعة بسهولة",
+    titleEn: "How to Track Group Expenses Easily — Step-by-Step Guide",
+    description: "دليل خطوة بخطوة لتتبع المصاريف الجماعية",
+    descriptionEn: "Tracking group expenses doesn't have to be complicated. Learn the step-by-step process to manage shared costs with any group — friends, roommates, or travel buddies.",
+    keywords: ["تتبع مصاريف المجموعة", "مصاريف مشتركة"],
+    keywordsEn: ["how to track group expenses", "group expense tracker", "track shared expenses", "manage group costs", "group money management", "shared expense tracking app"],
+    category: "guides",
+    readTime: 9,
+    publishDate: "2026-03-13",
+    content: `
+## مقدمة
+
+تتبع مصاريف المجموعة لا يجب أن يكون معقداً. إليك الطريقة.
+
+## الخطوات
+
+1. أنشئ مجموعة في Diviso
+2. أضف المصاريف فوراً
+3. راجع الأرصدة بانتظام
+4. سوّي الحسابات
+
+## الخلاصة
+
+Diviso يجعل تتبع المصاريف سهلاً وشفافاً.
+    `,
+    contentEn: `
+## Introduction
+
+Whether you're managing a group trip budget, splitting household expenses with roommates, or tracking costs for a sports team — group expense tracking is a universal need. And while it should be simple, most people either avoid it entirely or cobble together a messy spreadsheet that nobody updates.
+
+This guide shows you exactly how to track group expenses effectively using modern tools.
+
+## Why Group Expense Tracking Matters
+
+Without proper tracking:
+
+- **Money gets lost**: Small expenses add up and are easily forgotten
+- **People overpay**: The most generous person ends up subsidizing the group
+- **Conflicts arise**: "I thought you paid for that" conversations ruin relationships
+- **Settling up is chaos**: End-of-trip settlements become guesswork
+
+## The 5-Step System for Tracking Group Expenses
+
+### Step 1: Choose Your Tool
+Forget spreadsheets. Use a purpose-built app like [Diviso](/group-expense-tracker) that everyone in the group can access. Key requirements:
+
+- Everyone can add expenses (not just one person)
+- Real-time balance visibility
+- Support for different split types
+- Works on all devices
+
+### Step 2: Create Your Group
+Set up a group with all members. In Diviso, this takes about 30 seconds:
+
+1. Open the app
+2. Tap "Create Group"
+3. Name it (e.g., "Bali Trip 2026" or "Apartment 4B")
+4. Invite members via link or phone
+
+### Step 3: Log Expenses as They Happen
+This is the critical habit. Every time someone pays for something shared, log it immediately. Don't save it for later — you'll forget details.
+
+In Diviso:
+- Tap the "+" button
+- Enter amount and description
+- Select who paid and who benefits
+- Done in under 10 seconds
+
+### Step 4: Review Balances Regularly
+Check group balances at natural checkpoints:
+
+- **Trips**: At the end of each day
+- **Roommates**: At the end of each week or month
+- **Events**: Before the event ends
+
+This catches any missing expenses early.
+
+### Step 5: Settle Up Efficiently
+When it's time to settle, use the app's smart settlement feature. Instead of everyone paying everyone, the algorithm calculates the minimum number of transfers needed.
+
+Example: In a group of 5, instead of 10 possible transfers, Diviso might reduce it to just 3.
+
+## Best Practices for Group Expense Tracking
+
+- **Designate a "tracker champion"**: One person who reminds others to log expenses
+- **Use categories**: Tag expenses (food, transport, accommodation) for better visibility
+- **Set spending expectations early**: Agree on budget ranges before the trip or month
+- **Settle regularly**: Don't let balances build up for months
+- **Take photos of receipts**: Helpful for large purchases and disputes
+
+## Common Group Expense Tracking Mistakes
+
+1. **Waiting to log expenses**: Memory fades fast — log immediately
+2. **One person doing all the tracking**: This creates resentment
+3. **Ignoring small expenses**: They add up significantly
+4. **Not using categories**: You lose insight into spending patterns
+5. **Avoiding settlement conversations**: The longer you wait, the harder it gets
+
+## How Diviso Makes Group Tracking Simple
+
+[Diviso](/group-expense-tracker) is built specifically for group expense management:
+
+- **Instant expense logging** — 5-second entries from your phone
+- **Real-time balances** — Everyone sees who owes what, always
+- **Smart settlements** — Minimum transfers to settle all debts
+- **Multi-currency** — Perfect for international groups
+- **Expense categories** — See where the money goes
+
+## Conclusion
+
+Group expense tracking doesn't have to be a chore. With the right tool and a simple system, you can keep finances transparent, avoid conflicts, and settle up with minimal friction.
+
+**[Start tracking with Diviso](/auth?mode=signup)** — it's free and takes 30 seconds to set up.
+    `
+  },
+  {
+    slug: "best-splitwise-alternatives",
+    title: "أفضل بدائل Splitwise",
+    titleEn: "Best Splitwise Alternatives in 2026 — Free & Paid Options",
+    description: "أفضل البدائل لتطبيق Splitwise مع مقارنة شاملة",
+    descriptionEn: "Looking for Splitwise alternatives? We compared the best options — free and paid — to help you find the right expense splitting app for your needs.",
+    keywords: ["بدائل Splitwise", "بديل سبليتوايز"],
+    keywordsEn: ["best splitwise alternatives", "splitwise alternative free", "apps like splitwise", "splitwise competitor", "splitwise replacement 2026", "better than splitwise"],
+    category: "comparisons",
+    readTime: 11,
+    publishDate: "2026-03-13",
+    content: `
+## مقدمة
+
+Splitwise تطبيق شهير لكن هناك بدائل أفضل. إليك المقارنة.
+
+## أفضل البدائل
+
+### 1. Diviso
+بديل مجاني مع ميزات أكثر وتجربة أنظف.
+
+## الخلاصة
+
+Diviso هو أفضل بديل لـ Splitwise في 2026.
+    `,
+    contentEn: `
+## Introduction
+
+Splitwise has been the go-to expense splitting app for years, and for good reason — it popularized the concept of group expense tracking. But as the app has matured, users increasingly cite frustrations: essential features locked behind a $4.99/month paywall, a cluttered interface, and slow performance.
+
+If you've been thinking about switching, you're not alone. Here are the best Splitwise alternatives in 2026.
+
+## Why People Switch from Splitwise
+
+The most common reasons users look for alternatives:
+
+- **Paywall creep**: Features like itemized splits, multi-currency, and expense search now require Splitwise Pro
+- **Interface clutter**: The UI hasn't been modernized and feels overwhelming
+- **Ad experience**: Free users see ads that disrupt the experience
+- **Performance**: The app can feel sluggish, especially with many groups
+- **Limited customization**: Split types and categories are restricted in the free tier
+
+## The Best Splitwise Alternatives
+
+### 1. Diviso — Best Overall Alternative
+**Why switch**: Everything Splitwise does, but free, faster, and cleaner.
+
+[Diviso](/splitwise-alternative) was built by people who loved the concept of Splitwise but wanted a better execution. Here's what makes it stand out:
+
+- **Free multi-currency support** — Splitwise charges for this
+- **Free expense categories** — Organize spending without paying
+- **Modern, clean interface** — Designed for speed and clarity
+- **Smart settlement optimization** — Fewer transfers to settle up
+- **No disruptive ads** — Clean experience throughout
+- **Real-time syncing** — Everyone sees updates instantly
+
+**Price**: Free (optional premium for power features)
+**Best for**: Anyone who wants a full-featured expense splitter without a subscription.
+
+### 2. Tricount
+**Why consider**: Ultra-simple interface for basic needs.
+
+Tricount strips expense splitting down to the basics. If you only need occasional, simple splits, it gets the job done.
+
+- Simple UI with minimal learning curve
+- Works offline
+- Limited customization and features
+
+**Price**: Free with optional Pro
+**Best for**: Very casual users who split expenses rarely.
+
+### 3. Settle Up
+**Why consider**: Open-source and privacy-focused.
+
+Settle Up is an open-source alternative that appeals to privacy-conscious users.
+
+- Open-source codebase
+- Multi-currency support
+- Dated interface and slower updates
+
+**Price**: Free
+**Best for**: Users who prioritize open-source software.
+
+### 4. Tab
+**Why consider**: Quick restaurant bill splitting.
+
+Tab focuses specifically on splitting restaurant bills by scanning receipts and assigning items.
+
+- Receipt scanning
+- Item-level assignment
+- Limited to restaurant scenarios
+
+**Price**: Free
+**Best for**: Only splitting restaurant checks.
+
+## Comparison: Diviso vs. Splitwise
+
+| Feature | Diviso | Splitwise Free | Splitwise Pro ($4.99/mo) |
+|---------|--------|----------------|--------------------------|
+| Unlimited groups | ✅ | ✅ | ✅ |
+| Multi-currency | ✅ Free | ❌ | ✅ |
+| Expense categories | ✅ Free | ❌ | ✅ |
+| Smart settlements | ✅ | ✅ | ✅ |
+| Ad-free | ✅ | ❌ | ✅ |
+| Expense search | ✅ Free | ❌ | ✅ |
+| Modern UI | ✅ | ❌ | ❌ |
+| Receipt photos | ✅ | ❌ | ✅ |
+
+## How to Switch from Splitwise to Diviso
+
+Making the switch is straightforward:
+
+1. **[Sign up for Diviso](/auth?mode=signup)** — Free, takes 30 seconds
+2. **Create your groups** — Recreate your active Splitwise groups
+3. **Invite members** — Send invite links to your group members
+4. **Start logging** — Begin tracking new expenses in Diviso
+5. **Settle old Splitwise balances** — Clear your Splitwise history separately
+
+## Conclusion
+
+Splitwise deserves credit for pioneering the expense-splitting category, but in 2026, better options exist. [Diviso](/splitwise-alternative) offers a more modern, faster, and genuinely free alternative that doesn't gate essential features behind a subscription.
+
+**[Try Diviso free](/auth?mode=signup)** — the best Splitwise alternative for 2026.
+    `
+  },
+  {
+    slug: "how-to-split-travel-expenses",
+    title: "كيف تقسم مصاريف السفر بدون إحراج",
+    titleEn: "How to Split Travel Expenses Without Awkwardness",
+    description: "دليل لتقسيم مصاريف السفر الجماعي بدون مشاكل",
+    descriptionEn: "Group trips are amazing — until it's time to settle expenses. Here's how to split travel costs fairly, avoid conflicts, and keep the good vibes going.",
+    keywords: ["تقسيم مصاريف السفر", "سفر جماعي"],
+    keywordsEn: ["how to split travel expenses", "split travel costs", "group trip expense splitting", "travel expense tracker", "divide travel costs with friends", "vacation expense splitting app"],
+    category: "guides",
+    readTime: 10,
+    publishDate: "2026-03-13",
+    content: `
+## مقدمة
+
+مصاريف السفر الجماعي تحتاج تنظيم. إليك الطريقة المثالية.
+
+## النصائح
+
+1. اتفقوا على الميزانية مسبقاً
+2. سجّلوا كل مصروف فوراً
+3. استخدموا Diviso للتتبع
+
+## الخلاصة
+
+Diviso يجعل تقسيم مصاريف السفر سهلاً ومريحاً.
+    `,
+    contentEn: `
+## Introduction
+
+Group travel is one of life's greatest joys — new places, shared experiences, and memories that last forever. But there's one thing that can sour even the best trip: money. Specifically, the messy, awkward, often-avoided process of splitting travel expenses.
+
+This guide will show you exactly how to handle travel expenses so the only thing you remember about the trip is the adventure.
+
+## Why Travel Expense Splitting Goes Wrong
+
+Travel expenses are uniquely challenging because:
+
+- **Expenses pile up fast**: Flights, hotels, meals, activities, taxis, tips, souvenirs
+- **Different people pay for different things**: One person books the hotel, another pays for dinners
+- **Currencies change**: International trips add exchange rate complexity
+- **Not everyone participates in everything**: Some skip activities, some leave early
+- **Nobody wants to be the accountant**: Tracking expenses feels like a chore
+
+## The Pre-Trip Setup (5 Minutes That Save Hours)
+
+### 1. Set Expectations
+Before the trip, have a quick group conversation about:
+- Rough budget range per person
+- What's shared vs. personal
+- How you'll split (equally? by consumption?)
+- When you'll settle up
+
+### 2. Create a Trip Group
+Open [Diviso](/travel-expense-splitter) and create a group for the trip. Add all travelers. This takes 30 seconds and saves hours of post-trip accounting.
+
+### 3. Assign Roles
+Designate who's booking what:
+- Person A: Hotels
+- Person B: Car rental
+- Person C: Activity tickets
+- Everyone: Meals
+
+This prevents duplicate bookings and ensures all major expenses are covered.
+
+## During the Trip: The 10-Second Rule
+
+Every time someone pays for something shared, log it in Diviso within 10 seconds. This is the single most important habit:
+
+1. Open the app
+2. Enter amount and description
+3. Select who's included
+4. Done
+
+At the end of each day, do a quick check: "Did we log everything today?" This catches any missed expenses while the memory is fresh.
+
+## Handling Common Travel Expense Scenarios
+
+### Scenario 1: Different Hotel Rooms
+Person A has a single room ($150/night), Persons B and C share a double ($100/night).
+
+**Solution**: Log each room separately. A's expense is personal. B and C split their room equally.
+
+### Scenario 2: Group Dinners with Different Orders
+Everyone eats at the same restaurant but orders at different price points.
+
+**Solution**: Either split equally (if the difference is small) or log per-person amounts. In Diviso, you can assign custom amounts to each participant.
+
+### Scenario 3: Some People Skip an Activity
+4 out of 6 people go snorkeling ($50/person).
+
+**Solution**: When logging, only include the 4 people who participated.
+
+### Scenario 4: International Currency
+Your trip spans multiple countries with different currencies.
+
+**Solution**: Log expenses in the local currency. [Diviso](/travel-expense-splitter) handles conversion automatically with up-to-date exchange rates.
+
+### Scenario 5: Tips and Small Cash Expenses
+Taxis, tips, market purchases — all cash.
+
+**Solution**: Log them immediately via phone. Even $5 expenses add up over a week-long trip.
+
+## The Post-Trip Settlement
+
+At the end of the trip:
+
+1. **Review all expenses** — Check the timeline in Diviso for completeness
+2. **Verify balances** — Everyone should confirm their balance looks right
+3. **Use smart settlements** — Diviso calculates the minimum transfers needed
+4. **Transfer the money** — Bank transfer, Venmo, whatever works for your group
+5. **Mark as settled** — Close the balances in the app
+
+This process takes 10 minutes instead of the usual hours of spreadsheet wrangling.
+
+## Pro Tips from Experienced Group Travelers
+
+- 🎒 **Log immediately**: The 10-second rule prevents 90% of expense tracking problems
+- 💱 **Don't convert manually**: Let the app handle exchange rates
+- 🧾 **Photo receipts**: For big expenses, snap a photo as backup
+- 📊 **Review daily**: A 2-minute daily check catches everything
+- 🤝 **Be generous**: Don't nickel-and-dime on small amounts — it's not worth the friction
+- 📱 **Everyone uses the app**: Make sure all group members have access
+
+## Why Diviso Is the Best Travel Expense Splitter
+
+[Diviso](/travel-expense-splitter) was designed with group travel in mind:
+
+- **Multi-currency support** — Log expenses in any currency
+- **Offline mode** — Works without WiFi
+- **Smart settlements** — Minimum transfers to settle all debts
+- **Trip timeline** — See every expense chronologically
+- **Category tracking** — Breakdown by flights, hotels, food, activities
+- **Real-time syncing** — Everyone sees expenses as they're added
+
+## Conclusion
+
+Splitting travel expenses doesn't have to be awkward or stressful. With the right preparation, a simple logging habit, and a good app, you can handle the money side of group travel in minutes instead of hours.
+
+**[Try Diviso for your next trip](/auth?mode=signup)** — it's free and takes 30 seconds to set up.
+    `
+  },
 ];
 
 export const getArticleBySlug = (slug: string): BlogArticle | undefined => {
