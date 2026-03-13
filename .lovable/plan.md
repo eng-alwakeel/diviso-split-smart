@@ -1,55 +1,48 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# تحديث مهام الـ Onboarding — 8 مهام جديدة بترتيب محدد
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## المهام الجديدة (بالترتيب)
 
-## Fix
+| # | المهمة | id | عمود DB | المسار |
+|---|--------|----|---------|--------|
+| 1 | تنزيل التطبيق | `install_app` | `app_installed` | `/install` |
+| 2 | أكمل ملفك الشخصي | `profile` | `profile_completed` | `/settings` |
+| 3 | أنشئ مجموعة جديدة | `group` | `first_group_created` | `/create-group` |
+| 4 | أضف أعضاء للمجموعة | `invite` | `first_invite_sent` | `/my-groups` |
+| 5 | أضف مصروف | `expense` | `first_expense_added` | `/add-expense` |
+| 6 | أغلق مجموعة | `close_group` | `first_group_closed` | `/my-groups` |
+| 7 | استخدم النرد | `dice` | `first_dice_used` | `/dashboard` |
+| 8 | أنشئ خطة | `plan` | `first_plan_created` | `/create-plan` |
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+## التغييرات
 
-Add detailed logging to the test email code path:
+### 1. Database Migration
+- إضافة 3 أعمدة جديدة لجدول `onboarding_tasks`:
+  - `app_installed BOOLEAN DEFAULT false`
+  - `first_group_closed BOOLEAN DEFAULT false`
+  - `first_dice_used BOOLEAN DEFAULT false`
+  - `first_plan_created BOOLEAN DEFAULT false`
+- حذف عمود `first_referral_made` (استُبدل)
+- تعديل دالة `complete_onboarding_task` لدعم المهام الجديدة (`install_app`, `close_group`, `dice`, `plan`)
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+### 2. `src/hooks/useOnboarding.ts`
+- تحديث `OnboardingData` interface بالحقول الجديدة
+- تحديث `ONBOARDING_TASKS_CONFIG` بالـ 8 مهام بالترتيب الجديد
+- تحديث `getTaskStatus` و `fetchOnboardingData`
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+### 3. `src/components/dashboard/OnboardingProgress.tsx`
+- إضافة أيقونات جديدة للـ `iconMap`: `Download`, `Lock`, `Dice5`, `Map`
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### 4. الترجمة (`ar/dashboard.json` + `en/dashboard.json`)
+- إضافة مفاتيح الترجمة للمهام الجديدة (`install_app`, `close_group`, `dice`, `plan`)
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### 5. استدعاء `complete_onboarding_task` للمهام الجديدة
+- عند تثبيت التطبيق (PWA): استدعاء `install_app` في `usePwaInstall` عند event `appinstalled`
+- عند إغلاق مجموعة: استدعاء `close_group` في الكود الذي يغلق المجموعة
+- عند استخدام النرد: استدعاء `dice` عند رمي النرد
+- عند إنشاء خطة: استدعاء `plan` عند حفظ الخطة
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### 6. تحديث `types.ts`
+- تحديث الأنواع المولّدة لتشمل الأعمدة الجديدة
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
