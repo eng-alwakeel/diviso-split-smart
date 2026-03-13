@@ -1662,7 +1662,7 @@ The right trip expenses app transforms your trip from financial chaos to total o
     description: "تعلم كيف تحسب مصاريفك الشهرية وتنظم ميزانيتك بطريقة بسيطة. دليل شامل مع أدوات مجانية لتتبع النفقات.",
     descriptionEn: "Learn how to calculate your monthly expenses and organize your budget simply. Comprehensive guide with free tracking tools.",
     keywords: ["كيف احسب مصاريفي الشهرية", "حساب المصاريف", "ميزانية شهرية", "تتبع المصاريف", "إدارة المصاريف الشخصية", "تطبيق حساب مصاريف"],
-    keywordsEn: ["calculate monthly expenses", "monthly budget", "expense tracking", "personal finance", "budget calculator"],
+    keywordsEn: ["how to calculate monthly expenses", "monthly budget calculator", "expense tracking app free", "personal finance tracker", "budget calculator for beginners"],
     category: "tips",
     readTime: 9,
     publishDate: "2026-03-05",
