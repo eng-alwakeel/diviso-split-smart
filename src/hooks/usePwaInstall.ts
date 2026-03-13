@@ -63,7 +63,7 @@ export function usePwaInstall() {
               p_user_id: user.id,
             });
           }
-        } catch {}
+        } catch (e) { console.error('[usePwaInstall] install_app task error:', e); }
       })();
     }
 
