@@ -132,7 +132,7 @@ Splitting expenses doesn't have to be complicated. With advance planning and the
     description: "مقارنة شاملة بين أفضل تطبيقات تقسيم المصاريف المتاحة في المملكة العربية السعودية",
     descriptionEn: "Comprehensive comparison of the best expense splitting apps available in Saudi Arabia",
     keywords: ["تطبيقات تقسيم الفاتورة", "أفضل تطبيق حساب المصاريف", "تطبيقات السعودية", "Splitwise بديل"],
-    keywordsEn: ["bill splitting apps", "expense calculator app", "Saudi apps", "Splitwise alternative"],
+    keywordsEn: ["bill splitting apps comparison", "best expense calculator app 2026", "Splitwise alternative free", "best app to split bills with friends", "expense sharing app review"],
     category: "comparisons",
     readTime: 6,
     publishDate: "2026-01-05",
