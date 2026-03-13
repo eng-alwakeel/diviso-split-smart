@@ -47,7 +47,7 @@ const Install = () => {
         </section>
 
         {/* Benefits */}
-        <section className="max-w-2xl mx-auto pb-16">
+        <section className="max-w-2xl mx-auto pb-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {benefits.map((item) => (
               <div key={item.title} className="unified-card p-4 text-center">
@@ -58,6 +58,9 @@ const Install = () => {
             ))}
           </div>
         </section>
+
+        {/* Install Steps */}
+        <InstallSteps />
       </main>
 
       <Footer />
