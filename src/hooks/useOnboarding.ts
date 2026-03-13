@@ -12,10 +12,14 @@ export interface OnboardingTask {
 }
 
 export interface OnboardingData {
+  appInstalled: boolean;
   profileCompleted: boolean;
   firstGroupCreated: boolean;
-  firstExpenseAdded: boolean;
   firstInviteSent: boolean;
+  firstExpenseAdded: boolean;
+  firstGroupClosed: boolean;
+  firstDiceUsed: boolean;
+  firstPlanCreated: boolean;
   firstReferralMade: boolean;
   tasksCompleted: number;
   rewardClaimed: boolean;
@@ -24,6 +28,13 @@ export interface OnboardingData {
 }
 
 const ONBOARDING_TASKS_CONFIG: Omit<OnboardingTask, 'completed'>[] = [
+  { 
+    id: 'install_app', 
+    titleKey: 'onboarding.tasks.install_app', 
+    descriptionKey: 'onboarding.tasks_desc.install_app',
+    icon: 'Download', 
+    route: '/install'
+  },
   { 
     id: 'profile', 
     titleKey: 'onboarding.tasks.profile', 
@@ -39,13 +50,6 @@ const ONBOARDING_TASKS_CONFIG: Omit<OnboardingTask, 'completed'>[] = [
     route: '/create-group'
   },
   { 
-    id: 'expense', 
-    titleKey: 'onboarding.tasks.expense', 
-    descriptionKey: 'onboarding.tasks_desc.expense',
-    icon: 'Receipt', 
-    route: '/add-expense'
-  },
-  { 
     id: 'invite', 
     titleKey: 'onboarding.tasks.invite', 
     descriptionKey: 'onboarding.tasks_desc.invite',
@@ -53,11 +57,32 @@ const ONBOARDING_TASKS_CONFIG: Omit<OnboardingTask, 'completed'>[] = [
     route: '/my-groups'
   },
   { 
-    id: 'referral', 
-    titleKey: 'onboarding.tasks.referral', 
-    descriptionKey: 'onboarding.tasks_desc.referral',
-    icon: 'Share2', 
-    route: '/referral'
+    id: 'expense', 
+    titleKey: 'onboarding.tasks.expense', 
+    descriptionKey: 'onboarding.tasks_desc.expense',
+    icon: 'Receipt', 
+    route: '/add-expense'
+  },
+  { 
+    id: 'close_group', 
+    titleKey: 'onboarding.tasks.close_group', 
+    descriptionKey: 'onboarding.tasks_desc.close_group',
+    icon: 'Lock', 
+    route: '/my-groups'
+  },
+  { 
+    id: 'dice', 
+    titleKey: 'onboarding.tasks.dice', 
+    descriptionKey: 'onboarding.tasks_desc.dice',
+    icon: 'Dice5', 
+    route: '/dice'
+  },
+  { 
+    id: 'plan', 
+    titleKey: 'onboarding.tasks.plan', 
+    descriptionKey: 'onboarding.tasks_desc.plan',
+    icon: 'Map', 
+    route: '/create-plan'
   }
 ];
 
@@ -76,11 +101,15 @@ const fetchOnboardingData = async (userId: string): Promise<OnboardingData | nul
 
   if (data) {
     return {
+      appInstalled: (data as any).app_installed ?? false,
       profileCompleted: data.profile_completed,
       firstGroupCreated: data.first_group_created,
       firstExpenseAdded: data.first_expense_added,
       firstInviteSent: data.first_invite_sent,
       firstReferralMade: data.first_referral_made,
+      firstGroupClosed: (data as any).first_group_closed ?? false,
+      firstDiceUsed: (data as any).first_dice_used ?? false,
+      firstPlanCreated: (data as any).first_plan_created ?? false,
       tasksCompleted: data.tasks_completed,
       rewardClaimed: data.reward_claimed,
       rewardClaimedAt: data.reward_claimed_at,
@@ -95,11 +124,15 @@ const fetchOnboardingData = async (userId: string): Promise<OnboardingData | nul
   
   if (!insertError) {
     return {
+      appInstalled: false,
       profileCompleted: false,
       firstGroupCreated: false,
       firstExpenseAdded: false,
       firstInviteSent: false,
       firstReferralMade: false,
+      firstGroupClosed: false,
+      firstDiceUsed: false,
+      firstPlanCreated: false,
       tasksCompleted: 0,
       rewardClaimed: false,
       rewardClaimedAt: null,
@@ -112,11 +145,14 @@ const fetchOnboardingData = async (userId: string): Promise<OnboardingData | nul
 
 function getTaskStatus(taskId: string, data: OnboardingData): boolean {
   switch (taskId) {
+    case 'install_app': return data.appInstalled;
     case 'profile': return data.profileCompleted;
     case 'group': return data.firstGroupCreated;
-    case 'expense': return data.firstExpenseAdded;
     case 'invite': return data.firstInviteSent;
-    case 'referral': return data.firstReferralMade;
+    case 'expense': return data.firstExpenseAdded;
+    case 'close_group': return data.firstGroupClosed;
+    case 'dice': return data.firstDiceUsed;
+    case 'plan': return data.firstPlanCreated;
     default: return false;
   }
 }
@@ -142,7 +178,7 @@ export const useOnboarding = () => {
     queryKey: ['onboarding', userId],
     queryFn: () => fetchOnboardingData(userId!),
     enabled: !!userId,
-    staleTime: 30 * 1000, // تحديث أسرع للـ onboarding
+    staleTime: 30 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Custom event type for beforeinstallprompt
 interface BeforeInstallPromptEvent extends Event {
@@ -61,9 +62,19 @@ export function usePwaInstall() {
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
-    const onAppInstalled = () => {
+    const onAppInstalled = async () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
+      // Complete onboarding task
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.rpc('complete_onboarding_task', {
+            p_task_name: 'install_app',
+            p_user_id: user.id,
+          });
+        }
+      } catch {}
     };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstall);

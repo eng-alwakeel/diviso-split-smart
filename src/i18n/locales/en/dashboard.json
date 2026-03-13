@@ -108,17 +108,25 @@
     "title": "Start your journey",
     "progress": "{{completed}}/{{total}} tasks completed",
     "tasks": {
+      "install_app": "Install the app on your device",
       "profile": "Complete your profile",
-      "group": "Create your first group",
-      "expense": "Add your first expense",
-      "invite": "Invite a friend to a group",
+      "group": "Create a new group",
+      "expense": "Add an expense",
+      "invite": "Add members to a group",
+      "close_group": "Close a group",
+      "dice": "Use the dice",
+      "plan": "Create a plan",
       "referral": "Share your referral link"
     },
     "tasks_desc": {
+      "install_app": "Install the app on your home screen",
       "profile": "Add your name and photo",
       "group": "Create a group for shared expenses",
       "expense": "Record your first expense",
       "invite": "Invite someone to join",
+      "close_group": "Finish a trip or close a group",
+      "dice": "Try the dice to make a decision",
+      "plan": "Create a trip or activity plan",
       "referral": "Share and earn rewards"
     },
     "go_to_task": "Go",

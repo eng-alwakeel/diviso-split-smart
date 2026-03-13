@@ -9,7 +9,10 @@ import {
   Users, 
   Receipt, 
   UserPlus, 
-  Share2,
+  Download,
+  Lock,
+  Dice5,
+  Map,
   ChevronLeft
 } from 'lucide-react';
 import { useOnboarding, OnboardingTask } from '@/hooks/useOnboarding';
@@ -21,11 +24,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUnifiedRealtimeListener } from '@/hooks/useUnifiedRealtimeListener';
 
 const iconMap: Record<string, React.ReactNode> = {
+  Download: <Download className="w-3 h-3" />,
   User: <User className="w-3 h-3" />,
   Users: <Users className="w-3 h-3" />,
   Receipt: <Receipt className="w-3 h-3" />,
   UserPlus: <UserPlus className="w-3 h-3" />,
-  Share2: <Share2 className="w-3 h-3" />
+  Lock: <Lock className="w-3 h-3" />,
+  Dice5: <Dice5 className="w-3 h-3" />,
+  Map: <Map className="w-3 h-3" />
 };
 
 const TaskItem = memo(({ task, onGo }: { task: OnboardingTask; onGo: () => void }) => {

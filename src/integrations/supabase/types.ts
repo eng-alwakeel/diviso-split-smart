@@ -2997,10 +2997,14 @@ export type Database = {
       }
       onboarding_tasks: {
         Row: {
+          app_installed: boolean | null
           created_at: string | null
+          first_dice_used: boolean | null
           first_expense_added: boolean | null
+          first_group_closed: boolean | null
           first_group_created: boolean | null
           first_invite_sent: boolean | null
+          first_plan_created: boolean | null
           first_referral_made: boolean | null
           id: string
           profile_completed: boolean | null
@@ -3011,10 +3015,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          app_installed?: boolean | null
           created_at?: string | null
+          first_dice_used?: boolean | null
           first_expense_added?: boolean | null
+          first_group_closed?: boolean | null
           first_group_created?: boolean | null
           first_invite_sent?: boolean | null
+          first_plan_created?: boolean | null
           first_referral_made?: boolean | null
           id?: string
           profile_completed?: boolean | null
@@ -3025,10 +3033,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          app_installed?: boolean | null
           created_at?: string | null
+          first_dice_used?: boolean | null
           first_expense_added?: boolean | null
+          first_group_closed?: boolean | null
           first_group_created?: boolean | null
           first_invite_sent?: boolean | null
+          first_plan_created?: boolean | null
           first_referral_made?: boolean | null
           id?: string
           profile_completed?: boolean | null
@@ -6003,10 +6015,9 @@ export type Database = {
         Args: { p_payment_reference?: string; p_purchase_id: string }
         Returns: Json
       }
-      complete_onboarding_task: {
-        Args: { p_task_name: string; p_user_id: string }
-        Returns: Json
-      }
+      complete_onboarding_task:
+        | { Args: { p_task_name: string; p_user_id: string }; Returns: Json }
+        | { Args: { p_task_name: string; p_user_id: string }; Returns: Json }
       complete_subscription_purchase: {
         Args: { p_payment_reference: string; p_purchase_id: string }
         Returns: Json
