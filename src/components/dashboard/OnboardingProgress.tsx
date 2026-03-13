@@ -9,7 +9,10 @@ import {
   Users, 
   Receipt, 
   UserPlus, 
-  Share2,
+  Download,
+  Lock,
+  Dice5,
+  Map,
   ChevronLeft
 } from 'lucide-react';
 import { useOnboarding, OnboardingTask } from '@/hooks/useOnboarding';
