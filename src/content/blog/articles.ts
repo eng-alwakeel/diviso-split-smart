@@ -1836,7 +1836,7 @@ Calculating monthly expenses isn't hard — it just needs simple commitment. Sta
     description: "مقارنة بين أفضل تطبيقات تقسيم الفلوس والمصاريف في 2026. اكتشف أي تطبيق يناسبك ويناسب أصدقائك.",
     descriptionEn: "Comparison of the best money splitting apps in 2026. Discover which app suits you and your friends.",
     keywords: ["أفضل تطبيق تقسيم فلوس", "تطبيق تقسيم المصاريف", "أفضل تطبيق حساب المصاريف", "بديل Splitwise عربي", "تطبيق تقسيم الحساب", "تقسيم الفلوس بين الأصدقاء"],
-    keywordsEn: ["best money splitting app", "expense splitting app", "best expense calculator", "Splitwise alternative Arabic", "bill splitting app"],
+    keywordsEn: ["best money splitting app 2026", "best expense splitting app", "Splitwise alternative free 2026", "bill splitting app comparison", "best app to split expenses with friends"],
     category: "comparisons",
     readTime: 10,
     publishDate: "2026-03-01",
