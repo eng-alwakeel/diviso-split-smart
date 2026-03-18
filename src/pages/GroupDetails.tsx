@@ -513,6 +513,18 @@ const GroupDetails = () => {
           />
         )}
 
+        {/* ═══════════ ADD MEMBER BUTTON ═══════════ */}
+        {!isGroupClosed && (
+          <Button 
+            onClick={() => setOpenInvite(true)} 
+            variant="outline" 
+            className="w-full"
+          >
+            <UserPlus className="w-4 h-4 me-2" />
+            إضافة عضو
+          </Button>
+        )}
+
         {/* ═══════════ 5️⃣ ADD EXPENSE BUTTON ═══════════ */}
         {canAddExpenses && (
           <Button 
