@@ -267,29 +267,7 @@ export function useReferrals() {
         return { success: false, error: referralError.message };
       }
 
-      // إرسال رسالة SMS
-      try {
-        const { data: smsData, error: smsError } = await supabase.functions.invoke(
-          'send-referral-invite',
-          {
-            body: {
-              phone: formattedPhone,
-              senderName: name?.trim() || user.user_metadata?.display_name || user.user_metadata?.name || 'صديقك',
-              referralCode
-            }
-          }
-        );
-
-        if (smsError) {
-          console.error("SMS sending failed:", smsError);
-          toast.success("تم إنشاء الإحالة بنجاح (الرسالة قيد الإرسال)");
-        } else {
-          toast.success(`تم إرسال دعوة الإحالة إلى ${formattedPhone}`);
-        }
-      } catch (smsError) {
-        console.error("SMS service error:", smsError);
-        toast.success("تم إنشاء الإحالة بنجاح (سيتم إرسال الرسالة لاحقاً)");
-      }
+      toast.success("تم إنشاء الإحالة — شارك الرابط مع صديقك");
 
       // تسجيل مصدر الإحالة
       try {
@@ -297,7 +275,7 @@ export function useReferrals() {
           .from("referral_sources")
           .insert({
             referral_id: referralData.id,
-            source_type: "sms",
+            source_type: "manual_share",
             source_details: {
               method: "manual",
               has_name: !!name?.trim()
