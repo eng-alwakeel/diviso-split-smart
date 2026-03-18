@@ -42,8 +42,7 @@ export function useGroupInvites(groupId?: string) {
   const sendInvite = useCallback(async (
     phoneOrEmail: string, 
     role: "owner" | "admin" | "member" = "member",
-    groupName?: string,
-    method: "smart" | "sms" | "email" = "smart"
+    groupName?: string
   ) => {
     if (!groupId) {
       toast.error("معرف المجموعة مطلوب");
