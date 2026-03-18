@@ -13,7 +13,9 @@ import {
   Send, 
   MoreHorizontal,
   Trash2,
-  RotateCcw
+  RotateCcw,
+  Copy,
+  Share2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -105,12 +107,9 @@ export const InviteTrackingTab = ({
     }
   };
 
-  const resendInvite = async (invite: GroupInvite) => {
+  const shareInviteLink = async (invite: GroupInvite) => {
     setActionLoading(invite.id);
     try {
-      // Determine if it's phone or email
-      const isPhone = /^[\+]?[\d\s\-\(\)]+$/.test(invite.phone_or_email);
-      
       // إنشاء group_join_token للدعوة
       const { data: tokenData, error: tokenError } = await supabase.rpc('create_group_join_token', {
         p_group_id: invite.group_id,
@@ -124,50 +123,25 @@ export const InviteTrackingTab = ({
       const token = typeof tokenObj === 'object' && tokenObj !== null ? (tokenObj as { token?: string }).token : String(tokenObj);
       const inviteLink = `${BRAND_CONFIG.url}/i/${token}`;
 
-      if (isPhone) {
-        // Send SMS invite
-        const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
-          body: {
-            phone: invite.phone_or_email,
-            groupName: "المجموعة",
-            inviteLink,
-            senderName: "المستخدم"
-          }
+      if (navigator.share) {
+        await navigator.share({
+          text: `انضم للمجموعة على ${BRAND_CONFIG.name} 👇\n${inviteLink}`,
         });
-
-        if (smsError) throw smsError;
       } else {
-        // Send email invite
-        const { error: emailError } = await supabase.functions.invoke('send-email-invite', {
-          body: {
-            email: invite.phone_or_email,
-            groupName: "المجموعة",
-            inviteLink,
-            groupId: invite.group_id
-          }
+        await navigator.clipboard.writeText(inviteLink);
+        toast({
+          title: "تم نسخ الرابط",
+          description: "تم نسخ رابط الدعوة — شاركه مع صديقك",
         });
-
-        if (emailError) throw emailError;
       }
-
-      // Update status to sent
-      await supabase
-        .from("invites")
-        .update({ status: "sent" })
-        .eq("id", invite.id);
-
-      toast({
-        title: "تم إعادة الإرسال",
-        description: `تم إعادة إرسال الدعوة إلى ${invite.phone_or_email}`,
-      });
-      
-      onInviteAction();
     } catch (error: any) {
-      toast({
-        title: "خطأ في إعادة الإرسال",
-        description: error.message || "حاول مرة أخرى",
-        variant: "destructive",
-      });
+      if (error.name !== 'AbortError') {
+        toast({
+          title: "خطأ",
+          description: error.message || "حاول مرة أخرى",
+          variant: "destructive",
+        });
+      }
     } finally {
       setActionLoading(null);
     }
@@ -242,9 +216,9 @@ export const InviteTrackingTab = ({
                   <DropdownMenuContent align="end">
                     {(invite.status === "pending" || invite.status === "sent") && (
                       <>
-                        <DropdownMenuItem onClick={() => resendInvite(invite)}>
-                          <Send className="w-4 h-4 ml-2" />
-                          إعادة إرسال
+                        <DropdownMenuItem onClick={() => shareInviteLink(invite)}>
+                          <Share2 className="w-4 h-4 ml-2" />
+                          مشاركة الرابط
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => cancelInvite(invite.id)}
@@ -256,9 +230,9 @@ export const InviteTrackingTab = ({
                       </>
                     )}
                     {invite.status === "revoked" && (
-                      <DropdownMenuItem onClick={() => resendInvite(invite)}>
-                        <Send className="w-4 h-4 ml-2" />
-                        إعادة إرسال
+                      <DropdownMenuItem onClick={() => shareInviteLink(invite)}>
+                        <Share2 className="w-4 h-4 ml-2" />
+                        مشاركة الرابط
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>

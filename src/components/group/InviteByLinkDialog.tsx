@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Copy, Link, RefreshCw, Phone, MessageSquare, Contact } from "lucide-react";
+import { Copy, Link, RefreshCw, MessageSquare, Contact, Share2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { BRAND_CONFIG } from "@/lib/brandConfig";
@@ -32,7 +32,6 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [contactsOpen, setContactsOpen] = useState(false);
-  const [smartInviteLoading, setSmartInviteLoading] = useState(false);
 
   const disabledReason = useMemo(() => {
     if (!groupId) return t('groups:invite.no_group_id', 'No group ID.');
@@ -45,7 +44,6 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       setLink("");
       setPhoneNumber("");
       setContactsOpen(false);
-      setSmartInviteLoading(false);
     }
   }, [open]);
 
@@ -55,7 +53,6 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
       return;
     }
     setLoading(true);
-    console.log("[InviteByLinkDialog] creating token for group:", groupId);
     const { data, error } = await supabase
       .from("group_join_tokens")
       .insert({ group_id: groupId })
@@ -65,9 +62,6 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     setLoading(false);
 
     if (error) {
-      console.error("[InviteByLinkDialog] insert token error:", error);
-      
-      // Handle quota errors
       if (!handleQuotaError(error)) {
         toast({
           title: t('groups:invite.link_error'),
@@ -90,34 +84,6 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     toast({ title: t('common:toast.copied'), description: t('common:toast.link_copied') });
   };
 
-  const sendSMSInvite = async () => {
-    if (!phoneNumber.trim() || !link || !groupName) return;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('send-sms-invite', {
-        body: {
-          phone: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
-          groupName,
-          inviteLink: link,
-          senderName: "المستخدم"
-        }
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: t('groups:invite.sms_sent'),
-        description: t('groups:invite.sms_sent_to') + ` ${phoneNumber}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: t('groups:invite.sms_error'),
-        description: error.message || t('groups:invite.try_again'),
-        variant: "destructive",
-      });
-    }
-  };
-
   const sendWhatsAppInvite = () => {
     if (!phoneNumber.trim() || !link || !groupName) return;
     
@@ -131,44 +97,27 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
     });
   };
 
-  const sendSmartInvite = async (phone: string, contactName?: string) => {
-    if (!groupId || !groupName) return;
+  const handleNativeShare = async () => {
+    if (!link) return;
+    const shareText = groupName 
+      ? `انضم لمجموعة "${groupName}" على ${BRAND_CONFIG.name} 👇\n${link}`
+      : `انضم للمجموعة على ${BRAND_CONFIG.name} 👇\n${link}`;
     
-    setSmartInviteLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('smart-invite', {
-        body: {
-          groupId,
-          phoneNumber: phone,
-          groupName,
-          senderName: contactName || "صديقك"
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: data.userExists ? t('groups:contacts_invite.notification_sent') : t('groups:invite.sms_sent'),
-        description: data.message,
-        variant: data.success ? "default" : "destructive",
-      });
-
-      if (data.success) {
-        onOpenChange(false);
+      if (navigator.share) {
+        await navigator.share({ text: shareText });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast({ title: t('common:toast.copied'), description: t('common:toast.link_copied') });
       }
-    } catch (error: any) {
-      toast({
-        title: t('groups:invite.error'),
-        description: error.message || t('groups:invite.try_again'),
-        variant: "destructive",
-      });
-    } finally {
-      setSmartInviteLoading(false);
+    } catch {
+      // User cancelled share
     }
   };
 
   const handleContactSelected = (contact: ContactInfo, selectedPhone: string) => {
-    sendSmartInvite(selectedPhone, contact.name);
+    setPhoneNumber(selectedPhone);
+    toast({ title: "تم اختيار جهة الاتصال", description: `${contact.name} — شارك الرابط معه` });
   };
 
   return (
@@ -203,70 +152,74 @@ export const InviteByLinkDialog = ({ open, onOpenChange, groupId, groupName, exi
             </div>
           </div>
 
-          <Separator />
-          
-          <div className="space-y-4">
-            <Label className="text-sm font-medium">{t('groups:invite.title')}</Label>
-            
-            {/* Smart invite from contacts */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setContactsOpen(true)}
-                disabled={smartInviteLoading}
-                className="flex-1"
-              >
-                <Contact className="w-4 h-4 ml-2" />
-                {t('groups:contacts_invite.select_contact')}
-              </Button>
-            </div>
+          {link && (
+            <>
+              <Separator />
 
-            {link && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">{t('groups:invite.or_enter_phone', 'Or enter phone number')}</Label>
-                  <Input
-                    id="phone"
-                    placeholder={t('groups:invite.phone_placeholder')}
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="text-left"
-                    dir="ltr"
-                  />
-                </div>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">{t('groups:invite.title')}</Label>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="outline"
-                    disabled={!phoneNumber.trim() || smartInviteLoading}
-                    onClick={() => sendSmartInvite(phoneNumber)}
-                    className="bg-primary/20 border-primary/30 text-primary hover:bg-primary/30"
+                    onClick={handleNativeShare}
+                    className="flex items-center gap-2"
                   >
-                    <Phone className="w-4 h-4 ml-2" />
-                    {t('groups:invite.smart_invite', 'Smart Invite')}
+                    <Share2 className="w-4 h-4" />
+                    مشاركة الرابط
                   </Button>
                   <Button
                     variant="outline"
-                    disabled={!phoneNumber.trim()}
-                    onClick={sendWhatsAppInvite}
+                    onClick={() => {
+                      if (!link || !groupName) {
+                        handleNativeShare();
+                        return;
+                      }
+                      const message = t('groups:invite.whatsapp_message', { groupName, inviteLink: link });
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                      window.open(whatsappUrl, '_blank');
+                    }}
                     className="bg-green-500 hover:bg-green-600 text-white border-green-500"
                   >
-                    <MessageSquare className="w-4 h-4 ml-2" />
-                    {t('groups:invite.whatsapp')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={!phoneNumber.trim()}
-                    onClick={sendSMSInvite}
-                    className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-                  >
-                    <Phone className="w-4 h-4 ml-2" />
-                    {t('groups:invite.sms')}
+                    <MessageSquare className="w-4 h-4" />
+                    واتساب
                   </Button>
                 </div>
-              </>
-            )}
-          </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">{t('groups:invite.or_enter_phone', 'Or enter phone number')}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="phone"
+                      placeholder={t('groups:invite.phone_placeholder')}
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="text-left"
+                      dir="ltr"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => setContactsOpen(true)}
+                      className="shrink-0"
+                    >
+                      <Contact className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {phoneNumber.trim() && (
+                  <Button
+                    variant="outline"
+                    onClick={sendWhatsAppInvite}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white border-green-500"
+                  >
+                    <MessageSquare className="w-4 h-4 ml-2" />
+                    إرسال واتساب إلى {phoneNumber}
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
 
           <ContactsPicker
             open={contactsOpen}

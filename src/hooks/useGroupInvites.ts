@@ -42,8 +42,7 @@ export function useGroupInvites(groupId?: string) {
   const sendInvite = useCallback(async (
     phoneOrEmail: string, 
     role: "owner" | "admin" | "member" = "member",
-    groupName?: string,
-    method: "smart" | "sms" | "email" = "smart"
+    groupName?: string
   ) => {
     if (!groupId) {
       toast.error("معرف المجموعة مطلوب");
@@ -156,81 +155,11 @@ export function useGroupInvites(groupId?: string) {
 
       if (inviteError) throw inviteError;
 
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(phoneOrEmail);
-      
-      // Send based on method and type
-      if (method === "smart" && isPhone) {
-        const { error: smartError } = await supabase.functions.invoke('smart-invite', {
-          body: {
-            groupId,
-            phoneNumber: phoneOrEmail,
-            groupName: groupName || "المجموعة",
-            senderName: user.user_metadata?.name || "صديقك"
-          }
-        });
-
-        if (smartError) {
-          console.error("Smart invite error:", smartError);
-        }
-      } else if (method === "sms" && isPhone) {
-        // إنشاء group_join_token للرابط الصحيح
-        const { data: tokenData } = await supabase.rpc('create_group_join_token', {
-          p_group_id: groupId,
-          p_role: role,
-          p_link_type: 'sms_invite'
-        });
-        const tokenObj = Array.isArray(tokenData) ? tokenData[0] : tokenData;
-        const token = typeof tokenObj === 'object' && tokenObj !== null ? (tokenObj as { token?: string }).token : String(tokenObj);
-        const inviteLink = token ? `${BRAND_CONFIG.url}/i/${token}` : `${BRAND_CONFIG.url}/i/${inviteData.id}`;
-
-        const { error: smsError } = await supabase.functions.invoke('send-sms-invite', {
-          body: {
-            phone: phoneOrEmail,
-            groupName: groupName || "المجموعة",
-            inviteLink,
-            senderName: user.user_metadata?.name || "صديقك"
-          }
-        });
-
-        if (smsError) {
-          console.error("SMS error:", smsError);
-        }
-      } else if (method === "email" && isEmail) {
-        // إنشاء group_join_token للرابط الصحيح
-        const { data: tokenData } = await supabase.rpc('create_group_join_token', {
-          p_group_id: groupId,
-          p_role: role,
-          p_link_type: 'email_invite'
-        });
-        const tokenObj2 = Array.isArray(tokenData) ? tokenData[0] : tokenData;
-        const token = typeof tokenObj2 === 'object' && tokenObj2 !== null ? (tokenObj2 as { token?: string }).token : String(tokenObj2);
-        const inviteLink = token ? `${BRAND_CONFIG.url}/i/${token}` : `${BRAND_CONFIG.url}/i/${inviteData.id}`;
-
-        const { error: emailError } = await supabase.functions.invoke('send-email-invite', {
-          body: {
-            email: phoneOrEmail,
-            groupName: groupName || "المجموعة",
-            inviteLink,
-            groupId
-          }
-        });
-
-        if (emailError) {
-          console.error("Email error:", emailError);
-        }
-      }
-
-      // Update status to sent
-      await supabase
-        .from("invites")
-        .update({ status: "sent" })
-        .eq("id", inviteData.id);
-
       const rewardMessage = referralId 
         ? ` (ستحصل على ${rewardDays} أيام مجانية + 30 نقطة عند استخدامه!)`
         : "";
       
-      toast.success(`تم إرسال الدعوة بنجاح!${rewardMessage}`);
+      toast.success(`تم إنشاء الدعوة — شارك الرابط مع صديقك${rewardMessage}`);
       await fetchInvites();
       
       return { success: true, data: inviteData, referralId };
