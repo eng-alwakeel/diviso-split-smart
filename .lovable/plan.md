@@ -1,55 +1,50 @@
 
-# Fix: Test Email Not Being Delivered
 
-## Problem
-The test email function executes successfully (returns HTTP 200) but the email never arrives. There is no logging in the test email code path, so we cannot see what Resend actually responded with.
+# تبسيط نظام الدعوات — مشاركة فقط مع الإبقاء على النوتفكيشن
 
-## Root Cause
-The current code calls `resend.emails.send()` and assumes success if no exception is thrown. However, Resend may return a response with an error object instead of throwing. Without logging the response, we are blind to delivery issues.
+## الملخص
+إزالة كل إرسال SMS وEmail من النظام، والإبقاء على النوتفكيشن الداخلية (للمستخدمين المسجلين) + المشاركة اليدوية (نسخ/واتساب/Native Share) مع اسم المرسل.
 
-## Fix
+---
 
-### File: `supabase/functions/send-broadcast-email/index.ts`
+## التغييرات
 
-Add detailed logging to the test email code path:
+### 1. `useGroupInvites.ts` — إزالة SMS/Email
+- إزالة استدعاءات `smart-invite`، `send-sms-invite`، `send-email-invite`
+- إزالة parameter `method` من `sendInvite`
+- الإبقاء على إنشاء سجل الدعوة + الإحالة في DB
+- تغيير toast message: "تم إنشاء الدعوة — شارك الرابط"
 
-1. Log the Resend API response (including the email ID or any error) after calling `resend.emails.send()`
-2. Check if the response contains an error and handle it properly
-3. Return the Resend response data in the success response for debugging
+### 2. `useReferrals.ts` — إزالة SMS
+- في `sendReferralInvite` (سطر 270-292): إزالة استدعاء `send-referral-invite` edge function
+- الإبقاء على إنشاء سجل الإحالة في DB
+- تغيير `source_type` من `"sms"` إلى `"manual_share"`
+- تغيير toast: "تم إنشاء الإحالة — شارك الرابط مع صديقك"
 
-**Before (lines 96-105):**
-```typescript
-try {
-  await resend.emails.send({...});
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email }),
-    ...
-  );
-}
-```
+### 3. `InviteByLinkDialog.tsx` — تبسيط
+- إزالة `sendSMSInvite` function والزر الخاص بها
+- إزالة `sendSmartInvite` function وزر "Smart Invite"
+- الإبقاء على: إنشاء رابط + نسخ + واتساب + اختيار جهات الاتصال (لأنه يستخدم notifications)
+- تقليل الأزرار من 3 إلى 2 (واتساب + نسخ الرابط)
 
-**After:**
-```typescript
-try {
-  const result = await resend.emails.send({...});
-  console.log("Test email Resend response:", JSON.stringify(result));
+### 4. `InviteTrackingTab.tsx` — إزالة إعادة الإرسال المباشر
+- إزالة `resendInvite` function (سطر 108-174) التي تستدعي `send-sms-invite`/`send-email-invite`
+- استبدال خيار "إعادة إرسال" في القائمة المنسدلة بـ "نسخ رابط الدعوة" يولّد رابط ويسمح بالمشاركة
+- الإبقاء على خيار "إلغاء الدعوة"
 
-  if (result.error) {
-    console.error("Resend returned error:", result.error);
-    return new Response(
-      JSON.stringify({ error: `Resend error: ${result.error.message}` }),
-      { status: 500, ... }
-    );
-  }
+### 5. `InviteManagementDialog.tsx` — الإبقاء على "أشخاص"
+- **إبقاء** تبويب "أشخاص" (KnownPeopleTab) لأنه يرسل notification داخلية
+- بدون تغيير على هذا الملف
 
-  return new Response(
-    JSON.stringify({ success: true, test: true, sent_to: test_email, resend_id: result.data?.id }),
-    ...
-  );
-}
-```
+### 6. `GroupInvite.tsx` — الإبقاء على "جهات الاتصال"
+- **إبقاء** تبويب "جهات الاتصال" (InviteContactsTab) لأنه يدعم notifications داخلية
+- بدون تغيير على هذا الملف
 
-This way:
-- We will see the exact Resend response in the edge function logs
-- If Resend returns an error (e.g. rate limit, invalid sender, etc.), it will be caught and reported to the UI
-- The Resend email ID will be returned so we can trace delivery issues
+### الملفات المتأثرة
+| الملف | التغيير |
+|---|---|
+| `src/hooks/useGroupInvites.ts` | إزالة SMS/Email calls، تبسيط sendInvite |
+| `src/hooks/useReferrals.ts` | إزالة send-referral-invite SMS call |
+| `src/components/group/InviteByLinkDialog.tsx` | إزالة sendSMSInvite/sendSmartInvite، تقليل الأزرار |
+| `src/components/group/invite-tabs/InviteTrackingTab.tsx` | استبدال resend بنسخ رابط |
+
