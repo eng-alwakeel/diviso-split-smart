@@ -104,10 +104,10 @@ export const BottomNav = () => {
           {/* Tab Bar */}
           <ul className="flex items-stretch justify-between">
             {items.map(({ to, label, icon: Icon }, index) => (
-              <li key={to} className={`flex-1 ${index === 0 ? 'pe-8' : 'ps-8'}`}>
+              <li key={to} className={`flex-1 ${index === 0 ? 'pe-6' : 'ps-6'}`}>
                 <NavLink to={to} aria-label={label} className={() => linkCls(isActive(to))} end={to === "/dashboard"}>
-                  <Icon className="h-5 w-5" />
-                  <span>{label}</span>
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[10px]">{label}</span>
                   {isActive(to) && <span className="mt-1 h-1 w-6 rounded-full bg-primary" aria-hidden />}
                 </NavLink>
               </li>

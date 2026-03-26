@@ -144,15 +144,10 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      {isFoundingUser && userNumber && (
-                        <FoundingBadge userNumber={userNumber} size="sm" />
-                      )}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Coins className="h-3.5 w-3.5 text-primary" />
-                        <span>{t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}</span>
-                      </div>
-                    </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}
+                          {isFoundingUser && userNumber && <> · #{userNumber}</>}
+                        </p>
                   </div>
 
                   <DropdownMenuSeparator className="bg-border/30" />
@@ -195,7 +190,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       <DropdownMenuItem 
                         key={role}
                         onClick={() => navigate(config.path)}
-                        className={`cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)] ${config.color}`}
+                        className="cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)]"
                       >
                         <span className="ltr:mr-2 rtl:ml-2">{config.icon}</span>
                         <span>{config.label}</span>
