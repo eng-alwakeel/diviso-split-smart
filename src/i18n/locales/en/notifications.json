@@ -36,7 +36,8 @@
     "new_notification": "New notification",
     "balance_due": "💸 You owe {{amount}} {{currency}} in {{group}}",
     "daily_engagement": "📊 Daily reminder",
-    "settlement_reminder": "💸 {{name}} reminds you to settle {{amount}} {{currency}} in \"{{group}}\""
+    "settlement_reminder": "💸 {{name}} reminds you to settle {{amount}} {{currency}} in \"{{group}}\"",
+    "settlement_pending": "💸 {{name}} declared payment of {{amount}} {{currency}} to you — confirm receipt"
   },
   "titles": {
     "expense_created": "New Expense",
@@ -60,6 +61,7 @@
     "balance_due": "Outstanding Balance 💸",
     "daily_engagement": "Daily Reminder 📊",
     "settlement_reminder": "Settlement Reminder 💸",
+    "settlement_pending": "Settlement Pending Confirmation 💸",
     "default": "New Notification"
   },
   "descriptions": {
@@ -82,6 +84,7 @@
     "group_deleted": "{{name}} deleted group \"{{group}}\"",
     "balance_due": "You owe {{amount}} {{currency}} in {{group}}",
     "daily_engagement": "Check in and keep your streak going!",
+    "settlement_pending": "{{name}} declared payment of {{amount}} {{currency}} to you — please confirm receipt within 7 days",
     "default": "New notification"
   },
   "balance_details": {

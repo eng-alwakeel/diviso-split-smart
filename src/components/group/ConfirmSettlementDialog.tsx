@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Check, X, AlertCircle, Clock } from "lucide-react";
 import { useSettlementActions } from "@/hooks/useSettlementActions";
 
 interface Settlement {
@@ -115,6 +115,14 @@ export const ConfirmSettlementDialog = ({
                 <span className="text-sm">{settlement.note}</span>
               </div>
             )}
+          </div>
+
+          {/* Auto-confirm notice */}
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {t('settlements_tab.auto_confirm_info')}
+            </p>
           </div>
 
           {showDispute && (

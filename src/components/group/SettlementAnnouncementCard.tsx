@@ -14,6 +14,7 @@ interface SettlementAnnouncementCardProps {
     created_at: string;
     note?: string;
     status?: string;
+    expires_at?: string;
   };
   fromName: string;
   toName: string;
@@ -35,6 +36,17 @@ export const SettlementAnnouncementCard = ({
 
   const isRecipient = currentUserId === settlement.to_user_id;
   const status = settlement.status || "pending";
+
+  // Calculate remaining days for auto-confirm
+  const getRemainingDays = () => {
+    if (!settlement.expires_at || status !== 'pending') return null;
+    const now = new Date();
+    const expiresAt = new Date(settlement.expires_at);
+    const diffMs = expiresAt.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+  const remainingDays = getRemainingDays();
 
   const statusConfig = {
     pending: {
@@ -83,6 +95,11 @@ export const SettlementAnnouncementCard = ({
               <StatusIcon className={cn("w-3.5 h-3.5", config.iconClass)} />
               <span className={cn("text-xs font-medium", config.textClass)}>{config.label}</span>
             </div>
+            {remainingDays !== null && status === 'pending' && (
+              <p className="text-[10px] text-amber-600 mt-1">
+                ⏳ تأكيد تلقائي خلال {remainingDays} {remainingDays === 1 ? 'يوم' : 'أيام'}
+              </p>
+            )}
           </div>
         </div>
 

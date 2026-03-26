@@ -203,6 +203,20 @@ export const GroupSettlementDialog = ({
           settlement_id: s.id,
         }));
         await supabase.from("messages").insert(chatMessages);
+        // Send notification to each recipient
+        for (const s of insertedSettlements) {
+          await supabase.from("notifications").insert({
+            user_id: (s as any).to_user_id,
+            type: "settlement_pending",
+            payload: {
+              group_id: groupId,
+              settlement_id: (s as any).id,
+              amount: (s as any).amount,
+              currency: groupCurrency,
+              sender_name: formatName(currentUserId!, profiles),
+            }
+          });
+        }
       }
       
       // Consume credits after successful settlement

@@ -4569,6 +4569,7 @@ export type Database = {
           created_at: string
           created_by: string
           dispute_reason: string | null
+          expires_at: string | null
           from_user_id: string
           group_id: string
           id: string
@@ -4584,6 +4585,7 @@ export type Database = {
           created_at?: string
           created_by: string
           dispute_reason?: string | null
+          expires_at?: string | null
           from_user_id: string
           group_id: string
           id?: string
@@ -4599,6 +4601,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           dispute_reason?: string | null
+          expires_at?: string | null
           from_user_id?: string
           group_id?: string
           id?: string
@@ -5941,6 +5944,7 @@ export type Database = {
         Args: { p_days_old?: number; p_user_id: string }
         Returns: number
       }
+      auto_confirm_expired_settlements: { Args: never; Returns: number }
       can_access_plan: {
         Args: { p_plan_id: string; p_user_id: string }
         Returns: boolean

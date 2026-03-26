@@ -59,6 +59,9 @@ export default function Notifications() {
         setShowBalanceSheet(true);
       }
       return;
+    } else if (notification.type === 'settlement_pending' && notification.payload?.group_id) {
+      navigate(`/group/${notification.payload.group_id}`);
+      return;
     } else if (notification.type === 'daily_engagement') {
       navigate('/');
       return;
@@ -117,6 +120,8 @@ export default function Notifications() {
         return '🔗';
       case 'daily_engagement':
         return '📊';
+      case 'settlement_pending':
+        return '💸';
       default:
         return '🔔';
     }
@@ -172,6 +177,8 @@ export default function Notifications() {
         return isRTL 
           ? (payload.message_ar || t('notifications:types.daily_engagement'))
           : (payload.message_en || t('notifications:types.daily_engagement'));
+      case 'settlement_pending':
+        return t('notifications:types.settlement_pending', { name: payload.sender_name, amount: payload.amount, currency: payload.currency });
       default:
         return t('notifications:types.new_notification');
     }
