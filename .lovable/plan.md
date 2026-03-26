@@ -1,73 +1,37 @@
 
 
-# ترقية القائمة المنسدلة إلى لوحة مستخدم متقدمة
+# Premium Dark Glass Bottom Navigation
 
-## التغييرات
+## التغيير
+ملف واحد: `src/components/BottomNav.tsx` — تعديل CSS فقط
 
-### 1. `src/components/AppHeader.tsx` — إعادة هيكلة القائمة المنسدلة
+### التعديلات على الأنماط
 
-**Header Section (محسّن):**
-- خلفية مميزة `bg-muted/50` مع padding أكبر
-- Avatar أكبر (h-10 w-10) بجانب الاسم والإيميل
-- شارة المؤسس الذهبية `FoundingBadge` (إذا `isFoundingUser`)
-- رصيد النقاط: عرض `balance.totalAvailable` مع أيقونة `Coins`
+**الحاوية الخارجية (`nav`):**
+- إضافة `mb-2` لرفع الشريط عن الحافة السفلية (floating feel)
 
-**Imports الجديدة:**
-- `useFoundingUser` — لعرض شارة المؤسس
-- `useUsageCredits` — لعرض الرصيد
-- `FoundingBadge` — المكون الجاهز
-- `Receipt`, `Gift` — أيقونات للعناصر الجديدة
+**الحاوية الداخلية (`div.mx-auto`):**
+- إضافة هوامش أفقية أكبر `px-6`
 
-**تعديل query الملف الشخصي** — إضافة `user.id` للـ return لتمريره لـ `useFoundingUser`
+**شريط الزجاج المعتم (الـ `div` الداخلي):**
+- استبدال الأنماط الحالية بـ inline style للتحكم الدقيق:
+  - `background: rgba(15, 18, 24, 0.72)`
+  - `backdrop-filter: blur(14px)`
+  - `border: 1px solid rgba(255,255,255,0.08)`
+  - `box-shadow: 0 10px 30px rgba(0,0,0,0.20)`
+- تغيير `rounded-t-2xl` → `rounded-[28px]` (مستدير بالكامل)
+- إزالة `border-t border-x border-border/60 bg-background/95 shadow-elevated`
 
-**هيكلة القائمة الجديدة:**
+**زر FAB:**
+- إضافة `ring-2 ring-background/80` لحلقة داكنة تفصله عن الزجاج
+- إبقاء `bg-primary` و `shadow-lg` كما هي
 
-```text
-┌──────────────────────────┐
-│ 👤 أحمد محمد              │
-│    ahmed@email.com        │
-│    👑 #42  ·  🪙 118 نقطة  │
-├──────────────────────────┤
-│ 📋 مصاريفي                │
-│ 🎁 الإحالة                │
-├──────────────────────────┤
-│ ⚙️ الإعدادات              │
-│ 👑 لوحة المالك (ذهبي)     │
-│ 🛡️ لوحة الإدارة (أخضر)   │
-│ 🌐 اللغة                  │
-├──────────────────────────┤
-│ 🚪 تسجيل الخروج (أحمر)    │
-└──────────────────────────┘
-```
+**النصوص والأيقونات:**
+- بدون تغيير — تبقى واضحة على الخلفية المعتمة
 
-**Section 1 - أدوات أساسية** (بعد الـ header):
-- مصاريفي → `/my-expenses` (أيقونة `Receipt`)
-- الإحالة → `/referral` (أيقونة `Gift`)
-
-**Section 2 - النظام** (بعد separator):
-- الإعدادات (كما هو)
-- لوحات المالك/الإدارة (حسب الصلاحيات)
-- اللغة
-
-**Section 3 - خطر** (بعد separator):
-- تسجيل الخروج بلون أحمر (كما هو)
-
-### 2. ترجمات جديدة
-
-**`ar/common.json` + `en/common.json`:**
-```json
-"menu": {
-  "my_expenses": "مصاريفي" / "My Expenses",
-  "referral": "الإحالة" / "Referral",
-  "credits_balance": "رصيدك: {{count}} نقطة" / "Balance: {{count}} credits"
-}
-```
-
-### الملفات المتأثرة
+### الملفات
 
 | الملف | التغيير |
 |---|---|
-| `src/components/AppHeader.tsx` | إعادة هيكلة القائمة + عرض الشارة والرصيد |
-| `src/i18n/locales/ar/common.json` | مفاتيح `menu.*` |
-| `src/i18n/locales/en/common.json` | مفاتيح `menu.*` |
+| `src/components/BottomNav.tsx` | CSS فقط — dark glass style |
 
