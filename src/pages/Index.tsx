@@ -38,6 +38,7 @@ const BelowFoldSkeleton = () => (
   </div>
 );
 
+// Landing page component
 const Index = () => {
   const { t } = useTranslation('landing');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
