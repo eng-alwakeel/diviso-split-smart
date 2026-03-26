@@ -513,6 +513,19 @@ const GroupDetails = () => {
           </div>
         )}
 
+        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {sourcePlan && id && (
+          <GroupPlanSection
+            planId={sourcePlan.planId}
+            planName={sourcePlan.planName}
+            budgetValue={sourcePlan.budgetValue}
+            budgetCurrency={sourcePlan.budgetCurrency}
+            totalExpenses={totals.approvedExpenses}
+            days={sourcePlan.days}
+            groupId={id}
+          />
+        )}
+
         {/* ═══════════ 5️⃣ SECONDARY ACTIONS ═══════════ */}
         {canAddExpenses && (
           <div className="grid grid-cols-3 gap-2">
