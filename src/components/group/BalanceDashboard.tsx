@@ -47,6 +47,7 @@ interface BalanceDashboardProps {
     dispute_reason?: string;
     confirmed_at?: string;
     confirmed_by?: string;
+    expires_at?: string;
   }>;
   onSettlementConfirmed?: () => void;
   profiles: Record<string, { display_name?: string | null; name?: string | null }>;
