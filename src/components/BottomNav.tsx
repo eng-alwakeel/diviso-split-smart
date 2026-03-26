@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Receipt, Users, Share2, Settings, Shield } from "lucide-react";
+import { Home, Users, User, Shield } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 
@@ -10,9 +10,8 @@ export const BottomNav = () => {
   
   const baseItems = [
     { to: "/dashboard", label: t('nav.home'), icon: Home },
-    { to: "/my-expenses", label: t('nav.expenses'), icon: Receipt },
     { to: "/my-groups", label: t('nav.groups'), icon: Users },
-    { to: "/referral", label: t('nav.referral'), icon: Share2 },
+    { to: "/settings", label: t('nav.profile', 'ملفي'), icon: User },
   ];
 
   // Add admin dashboard link if user has any admin role
@@ -25,10 +24,7 @@ export const BottomNav = () => {
           icon: Shield 
         },
       ]
-    : [
-        ...baseItems,
-        { to: "/settings", label: t('nav.settings'), icon: Settings },
-      ];
+    : baseItems;
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path.split('?')[0]);
   const linkCls = (active: boolean) =>
