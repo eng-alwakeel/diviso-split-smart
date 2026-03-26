@@ -45,6 +45,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
   const { toast } = useToast();
   const { t } = useTranslation('common');
   const { currentLanguage, changeLanguage } = useLanguage();
+  const { balance } = useUsageCredits();
 
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile-header'],
@@ -57,6 +58,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
         .eq('id', user.id)
         .single();
       return {
+        id: user.id,
         name: profileData?.name || profileData?.display_name || user.email?.split('@')[0],
         avatar_url: profileData?.avatar_url,
         email: user.email,
@@ -66,6 +68,8 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
     enabled: !minimal,
     staleTime: 2 * 60 * 1000,
   });
+
+  const { userNumber, isFoundingUser } = useFoundingUser(userProfile?.id);
 
   const handleLanguageSwitch = () => {
     changeLanguage(currentLanguage === 'ar' ? 'en' : 'ar');
