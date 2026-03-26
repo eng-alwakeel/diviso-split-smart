@@ -91,6 +91,7 @@ type SettlementRow = {
   dispute_reason?: string | null;
   confirmed_at?: string | null;
   confirmed_by?: string | null;
+  expires_at?: string | null;
 };
 
 export const useGroupData = (groupId?: string) => {
@@ -184,7 +185,7 @@ export const useGroupData = (groupId?: string) => {
         // 4) التسويات مع حالة التأكيد
         supabase
           .from("settlements")
-          .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at, status, dispute_reason, confirmed_at, confirmed_by")
+          .select("id, group_id, from_user_id, to_user_id, amount, note, created_by, created_at, status, dispute_reason, confirmed_at, confirmed_by, expires_at")
           .eq("group_id", groupId)
           .order("created_at", { ascending: false })
           .limit(50) // Limit settlements

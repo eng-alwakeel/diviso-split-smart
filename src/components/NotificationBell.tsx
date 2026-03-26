@@ -37,6 +37,8 @@ export const NotificationBell = () => {
       navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'new_message' && notification.payload.group_id) {
       navigate(`/group/${notification.payload.group_id}?tab=chat`);
+    } else if (notification.type === 'settlement_pending' && notification.payload?.group_id) {
+      navigate(`/group/${notification.payload.group_id}`);
     } else if (notification.type === 'balance_due') {
       navigate('/notifications');
     } else if (notification.type === 'daily_engagement') {
@@ -94,6 +96,8 @@ export const NotificationBell = () => {
         return i18n.language === 'ar' 
           ? (payload.message_ar || t('types.daily_engagement'))
           : (payload.message_en || t('types.daily_engagement'));
+      case 'settlement_pending':
+        return t('types.settlement_pending', { name: payload.sender_name, amount: payload.amount, currency: payload.currency });
       default:
         return t('types.new_notification');
     }
