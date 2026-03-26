@@ -54,6 +54,8 @@ import { computeMemberBadges } from "@/components/group/GroupMemberBadges";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGroupSourcePlan } from "@/hooks/useGroupSourcePlan";
+import { GroupPlanSection } from "@/components/group/GroupPlanSection";
 
 
 const GroupDetails = () => {
