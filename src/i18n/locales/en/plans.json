@@ -164,6 +164,31 @@
     "linking": "Moving...",
     "already_linked": "Linked to another plan"
   },
+  "smart_cta": {
+    "personal_plan": "This is a personal plan",
+    "start_planning": "Start adding activities and details",
+    "ready_to_convert": "Your plan is ready for execution with others",
+    "linked_to_group": "This plan is linked to a group",
+    "plan_completed": "This plan has been completed",
+    "plan_canceled": "This plan has been canceled",
+    "convert_to_group": "Convert to Group",
+    "link_existing": "Link to Existing Group",
+    "open_group": "Open Group",
+    "view_group": "View Group",
+    "missing_hint": "Consider adding {{missing}} before converting"
+  },
+  "post_convert": {
+    "success_title": "Group created successfully 🎉",
+    "whats_next": "What's next?",
+    "invite_members": "Invite Members",
+    "add_first_expense": "Add First Expense",
+    "open_group": "Open Group"
+  },
+  "prompts": {
+    "add_activities": "Add activities to complete the schedule",
+    "add_dates": "Set the plan duration",
+    "ready_to_convert": "Plan is ready to convert to a group"
+  },
   "itinerary": {
     "tab": "Itinerary",
     "no_dates": "Add plan dates to see the daily schedule",

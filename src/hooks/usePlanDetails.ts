@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
 export interface PlanMember {
   user_id: string;
@@ -34,7 +33,6 @@ export function usePlanDetails(planId: string | undefined) {
   const { toast } = useToast();
   const { t } = useTranslation('plans');
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const planQuery = useQuery({
     queryKey: ['plan', planId],
@@ -49,7 +47,6 @@ export function usePlanDetails(planId: string | undefined) {
 
       if (error) throw error;
 
-      // Fetch members with profile data
       const { data: members, error: membersError } = await supabase
         .from('plan_members')
         .select('user_id, role, joined_at')
@@ -57,7 +54,6 @@ export function usePlanDetails(planId: string | undefined) {
 
       if (membersError) throw membersError;
 
-      // Fetch profiles for members
       const memberIds = members?.map(m => m.user_id) || [];
       const { data: profiles } = await supabase
         .from('profiles')
@@ -72,7 +68,6 @@ export function usePlanDetails(planId: string | undefined) {
         avatar_url: profileMap.get(m.user_id)?.avatar_url || null,
       }));
 
-      // Fetch group name if linked
       let groupName: string | null = null;
       if (plan.group_id) {
         const { data: group } = await supabase
@@ -105,7 +100,7 @@ export function usePlanDetails(planId: string | undefined) {
       toast({ title: t('convert_dialog.success') });
       queryClient.invalidateQueries({ queryKey: ['plan', planId] });
       queryClient.invalidateQueries({ queryKey: ['plans'] });
-      navigate(`/group/${groupId}`);
+      // Don't navigate — return groupId to caller
     },
     onError: () => {
       toast({ title: t('convert_dialog.error'), variant: 'destructive' });
@@ -151,8 +146,6 @@ export function usePlanDetails(planId: string | undefined) {
       toast({ title: t('status_change.error'), variant: 'destructive' });
     },
   });
-
-  const isOwner = planQuery.data?.owner_user_id !== undefined;
 
   return {
     plan: planQuery.data,
