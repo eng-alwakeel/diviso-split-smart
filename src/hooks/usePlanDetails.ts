@@ -102,8 +102,9 @@ export function usePlanDetails(planId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ['plans'] });
       // Don't navigate — return groupId to caller
     },
-    onError: () => {
-      toast({ title: t('convert_dialog.error'), variant: 'destructive' });
+    onError: (error: Error) => {
+      console.error('Convert to group failed:', error);
+      toast({ title: t('convert_dialog.error'), description: error.message, variant: 'destructive' });
     },
   });
 

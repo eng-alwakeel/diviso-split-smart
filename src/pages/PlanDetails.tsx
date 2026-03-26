@@ -101,11 +101,15 @@ const PlanDetails = () => {
   const isReady = !!(plan?.title && plan?.plan_type && (hasDates || hasActivities));
 
   const handleConvert = async () => {
-    const groupId = await convertToGroup();
-    if (groupId) {
-      setConvertedGroupId(groupId);
-      setShowConvertDialog(false);
-      setPostConvertOpen(true);
+    try {
+      const groupId = await convertToGroup();
+      if (groupId) {
+        setConvertedGroupId(groupId);
+        setShowConvertDialog(false);
+        setPostConvertOpen(true);
+      }
+    } catch (err) {
+      console.error('handleConvert error:', err);
     }
   };
 
