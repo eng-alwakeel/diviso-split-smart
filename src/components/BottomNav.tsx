@@ -57,9 +57,18 @@ export const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50">
-      <div className="mx-auto max-w-2xl lg:max-w-6xl px-4 pb-[env(safe-area-inset-bottom)]">
-        <div className="relative rounded-t-2xl border-t border-x border-border/60 bg-background/95 backdrop-blur shadow-elevated supports-[backdrop-filter]:bg-background/80">
+    <nav className="fixed bottom-0 inset-x-0 z-50 mb-2">
+      <div className="mx-auto max-w-2xl lg:max-w-6xl px-6 pb-[env(safe-area-inset-bottom)]">
+        <div
+          className="relative rounded-[28px]"
+          style={{
+            background: 'rgba(15, 18, 24, 0.72)',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.20)',
+          }}
+        >
           {/* FAB Button */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-10">
             <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
