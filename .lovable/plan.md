@@ -1,46 +1,45 @@
 
 
-# تعديل Navigation: تبويبان + زر FAB مركزي
+# FAB Context-Aware Actions
 
-## التغييرات
+## التغيير
+ملف واحد: `src/components/BottomNav.tsx` + ترجمات جديدة
 
-### 1. `src/components/BottomNav.tsx` — إعادة بناء كامل
-- تقليل التبويبات إلى **2 فقط**: الرئيسية (`/dashboard`) ومجموعاتي (`/my-groups`)
-- إزالة "ملفي" و"إدارة" من الشريط السفلي
-- إضافة **زر FAB دائري** في المنتصف (أيقونة `+`، بلون `primary`، مرتفع قليلاً عن الشريط)
-- عند الضغط على FAB يفتح **Drawer (Bottom Sheet)** يحتوي:
-  - ➕ إضافة مصروف → `/add-expense`
-  - 👥 إنشاء مجموعة → `/create-group`
-  - 📅 إنشاء خطة → `/create-plan`
+### المنطق
+استخدام `location.pathname` لتحديد 3 أفعال مختلفة حسب الصفحة:
 
-```text
-┌─────────────────────────────────┐
-│  الرئيسية    [ + FAB ]    مجموعاتي  │
-└─────────────────────────────────┘
-```
+| السياق | الشرط | الأفعال (بالترتيب) |
+|---|---|---|
+| **داخل مجموعة** | `/group/:id` | إضافة مصروف، تسوية، دعوة عضو |
+| **مجموعاتي** | `/my-groups` | إنشاء مجموعة، الانضمام برابط، إنشاء خطة |
+| **الرئيسية / أي صفحة أخرى** | fallback | إضافة مصروف، إنشاء مجموعة، إنشاء خطة |
 
-### 2. `src/components/AppHeader.tsx` — تحسين القائمة العلوية
-القائمة العلوية موجودة وتعمل بالفعل ✔. التحسينات:
-- ترتيب العناصر: الإعدادات → لوحة المالك (ذهبي) → لوحة الإدارة (أخضر)
-- تمييز `owner` بخلفية ذهبية خفيفة (`bg-yellow-50`)
-- تمييز `admin` بخلفية خضراء خفيفة (`bg-green-50`)
+### التعديلات
 
-### 3. i18n — ترجمات جديدة
-إضافة مفاتيح في `ar/common.json` و `en/common.json`:
+**`BottomNav.tsx`**:
+- استبدال `fabActions` الثابت بدالة `getFabActions()` تعتمد على `location.pathname`
+- للمجموعة: استخراج `groupId` من المسار وتمريره كـ query param (`/add-expense?group=ID`)
+- إضافة أيقونات: `Handshake` للتسوية، `Link` للانضمام برابط، `UserPlus` للدعوة
+- لا API calls — كل شيء static
+
+**`ar/common.json` + `en/common.json`**:
+إضافة مفاتيح جديدة:
 ```json
 "fab": {
   "add_expense": "إضافة مصروف",
   "create_group": "إنشاء مجموعة",
-  "create_plan": "إنشاء خطة"
+  "create_plan": "إنشاء خطة",
+  "settlement": "تسوية",
+  "invite_member": "دعوة عضو",
+  "join_by_link": "الانضمام برابط"
 }
 ```
 
-### الملفات المتأثرة
+### الملفات
 
 | الملف | التغيير |
 |---|---|
-| `src/components/BottomNav.tsx` | إعادة بناء: تبويبان + FAB + Drawer |
-| `src/components/AppHeader.tsx` | تحسين ترتيب وألوان عناصر القائمة |
-| `src/i18n/locales/ar/common.json` | مفاتيح FAB |
-| `src/i18n/locales/en/common.json` | مفاتيح FAB |
+| `src/components/BottomNav.tsx` | `getFabActions()` context-aware |
+| `src/i18n/locales/ar/common.json` | 3 مفاتيح جديدة |
+| `src/i18n/locales/en/common.json` | 3 مفاتيح جديدة |
 
