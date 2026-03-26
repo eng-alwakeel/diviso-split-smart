@@ -25,7 +25,7 @@
     "receivable": "لك"
   },
   "referral_strip": {
-    "summary": "🎁 دعوت {{count}} أصدقاء – لديك {{points}} نقطة",
+    "summary": "{{count}} دعوات • {{points}} نقطة",
     "invite": "ادعُ صديق"
   },
   "quick_actions": {
@@ -194,7 +194,12 @@
     "view_details": "عرض التفاصيل"
   },
   "recent_activity": {
-    "view": "عرض"
+    "view": "عرض",
+    "label": "نشاط حديث"
+  },
+  "empty_state": {
+    "title": "ابدأ بإنشاء أول مجموعة",
+    "cta": "إنشاء مجموعة"
   },
   "mini_feed": {
     "view_details": "عرض التفاصيل"

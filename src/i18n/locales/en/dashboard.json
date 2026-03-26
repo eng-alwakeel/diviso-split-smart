@@ -25,7 +25,7 @@
     "receivable": "Owed to You"
   },
   "referral_strip": {
-    "summary": "🎁 Invited {{count}} friends – {{points}} points earned",
+    "summary": "{{count}} invites • {{points}} points",
     "invite": "Invite a friend"
   },
   "quick_actions": {
@@ -194,7 +194,12 @@
     "view_details": "View details"
   },
   "recent_activity": {
-    "view": "View"
+    "view": "View",
+    "label": "Recent Activity"
+  },
+  "empty_state": {
+    "title": "Start by creating your first group",
+    "cta": "Create Group"
   },
   "mini_feed": {
     "view_details": "View details"
