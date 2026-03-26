@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, Plus, Receipt, UserPlus, CalendarPlus } from "lucide-react";
+import { Home, Users, Plus, Receipt, UserPlus, CalendarPlus, Handshake, Link } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
@@ -15,11 +15,35 @@ export const BottomNav = () => {
     { to: "/my-groups", label: t('nav.groups'), icon: Users },
   ];
 
-  const fabActions = [
-    { label: t('fab.add_expense'), icon: Receipt, path: "/add-expense" },
-    { label: t('fab.create_group'), icon: UserPlus, path: "/create-group" },
-    { label: t('fab.create_plan'), icon: CalendarPlus, path: "/create-plan" },
-  ];
+  const getFabActions = () => {
+    const path = location.pathname;
+    const groupMatch = path.match(/^\/group\/([^/]+)/);
+
+    if (groupMatch) {
+      const groupId = groupMatch[1];
+      return [
+        { label: t('fab.add_expense'), icon: Receipt, path: `/add-expense?group=${groupId}` },
+        { label: t('fab.settlement'), icon: Handshake, path: `/group/${groupId}/settlement` },
+        { label: t('fab.invite_member'), icon: UserPlus, path: `/group/${groupId}/invite` },
+      ];
+    }
+
+    if (path === '/my-groups' || path.startsWith('/my-groups')) {
+      return [
+        { label: t('fab.create_group'), icon: UserPlus, path: "/create-group" },
+        { label: t('fab.join_by_link'), icon: Link, path: "/join" },
+        { label: t('fab.create_plan'), icon: CalendarPlus, path: "/create-plan" },
+      ];
+    }
+
+    return [
+      { label: t('fab.add_expense'), icon: Receipt, path: "/add-expense" },
+      { label: t('fab.create_group'), icon: UserPlus, path: "/create-group" },
+      { label: t('fab.create_plan'), icon: CalendarPlus, path: "/create-plan" },
+    ];
+  };
+
+  const fabActions = getFabActions();
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path.split('?')[0]);
   const linkCls = (active: boolean) =>
