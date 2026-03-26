@@ -122,5 +122,10 @@
   "language": "Language",
   "switch_to_english": "Switch to English",
   "switch_to_arabic": "Switch to Arabic",
-  "current_language": "English"
+  "current_language": "English",
+  "fab": {
+    "add_expense": "Add Expense",
+    "create_group": "Create Group",
+    "create_plan": "Create Plan"
+  }
 }
