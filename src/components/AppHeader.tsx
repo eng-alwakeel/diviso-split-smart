@@ -122,9 +122,9 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 bg-background border-border">
-                  {/* User Header Section */}
-                  <div className="px-3 py-3 bg-muted/50 rounded-t-md">
+                <DropdownMenuContent align="start" className="w-64 border-border/40" style={{ background: 'hsl(var(--background))', borderColor: 'hsl(var(--border) / 0.4)' }}>
+                  {/* User Header */}
+                  <div className="px-3 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         {userProfile?.avatar_url ? (
@@ -136,7 +136,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                         )}
                       </Avatar>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-none truncate">
+                        <p className="text-sm font-semibold leading-none truncate text-foreground">
                           {userProfile?.name || t('user.default_name')}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
@@ -144,7 +144,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                         </p>
                       </div>
                     </div>
-                    {/* Founder badge + Credits */}
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       {isFoundingUser && userNumber && (
                         <FoundingBadge userNumber={userNumber} size="sm" />
@@ -156,32 +155,32 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </div>
                   </div>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border/30" />
 
                   {/* Section 1: Primary Tools */}
                   <DropdownMenuItem 
                     onClick={() => navigate('/my-expenses')}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)]"
                   >
-                    <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-muted-foreground" />
                     <span>{t('menu.my_expenses')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => navigate('/referral')}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)]"
                   >
-                    <Gift className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <Gift className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-muted-foreground" />
                     <span>{t('menu.referral')}</span>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border/30" />
 
                   {/* Section 2: System & Settings */}
                   <DropdownMenuItem 
                     onClick={() => navigate('/settings')}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)]"
                   >
-                    <Settings className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <Settings className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-muted-foreground" />
                     <span>{t('settings')}</span>
                   </DropdownMenuItem>
                   {adminRoles
@@ -192,12 +191,11 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     .map((role) => {
                     const config = ROLE_MENU_CONFIG[role];
                     if (!config) return null;
-                    const roleBg = role === 'owner' ? 'bg-yellow-50 dark:bg-yellow-950/30' : role === 'admin' ? 'bg-green-50 dark:bg-green-950/30' : '';
                     return (
                       <DropdownMenuItem 
                         key={role}
                         onClick={() => navigate(config.path)}
-                        className={`cursor-pointer ${config.color} ${roleBg}`}
+                        className={`cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)] ${config.color}`}
                       >
                         <span className="ltr:mr-2 rtl:ml-2">{config.icon}</span>
                         <span>{config.label}</span>
@@ -206,9 +204,9 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                   })}
                   <DropdownMenuItem 
                     onClick={handleLanguageSwitch}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-12 focus:bg-[rgba(255,255,255,0.05)]"
                   >
-                    <Globe className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <Globe className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-muted-foreground" />
                     <div className="flex flex-col">
                       <span>{t('language')}</span>
                       <span className="text-xs text-muted-foreground">
@@ -217,13 +215,13 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </div>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-border/30" />
 
-                  {/* Section 3: Danger */}
+                  {/* Section 3: Logout */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem 
-                        className="cursor-pointer text-destructive focus:text-destructive"
+                        className="cursor-pointer h-12 text-destructive focus:text-destructive focus:bg-destructive/5"
                         onSelect={(e) => e.preventDefault()}
                       >
                         <LogOut className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
