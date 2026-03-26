@@ -126,6 +126,9 @@
   "fab": {
     "add_expense": "Add Expense",
     "create_group": "Create Group",
-    "create_plan": "Create Plan"
+    "create_plan": "Create Plan",
+    "settlement": "Settlement",
+    "invite_member": "Invite Member",
+    "join_by_link": "Join by Link"
   }
 }
