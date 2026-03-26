@@ -75,6 +75,7 @@ const LazyPlans = withLazyLoading(lazy(() => import("./pages/Plans")));
 const LazyCreatePlan = withLazyLoading(lazy(() => import("./pages/CreatePlan")));
 const LazyPlanDetails = withLazyLoading(lazy(() => import("./pages/PlanDetails")));
 const LazyOnboarding = withLazyLoading(lazy(() => import("./pages/Onboarding")));
+const LazyJoinByLink = withLazyLoading(lazy(() => import("./pages/JoinByLink")));
 const LazyChangelog = withLazyLoading(lazy(() => import("./pages/Changelog")));
 const LazySEOLandingPage = withLazyLoading(lazy(() => import("./pages/SEOLandingPageRoute")));
 const queryClient = new QueryClient({
@@ -162,6 +163,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/join" element={<ProtectedRoute><PageErrorBoundary><LazyJoinByLink /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/plans" element={<ProtectedRoute><PageErrorBoundary><LazyPlans /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/create-plan" element={<ProtectedRoute><PageErrorBoundary><LazyCreatePlan /></PageErrorBoundary></ProtectedRoute>} />

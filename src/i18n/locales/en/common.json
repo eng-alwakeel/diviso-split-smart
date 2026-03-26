@@ -135,5 +135,12 @@
     "my_expenses": "My Expenses",
     "referral": "Referral",
     "credits_balance": "Balance: {{count}} credits"
+  },
+  "join_by_link_page": {
+    "title": "Join by Link",
+    "description": "Paste the invitation link to join a group",
+    "placeholder": "Paste link here...",
+    "join": "Join",
+    "invalid_link": "Invalid link"
   }
 }
