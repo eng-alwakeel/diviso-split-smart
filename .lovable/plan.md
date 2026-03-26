@@ -1,37 +1,41 @@
 
 
-# Premium Dark Glass Bottom Navigation
+# إضافة صفحة "الانضمام برابط"
 
-## التغيير
-ملف واحد: `src/components/BottomNav.tsx` — تعديل CSS فقط
+## المشكلة
+زر "الانضمام برابط" في FAB يوجّه إلى `/join` لكن لا توجد صفحة مسجلة لهذا المسار.
 
-### التعديلات على الأنماط
+## الحل
+إنشاء صفحة بسيطة تسمح للمستخدم بلصق رابط الدعوة أو كود الدعوة، ثم توجيهه تلقائياً إلى `/i/:code`.
 
-**الحاوية الخارجية (`nav`):**
-- إضافة `mb-2` لرفع الشريط عن الحافة السفلية (floating feel)
+## التغييرات
 
-**الحاوية الداخلية (`div.mx-auto`):**
-- إضافة هوامش أفقية أكبر `px-6`
+### 1. `src/pages/JoinByLink.tsx` — صفحة جديدة
+- حقل إدخال نصي للصق رابط الدعوة أو الكود
+- زر "انضمام"
+- عند الإرسال: استخراج الكود من الرابط (مثلاً من `app.com/i/ABC123` → `ABC123`) والتوجيه إلى `/i/ABC123`
+- تصميم بسيط: أيقونة + عنوان + وصف + حقل + زر
 
-**شريط الزجاج المعتم (الـ `div` الداخلي):**
-- استبدال الأنماط الحالية بـ inline style للتحكم الدقيق:
-  - `background: rgba(15, 18, 24, 0.72)`
-  - `backdrop-filter: blur(14px)`
-  - `border: 1px solid rgba(255,255,255,0.08)`
-  - `box-shadow: 0 10px 30px rgba(0,0,0,0.20)`
-- تغيير `rounded-t-2xl` → `rounded-[28px]` (مستدير بالكامل)
-- إزالة `border-t border-x border-border/60 bg-background/95 shadow-elevated`
+### 2. `src/App.tsx` — تسجيل المسار
+- إضافة `<Route path="/join" element={<JoinByLink />} />` ضمن المسارات المحمية
 
-**زر FAB:**
-- إضافة `ring-2 ring-background/80` لحلقة داكنة تفصله عن الزجاج
-- إبقاء `bg-primary` و `shadow-lg` كما هي
-
-**النصوص والأيقونات:**
-- بدون تغيير — تبقى واضحة على الخلفية المعتمة
+### 3. ترجمات `ar/common.json` + `en/common.json`
+```json
+"join_by_link_page": {
+  "title": "الانضمام برابط",
+  "description": "الصق رابط الدعوة للانضمام إلى مجموعة",
+  "placeholder": "الصق الرابط هنا...",
+  "join": "انضمام",
+  "invalid_link": "الرابط غير صالح"
+}
+```
 
 ### الملفات
 
 | الملف | التغيير |
 |---|---|
-| `src/components/BottomNav.tsx` | CSS فقط — dark glass style |
+| `src/pages/JoinByLink.tsx` | صفحة جديدة |
+| `src/App.tsx` | تسجيل المسار `/join` |
+| `src/i18n/locales/ar/common.json` | ترجمات |
+| `src/i18n/locales/en/common.json` | ترجمات |
 
