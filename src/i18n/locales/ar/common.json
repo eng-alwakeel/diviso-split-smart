@@ -135,5 +135,12 @@
     "my_expenses": "مصاريفي",
     "referral": "الإحالة",
     "credits_balance": "رصيدك: {{count}} نقطة"
+  },
+  "join_by_link_page": {
+    "title": "الانضمام برابط",
+    "description": "الصق رابط الدعوة للانضمام إلى مجموعة",
+    "placeholder": "الصق الرابط هنا...",
+    "join": "انضمام",
+    "invalid_link": "الرابط غير صالح"
   }
 }
