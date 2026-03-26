@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Wallet,
-  Users, MoreVertical, Plane, Coffee, Home, Zap, ExternalLink, Receipt
+  Users, MoreVertical, Plane, Coffee, Home, Zap, ExternalLink, Receipt, Edit, X, Trash2
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -22,6 +22,9 @@ import { PlanSuggestionsTab } from "@/components/plans/PlanSuggestionsTab";
 import { PlanExpensesTab } from "@/components/plans/PlanExpensesTab";
 import { PlanVotesTab } from "@/components/plans/PlanVotesTab";
 import { PlanItineraryTab } from "@/components/plans/PlanItineraryTab";
+import { SmartCtaBar } from "@/components/plans/SmartCtaBar";
+import { SmartPrompts } from "@/components/plans/SmartPrompts";
+import { PostConvertSheet } from "@/components/plans/PostConvertSheet";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import type { PlanSuggestion } from "@/hooks/usePlanSuggestions";
@@ -51,8 +54,10 @@ const PlanDetails = () => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("summary");
+  const [postConvertOpen, setPostConvertOpen] = useState(false);
+  const [convertedGroupId, setConvertedGroupId] = useState<string | null>(null);
+  const [hasActivities, setHasActivities] = useState(false);
 
-  // State for converting suggestion to vote
   const [voteFromSuggestion, setVoteFromSuggestion] = useState<{
     title: string;
     options: string[];
@@ -63,6 +68,58 @@ const PlanDetails = () => {
       setCurrentUserId(data.user?.id || null);
     });
   }, []);
+
+  // Check if plan has activities via plan_days
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data: days } = await supabase
+        .from('plan_days')
+        .select('id')
+        .eq('plan_id', id);
+      if (!days || days.length === 0) { setHasActivities(false); return; }
+      const dayIds = days.map(d => d.id);
+      const { count } = await supabase
+        .from('plan_day_activities')
+        .select('id', { count: 'exact', head: true })
+        .in('plan_day_id', dayIds);
+      setHasActivities((count ?? 0) > 0);
+    })();
+  }, [id]);
+
+  const isOwner = currentUserId === plan?.owner_user_id;
+  const isAdmin = plan?.members.some(
+    m => m.user_id === currentUserId && (m.role === 'owner' || m.role === 'admin')
+  ) ?? false;
+
+  const hasDates = !!(plan?.start_date && plan?.end_date);
+
+  const missingItems = useMemo(() => {
+    if (!plan) return [];
+    const items: string[] = [];
+    if (!hasDates) items.push(t('create.start_date'));
+    if (!hasActivities) items.push(t('itinerary.add_activity'));
+    return items;
+  }, [plan, hasDates, hasActivities, t]);
+
+  const isReady = !!(plan?.title && plan?.plan_type && (hasDates || hasActivities));
+
+  const handleConvert = async () => {
+    const groupId = await convertToGroup();
+    if (groupId) {
+      setConvertedGroupId(groupId);
+      setShowConvertDialog(false);
+      setPostConvertOpen(true);
+    }
+  };
+
+  const handleStartPlanning = () => {
+    if (plan?.status === 'draft') {
+      updateStatus('planning');
+    } else if (plan?.status === 'planning') {
+      updateStatus('locked');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -79,11 +136,6 @@ const PlanDetails = () => {
       </div>
     );
   }
-
-  const isOwner = currentUserId === plan.owner_user_id;
-  const isAdmin = plan.members.some(
-    m => m.user_id === currentUserId && (m.role === 'owner' || m.role === 'admin')
-  );
 
   const TypeIcon = typeIcons[plan.plan_type] || Zap;
 
@@ -110,6 +162,7 @@ const PlanDetails = () => {
             </div>
           </div>
 
+          {/* ⋮ Menu — admin actions only */}
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -118,22 +171,14 @@ const PlanDetails = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {!plan.group_id && isOwner && (
-                  <DropdownMenuItem onClick={() => setShowConvertDialog(true)}>
-                    <Users className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
-                    {t('actions.convert_to_group')}
-                  </DropdownMenuItem>
-                )}
-                {!plan.group_id && (
-                  <DropdownMenuItem onClick={() => setShowLinkDialog(true)}>
-                    <ExternalLink className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
-                    {t('actions.link_to_group')}
-                  </DropdownMenuItem>
-                )}
-                {plan.group_id && (
-                  <DropdownMenuItem onClick={() => navigate(`/group/${plan.group_id}`)}>
-                    <ExternalLink className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
-                    {t('actions.open_group')}
+                <DropdownMenuItem onClick={() => navigate(`/edit-plan/${id}`)}>
+                  <Edit className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+                  {t('actions.edit_plan')}
+                </DropdownMenuItem>
+                {plan.status !== 'canceled' && (
+                  <DropdownMenuItem onClick={() => updateStatus('canceled')} className="text-destructive">
+                    <X className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+                    {t('actions.cancel_plan')}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -143,13 +188,14 @@ const PlanDetails = () => {
       </div>
 
       <div className="max-w-2xl mx-auto p-4 space-y-4">
-        {/* Plan Info */}
+        {/* Plan Info Card */}
         <Card className="border border-border">
           <CardContent className="p-4 space-y-4">
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <Badge variant="outline" className="text-xs">
                 {t(`plan_types.${plan.plan_type}`)}
               </Badge>
+              <PlanStatusBar currentStatus={plan.status} />
               {plan.destination && (
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" />
@@ -170,28 +216,30 @@ const PlanDetails = () => {
                 </span>
               )}
             </div>
-
-            {plan.group_id && plan.group_name && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs"
-                onClick={() => navigate(`/group/${plan.group_id}`)}
-              >
-                <Users className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
-                {plan.group_name}
-                <ExternalLink className="w-3 h-3 ltr:ml-1 rtl:mr-1" />
-              </Button>
-            )}
-
-            <PlanStatusBar
-              currentStatus={plan.status}
-              isAdmin={isAdmin}
-              onStatusChange={(s) => updateStatus(s)}
-              isUpdating={isUpdatingStatus}
-            />
           </CardContent>
         </Card>
+
+        {/* Smart CTA Bar */}
+        <SmartCtaBar
+          status={plan.status}
+          groupId={plan.group_id}
+          isOwner={isOwner}
+          isAdmin={isAdmin}
+          isReady={isReady}
+          missingItems={missingItems}
+          onConvert={() => setShowConvertDialog(true)}
+          onLink={() => setShowLinkDialog(true)}
+          onStartPlanning={handleStartPlanning}
+          isConverting={isConverting}
+        />
+
+        {/* Smart Prompts */}
+        <SmartPrompts
+          status={plan.status}
+          hasActivities={hasActivities}
+          hasDates={hasDates}
+          hasGroupId={!!plan.group_id}
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -228,7 +276,7 @@ const PlanDetails = () => {
             <PlanItineraryTab
               planId={id!}
               isAdmin={isAdmin}
-              hasDates={!!(plan.start_date && plan.end_date)}
+              hasDates={hasDates}
               groupId={plan.group_id}
             />
           </TabsContent>
@@ -267,10 +315,7 @@ const PlanDetails = () => {
       <ConvertToGroupDialog
         open={showConvertDialog}
         onOpenChange={setShowConvertDialog}
-        onConfirm={async () => {
-          await convertToGroup();
-          setShowConvertDialog(false);
-        }}
+        onConfirm={handleConvert}
         isConverting={isConverting}
       />
       <LinkToGroupDialog
@@ -282,6 +327,18 @@ const PlanDetails = () => {
         }}
         isLinking={isLinking}
       />
+
+      {/* Post-conversion sheet */}
+      {convertedGroupId && (
+        <PostConvertSheet
+          open={postConvertOpen}
+          onOpenChange={setPostConvertOpen}
+          groupId={convertedGroupId}
+          onInvite={() => {
+            navigate(`/group/${convertedGroupId}?openInvite=true`);
+          }}
+        />
+      )}
     </div>
   );
 };

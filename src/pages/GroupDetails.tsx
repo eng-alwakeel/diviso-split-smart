@@ -54,6 +54,8 @@ import { computeMemberBadges } from "@/components/group/GroupMemberBadges";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useGroupSourcePlan } from "@/hooks/useGroupSourcePlan";
+import { GroupPlanSection } from "@/components/group/GroupPlanSection";
 
 
 const GroupDetails = () => {
@@ -138,6 +140,7 @@ const GroupDetails = () => {
   const registeredMembers = useMemo(() => members.filter((m): m is typeof m & { user_id: string } => !!m.user_id), [members]);
   const { subscriptions: memberSubscriptions } = useMemberSubscriptions(registeredMembers.map(m => m.user_id));
   const { formatCurrency, currencies } = useCurrencies();
+  const { data: sourcePlan } = useGroupSourcePlan(id);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -508,6 +511,19 @@ const GroupDetails = () => {
             <Lightbulb className="w-4 h-4 text-accent shrink-0" />
             <p className="text-xs text-muted-foreground">{smartSuggestion}</p>
           </div>
+        )}
+
+        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {sourcePlan && id && (
+          <GroupPlanSection
+            planId={sourcePlan.planId}
+            planName={sourcePlan.planName}
+            budgetValue={sourcePlan.budgetValue}
+            budgetCurrency={sourcePlan.budgetCurrency}
+            totalExpenses={totals.approvedExpenses}
+            days={sourcePlan.days}
+            groupId={id}
+          />
         )}
 
         {/* ═══════════ 5️⃣ SECONDARY ACTIONS ═══════════ */}

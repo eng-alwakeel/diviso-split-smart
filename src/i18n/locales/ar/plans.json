@@ -164,6 +164,31 @@
     "linking": "جاري النقل...",
     "already_linked": "مرتبط بخطة أخرى"
   },
+  "smart_cta": {
+    "personal_plan": "هذه الخطة شخصية حالياً",
+    "start_planning": "ابدأ بإضافة الأنشطة والتفاصيل",
+    "ready_to_convert": "خطتك جاهزة للتنفيذ مع الآخرين",
+    "linked_to_group": "هذه الخطة مرتبطة بمجموعة",
+    "plan_completed": "تم تنفيذ هذه الخطة",
+    "plan_canceled": "تم إلغاء هذه الخطة",
+    "convert_to_group": "حوّل إلى مجموعة",
+    "link_existing": "ربط بمجموعة موجودة",
+    "open_group": "فتح المجموعة",
+    "view_group": "عرض المجموعة",
+    "missing_hint": "يفضل إضافة {{missing}} قبل التحويل"
+  },
+  "post_convert": {
+    "success_title": "تم إنشاء المجموعة بنجاح 🎉",
+    "whats_next": "وش الخطوة الجاية؟",
+    "invite_members": "دعوة أعضاء",
+    "add_first_expense": "إضافة أول مصروف",
+    "open_group": "فتح المجموعة"
+  },
+  "prompts": {
+    "add_activities": "أضف أنشطة ليصبح الجدول جاهزاً",
+    "add_dates": "حدد المدة الزمنية للخطة",
+    "ready_to_convert": "الخطة جاهزة للتحويل إلى مجموعة"
+  },
   "itinerary": {
     "tab": "الجدول",
     "no_dates": "أضف تواريخ الخطة ليظهر الجدول اليومي",
