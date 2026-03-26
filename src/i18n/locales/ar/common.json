@@ -130,5 +130,10 @@
     "settlement": "تسوية",
     "invite_member": "دعوة عضو",
     "join_by_link": "الانضمام برابط"
+  },
+  "menu": {
+    "my_expenses": "مصاريفي",
+    "referral": "الإحالة",
+    "credits_balance": "رصيدك: {{count}} نقطة"
   }
 }

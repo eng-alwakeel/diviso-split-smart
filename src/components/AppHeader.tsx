@@ -7,13 +7,16 @@ import { RoleBadgesList } from "@/components/ui/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign } from "lucide-react";
+import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign, Receipt, Gift, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { FoundingBadge } from "@/components/ui/founding-badge";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
