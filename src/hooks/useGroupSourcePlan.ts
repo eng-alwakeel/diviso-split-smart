@@ -53,7 +53,7 @@ export function useGroupSourcePlan(groupId: string | undefined) {
       // Get plan days
       const { data: days } = await supabase
         .from('plan_days')
-        .select('id, day_index, day_date')
+        .select('id, day_index, date')
         .eq('plan_id', sourcePlanId)
         .order('day_index');
 
@@ -86,7 +86,7 @@ export function useGroupSourcePlan(groupId: string | undefined) {
       const enrichedDays: PlanScheduleDay[] = days.map(d => ({
         id: d.id,
         day_index: d.day_index,
-        day_date: d.day_date,
+        day_date: d.date,
         activities: (activityMap.get(d.id) || []).map(a => ({
           id: a.id,
           title: a.title,
