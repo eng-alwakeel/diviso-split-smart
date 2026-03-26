@@ -122,18 +122,61 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52 bg-background border-border">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userProfile?.name || t('user.default_name')}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {userProfile?.email}
-                      </p>
+                <DropdownMenuContent align="start" className="w-64 bg-background border-border">
+                  {/* User Header Section */}
+                  <div className="px-3 py-3 bg-muted/50 rounded-t-md">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        {userProfile?.avatar_url ? (
+                          <AvatarImage src={userProfile.avatar_url} alt={t('profile')} />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || t('user.default_initial')}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <p className="text-sm font-semibold leading-none truncate">
+                          {userProfile?.name || t('user.default_name')}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
+                          {userProfile?.email}
+                        </p>
+                      </div>
                     </div>
-                  </DropdownMenuLabel>
+                    {/* Founder badge + Credits */}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {isFoundingUser && userNumber && (
+                        <FoundingBadge userNumber={userNumber} size="sm" />
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Coins className="h-3.5 w-3.5 text-primary" />
+                        <span>{t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <DropdownMenuSeparator />
+
+                  {/* Section 1: Primary Tools */}
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/my-expenses')}
+                    className="cursor-pointer"
+                  >
+                    <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <span>{t('menu.my_expenses')}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/referral')}
+                    className="cursor-pointer"
+                  >
+                    <Gift className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <span>{t('menu.referral')}</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  {/* Section 2: System & Settings */}
                   <DropdownMenuItem 
                     onClick={() => navigate('/settings')}
                     className="cursor-pointer"
@@ -161,7 +204,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       </DropdownMenuItem>
                     );
                   })}
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLanguageSwitch}
                     className="cursor-pointer"
@@ -174,7 +216,10 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       </span>
                     </div>
                   </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
+
+                  {/* Section 3: Danger */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem 
