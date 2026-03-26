@@ -211,8 +211,29 @@ export const BalanceDashboard = ({
   const myBalance = balances.find(b => b.user_id === currentUserId);
   const myPending = pendingAmounts.find(p => p.user_id === currentUserId);
 
+  // Pending settlements for current user (as recipient)
+  const pendingSettlementsForMe = useMemo(() => {
+    return settlements.filter(s => s.to_user_id === currentUserId && (!s.status || s.status === 'pending'));
+  }, [settlements, currentUserId]);
+
+  const pendingTotal = useMemo(() => {
+    return pendingSettlementsForMe.reduce((sum, s) => sum + s.amount, 0);
+  }, [pendingSettlementsForMe]);
+
   return (
     <div className="space-y-6">
+      {/* Pending settlements banner */}
+      {pendingSettlementsForMe.length > 0 && (
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1">
+          <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+            ⏳ لديك {pendingSettlementsForMe.length} تسوية بانتظار تأكيدك
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-500">
+            المبلغ الإجمالي: {pendingTotal.toLocaleString()} {currency} — سيتم التأكيد تلقائياً بعد 7 أيام
+          </p>
+        </div>
+      )}
+
       {/* Quick Balance Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-gradient-card border-border/50">
