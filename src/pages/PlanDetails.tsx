@@ -69,14 +69,22 @@ const PlanDetails = () => {
     });
   }, []);
 
-  // Check if plan has activities
+  // Check if plan has activities via plan_days
   useEffect(() => {
     if (!id) return;
-    supabase
-      .from('plan_day_activities')
-      .select('id', { count: 'exact', head: true })
-      .eq('plan_id', id)
-      .then(({ count }) => setHasActivities((count ?? 0) > 0));
+    (async () => {
+      const { data: days } = await supabase
+        .from('plan_days')
+        .select('id')
+        .eq('plan_id', id);
+      if (!days || days.length === 0) { setHasActivities(false); return; }
+      const dayIds = days.map(d => d.id);
+      const { count } = await supabase
+        .from('plan_day_activities')
+        .select('id', { count: 'exact', head: true })
+        .in('plan_day_id', dayIds);
+      setHasActivities((count ?? 0) > 0);
+    })();
   }, [id]);
 
   const isOwner = currentUserId === plan?.owner_user_id;
