@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { SEO } from "@/components/SEO";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
-  ArrowRight, Users, Receipt, MessageCircle, Target, Plus, Settings,
+  ArrowRight, Users, Receipt, Wallet, Plus, Settings,
   DollarSign, MoreHorizontal, UserPlus, Edit, CheckCircle, Clock,
-  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw, Scale
+  XCircle, Shield, FileText, Trash2, AlertTriangle, LogOut, Flag, RotateCcw, Scale,
+  ArrowDownCircle, ArrowUpCircle, CheckCircle2, Lightbulb, ChevronLeft
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -35,18 +35,7 @@ import { PlanBadge } from "@/components/ui/plan-badge";
 import { usePlanBadge } from "@/hooks/usePlanBadge";
 import { useMemberSubscriptions } from "@/hooks/useMemberSubscriptions";
 import { useExpenseActions } from "@/hooks/useExpenseActions";
-import { useGroupBudgetTracking } from "@/hooks/useGroupBudgetTracking";
-import { useBudgets } from "@/hooks/useBudgets";
-import { CreateBudgetDialog } from "@/components/budgets/CreateBudgetDialog";
-import { BudgetProgressCard } from "@/components/budgets/BudgetProgressCard";
-import { BudgetQuickActions } from "@/components/budgets/BudgetQuickActions";
-import { EditBudgetDialog } from "@/components/budgets/EditBudgetDialog";
-import { DeleteBudgetDialog } from "@/components/budgets/DeleteBudgetDialog";
 import { useCurrencies } from "@/hooks/useCurrencies";
-import { UnifiedAdLayout } from "@/components/ads/UnifiedAdLayout";
-import { RecommendationNotification } from "@/components/recommendations/RecommendationNotification";
-import { useRecommendationTriggers } from "@/hooks/useRecommendationTriggers";
-import { useRecommendations } from "@/hooks/useRecommendations";
 import { DeleteGroupDialog } from "@/components/group/DeleteGroupDialog";
 import { LeaveGroupDialog } from "@/components/group/LeaveGroupDialog";
 import { CloseGroupDialog } from "@/components/group/CloseGroupDialog";
@@ -56,23 +45,14 @@ import { useGroupNotifications } from "@/hooks/useGroupNotifications";
 import { useGroupStatus } from "@/hooks/useGroupStatus";
 import { useTranslation } from "react-i18next";
 import { ProfileCompletionSheet } from "@/components/profile/ProfileCompletionSheet";
-
-// New components
-import { GroupStatusBanner, GroupStateBadge, type GroupState } from "@/components/group/GroupStatusBanner";
-import { GroupCompactSummary } from "@/components/group/GroupCompactSummary";
-import { SettlementProgressBar } from "@/components/group/SettlementProgressBar";
+import { GroupStateBadge, type GroupState } from "@/components/group/GroupStatusBanner";
 import { FinishGroupDialog } from "@/components/group/FinishGroupDialog";
 import { RequestPaymentDialog } from "@/components/group/RequestPaymentDialog";
 import { TripSummarySheet } from "@/components/group/TripSummarySheet";
 import { PreviousBalanceSheet } from "@/components/group/PreviousBalanceSheet";
-import { computeMemberBadges, MemberBadge } from "@/components/group/GroupMemberBadges";
-
+import { computeMemberBadges } from "@/components/group/GroupMemberBadges";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 
@@ -81,8 +61,6 @@ const GroupDetails = () => {
   const { toast } = useToast();
   const { id: rawId } = useParams();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("expenses");
-  const [expenseFilter, setExpenseFilter] = useState<"all" | "approved" | "pending" | "rejected">("all");
   const [openInvite, setOpenInvite] = useState(false);
   
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
@@ -121,12 +99,6 @@ const GroupDetails = () => {
   const [deleteExpenseConfirmOpen, setDeleteExpenseConfirmOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<any>(null);
   
-  const [createBudgetOpen, setCreateBudgetOpen] = useState(false);
-  const [editBudgetOpen, setEditBudgetOpen] = useState(false);
-  const [deleteBudgetOpen, setDeleteBudgetOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<any>(null);
-  const [deletingBudget, setDeletingBudget] = useState<any>(null);
-  
   const [deleteGroupDialogOpen, setDeleteGroupDialogOpen] = useState(false);
   const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
   const [closeGroupDialogOpen, setCloseGroupDialogOpen] = useState(false);
@@ -139,6 +111,10 @@ const GroupDetails = () => {
   const [requestPaymentOpen, setRequestPaymentOpen] = useState(false);
   const [tripSummaryOpen, setTripSummaryOpen] = useState(false);
   const [previousBalanceOpen, setPreviousBalanceOpen] = useState(false);
+
+  // New sheets for single-flow
+  const [membersSheetOpen, setMembersSheetOpen] = useState(false);
+  const [settlementDetailsOpen, setSettlementDetailsOpen] = useState(false);
   
   const { t } = useTranslation(['groups', 'common']);
   const { notifyMemberLeft, notifyGroupDeleted, notifySettlementReminder } = useGroupNotifications();
@@ -161,13 +137,7 @@ const GroupDetails = () => {
   const { getPlanBadgeConfig } = usePlanBadge();
   const registeredMembers = useMemo(() => members.filter((m): m is typeof m & { user_id: string } => !!m.user_id), [members]);
   const { subscriptions: memberSubscriptions } = useMemberSubscriptions(registeredMembers.map(m => m.user_id));
-  
-  const { budgetTracking, budgetAlerts, isLoading: budgetLoading, getStatusColor, getStatusLabel, getAlertMessage } = useGroupBudgetTracking(id);
-  const { budgets, createBudget, updateBudget, deleteBudget, isCreating } = useBudgets(id);
   const { formatCurrency, currencies } = useCurrencies();
-  
-  const { shouldShow: showRecommendation, triggerType, mealType, dismissTrigger, isEnabled: recommendationsEnabled } = useRecommendationTriggers({ groupId: id });
-  const { addAsExpense, dismissRecommendation, currentRecommendation, generateRecommendation, isLoading: recommendationLoading } = useRecommendations();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
@@ -179,13 +149,6 @@ const GroupDetails = () => {
       document.title = `${group.name} - تفاصيل المجموعة`;
     }
   }, [group?.name]);
-
-  const budgetTotals = useMemo(() => {
-    if (!budgetTracking || budgetTracking.length === 0) return { total: 0, spent: 0, percentage: 0 };
-    const total = budgetTracking.reduce((sum, c) => sum + (c.budgeted_amount || 0), 0);
-    const spent = budgetTracking.reduce((sum, c) => sum + (c.spent_amount || 0), 0);
-    return { total, spent, percentage: total > 0 ? (spent / total) * 100 : 0 };
-  }, [budgetTracking]);
 
   useEffect(() => {
     document.body.classList.add('no-scrollbar');
@@ -219,7 +182,6 @@ const GroupDetails = () => {
     };
   }, [balances, pendingAmounts, balanceSummary, currentUserId]);
 
-  // Compute group state
   const groupState: GroupState = useMemo(() => {
     const status = group?.status as string | null;
     if (status === 'closed') return 'closed';
@@ -237,29 +199,12 @@ const GroupDetails = () => {
   const isGroupClosed = groupState === 'closed';
   const canAddExpenses = groupState === 'active';
 
-  // Settlement progress
-  const settlementProgress = useMemo(() => {
-    const totalDebt = balanceSummary
-      .filter(b => Number(b.total_net ?? 0) < 0)
-      .reduce((sum, b) => sum + Math.abs(Number(b.total_net ?? 0)), 0);
-    const totalSettled = settlements.reduce((sum, s) => sum + Number(s.amount ?? 0), 0);
-    const debtorCount = balanceSummary.filter(b => Number(b.total_net ?? 0) < -0.01).length;
-    const pendingCount = members.filter(m => (m as any).status === 'invited' || (m as any).status === 'pending').length;
-    return { totalDebt, totalSettled, debtorCount, pendingCount };
-  }, [balanceSummary, settlements, members]);
-
-  const filteredExpenses = useMemo(() => {
-    if (expenseFilter === "all") return expenses;
-    return expenses.filter(e => e.status === expenseFilter);
-  }, [expenses, expenseFilter]);
-
   const groupCurrency = group?.currency || 'SAR';
   const currency = currencies.find(c => c.code === groupCurrency);
   const currencyLabel = currency?.symbol || groupCurrency;
   const memberCount = members.length;
   const nameOf = (uid: string) => (uid ? (profiles[uid]?.display_name || profiles[uid]?.name || `${uid.slice(0,4)}...`) : 'عضو معلق');
 
-  // Debtors for payment request dialog
   const debtors = useMemo(() => {
     return balanceSummary
       .filter(b => Number(b.total_net ?? 0) < -0.01 && b.user_id !== currentUserId)
@@ -271,18 +216,13 @@ const GroupDetails = () => {
       }));
   }, [balanceSummary, currentUserId, profiles]);
 
-  // Member badges (Phase 3)
   const memberBadges = useMemo(() => {
     const msgCounts: Record<string, number> = {};
     return computeMemberBadges(
-      registeredMembers.map(m => m.user_id),
-      balances,
-      settlements,
-      msgCounts,
+      registeredMembers.map(m => m.user_id), balances, settlements, msgCounts,
     );
   }, [registeredMembers, balances, settlements]);
 
-  // Trip summary data (Phase 3)
   const tripSummaryData = useMemo(() => {
     const topPayer = balances.length > 0 ? balances.reduce((best, b) => 
       b.amount_paid > (best?.amount_paid ?? 0) ? b : best, balances[0]) : null;
@@ -297,6 +237,30 @@ const GroupDetails = () => {
       topPayer: topPayer ? { name: nameOf(topPayer.user_id), amount: topPayer.amount_paid } : undefined,
     };
   }, [group?.name, totals.approvedExpenses, currencyLabel, memberCount, expenses.length, settlements, balances]);
+
+  // Smart suggestion
+  const smartSuggestion = useMemo(() => {
+    if (myBalances.confirmed < -0.01 && debtors.length === 0) {
+      // User owes money — find who they owe
+      const creditors = balanceSummary
+        .filter(b => Number(b.total_net ?? 0) > 0.01 && b.user_id !== currentUserId);
+      if (creditors.length > 0) {
+        const top = creditors.reduce((a, b) => Number(b.total_net ?? 0) > Number(a.total_net ?? 0) ? b : a);
+        return `سدد لـ ${nameOf(top.user_id)} ${Math.abs(Number(top.total_net ?? 0)).toLocaleString()} ${currencyLabel}`;
+      }
+    }
+    if (debtors.length > 0 && myBalances.confirmed > 0.01) {
+      return `${debtors.length} أعضاء لم يسددوا بعد`;
+    }
+    if (expenses.length === 0 && memberCount > 1) {
+      return "لا يوجد مصاريف — ابدأ بإضافة أول مصروف";
+    }
+    return null;
+  }, [myBalances.confirmed, debtors, balanceSummary, currentUserId, expenses.length, memberCount, currencyLabel]);
+
+  // Preview data
+  const previewExpenses = useMemo(() => expenses.slice(0, 3), [expenses]);
+  const previewMembers = useMemo(() => registeredMembers.slice(0, 3), [registeredMembers]);
 
   // Handlers
   const handleDeleteGroup = async () => {
@@ -372,8 +336,6 @@ const GroupDetails = () => {
       <SEO title={group?.name || "تفاصيل المجموعة"} noIndex={true} />
       <AppHeader />
       
-      <UnifiedAdLayout placement="group_details" showTopBanner={false} showBottomBanner={false}>
-
       {/* Dialogs */}
       <InviteManagementDialog 
         open={openInvite} onOpenChange={setOpenInvite} groupId={id} groupName={group?.name}
@@ -383,7 +345,7 @@ const GroupDetails = () => {
         profiles={profiles} expenses={expenses} balances={balances} totalExpenses={totals.totalExpenses}
       />
 
-      <div className="page-container space-y-3">
+      <div className="page-container space-y-4">
 
         {/* ═══════════ 1️⃣ HEADER ═══════════ */}
         <div className="flex items-center gap-3 py-2">
@@ -419,15 +381,12 @@ const GroupDetails = () => {
               <DropdownMenuItem onClick={() => setReportOpen(true)}>
                 <FileText className="w-4 h-4 me-2" /> التقرير
               </DropdownMenuItem>
-              {/* Previous Balance - admin only */}
               {isAdmin && !isGroupClosed && (
                 <DropdownMenuItem onClick={() => setPreviousBalanceOpen(true)}>
                   <Scale className="w-4 h-4 me-2" /> إضافة رصيد سابق
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              
-              {/* Finish / Reopen trip */}
               {isAdmin && groupState === 'active' && (
                 <DropdownMenuItem onClick={() => setFinishGroupDialogOpen(true)}>
                   <Flag className="w-4 h-4 me-2 text-amber-600" /> إنهاء الرحلة
@@ -443,7 +402,6 @@ const GroupDetails = () => {
                   <Shield className="w-4 h-4 me-2" /> إغلاق نهائي
                 </DropdownMenuItem>
               )}
-
               <DropdownMenuSeparator />
               {!isOwner && (
                 <DropdownMenuItem onClick={() => setLeaveGroupDialogOpen(true)} className="text-destructive">
@@ -459,35 +417,122 @@ const GroupDetails = () => {
           </DropdownMenu>
         </div>
 
-        {/* ═══════════ 2️⃣ COMPACT SUMMARY ═══════════ */}
-        <GroupCompactSummary
-          myBalance={myBalances.confirmed}
-          totalExpenses={totals.approvedExpenses}
-          memberCount={memberCount}
-          currencyLabel={currencyLabel}
-        />
+        {/* ═══════════ 2️⃣ SUMMARY GRID ═══════════ */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col items-center justify-center py-3 rounded-xl bg-card border border-border/50">
+              <Users className="w-4 h-4 text-muted-foreground mb-1" />
+              <p className="text-lg font-bold text-foreground leading-none">{memberCount}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">أعضاء</p>
+            </div>
+            <div className="flex flex-col items-center justify-center py-3 rounded-xl bg-card border border-border/50">
+              <Receipt className="w-4 h-4 text-muted-foreground mb-1" />
+              <p className="text-lg font-bold text-foreground leading-none">{totals.approvedExpenses.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">المصاريف ({currencyLabel})</p>
+            </div>
+            <div className="flex flex-col items-center justify-center py-3 rounded-xl bg-card border border-border/50">
+              <Wallet className="w-4 h-4 text-muted-foreground mb-1" />
+              <p className={cn(
+                "text-xl font-black leading-none",
+                myBalances.confirmed >= 0 ? "text-green-600" : "text-destructive"
+              )}>
+                {myBalances.confirmed >= 0 ? '+' : ''}{myBalances.confirmed.toLocaleString()}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">رصيدك ({currencyLabel})</p>
+            </div>
+          </div>
 
-        {/* ═══════════ 3️⃣ SETTLEMENT PROGRESS ═══════════ */}
-        {settlementProgress.totalDebt > 0 && (
-          <SettlementProgressBar
-            totalDebt={settlementProgress.totalDebt}
-            totalSettled={settlementProgress.totalSettled}
-            debtorCount={settlementProgress.debtorCount}
-            pendingCount={settlementProgress.pendingCount}
-          />
+          {/* Status line */}
+          <div className="text-center">
+            {myBalances.confirmed > 0.01 ? (
+              <span className="text-sm font-semibold text-green-600">لك {myBalances.confirmed.toLocaleString()} {currencyLabel}</span>
+            ) : myBalances.confirmed < -0.01 ? (
+              <span className="text-sm font-semibold text-destructive">عليك {Math.abs(myBalances.confirmed).toLocaleString()} {currencyLabel}</span>
+            ) : (
+              <span className="text-sm font-semibold text-muted-foreground">متوازن ✓</span>
+            )}
+          </div>
+        </div>
+
+        {/* ═══════════ 3️⃣ SMART ACTION BAR ═══════════ */}
+        <Card className="border-border/50 bg-card">
+          <CardContent className="p-4">
+            {myBalances.confirmed < -0.01 ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ArrowDownCircle className="w-5 h-5 text-destructive shrink-0" />
+                  <span className="text-sm font-semibold text-destructive truncate">
+                    عليك {Math.abs(myBalances.confirmed).toLocaleString()} {currencyLabel}
+                  </span>
+                </div>
+                <Button variant="default" size="sm" onClick={() => openSettlement()} className="shrink-0">
+                  سدد الآن
+                </Button>
+              </div>
+            ) : myBalances.confirmed > 0.01 ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ArrowUpCircle className="w-5 h-5 text-green-600 shrink-0" />
+                  <span className="text-sm font-semibold text-green-600 truncate">
+                    لك {myBalances.confirmed.toLocaleString()} {currencyLabel}
+                  </span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setRequestPaymentOpen(true)} className="shrink-0">
+                  اطلب السداد
+                </Button>
+              </div>
+            ) : expenses.length === 0 ? (
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-muted-foreground">ابدأ بإضافة أول مصروف</span>
+                <Button variant="default" size="sm" onClick={() => navigate(`/add-expense?groupId=${id}`)} className="shrink-0">
+                  <Plus className="w-4 h-4 me-1" /> إضافة مصروف
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="text-sm font-semibold text-muted-foreground">كل شيء تمام ✓</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/add-expense?groupId=${id}`)} className="shrink-0">
+                  <Plus className="w-4 h-4 me-1" /> أضف مصروف
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ═══════════ 4️⃣ SMART SUGGESTION (optional) ═══════════ */}
+        {smartSuggestion && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/5 border border-accent/10">
+            <Lightbulb className="w-4 h-4 text-accent shrink-0" />
+            <p className="text-xs text-muted-foreground">{smartSuggestion}</p>
+          </div>
         )}
 
-        {/* ═══════════ 4️⃣ DYNAMIC STATUS BANNER ═══════════ */}
-        <GroupStatusBanner
-          state={groupState}
-          myBalance={myBalances.confirmed}
-          currencyLabel={currencyLabel}
-          onSettleNow={() => openSettlement()}
-          onSendRequest={() => setRequestPaymentOpen(true)}
-          onFinalClose={() => setCloseGroupDialogOpen(true)}
-          onViewSummary={() => setTripSummaryOpen(true)}
-          hasDebtors={debtors.length > 0}
-        />
+        {/* ═══════════ 5️⃣ SECONDARY ACTIONS ═══════════ */}
+        {canAddExpenses && (
+          <div className="grid grid-cols-3 gap-2">
+            <Button 
+              variant="outline" size="sm" className="text-xs h-9"
+              onClick={() => navigate(`/add-expense?groupId=${id}`)}
+            >
+              <Plus className="w-3.5 h-3.5 me-1" /> مصروف
+            </Button>
+            <Button 
+              variant="outline" size="sm" className="text-xs h-9"
+              onClick={() => openSettlement()}
+            >
+              <DollarSign className="w-3.5 h-3.5 me-1" /> تسوية
+            </Button>
+            <Button 
+              variant="outline" size="sm" className="text-xs h-9"
+              onClick={() => setOpenInvite(true)}
+            >
+              <UserPlus className="w-3.5 h-3.5 me-1" /> دعوة
+            </Button>
+          </div>
+        )}
 
         {/* Pending ratings for closed groups */}
         {isGroupClosed && registeredMembers.length > 0 && (
@@ -513,122 +558,48 @@ const GroupDetails = () => {
           />
         )}
 
-        {/* ═══════════ ADD MEMBER BUTTON ═══════════ */}
-        {!isGroupClosed && (
-          <Button 
-            onClick={() => setOpenInvite(true)} 
-            variant="outline" 
-            className="w-full"
-          >
-            <UserPlus className="w-4 h-4 me-2" />
-            إضافة عضو
-          </Button>
-        )}
-
-        {/* ═══════════ 5️⃣ ADD EXPENSE BUTTON ═══════════ */}
-        {canAddExpenses && (
-          <Button 
-            onClick={() => navigate(`/add-expense?groupId=${id}`)} 
-            variant="hero" 
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 me-2" />
-            إضافة مصروف
-          </Button>
-        )}
-
-        {/* Recommendation */}
-        {recommendationsEnabled && showRecommendation && (
-          <RecommendationNotification
-            type={triggerType === 'meal_time' ? mealType || 'lunch' : triggerType}
-            placeName={currentRecommendation?.name}
-            onViewRecommendation={() => {
-              if (!currentRecommendation && id) {
-                generateRecommendation({ trigger: (triggerType === 'meal_time' ? 'meal_time' : triggerType) || 'planning', groupId: id });
-              }
-              if (currentRecommendation) {
-                navigate(`/add-expense?groupId=${id}&fromRecommendation=true&recommendationId=${currentRecommendation.id}`);
-              }
-            }}
-            onDismiss={() => { dismissTrigger(); if (currentRecommendation) dismissRecommendation(currentRecommendation.id); }}
-            autoHideAfter={30000}
+        {/* ═══════════ 6️⃣ CHAT TIMELINE ═══════════ */}
+        {id && (
+          <GroupChat 
+            groupId={id} 
+            expanded={true}
+            isGroupActive={canAddExpenses}
+            onAddExpense={() => navigate(`/add-expense?groupId=${id}`)}
+            settlements={settlements}
+            profiles={profiles}
+            currency={currencyLabel}
+            currentUserId={currentUserId}
+            onSettlementConfirmed={refetch}
           />
         )}
 
-        {/* ═══════════ 💬 CHAT — القلب الأساسي ═══════════ */}
+        {/* ═══════════ 7️⃣ EXPENSES PREVIEW ═══════════ */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-1">
-            <MessageCircle className="w-4 h-4 text-muted-foreground" />
-            <h2 className="text-sm font-bold">الدردشة</h2>
-            {onlineCount > 0 && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                {onlineCount} متصل
-              </Badge>
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-bold">المصاريف</h2>
+            {expenses.length > 3 && (
+              <Button variant="ghost" size="sm" className="text-xs h-7 text-muted-foreground" 
+                onClick={() => navigate(`/my-expenses?group=${id}`)}>
+                عرض الكل ({expenses.length}) <ChevronLeft className="w-3 h-3 ms-1" />
+              </Button>
             )}
           </div>
-          {id && (
-            <GroupChat 
-              groupId={id} 
-              expanded={true}
-              isGroupActive={canAddExpenses}
-              onAddExpense={() => navigate(`/add-expense?groupId=${id}`)}
-              settlements={settlements}
-              profiles={profiles}
-              currency={currencyLabel}
-              currentUserId={currentUserId}
-              onSettlementConfirmed={refetch}
-            />
-          )}
-        </div>
 
-        {/* ═══════════ TABS — محتوى ثانوي ═══════════ */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 bg-muted/60">
-            <TabsTrigger value="expenses" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">المصاريف</TabsTrigger>
-            <TabsTrigger value="members" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">الأعضاء</TabsTrigger>
-            <TabsTrigger value="settlements" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">التسويات</TabsTrigger>
-            <TabsTrigger value="budget" className="text-xs data-[state=active]:shadow-md data-[state=active]:font-bold">الميزانية</TabsTrigger>
-          </TabsList>
-
-          {/* ── Expenses Tab ── */}
-          <TabsContent value="expenses" className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h2 className="text-base font-bold">المصاريف</h2>
+          {loading && <p className="text-sm text-muted-foreground px-1">جاري التحميل...</p>}
+          
+          {!loading && expenses.length === 0 ? (
+            <div className="text-center py-6 rounded-xl bg-card border border-border/50">
+              <Receipt className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">لا توجد مصاريف بعد</p>
               {canAddExpenses && (
-                <Button onClick={() => navigate(`/add-expense?groupId=${id}`)} variant="hero" size="sm" className="text-xs">
-                  <Plus className="w-3.5 h-3.5 me-1" />
-                  إضافة مصروف
+                <Button variant="ghost" size="sm" className="mt-2 text-xs" onClick={() => navigate(`/add-expense?groupId=${id}`)}>
+                  <Plus className="w-3.5 h-3.5 me-1" /> إضافة مصروف
                 </Button>
               )}
             </div>
-
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-              {([
-                { key: "all" as const, label: "الكل" },
-                { key: "approved" as const, label: "معتمد" },
-                { key: "pending" as const, label: "معلّق" },
-                { key: "rejected" as const, label: "مرفوض" },
-              ]).map(f => (
-                <button
-                  key={f.key}
-                  onClick={() => setExpenseFilter(f.key)}
-                  className={cn(
-                    "shrink-0 rounded-full px-3 py-1 text-[11px] font-medium border transition-colors",
-                    expenseFilter === f.key
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted"
-                  )}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
-            {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
-            
-            <div className="space-y-2.5">
-              {filteredExpenses.map((expense) => {
+          ) : (
+            <div className="space-y-2">
+              {previewExpenses.map((expense) => {
                 const payerName = (expense.payer_id && (profiles[expense.payer_id]?.display_name || profiles[expense.payer_id]?.name)) || "عضو";
                 return (
                   <Card key={expense.id} className="bg-card/90 border border-border/50 shadow-card rounded-xl cursor-pointer"
@@ -641,13 +612,6 @@ const GroupDetails = () => {
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-sm text-foreground leading-tight line-clamp-1">{expense.description ?? "مصروف"}</h3>
                           <p className="text-[11px] text-muted-foreground mt-0.5">دفع بواسطة {payerName}</p>
-                          {expense.status === "rejected" && expense.expense_rejections && expense.expense_rejections.length > 0 && (
-                            <div className="mt-1.5 p-2 bg-destructive/5 border border-destructive/10 rounded-lg">
-                              <p className="text-[10px] text-destructive/80 leading-relaxed line-clamp-2">
-                                {expense.expense_rejections[0].rejection_reason || "لم يتم تحديد سبب"}
-                              </p>
-                            </div>
-                          )}
                         </div>
                         <div className="text-left shrink-0 flex flex-col items-end gap-1">
                           <p className="text-xl font-black text-accent leading-none">
@@ -682,31 +646,7 @@ const GroupDetails = () => {
                                 className="h-6 w-6 p-0 opacity-70 hover:opacity-100 text-destructive" aria-label="رفض">
                                 <XCircle className="w-3.5 h-3.5" />
                               </Button>
-                              {isAdmin && (
-                                <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setExpenseToDelete(expense); setDeleteExpenseConfirmOpen(true); }}
-                                  className="h-6 w-6 p-0 opacity-50 hover:opacity-100 text-destructive" aria-label="حذف">
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              )}
                             </div>
-                          )}
-                          {isAdmin && expense.status !== "pending" && (
-                            <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setExpenseToDelete(expense); setDeleteExpenseConfirmOpen(true); }}
-                              className="h-6 w-6 p-0 opacity-50 hover:opacity-100 text-destructive mt-1" aria-label="حذف">
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          )}
-                          {expense.status === "rejected" && currentUserId === expense.payer_id && (
-                            <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
-                              className="text-[10px] h-6 px-2 opacity-70 hover:opacity-100 mt-1">
-                              <Edit className="w-3 h-3 me-0.5" />تعديل
-                            </Button>
-                          )}
-                          {(expense.status === "pending" || expense.status === "rejected") && currentUserId === expense.payer_id && !canApprove && (
-                            <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleEditExpense(expense); }}
-                              className="text-[10px] h-6 px-2 opacity-70 hover:opacity-100 mt-1">
-                              <Edit className="w-3 h-3 me-0.5" />تعديل
-                            </Button>
                           )}
                         </div>
                       </div>
@@ -714,58 +654,119 @@ const GroupDetails = () => {
                   </Card>
                 );
               })}
-              {!loading && expenses.length === 0 && (
-                <p className="text-sm text-muted-foreground">لا توجد مصاريف بعد.</p>
+            </div>
+          )}
+        </div>
+
+        {/* ═══════════ 8️⃣ SETTLEMENT CARD ═══════════ */}
+        <Card className="border-border/50 bg-card">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold">التسويات</h2>
+              {settlements.length > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{settlements.length}</Badge>
               )}
             </div>
-          </TabsContent>
+            {myBalances.confirmed < -0.01 ? (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-destructive font-semibold">عليك {Math.abs(myBalances.confirmed).toLocaleString()} {currencyLabel}</span>
+                <Button variant="default" size="sm" onClick={() => openSettlement()}>سدد الآن</Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <span className="text-sm text-muted-foreground">المجموعة متوازنة ✓</span>
+              </div>
+            )}
+            <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => setSettlementDetailsOpen(true)}>
+              عرض التفاصيل <ChevronLeft className="w-3 h-3 ms-1" />
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* ── Members Tab ── */}
-          <TabsContent value="members" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">الأعضاء</h2>
-              {!isGroupClosed && (
-                <Button variant="outline" onClick={() => setOpenInvite(true)}>
-                  <UserPlus className="w-4 h-4 ml-2" />
-                  دعوة عضو جديد
-                </Button>
-              )}
+        {/* ═══════════ 9️⃣ MEMBERS PREVIEW ═══════════ */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-bold">الأعضاء</h2>
+            <Button variant="ghost" size="sm" className="text-xs h-7 text-muted-foreground" onClick={() => setMembersSheetOpen(true)}>
+              عرض الكل ({memberCount}) <ChevronLeft className="w-3 h-3 ms-1" />
+            </Button>
+          </div>
+
+          {registeredMembers.length === 0 ? (
+            <div className="text-center py-6 rounded-xl bg-card border border-border/50">
+              <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">ادعُ أعضاء للمجموعة</p>
+              <Button variant="ghost" size="sm" className="mt-2 text-xs" onClick={() => setOpenInvite(true)}>
+                <UserPlus className="w-3.5 h-3.5 me-1" /> دعوة عضو
+              </Button>
             </div>
-
-            <PendingInvitesSection groupId={id} isAdmin={isAdmin || isOwner} />
-            
-            {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
-            {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
-
-            <div className="space-y-4">
-              {registeredMembers.map((member) => {
-                const memberSubscription = memberSubscriptions[member.user_id];
-                const memberPlan = memberSubscription?.plan || 'free';
-                const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
-                const memberProfile = profiles[member.user_id];
-                const memberBalance = balances.find(b => b.user_id === member.user_id);
-                const memberPending = pendingAmounts.find(p => p.user_id === member.user_id);
-                
+          ) : (
+            <div className="space-y-2">
+              {previewMembers.map((member) => {
+                const profile = profiles[member.user_id];
+                const balance = balances.find(b => b.user_id === member.user_id);
+                const net = Number(balance?.net_balance ?? 0);
                 return (
-                  <MemberCard key={member.user_id}
-                    member={{ ...member, profile: memberProfile }}
-                    currentUserId={currentUserId} isOwner={isOwner} canAdmin={canApprove} groupId={id!}
-                    onMemberRemoved={forceRefresh} planConfig={memberPlanConfig}
-                    balance={memberBalance} pendingAmount={memberPending} currency={currencyLabel}
-                    allBalances={balances} profiles={profiles}
-                  />
+                  <div key={member.user_id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/50">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                        <Users className="w-4 h-4 text-accent" />
+                      </div>
+                      <span className="text-sm font-medium truncate">{profile?.display_name || profile?.name || 'عضو'}</span>
+                    </div>
+                    <span className={cn(
+                      "text-sm font-bold",
+                      net > 0.01 ? "text-green-600" : net < -0.01 ? "text-destructive" : "text-muted-foreground"
+                    )}>
+                      {net > 0.01 ? '+' : ''}{net.toLocaleString()} {currencyLabel}
+                    </span>
+                  </div>
                 );
               })}
-              {!loading && registeredMembers.length === 0 && (
-                <p className="text-sm text-muted-foreground">لا يوجد أعضاء حتى الآن.</p>
-              )}
             </div>
+          )}
+        </div>
+
+      {/* ═══════════ MEMBERS SHEET ═══════════ */}
+      <Sheet open={membersSheetOpen} onOpenChange={setMembersSheetOpen}>
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>جميع الأعضاء ({memberCount})</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 mt-4">
+            {!isGroupClosed && (
+              <Button variant="outline" className="w-full" onClick={() => { setMembersSheetOpen(false); setOpenInvite(true); }}>
+                <UserPlus className="w-4 h-4 me-2" /> دعوة عضو جديد
+              </Button>
+            )}
+
+            <PendingInvitesSection groupId={id} isAdmin={isAdmin || isOwner} />
+
+            {registeredMembers.map((member) => {
+              const memberSubscription = memberSubscriptions[member.user_id];
+              const memberPlan = memberSubscription?.plan || 'free';
+              const memberPlanConfig = getPlanBadgeConfig(memberPlan as any);
+              const memberProfile = profiles[member.user_id];
+              const memberBalance = balances.find(b => b.user_id === member.user_id);
+              const memberPending = pendingAmounts.find(p => p.user_id === member.user_id);
+              
+              return (
+                <MemberCard key={member.user_id}
+                  member={{ ...member, profile: memberProfile }}
+                  currentUserId={currentUserId} isOwner={isOwner} canAdmin={canApprove} groupId={id!}
+                  onMemberRemoved={forceRefresh} planConfig={memberPlanConfig}
+                  balance={memberBalance} pendingAmount={memberPending} currency={currencyLabel}
+                  allBalances={balances} profiles={profiles}
+                />
+              );
+            })}
 
             {(() => {
               const pendingMembers = members.filter(m => !m.user_id || m.status === 'pending' || m.status === 'invited');
               if (pendingMembers.length === 0) return null;
               return (
-                <div className="space-y-3 mt-6">
+                <div className="space-y-3 mt-4">
                   <h3 className="text-base font-semibold text-muted-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     أعضاء بانتظار التسجيل ({pendingMembers.length})
@@ -776,23 +777,17 @@ const GroupDetails = () => {
                 </div>
               );
             })()}
-          </TabsContent>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-          {/* ── Settlements Tab ── */}
-          <TabsContent value="settlements" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">التسويات</h2>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => openSettlement()}>إضافة تسوية</Button>
-                {myBalances.confirmed < 0 && (
-                  <Button variant="hero" onClick={() => openSettlement()}>تسوية الآن</Button>
-                )}
-              </div>
-            </div>
-
-            {loading && <p className="text-sm text-muted-foreground">جاري التحميل...</p>}
-            {error && <p className="text-sm text-destructive">خطأ: {error}</p>}
-
+      {/* ═══════════ SETTLEMENT DETAILS SHEET ═══════════ */}
+      <Sheet open={settlementDetailsOpen} onOpenChange={setSettlementDetailsOpen}>
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>تفاصيل التسويات</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
             {!loading && !error && currentUserId && (
               <BalanceDashboard
                 currentUserId={currentUserId} balances={balances} pendingAmounts={pendingAmounts}
@@ -810,124 +805,9 @@ const GroupDetails = () => {
                 onSettlementConfirmed={refetch}
               />
             )}
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">جميع التسويات</h3>
-              {settlements.map(s => (
-                <Card key={s.id} className="bg-card/90 border border-border/50 shadow-card rounded-2xl">
-                  <CardContent className="p-5 md:p-6">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center shrink-0">
-                          <DollarSign className="w-5 h-5 text-accent" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-semibold">{nameOf(s.from_user_id)} → {nameOf(s.to_user_id)}</div>
-                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                            <span>{(s.created_at || '').toString().slice(0,10)}</span>
-                            {s.note && <span className="opacity-40">•</span>}
-                            {s.note && <span className="truncate">{s.note}</span>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-left shrink-0">
-                        <div className="text-2xl font-black text-accent">{Number(s.amount).toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">{currencyLabel}</div>
-                        {(currentUserId === s.created_by || canApprove) && (
-                          <div className="flex justify-end mt-2">
-                            <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={() => handleDeleteSettlement(s.id)}>
-                              <Trash2 className="w-4 h-4 ml-1" /> حذف
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {!loading && settlements.length === 0 && (
-                <p className="text-sm text-muted-foreground">لا توجد تسويات بعد.</p>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* ── Budget Tab ── */}
-          <TabsContent value="budget">
-            <div className="space-y-6">
-              <BudgetQuickActions
-                groupId={id!} groupName={group?.name} groupType={group?.group_type} memberCount={memberCount}
-                budgetCount={budgets.length} totalBudget={budgetTotals.total} totalSpent={budgetTotals.spent}
-                onCreateBudget={async (budgetData) => {
-                  await createBudget({
-                    name: budgetData.name, total_amount: budgetData.total_amount,
-                    amount_limit: budgetData.amount_limit || budgetData.total_amount,
-                    group_id: budgetData.group_id, period: budgetData.period || "monthly",
-                    start_date: budgetData.start_date || new Date().toISOString().split('T')[0],
-                    end_date: budgetData.end_date, budget_type: budgetData.budget_type || "monthly",
-                    category_id: budgetData.category_id
-                  });
-                }}
-                isCreating={isCreating}
-              />
-
-              {budgetLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin mx-auto w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
-                  <p className="text-muted-foreground mt-2">جاري تحميل الميزانيات...</p>
-                </div>
-              ) : budgetTracking && budgetTracking.length > 0 ? (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">فئات الميزانية</h3>
-                    <Badge variant="secondary">{budgetTracking.length} فئة</Badge>
-                  </div>
-                  <div className="grid gap-4">
-                    {budgetTracking.map((categoryBudget) => {
-                      const budgetForCard = {
-                        id: categoryBudget.category_id || '', name: categoryBudget.category_name || 'فئة غير محددة',
-                        total_amount: categoryBudget.budgeted_amount, period: 'monthly' as const,
-                        start_date: new Date().toISOString().split('T')[0], end_date: null,
-                        created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-                        created_by: '', group_id: id!, category_id: categoryBudget.category_id,
-                        budget_type: 'monthly' as const, amount_limit: categoryBudget.budgeted_amount, starts_on: null
-                      };
-                      return (
-                        <BudgetProgressCard key={`category-${categoryBudget.category_id}`}
-                          budget={budgetForCard} progress={categoryBudget.spent_percentage}
-                          spent={categoryBudget.spent_amount} remaining={categoryBudget.remaining_amount}
-                          onEdit={() => { setEditingBudget(budgetForCard); setEditBudgetOpen(true); }}
-                          onDelete={() => { setDeletingBudget(budgetForCard); setDeleteBudgetOpen(true); }}
-                          formatCurrency={(amount) => formatCurrency(amount, group?.currency || 'SAR')}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-muted-foreground">لا توجد ميزانيات بعد</div>
-                  <p className="text-sm text-muted-foreground mt-2">ابدأ بإنشاء ميزانية لتتبع مصاريف المجموعة</p>
-                </div>
-              )}
-
-              {budgetAlerts.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-amber-600">تنبيهات الميزانية</h4>
-                  {budgetAlerts.map((alert, index) => (
-                    <Card key={index} className="border-amber-200 bg-amber-50">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-5 h-5 text-amber-600" />
-                          <p className="text-sm font-medium text-amber-800">{getAlertMessage(alert)}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* ═══════════ All Dialogs ═══════════ */}
       <GroupSettlementDialog
@@ -969,18 +849,6 @@ const GroupDetails = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <CreateBudgetDialog open={createBudgetOpen} onOpenChange={setCreateBudgetOpen}
-        onCreateBudget={async (data) => { await createBudget({ ...data, group_id: id! }); setCreateBudgetOpen(false); refetch(); }}
-        isCreating={isCreating}
-      />
-      <EditBudgetDialog open={editBudgetOpen} onOpenChange={setEditBudgetOpen} budget={editingBudget}
-        onUpdate={async (budgetId, updates) => { await updateBudget({ id: budgetId, ...updates }); setEditBudgetOpen(false); setEditingBudget(null); }}
-        isUpdating={isCreating}
-      />
-      <DeleteBudgetDialog open={deleteBudgetOpen} onOpenChange={setDeleteBudgetOpen} budget={deletingBudget}
-        onConfirm={async () => { if (deletingBudget) { await deleteBudget(deletingBudget.id); setDeleteBudgetOpen(false); setDeletingBudget(null); } }}
-        isDeleting={isCreating}
-      />
       <DeleteGroupDialog open={deleteGroupDialogOpen} onOpenChange={setDeleteGroupDialogOpen}
         groupName={group?.name || ""} onConfirm={handleDeleteGroup} isDeleting={isDeletingGroup}
       />
@@ -993,7 +861,6 @@ const GroupDetails = () => {
           if (success) { 
             setCloseGroupDialogOpen(false); 
             refetch(); 
-            // Auto-open trip summary after closing
             setTimeout(() => setTripSummaryOpen(true), 500);
           } 
         }}
@@ -1002,7 +869,6 @@ const GroupDetails = () => {
       <FinishGroupDialog open={finishGroupDialogOpen} onOpenChange={setFinishGroupDialogOpen}
         onConfirm={handleFinishGroup} loading={finishingGroup} groupName={group?.name}
       />
-      {/* Phase 2: Request Payment Dialog */}
       <RequestPaymentDialog
         open={requestPaymentOpen}
         onOpenChange={setRequestPaymentOpen}
@@ -1012,13 +878,11 @@ const GroupDetails = () => {
         currentUserId={currentUserId}
         currentUserName={profiles[currentUserId || '']?.display_name || profiles[currentUserId || '']?.name || ''}
       />
-      {/* Phase 3: Trip Summary Sheet */}
       <TripSummarySheet
         open={tripSummaryOpen}
         onOpenChange={setTripSummaryOpen}
         {...tripSummaryData}
       />
-      {/* Phase 4: Previous Balance Sheet */}
       {id && currentUserId && (
         <PreviousBalanceSheet
           open={previousBalanceOpen}
@@ -1039,7 +903,6 @@ const GroupDetails = () => {
         />
       )}
       </div>
-      </UnifiedAdLayout>
       
       <div className="h-32 lg:hidden" />
       <BottomNav />
