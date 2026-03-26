@@ -1,27 +1,27 @@
 
 
-# تقليل التبويبات السفلية إلى 3 فقط
+# تشخيص: الصفحة لا تظهر
 
-## التغيير
-ملف واحد فقط: `src/components/BottomNav.tsx`
+## النتيجة
+بعد فحص شامل لجميع الملفات المعدلة مؤخراً، **لا يوجد خطأ برمجي** يمنع ظهور الصفحة:
 
-### التعديلات:
-1. تغيير `baseItems` من 4 عناصر إلى 3:
-   - **الرئيسية** → `/dashboard` (Home icon)
-   - **مجموعاتي** → `/my-groups` (Users icon)
-   - **ملفي** → `/settings` (User icon)
+- `BottomNav.tsx` — سليم
+- `BalanceDashboard.tsx` — سليم
+- `GroupSettlementDialog.tsx` — سليم
+- `SettlementAnnouncementCard.tsx` — سليم
+- `ConfirmSettlementDialog.tsx` — سليم
+- `NotificationBell.tsx` — سليم
+- `Notifications.tsx` — سليم
+- ملفات الترجمة (JSON) — سليمة
+- ملفات Migration — سليمة
+- Console logs — لا يوجد أخطاء React، فقط تحذيرات من Meta Pixel و TikTok
 
-2. إزالة "مصاريفي" (`/my-expenses`) و "الإحالة" (`/referral`) من الشريط فقط — الصفحات تبقى كما هي
+## السبب المرجح
+المشكلة على الأرجح **عدم اكتمال تحميل Preview** بعد التعديلات الأخيرة (تحديث `bun.lock` + تعديلات متعددة). هذا يحدث أحياناً عند تغييرات متتالية سريعة.
 
-3. للمشرفين: إضافة زر الإدارة كرابع (بدل خامس)
+## الحل المقترح
+1. **إعادة تحميل Preview** — اضغط على زر Refresh في نافذة المعاينة
+2. إذا استمرت المشكلة، سأضيف `console.log` statements في `Index.tsx` و `App.tsx` لتحديد أين يتوقف التحميل بالضبط
 
-4. تحديث i18n: إضافة مفتاح `nav.profile` في `ar/common.json` و `en/common.json`
-
-### الملفات المتأثرة
-
-| الملف | التغيير |
-|---|---|
-| `src/components/BottomNav.tsx` | تقليل التبويبات لـ 3 + تغيير أيقونة الملف الشخصي |
-| `src/i18n/locales/ar/common.json` | إضافة `nav.profile` |
-| `src/i18n/locales/en/common.json` | إضافة `nav.profile` |
+لا حاجة لتغيير كود — الملفات كلها سليمة.
 
