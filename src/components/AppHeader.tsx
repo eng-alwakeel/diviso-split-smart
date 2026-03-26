@@ -7,13 +7,16 @@ import { RoleBadgesList } from "@/components/ui/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign } from "lucide-react";
+import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign, Receipt, Gift, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditBalance } from "@/components/credits/CreditBalance";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
+import { useUsageCredits } from "@/hooks/useUsageCredits";
+import { FoundingBadge } from "@/components/ui/founding-badge";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -42,6 +45,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
   const { toast } = useToast();
   const { t } = useTranslation('common');
   const { currentLanguage, changeLanguage } = useLanguage();
+  const { balance } = useUsageCredits();
 
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile-header'],
@@ -54,6 +58,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
         .eq('id', user.id)
         .single();
       return {
+        id: user.id,
         name: profileData?.name || profileData?.display_name || user.email?.split('@')[0],
         avatar_url: profileData?.avatar_url,
         email: user.email,
@@ -63,6 +68,8 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
     enabled: !minimal,
     staleTime: 2 * 60 * 1000,
   });
+
+  const { userNumber, isFoundingUser } = useFoundingUser(userProfile?.id);
 
   const handleLanguageSwitch = () => {
     changeLanguage(currentLanguage === 'ar' ? 'en' : 'ar');
@@ -115,18 +122,61 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52 bg-background border-border">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userProfile?.name || t('user.default_name')}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {userProfile?.email}
-                      </p>
+                <DropdownMenuContent align="start" className="w-64 bg-background border-border">
+                  {/* User Header Section */}
+                  <div className="px-3 py-3 bg-muted/50 rounded-t-md">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        {userProfile?.avatar_url ? (
+                          <AvatarImage src={userProfile.avatar_url} alt={t('profile')} />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || t('user.default_initial')}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <p className="text-sm font-semibold leading-none truncate">
+                          {userProfile?.name || t('user.default_name')}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
+                          {userProfile?.email}
+                        </p>
+                      </div>
                     </div>
-                  </DropdownMenuLabel>
+                    {/* Founder badge + Credits */}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {isFoundingUser && userNumber && (
+                        <FoundingBadge userNumber={userNumber} size="sm" />
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Coins className="h-3.5 w-3.5 text-primary" />
+                        <span>{t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <DropdownMenuSeparator />
+
+                  {/* Section 1: Primary Tools */}
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/my-expenses')}
+                    className="cursor-pointer"
+                  >
+                    <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <span>{t('menu.my_expenses')}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/referral')}
+                    className="cursor-pointer"
+                  >
+                    <Gift className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    <span>{t('menu.referral')}</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  {/* Section 2: System & Settings */}
                   <DropdownMenuItem 
                     onClick={() => navigate('/settings')}
                     className="cursor-pointer"
@@ -154,7 +204,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       </DropdownMenuItem>
                     );
                   })}
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLanguageSwitch}
                     className="cursor-pointer"
@@ -167,7 +216,10 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       </span>
                     </div>
                   </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
+
+                  {/* Section 3: Danger */}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem 
