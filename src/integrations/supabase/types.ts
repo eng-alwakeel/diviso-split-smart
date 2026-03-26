@@ -1814,6 +1814,7 @@ export type Database = {
       }
       expenses: {
         Row: {
+          activity_id: string | null
           amount: number
           category_id: string | null
           created_at: string | null
@@ -1831,6 +1832,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          activity_id?: string | null
           amount: number
           category_id?: string | null
           created_at?: string | null
@@ -1848,6 +1850,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          activity_id?: string | null
           amount?: number
           category_id?: string | null
           created_at?: string | null
@@ -1865,6 +1868,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "plan_day_activities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_category_id_fkey"
             columns: ["category_id"]
@@ -2192,6 +2202,7 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          source_plan_id: string | null
           status: string | null
           updated_at: string | null
         }
@@ -2203,6 +2214,7 @@ export type Database = {
           id?: string
           name: string
           owner_id: string
+          source_plan_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -2214,6 +2226,7 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          source_plan_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -2223,6 +2236,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "groups_source_plan_id_fkey"
+            columns: ["source_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
             referencedColumns: ["id"]
           },
         ]
