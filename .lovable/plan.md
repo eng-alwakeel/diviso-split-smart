@@ -1,45 +1,73 @@
 
 
-# FAB Context-Aware Actions
+# ترقية القائمة المنسدلة إلى لوحة مستخدم متقدمة
 
-## التغيير
-ملف واحد: `src/components/BottomNav.tsx` + ترجمات جديدة
+## التغييرات
 
-### المنطق
-استخدام `location.pathname` لتحديد 3 أفعال مختلفة حسب الصفحة:
+### 1. `src/components/AppHeader.tsx` — إعادة هيكلة القائمة المنسدلة
 
-| السياق | الشرط | الأفعال (بالترتيب) |
-|---|---|---|
-| **داخل مجموعة** | `/group/:id` | إضافة مصروف، تسوية، دعوة عضو |
-| **مجموعاتي** | `/my-groups` | إنشاء مجموعة، الانضمام برابط، إنشاء خطة |
-| **الرئيسية / أي صفحة أخرى** | fallback | إضافة مصروف، إنشاء مجموعة، إنشاء خطة |
+**Header Section (محسّن):**
+- خلفية مميزة `bg-muted/50` مع padding أكبر
+- Avatar أكبر (h-10 w-10) بجانب الاسم والإيميل
+- شارة المؤسس الذهبية `FoundingBadge` (إذا `isFoundingUser`)
+- رصيد النقاط: عرض `balance.totalAvailable` مع أيقونة `Coins`
 
-### التعديلات
+**Imports الجديدة:**
+- `useFoundingUser` — لعرض شارة المؤسس
+- `useUsageCredits` — لعرض الرصيد
+- `FoundingBadge` — المكون الجاهز
+- `Receipt`, `Gift` — أيقونات للعناصر الجديدة
 
-**`BottomNav.tsx`**:
-- استبدال `fabActions` الثابت بدالة `getFabActions()` تعتمد على `location.pathname`
-- للمجموعة: استخراج `groupId` من المسار وتمريره كـ query param (`/add-expense?group=ID`)
-- إضافة أيقونات: `Handshake` للتسوية، `Link` للانضمام برابط، `UserPlus` للدعوة
-- لا API calls — كل شيء static
+**تعديل query الملف الشخصي** — إضافة `user.id` للـ return لتمريره لـ `useFoundingUser`
 
-**`ar/common.json` + `en/common.json`**:
-إضافة مفاتيح جديدة:
+**هيكلة القائمة الجديدة:**
+
+```text
+┌──────────────────────────┐
+│ 👤 أحمد محمد              │
+│    ahmed@email.com        │
+│    👑 #42  ·  🪙 118 نقطة  │
+├──────────────────────────┤
+│ 📋 مصاريفي                │
+│ 🎁 الإحالة                │
+├──────────────────────────┤
+│ ⚙️ الإعدادات              │
+│ 👑 لوحة المالك (ذهبي)     │
+│ 🛡️ لوحة الإدارة (أخضر)   │
+│ 🌐 اللغة                  │
+├──────────────────────────┤
+│ 🚪 تسجيل الخروج (أحمر)    │
+└──────────────────────────┘
+```
+
+**Section 1 - أدوات أساسية** (بعد الـ header):
+- مصاريفي → `/my-expenses` (أيقونة `Receipt`)
+- الإحالة → `/referral` (أيقونة `Gift`)
+
+**Section 2 - النظام** (بعد separator):
+- الإعدادات (كما هو)
+- لوحات المالك/الإدارة (حسب الصلاحيات)
+- اللغة
+
+**Section 3 - خطر** (بعد separator):
+- تسجيل الخروج بلون أحمر (كما هو)
+
+### 2. ترجمات جديدة
+
+**`ar/common.json` + `en/common.json`:**
 ```json
-"fab": {
-  "add_expense": "إضافة مصروف",
-  "create_group": "إنشاء مجموعة",
-  "create_plan": "إنشاء خطة",
-  "settlement": "تسوية",
-  "invite_member": "دعوة عضو",
-  "join_by_link": "الانضمام برابط"
+"menu": {
+  "my_expenses": "مصاريفي" / "My Expenses",
+  "referral": "الإحالة" / "Referral",
+  "credits_balance": "رصيدك: {{count}} نقطة" / "Balance: {{count}} credits"
 }
 ```
 
-### الملفات
+### الملفات المتأثرة
 
 | الملف | التغيير |
 |---|---|
-| `src/components/BottomNav.tsx` | `getFabActions()` context-aware |
-| `src/i18n/locales/ar/common.json` | 3 مفاتيح جديدة |
-| `src/i18n/locales/en/common.json` | 3 مفاتيح جديدة |
+| `src/components/AppHeader.tsx` | إعادة هيكلة القائمة + عرض الشارة والرصيد |
+| `src/i18n/locales/ar/common.json` | مفاتيح `menu.*` |
+| `src/i18n/locales/en/common.json` | مفاتيح `menu.*` |
 
