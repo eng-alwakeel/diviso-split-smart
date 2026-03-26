@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 import { useFoundingProgram } from "@/hooks/useFoundingProgram";
+import { useFoundingUser } from "@/hooks/useFoundingUser";
+import { supabase } from "@/integrations/supabase/client";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation('landing');
@@ -11,6 +13,15 @@ export const HeroSection = () => {
   const { remaining, isClosed } = useFoundingProgram();
   const isRTL = i18n.language === 'ar';
   const [showScrollArrow, setShowScrollArrow] = useState(true);
+  const [userId, setUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setUserId(session?.user?.id));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const { isFoundingUser } = useFoundingUser(userId);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,28 +38,22 @@ export const HeroSection = () => {
       
       <div className="container mx-auto px-4 relative py-12">
         <div className="max-w-2xl mx-auto text-center">
-          {/* Ramadan tagline */}
-          <p className="text-sm md:text-base text-white/70 mb-3">
-            {isRTL ? (
-              <>رمضان يجمعنا… و <span className="text-primary font-semibold">Diviso</span> يرتّبها بينكم</>
-            ) : (
-              <>{t('ramadan.headline_pre')}<span className="text-primary font-semibold">Diviso</span>{t('ramadan.headline_post')}</>
-            )}
-          </p>
-
           {/* Main Title */}
           <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6">
-            <span className="text-primary">Diviso</span> {t('hero.mainTitle')}
+            {isRTL 
+              ? 'قسّم المصاريف بينكم بسهولة وبدون إحراج'
+              : <>Split expenses easily with <span className="text-primary">Diviso</span> — no awkwardness</>
+            }
           </h1>
           
           {/* Use Cases Line */}
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-6">
-            {['travel', 'housing', 'friends', 'activities', 'camping'].map((useCase, index) => (
+            {['travel', 'housing', 'friends', 'family', 'outings', 'coworkers'].map((useCase, index) => (
               <span key={useCase} className="flex items-center">
                 <span className="text-base md:text-lg text-white/90 font-medium">
                   {t(`hero.useCases.${useCase}`)}
                 </span>
-                {index < 4 && (
+                {index < 5 && (
                   <span className="text-white/50 mx-2 md:mx-3">•</span>
                 )}
               </span>
@@ -62,15 +67,23 @@ export const HeroSection = () => {
 
           {/* Founding Program Banner */}
           {!isClosed && (
-            <div className="mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-amber-500/20 border border-amber-400/30 rounded-xl px-4 py-3 backdrop-blur-sm max-w-sm mx-auto">
-              <p className="text-sm font-medium text-amber-300 flex items-center justify-center gap-2">
-                <span>⭐</span>
-                <span>{isRTL ? 'برنامج المستخدمين المؤسسين' : 'Founding Users Program'}</span>
+            <div className="mb-4 bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-amber-500/20 border border-amber-400/30 rounded-xl px-5 py-4 backdrop-blur-sm max-w-md mx-auto space-y-1.5">
+              <p className="text-base font-bold text-amber-200 leading-snug">
+                {isFoundingUser
+                  ? (isRTL ? '👑 أنت من أوائل المستخدمين في Diviso' : '👑 You are one of Diviso\'s founding users')
+                  : (isRTL ? '👑 احجز مكانك ضمن أول 1000 مستخدم في Diviso' : '👑 Reserve your spot among Diviso\'s first 1,000 users')
+                }
               </p>
-              <p className="text-xs text-amber-200/80 mt-1 text-center">
+              <p className="text-sm text-amber-300/80">
                 {isRTL 
-                  ? `⏳ متبقي ${remaining} من 1000 مقعد`
-                  : `⏳ ${remaining} of 1000 spots remaining`
+                  ? 'واحصل على مزايا حصرية كمستخدم مؤسس'
+                  : 'Get exclusive perks as a founding user'
+                }
+              </p>
+              <p className="text-xs text-amber-200/70">
+                {isRTL 
+                  ? <>⏳ متبقي <span className="font-bold text-amber-200">{remaining}</span> من 1000 مقعد</>
+                  : <>⏳ <span className="font-bold text-amber-200">{remaining}</span> of 1,000 spots remaining</>
                 }
               </p>
             </div>
