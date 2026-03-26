@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, RefreshCw, Users, Receipt, Wallet, Plus, ChevronLeft } from "lucide-react";
+import { AlertTriangle, RefreshCw, Users, Receipt, Wallet, Plus, TrendingDown, TrendingUp, Activity, Gift, ChevronLeft } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { UserNumberBadge } from "@/components/ui/user-number-badge";
 import { RecentGroupActivityCard } from "@/components/dashboard/RecentGroupActivityCard";
+import { useReferralStats } from "@/hooks/useReferralStats";
 import { cn } from "@/lib/utils";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -34,51 +35,47 @@ const LocationPermissionDialog = lazy(() => import("@/components/LocationPermiss
 const NotificationPermissionDialog = lazy(() => import("@/components/NotificationPermissionDialog").then(m => ({ default: m.NotificationPermissionDialog })));
 const RecommendationNotification = lazy(() => import("@/components/recommendations/RecommendationNotification").then(m => ({ default: m.RecommendationNotification })));
 
-// --- Summary Stat Card ---
-const SummaryStatCard = React.memo(({ 
+// --- Summary Stat Cell ---
+const SummaryCell = React.memo(({ 
   icon: Icon, label, value, valueColor, onClick 
 }: { 
   icon: React.ElementType; label: string; value: string; valueColor?: string; onClick: () => void 
 }) => (
   <button 
     onClick={onClick}
-    className="flex flex-col items-center justify-center py-3 rounded-xl bg-card border border-border/50 hover:border-border transition-colors"
+    className="flex flex-col items-center justify-center py-3 gap-0.5 rounded-xl hover:bg-muted/50 transition-colors"
   >
-    <Icon className="w-4 h-4 text-muted-foreground mb-1" />
-    <p className={cn("text-xl font-black leading-none", valueColor || "text-foreground")}>
+    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+    <p className={cn("text-lg font-bold leading-none", valueColor || "text-foreground")}>
       {value}
     </p>
-    <p className="text-[10px] text-muted-foreground mt-1">{label}</p>
+    <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
   </button>
 ));
-SummaryStatCard.displayName = 'SummaryStatCard';
+SummaryCell.displayName = 'SummaryCell';
 
-// --- Balance Status Strip ---
-const BalanceStatusStrip = React.memo(({ netBalance, onClick }: { netBalance: number; onClick: () => void }) => {
+// --- Referral Strip ---
+const ReferralStrip = React.memo(({ totalReferrals, totalEarned, onClick }: { 
+  totalReferrals: number; totalEarned: number; onClick: () => void 
+}) => {
   const { t } = useTranslation('dashboard');
-  const isBalanced = Math.abs(netBalance) < 50;
   
   return (
-    <div className="flex items-center justify-between py-2 px-4 border border-border/30 rounded-lg">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{isBalanced ? '✅' : '❌'}</span>
-        <div>
-          <p className="text-sm font-medium text-foreground">
-            {isBalanced ? t('balance_status.balanced') : t('balance_status.unbalanced')}
-          </p>
-          <p className="text-[10px] text-muted-foreground">
-            {isBalanced ? t('balance_status.balanced_sub') : t('balance_status.unbalanced_sub')}
-          </p>
-        </div>
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between py-2.5 px-4 rounded-xl border border-border/30 hover:bg-muted/30 transition-colors"
+    >
+      <div className="flex items-center gap-2.5">
+        <Gift className="w-4 h-4 text-muted-foreground" />
+        <p className="text-sm text-foreground">
+          {t('referral_strip.summary', { count: totalReferrals, points: totalEarned })}
+        </p>
       </div>
-      <Button variant="ghost" size="sm" onClick={onClick} className="text-xs h-7">
-        {t('balance_status.view_details')}
-        <ChevronLeft className="w-3 h-3 mr-1 rtl:rotate-180" />
-      </Button>
-    </div>
+      <span className="text-xs text-primary font-medium">{t('referral_strip.invite')}</span>
+    </button>
   );
 });
-BalanceStatusStrip.displayName = 'BalanceStatusStrip';
+ReferralStrip.displayName = 'ReferralStrip';
 
 const Dashboard = React.memo(() => {
   const { t, i18n } = useTranslation(['dashboard', 'common']);
@@ -91,6 +88,9 @@ const Dashboard = React.memo(() => {
   const [showSelectGroupDialog, setShowSelectGroupDialog] = useState(false);
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [userId, setUserId] = useState<string>();
+
+  // Referral stats
+  const { totalReferrals, totalEarnedFromReferrals } = useReferralStats();
 
   // Location hook
   const { 
@@ -182,6 +182,7 @@ const Dashboard = React.memo(() => {
   const monthlyTotalExpenses = dashboardData?.monthlyTotalExpenses ?? 0;
   const groupsCount = dashboardData?.groupsCount ?? 0;
   const netBalance = myPaid - myOwed;
+  const currencySymbol = t('dashboard:stats.currency');
 
   // Real-time listener for group members changes
   useEffect(() => {
@@ -269,7 +270,7 @@ const Dashboard = React.memo(() => {
         <AppHeader />
         <div className="page-container space-y-4">
           <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-24 w-full rounded-lg" />
+          <Skeleton className="h-36 w-full rounded-xl" />
           <Skeleton className="h-12 w-full rounded-lg" />
           <Skeleton className="h-10 w-full rounded-lg" />
         </div>
@@ -314,43 +315,77 @@ const Dashboard = React.memo(() => {
           )}
         </div>
 
-        {/* Section 1: Summary Grid (matches Groups page) */}
-        <div className="grid grid-cols-3 gap-2 px-1">
-          <SummaryStatCard
-            icon={Users}
-            label={t('dashboard:stats.groups')}
-            value={groupsCount.toLocaleString()}
-            onClick={() => navigate('/my-groups')}
-          />
-          <SummaryStatCard
-            icon={Receipt}
-            label={t('dashboard:stats.monthly_expenses')}
-            value={monthlyTotalExpenses.toLocaleString()}
-            onClick={() => navigate('/my-expenses')}
-          />
-          <SummaryStatCard
-            icon={Wallet}
-            label={t('dashboard:stats.balance')}
-            value={`${netBalance >= 0 ? '+' : ''}${netBalance.toLocaleString()}`}
-            valueColor={netBalance >= 0 ? "text-green-600" : "text-destructive"}
-            onClick={() => navigate('/my-expenses')}
-          />
+        {/* Section 1: Summary Grid — 2 rows × 3 columns */}
+        <div className="rounded-xl border border-border/50 bg-card p-2">
+          {/* Row 1 */}
+          <div className="grid grid-cols-3 gap-1">
+            <SummaryCell
+              icon={Users}
+              label={t('dashboard:stats.groups')}
+              value={groupsCount.toLocaleString()}
+              onClick={() => navigate('/my-groups')}
+            />
+            <SummaryCell
+              icon={Receipt}
+              label={t('dashboard:stats.monthly_expenses')}
+              value={`${monthlyTotalExpenses.toLocaleString()}`}
+              onClick={() => navigate('/my-expenses')}
+            />
+            <SummaryCell
+              icon={Wallet}
+              label={t('dashboard:stats.net_balance')}
+              value={`${netBalance >= 0 ? '+' : ''}${netBalance.toLocaleString()}`}
+              valueColor={netBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-destructive"}
+              onClick={() => navigate('/my-expenses')}
+            />
+          </div>
+          
+          {/* Divider */}
+          <div className="border-t border-border/30 mx-2 my-1" />
+          
+          {/* Row 2 */}
+          <div className="grid grid-cols-3 gap-1">
+            <SummaryCell
+              icon={TrendingDown}
+              label={t('dashboard:stats.owed')}
+              value={`${myOwed.toLocaleString()}`}
+              valueColor="text-destructive"
+              onClick={() => navigate('/my-expenses/payables')}
+            />
+            <SummaryCell
+              icon={TrendingUp}
+              label={t('dashboard:stats.receivable')}
+              value={`${myPaid.toLocaleString()}`}
+              valueColor="text-green-600 dark:text-green-400"
+              onClick={() => navigate('/my-expenses/receivables')}
+            />
+            <SummaryCell
+              icon={Activity}
+              label={t('dashboard:stats.active')}
+              value={groupsCount.toLocaleString()}
+              onClick={() => navigate('/my-groups')}
+            />
+          </div>
         </div>
 
         {/* Section 2: Quick Actions */}
         <div className="flex gap-3">
-          <Button className="flex-1 gap-2" onClick={() => navigate('/add-expense')}>
+          <Button className="flex-1 gap-2 h-11" onClick={() => navigate('/add-expense')}>
             <Plus className="w-4 h-4" />
             {t('dashboard:quick_actions.add_expense')}
           </Button>
-          <Button variant="outline" className="flex-1 gap-2" onClick={() => navigate('/create-group')}>
+          <Button variant="outline" className="flex-1 gap-2 h-11" onClick={() => navigate('/create-group')}>
             <Users className="w-4 h-4" />
             {t('dashboard:quick_actions.create_group')}
           </Button>
         </div>
 
-        {/* Section 3: Balance Status Strip */}
-        <BalanceStatusStrip netBalance={netBalance} onClick={() => navigate('/my-expenses')} />
+        {/* Section 3: Referral Strip */}
+        <ReferralStrip
+          totalReferrals={totalReferrals}
+          totalEarned={totalEarnedFromReferrals}
+          onClick={() => navigate('/referral')}
+        />
 
         {/* Section 4: Recent Activity */}
         {dashboardMode.hubData?.last_group_event && (
