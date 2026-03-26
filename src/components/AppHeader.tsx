@@ -134,14 +134,20 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     <Settings className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
                     <span>{t('settings')}</span>
                   </DropdownMenuItem>
-                  {adminRoles.map((role) => {
+                  {adminRoles
+                    .sort((a, b) => {
+                      const order: Record<string, number> = { owner: 0, admin: 1 };
+                      return (order[a] ?? 99) - (order[b] ?? 99);
+                    })
+                    .map((role) => {
                     const config = ROLE_MENU_CONFIG[role];
                     if (!config) return null;
+                    const roleBg = role === 'owner' ? 'bg-yellow-50 dark:bg-yellow-950/30' : role === 'admin' ? 'bg-green-50 dark:bg-green-950/30' : '';
                     return (
                       <DropdownMenuItem 
                         key={role}
                         onClick={() => navigate(config.path)}
-                        className={`cursor-pointer ${config.color}`}
+                        className={`cursor-pointer ${config.color} ${roleBg}`}
                       >
                         <span className="ltr:mr-2 rtl:ml-2">{config.icon}</span>
                         <span>{config.label}</span>

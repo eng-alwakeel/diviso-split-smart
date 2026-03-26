@@ -122,5 +122,10 @@
   "language": "اللغة",
   "switch_to_english": "التبديل للإنجليزية",
   "switch_to_arabic": "التبديل للعربية",
-  "current_language": "العربية"
+  "current_language": "العربية",
+  "fab": {
+    "add_expense": "إضافة مصروف",
+    "create_group": "إنشاء مجموعة",
+    "create_plan": "إنشاء خطة"
+  }
 }
