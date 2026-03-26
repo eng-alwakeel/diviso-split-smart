@@ -140,6 +140,7 @@ const GroupDetails = () => {
   const registeredMembers = useMemo(() => members.filter((m): m is typeof m & { user_id: string } => !!m.user_id), [members]);
   const { subscriptions: memberSubscriptions } = useMemberSubscriptions(registeredMembers.map(m => m.user_id));
   const { formatCurrency, currencies } = useCurrencies();
+  const { data: sourcePlan } = useGroupSourcePlan(id);
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   useEffect(() => {
