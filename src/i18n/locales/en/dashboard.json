@@ -20,7 +20,13 @@
     "this_month": "This Month",
     "active": "Active",
     "total": "Total",
-    "total_paid": "Total Paid"
+    "total_paid": "Total Paid",
+    "owed": "You Owe",
+    "receivable": "Owed to You"
+  },
+  "referral_strip": {
+    "summary": "🎁 Invited {{count}} friends – {{points}} points earned",
+    "invite": "Invite a friend"
   },
   "quick_actions": {
     "title": "Quick Actions",

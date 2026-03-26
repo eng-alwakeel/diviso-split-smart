@@ -20,7 +20,13 @@
     "this_month": "هذا الشهر",
     "active": "نشطة",
     "total": "إجمالي",
-    "total_paid": "المدفوع لي"
+    "total_paid": "المدفوع لي",
+    "owed": "عليك",
+    "receivable": "لك"
+  },
+  "referral_strip": {
+    "summary": "🎁 دعوت {{count}} أصدقاء – لديك {{points}} نقطة",
+    "invite": "ادعُ صديق"
   },
   "quick_actions": {
     "title": "إجراءات سريعة",
