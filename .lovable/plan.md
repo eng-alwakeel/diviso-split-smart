@@ -1,41 +1,70 @@
 
 
-# إضافة صفحة "الانضمام برابط"
+# إعادة تصميم الصفحة الرئيسية (Dashboard) لتتوافق مع صفحة المجموعات
 
-## المشكلة
-زر "الانضمام برابط" في FAB يوجّه إلى `/join` لكن لا توجد صفحة مسجلة لهذا المسار.
-
-## الحل
-إنشاء صفحة بسيطة تسمح للمستخدم بلصق رابط الدعوة أو كود الدعوة، ثم توجيهه تلقائياً إلى `/i/:code`.
+## الهدف
+تحويل Dashboard من صفحة مزدحمة بعناصر متعددة (نرد، مكافآت، focus cards، إنجازات) إلى صفحة نظيفة ومنظمة تتبع نفس هيكل صفحة المجموعات: **ملخص → إجراءات → محتوى اختياري**.
 
 ## التغييرات
 
-### 1. `src/pages/JoinByLink.tsx` — صفحة جديدة
-- حقل إدخال نصي للصق رابط الدعوة أو الكود
-- زر "انضمام"
-- عند الإرسال: استخراج الكود من الرابط (مثلاً من `app.com/i/ABC123` → `ABC123`) والتوجيه إلى `/i/ABC123`
-- تصميم بسيط: أيقونة + عنوان + وصف + حقل + زر
+### 1. `src/pages/Dashboard.tsx` — إعادة هيكلة كاملة للمحتوى
 
-### 2. `src/App.tsx` — تسجيل المسار
-- إضافة `<Route path="/join" element={<JoinByLink />} />` ضمن المسارات المحمية
+**إزالة العناصر التالية:**
+- `DailyFocusCard`
+- `StreakDisplay`
+- `DailyDiceCard`
+- `HomePlanCard`
+- `BalanceStatusCard` (الكرت الكبير)
+- `DailyRewardCardCompact`
+- `CreditBalanceCard`
+- `ShareableAchievementCard`
+- `MonthlyWrapCard`
+- `SmartPromotionBanner`
+- `OnboardingProgress`
+- `RecommendationNotification`
+- `FloatingSupportButton`
+- `InstallWidget`
+- `AppGuide` + help button
 
-### 3. ترجمات `ar/common.json` + `en/common.json`
-```json
-"join_by_link_page": {
-  "title": "الانضمام برابط",
-  "description": "الصق رابط الدعوة للانضمام إلى مجموعة",
-  "placeholder": "الصق الرابط هنا...",
-  "join": "انضمام",
-  "invalid_link": "الرابط غير صالح"
-}
+**الهيكل الجديد (بالترتيب):**
+
+```
+العنوان: "مرحباً!" + وصف + شارة المؤسس
+
+═══ القسم 1: ملخص (مطابق لصفحة المجموعات) ═══
+Card واحد يحتوي grid 3 أعمدة:
+  - المجموعات النشطة → clickable → /my-groups
+  - المصاريف هذا الشهر → clickable → /my-expenses  
+  - الرصيد الصافي → clickable → /my-expenses
+  (نفس تصميم stats card في MyGroups)
+
+═══ القسم 2: إجراءات ═══
+زرين متساويين بجانب بعض:
+  - إضافة مصروف (primary)
+  - إنشاء مجموعة (outline)
+  (نفس MinimalQuickActions الحالي)
+
+═══ القسم 3: مؤشر الحالة (صغير) ═══
+شريط صغير (ليس كرت كامل):
+  - ✅ متوازن / ❌ غير متوازن
+  - نص فرعي مختصر
+  - زر "عرض التفاصيل" → /my-expenses
+
+═══ القسم 4: نشاط حديث (اختياري) ═══
+  - RecentGroupActivityCard (كما هو — خفيف ومتسق)
 ```
 
-### الملفات
+**إبقاء الـ dialogs الضرورية:**
+- `LocationPermissionDialog`
+- `NotificationPermissionDialog`
+- `RecommendationDialog` + `SelectGroupDialog`
+- `AchievementPopup`
 
-| الملف | التغيير |
-|---|---|
-| `src/pages/JoinByLink.tsx` | صفحة جديدة |
-| `src/App.tsx` | تسجيل المسار `/join` |
-| `src/i18n/locales/ar/common.json` | ترجمات |
-| `src/i18n/locales/en/common.json` | ترجمات |
+**إبقاء logic الموجود:**
+- `useOptimizedDashboardData`
+- `useDashboardMode` (للتحقق من onboarding redirect فقط)
+- `useAdminAuth`
+- `useFoundingUser`
+- Real-time listeners
 
+### 2. مؤشر الحالة الجديد — inline في
