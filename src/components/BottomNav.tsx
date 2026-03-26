@@ -74,7 +74,7 @@ export const BottomNav = () => {
             <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
               <DrawerTrigger asChild>
                 <button
-                  className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity active:scale-95"
+                  className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg ring-2 ring-background/80 flex items-center justify-center hover:opacity-90 transition-opacity active:scale-95"
                   aria-label={t('add')}
                 >
                   <Plus className="h-7 w-7" strokeWidth={2.5} />
