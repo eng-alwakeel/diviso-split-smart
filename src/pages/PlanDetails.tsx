@@ -20,14 +20,14 @@ import { ConvertToGroupDialog } from "@/components/plans/ConvertToGroupDialog";
 import { LinkToGroupDialog } from "@/components/plans/LinkToGroupDialog";
 import { PlanSuggestionsTab } from "@/components/plans/PlanSuggestionsTab";
 import { PlanExpensesTab } from "@/components/plans/PlanExpensesTab";
-import { PlanVotesTab } from "@/components/plans/PlanVotesTab";
+
 import { PlanItineraryTab } from "@/components/plans/PlanItineraryTab";
 import { SmartCtaBar } from "@/components/plans/SmartCtaBar";
 import { SmartPrompts } from "@/components/plans/SmartPrompts";
 import { PostConvertSheet } from "@/components/plans/PostConvertSheet";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import type { PlanSuggestion } from "@/hooks/usePlanSuggestions";
+
 
 const typeIcons: Record<string, React.ElementType> = {
   trip: Plane,
@@ -58,10 +58,6 @@ const PlanDetails = () => {
   const [convertedGroupId, setConvertedGroupId] = useState<string | null>(null);
   const [hasActivities, setHasActivities] = useState(false);
 
-  const [voteFromSuggestion, setVoteFromSuggestion] = useState<{
-    title: string;
-    options: string[];
-  } | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -139,13 +135,6 @@ const PlanDetails = () => {
 
   const TypeIcon = typeIcons[plan.plan_type] || Zap;
 
-  const handleConvertToVote = (suggestion: PlanSuggestion) => {
-    setVoteFromSuggestion({
-      title: suggestion.title,
-      options: [suggestion.title, ''],
-    });
-    setActiveTab("votes");
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,7 +232,7 @@ const PlanDetails = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="summary" className="text-xs">
               {t('details.summary')}
             </TabsTrigger>
@@ -252,9 +241,6 @@ const PlanDetails = () => {
             </TabsTrigger>
             <TabsTrigger value="suggestions" className="text-xs">
               {t('details.suggestions')}
-            </TabsTrigger>
-            <TabsTrigger value="votes" className="text-xs">
-              {t('details.votes')}
             </TabsTrigger>
             <TabsTrigger value="expenses" className="text-xs">
               {t('details.expenses')}
@@ -285,19 +271,9 @@ const PlanDetails = () => {
             <PlanSuggestionsTab
               planId={id!}
               isAdmin={isAdmin}
-              onConvertToVote={handleConvertToVote}
             />
           </TabsContent>
 
-          <TabsContent value="votes">
-            <PlanVotesTab
-              planId={id!}
-              isAdmin={isAdmin}
-              initialVoteTitle={voteFromSuggestion?.title}
-              initialVoteOptions={voteFromSuggestion?.options}
-              onInitialVoteConsumed={() => setVoteFromSuggestion(null)}
-            />
-          </TabsContent>
 
           <TabsContent value="expenses">
             <PlanExpensesTab

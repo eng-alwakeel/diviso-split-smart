@@ -1,4 +1,4 @@
-import { Bot, Loader2, Hotel, Car, Utensils, PartyPopper, Package, Vote, Clock } from "lucide-react";
+import { Bot, Loader2, Hotel, Car, Utensils, PartyPopper, Package, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +24,9 @@ const categoryColors: Record<string, string> = {
 interface PlanSuggestionsTabProps {
   planId: string;
   isAdmin: boolean;
-  onConvertToVote: (suggestion: PlanSuggestion) => void;
 }
 
-export function PlanSuggestionsTab({ planId, isAdmin, onConvertToVote }: PlanSuggestionsTabProps) {
+export function PlanSuggestionsTab({ planId, isAdmin }: PlanSuggestionsTabProps) {
   const { t } = useTranslation('plans');
   const {
     summary,
@@ -116,17 +115,6 @@ export function PlanSuggestionsTab({ planId, isAdmin, onConvertToVote }: PlanSug
                         </p>
                       )}
                     </div>
-                    {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0 text-xs gap-1 h-7"
-                        onClick={() => onConvertToVote(suggestion)}
-                      >
-                        <Vote className="w-3 h-3" />
-                        {t('suggestions.to_vote')}
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>
