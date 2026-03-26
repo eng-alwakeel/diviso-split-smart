@@ -1,27 +1,46 @@
 
 
-# تشخيص: الصفحة لا تظهر
+# تعديل Navigation: تبويبان + زر FAB مركزي
 
-## النتيجة
-بعد فحص شامل لجميع الملفات المعدلة مؤخراً، **لا يوجد خطأ برمجي** يمنع ظهور الصفحة:
+## التغييرات
 
-- `BottomNav.tsx` — سليم
-- `BalanceDashboard.tsx` — سليم
-- `GroupSettlementDialog.tsx` — سليم
-- `SettlementAnnouncementCard.tsx` — سليم
-- `ConfirmSettlementDialog.tsx` — سليم
-- `NotificationBell.tsx` — سليم
-- `Notifications.tsx` — سليم
-- ملفات الترجمة (JSON) — سليمة
-- ملفات Migration — سليمة
-- Console logs — لا يوجد أخطاء React، فقط تحذيرات من Meta Pixel و TikTok
+### 1. `src/components/BottomNav.tsx` — إعادة بناء كامل
+- تقليل التبويبات إلى **2 فقط**: الرئيسية (`/dashboard`) ومجموعاتي (`/my-groups`)
+- إزالة "ملفي" و"إدارة" من الشريط السفلي
+- إضافة **زر FAB دائري** في المنتصف (أيقونة `+`، بلون `primary`، مرتفع قليلاً عن الشريط)
+- عند الضغط على FAB يفتح **Drawer (Bottom Sheet)** يحتوي:
+  - ➕ إضافة مصروف → `/add-expense`
+  - 👥 إنشاء مجموعة → `/create-group`
+  - 📅 إنشاء خطة → `/create-plan`
 
-## السبب المرجح
-المشكلة على الأرجح **عدم اكتمال تحميل Preview** بعد التعديلات الأخيرة (تحديث `bun.lock` + تعديلات متعددة). هذا يحدث أحياناً عند تغييرات متتالية سريعة.
+```text
+┌─────────────────────────────────┐
+│  الرئيسية    [ + FAB ]    مجموعاتي  │
+└─────────────────────────────────┘
+```
 
-## الحل المقترح
-1. **إعادة تحميل Preview** — اضغط على زر Refresh في نافذة المعاينة
-2. إذا استمرت المشكلة، سأضيف `console.log` statements في `Index.tsx` و `App.tsx` لتحديد أين يتوقف التحميل بالضبط
+### 2. `src/components/AppHeader.tsx` — تحسين القائمة العلوية
+القائمة العلوية موجودة وتعمل بالفعل ✔. التحسينات:
+- ترتيب العناصر: الإعدادات → لوحة المالك (ذهبي) → لوحة الإدارة (أخضر)
+- تمييز `owner` بخلفية ذهبية خفيفة (`bg-yellow-50`)
+- تمييز `admin` بخلفية خضراء خفيفة (`bg-green-50`)
 
-لا حاجة لتغيير كود — الملفات كلها سليمة.
+### 3. i18n — ترجمات جديدة
+إضافة مفاتيح في `ar/common.json` و `en/common.json`:
+```json
+"fab": {
+  "add_expense": "إضافة مصروف",
+  "create_group": "إنشاء مجموعة",
+  "create_plan": "إنشاء خطة"
+}
+```
+
+### الملفات المتأثرة
+
+| الملف | التغيير |
+|---|---|
+| `src/components/BottomNav.tsx` | إعادة بناء: تبويبان + FAB + Drawer |
+| `src/components/AppHeader.tsx` | تحسين ترتيب وألوان عناصر القائمة |
+| `src/i18n/locales/ar/common.json` | مفاتيح FAB |
+| `src/i18n/locales/en/common.json` | مفاتيح FAB |
 
