@@ -139,7 +139,10 @@
     "disputed": "تم الإبلاغ عن التسوية",
     "disputed_desc": "تم تسجيل عدم استلامك للمبلغ",
     "dispute_failed": "تعذر الإبلاغ عن التسوية",
-    "dispute_reason": "سبب الرفض"
+    "dispute_reason": "سبب الرفض",
+    "auto_confirm_info": "سيتم التأكيد تلقائياً بعد 7 أيام في حال عدم اتخاذ إجراء",
+    "auto_confirm_note": "تأكيد تلقائي خلال {{days}} أيام",
+    "auto_confirmed": "تم التأكيد تلقائياً"
   },
 
   "budget_tab": {

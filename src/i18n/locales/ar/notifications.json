@@ -38,7 +38,8 @@
     "dice_posted": "🎲 قرار جديد في \"{{group}}\" - صوّتوا واعتمدوا!",
     "dice_accepted": "✅ تم اعتماد القرار في \"{{group}}\"",
     "dice_rerolled": "🔄 تم إعادة الرمي في \"{{group}}\"",
-    "settlement_reminder": "💸 {{name}} يذكّرك بتسوية {{amount}} {{currency}} في \"{{group}}\""
+    "settlement_reminder": "💸 {{name}} يذكّرك بتسوية {{amount}} {{currency}} في \"{{group}}\"",
+    "settlement_pending": "💸 {{name}} أعلن دفع {{amount}} {{currency}} لك — أكّد الاستلام"
   },
   "titles": {
     "expense_created": "مصروف جديد",
@@ -63,6 +64,7 @@
     "dice_accepted": "تم الاعتماد ✅",
     "dice_rerolled": "إعادة الرمي 🔄",
     "settlement_reminder": "تذكير بالتسوية 💸",
+    "settlement_pending": "تسوية بانتظار التأكيد 💸",
     "balance_due": "مبلغ مستحق 💸",
     "daily_engagement": "تذكير يومي 📊",
     "default": "إشعار جديد"
@@ -87,6 +89,7 @@
     "group_deleted": "{{name}} حذف مجموعة \"{{group}}\"",
     "balance_due": "عليك {{amount}} {{currency}} في مجموعة {{group}}",
     "daily_engagement": "سجّل دخولك وحافظ على سلسلة نشاطك!",
+    "settlement_pending": "{{name}} أعلن دفع {{amount}} {{currency}} لك — يرجى تأكيد الاستلام خلال 7 أيام",
     "default": "إشعار جديد"
   },
   "balance_details": {

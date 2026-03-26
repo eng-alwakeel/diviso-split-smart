@@ -139,7 +139,10 @@
     "disputed": "Settlement Disputed",
     "disputed_desc": "Your non-receipt has been recorded",
     "dispute_failed": "Failed to dispute settlement",
-    "dispute_reason": "Dispute Reason"
+    "dispute_reason": "Dispute Reason",
+    "auto_confirm_info": "Will be auto-confirmed after 7 days if no action is taken",
+    "auto_confirm_note": "Auto-confirms in {{days}} days",
+    "auto_confirmed": "Auto-confirmed"
   },
 
   "budget_tab": {
