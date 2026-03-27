@@ -708,7 +708,8 @@ const GroupDetails = () => {
         </div>
         )}
 
-        {/* ═══════════ 8️⃣ SETTLEMENT CARD ═══════════ */}
+        {/* ═══════════ 8️⃣ SETTLEMENT CARD (hide when all zero & no settlements) ═══════════ */}
+        {(Math.abs(myBalances.confirmed) > 0.01 || settlements.length > 0) && (
         <Card className="border-border/50 bg-card">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
