@@ -536,8 +536,17 @@ const GroupDetails = () => {
           </div>
         )}
 
-        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {/* ═══════════ SMART GROUP SUGGESTIONS ═══════════ */}
         {sourcePlan && id && (
+          <SmartGroupSuggestions
+            groupId={id}
+            city={sourcePlan.destination || undefined}
+            destination={sourcePlan.destination || undefined}
+          />
+        )}
+
+        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {sourcePlan && sourcePlan.days.length > 0 && id && (
           <GroupPlanSection
             planId={sourcePlan.planId}
             planName={sourcePlan.planName}
