@@ -132,6 +132,7 @@
     "join_by_link": "الانضمام برابط"
   },
   "menu": {
+    "my_plans": "خططي",
     "my_expenses": "مصاريفي",
     "referral": "الإحالة",
     "credits_balance": "رصيدك: {{count}} نقطة"
