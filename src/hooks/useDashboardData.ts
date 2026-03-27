@@ -105,7 +105,7 @@ export const useDashboardData = (): DashboardData => {
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
       const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [paidResult, owedResult, monthlyResult, weeklyResult] = await Promise.all([
+      const [paidResult, owedResult, monthlyResult, weeklyResult, settlementsOutResult, settlementsInResult] = await Promise.all([
         supabase
           .from('expenses')
           .select('amount')
@@ -130,21 +130,38 @@ export const useDashboardData = (): DashboardData => {
         supabase
           .from('expenses')
           .select('id')
-          .in('group_id', groupIds)
+          .in('group_id', activeGroupIds.length ? activeGroupIds : ['__none__'])
           .gte('spent_at', weekStart)
-          .limit(1000)
+          .limit(1000),
+
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('from_user_id', uid)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
+
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('to_user_id', uid)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
       ]);
 
       const totalPaid = (paidResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
       const totalOwed = (owedResult.data ?? []).reduce((sum, s) => sum + Number(s.share_amount || 0), 0);
       const monthlyTotal = (monthlyResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const settlementsOut = (settlementsOutResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
+      const settlementsIn = (settlementsInResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
       const dashboardResult = {
-        myPaid: totalPaid,
-        myOwed: totalOwed,
+        myPaid: totalPaid + settlementsOut,
+        myOwed: totalOwed + settlementsIn,
         monthlyTotalExpenses: monthlyTotal,
         weeklyExpensesCount: weeklyResult.data?.length || 0,
         groupsCount: groupIds.length,
+        activeGroupsCount: activeGroupIds.length,
       };
 
       setData(dashboardResult);

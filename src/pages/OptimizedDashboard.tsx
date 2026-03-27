@@ -168,6 +168,7 @@ const OptimizedDashboard = React.memo(() => {
     monthlyTotalExpenses,
     weeklyExpensesCount,
     groupsCount,
+    activeGroupsCount,
     loading,
     error,
     refetch
