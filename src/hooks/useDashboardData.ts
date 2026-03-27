@@ -28,6 +28,7 @@ interface DashboardData {
   monthlyTotalExpenses: number;
   weeklyExpensesCount: number;
   groupsCount: number;
+  activeGroupsCount: number;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -44,6 +45,7 @@ export const useDashboardData = (): DashboardData => {
     monthlyTotalExpenses: 0,
     weeklyExpensesCount: 0,
     groupsCount: 0,
+    activeGroupsCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,16 +73,18 @@ export const useDashboardData = (): DashboardData => {
         return;
       }
 
-      // Optimized parallel queries with minimal data selection
-      const [membershipResult] = await Promise.all([
-        supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', uid)
-          .limit(100) // Reasonable limit for groups
-      ]);
+      // Fetch groups with archived status
+      const membershipResult = await supabase
+        .from('group_members')
+        .select('group_id, groups!inner(archived_at)')
+        .eq('user_id', uid)
+        .limit(100);
 
-      const groupIds = (membershipResult.data ?? []).map((m: any) => m.group_id);
+      const allGroups = (membershipResult.data ?? []);
+      const groupIds = allGroups.map((m: any) => m.group_id);
+      const activeGroupIds = allGroups
+        .filter((m: any) => !m.groups?.archived_at)
+        .map((m: any) => m.group_id);
       
       if (!groupIds.length) {
         const emptyData = {
@@ -89,6 +93,7 @@ export const useDashboardData = (): DashboardData => {
           monthlyTotalExpenses: 0,
           weeklyExpensesCount: 0,
           groupsCount: 0,
+          activeGroupsCount: 0,
         };
         setData(emptyData);
         cache.set(cacheKey, { data: emptyData, timestamp: Date.now() });
