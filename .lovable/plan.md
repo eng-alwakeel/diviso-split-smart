@@ -1,32 +1,62 @@
 
 
-# تحسين وضوح النص في أزرار CTA
-
-## التحليل
-- `--primary-foreground` حالياً `218 11% 10%` (رمادي غامق جداً) — جيد لكن ليس أسود تماماً
-- الأزرار تستخدم `font-medium` (500) — خفيف للقراءة السريعة
-- `disabled:opacity-50` — غير واضح بما يكفي كحالة معطلة
-- زر "إنشاء مجموعة" في الـ Drawer يستخدم classes مخصصة وليس component الـ Button
+# تحسين تجربة تقييم الأعضاء — Flow متتابع مع فلترة
 
 ## التغييرات
 
-### 1. `src/index.css` — تغميق primary-foreground
-```css
---primary-foreground: 0 0% 8%;  /* شبه أسود بدل رمادي غامق */
+### 1. `src/components/group/RatingSheet.tsx` — تحويل لـ Flow متتابع
+
+**تغيير الـ Props** لقبول قائمة أعضاء بدل عضو واحد:
+```ts
+interface RatingSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  groupId: string;
+  members: MemberToRate[];  // قائمة الأعضاء غير المقيّمين
+  onAllRated?: () => void;
+}
 ```
 
-### 2. `src/components/ui/button.tsx` — تحسين الوزن والوضوح
-- تغيير `font-medium` → `font-semibold` في الـ base classes
-- تغيير `disabled:opacity-50` → `disabled:opacity-40` لتمييز أوضح
-- إضافة `drop-shadow-sm` خفيف للنص في variant `default` و `hero` و `financial`
+**إضافة State داخلي**:
+- `currentIndex` — فهرس العضو الحالي
+- `completedCount` — عدد المقيّمين
+- `allDone` — هل انتهى التقييم
 
-### 3. `src/components/BottomNav.tsx` — تحسين زر الـ Drawer
-- الزر الكبير "إنشاء مجموعة" في الـ Drawer ليس Button component — يحتاج تحسين الـ font-weight
+**Progress Indicator** أعلى الشيت:
+```
+عضو 1 من 4
+[========--------] شريط تقدم
+```
+
+**بعد الإرسال**:
+- إذا فيه أعضاء متبقين → fade/slide للعضو التالي (CSS transition على opacity + translateX)
+- إذا انتهوا → عرض شاشة "تم تقييم جميع الأعضاء ✅" مع زر إغلاق
+
+**منع إعادة التقييم**: الأعضاء المقيّمون لا يمررون أصلاً للمكون (الفلترة من الخارج)
+
+### 2. `src/components/group/PendingRatingsNotification.tsx` — تحسين النص
+
+تغيير النص من "X أعضاء لم تقيّمهم" إلى:
+```
+"تم تقييم {rated} من {total}"
+```
+مع إضافة حالة فارغة: إذا `pendingCount === 0` وليس loading → عرض "تم تقييم جميع الأعضاء ✅" أو إخفاء
+
+تصدير `pendingIds` عبر callback حتى يستخدمها `GroupDetails` لتمرير الأعضاء المفلترين للـ `RatingSheet`
+
+### 3. `src/pages/GroupDetails.tsx` — ربط الـ Flow
+
+- تغيير `onStartRating` ليجلب الأعضاء غير المقيّمين (`getPendingRatings`) ويمررهم كقائمة للـ `RatingSheet`
+- حذف `memberToRate` (عضو واحد) واستبداله بـ `membersToRate` (قائمة)
+- تحديث `RatingSheet` props لاستخدام القائمة الجديدة
+
+### 4. UX Animation
+- إضافة CSS transition في `RatingSheet`: عند الانتقال للعضو التالي، fade-out ثم fade-in للمحتوى باستخدام `transition-opacity duration-300`
 
 ## الملفات المتأثرة
 | ملف | تغيير |
 |---|---|
-| `src/index.css` | `--primary-foreground` أغمق |
-| `src/components/ui/button.tsx` | `font-semibold` + `disabled:opacity-40` |
-| `src/components/BottomNav.tsx` | تحسين وزن الخط في أزرار الـ Drawer |
+| `src/components/group/RatingSheet.tsx` | Flow متتابع + progress + شاشة إتمام |
+| `src/components/group/PendingRatingsNotification.tsx` | نص "تم تقييم X من Y" + empty state |
+| `src/pages/GroupDetails.tsx` | تمرير قائمة أعضاء مفلترة بدل عضو واحد |
 
