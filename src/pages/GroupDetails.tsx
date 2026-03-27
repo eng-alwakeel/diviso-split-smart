@@ -56,6 +56,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useGroupSourcePlan } from "@/hooks/useGroupSourcePlan";
 import { GroupPlanSection } from "@/components/group/GroupPlanSection";
+import { SmartGroupSuggestions } from "@/components/recommendations/SmartGroupSuggestions";
+import { Progress } from "@/components/ui/progress";
 
 
 const GroupDetails = () => {
@@ -455,6 +457,27 @@ const GroupDetails = () => {
               <span className="text-sm font-semibold text-muted-foreground">متوازن ✓</span>
             )}
           </div>
+
+          {/* Budget bar (from plan) */}
+          {sourcePlan?.budgetValue && (() => {
+            const budgetUsed = Math.min((totals.approvedExpenses / sourcePlan.budgetValue) * 100, 100);
+            const isOverBudget = totals.approvedExpenses > sourcePlan.budgetValue;
+            const budgetRemaining = sourcePlan.budgetValue - totals.approvedExpenses;
+            return (
+              <div className="px-1 space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>الميزانية</span>
+                  <span className={cn("font-bold", isOverBudget ? "text-destructive" : "text-foreground")}>
+                    {totals.approvedExpenses.toLocaleString()} / {sourcePlan.budgetValue.toLocaleString()} {sourcePlan.budgetCurrency}
+                  </span>
+                </div>
+                <Progress value={budgetUsed} className={cn("h-1.5", isOverBudget && "[&>div]:bg-destructive")} />
+                {isOverBudget && (
+                  <p className="text-[10px] text-destructive font-semibold text-end">تجاوز الميزانية!</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ═══════════ 3️⃣ SMART ACTION BAR ═══════════ */}
