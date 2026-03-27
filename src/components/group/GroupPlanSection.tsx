@@ -2,11 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CalendarDays, MapPin, Plus, Receipt, Clock } from "lucide-react";
+import { CalendarDays, MapPin, Plus, Clock } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 
 interface PlanScheduleDay {
   id: string;
