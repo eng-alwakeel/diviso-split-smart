@@ -92,7 +92,7 @@ export const BottomNav = () => {
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <Icon className="h-5 w-5 text-primary" />
                         </div>
-                        <span className="text-base font-medium">{label}</span>
+                        <span className="text-base font-semibold">{label}</span>
                       </button>
                     ))}
                   </div>

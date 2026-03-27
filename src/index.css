@@ -19,7 +19,7 @@ All colors MUST be HSL.
     --popover-foreground: 210 20% 96%; /* #F3F4F6 */
 
     --primary: 73 66% 71%;            /* #C8F169 */
-    --primary-foreground: 218 11% 10%; /* #1A1C1E */
+    --primary-foreground: 0 0% 8%;     /* شبه أسود لوضوح أعلى */
     --primary-glow: 73 66% 81%;       /* Lighter version of primary */
 
     --secondary: 218 10% 25%;         /* Slightly lighter than card */
