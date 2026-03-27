@@ -591,17 +591,14 @@ const GroupDetails = () => {
               display_name: profiles[m.user_id]?.display_name,
               name: profiles[m.user_id]?.name,
             }))}
-            onStartRating={() => {
-              const firstMember = registeredMembers.find(m => m.user_id !== currentUserId);
-              if (firstMember) {
-                setMemberToRate({
-                  user_id: firstMember.user_id,
-                  display_name: profiles[firstMember.user_id]?.display_name || null,
-                  name: profiles[firstMember.user_id]?.name || null,
-                  avatar_url: profiles[firstMember.user_id]?.avatar_url || null,
-                });
-                setRatingSheetOpen(true);
-              }
+            onStartRating={(pendingMembers) => {
+              setMembersToRate(pendingMembers.map(m => ({
+                user_id: m.user_id,
+                display_name: m.display_name || null,
+                name: m.name || null,
+                avatar_url: m.avatar_url || null,
+              })));
+              setRatingSheetOpen(true);
             }}
           />
         )}
@@ -949,9 +946,9 @@ const GroupDetails = () => {
           onCreated={refetch}
         />
       )}
-      {memberToRate && (
-        <RatingSheet open={ratingSheetOpen} onOpenChange={setRatingSheetOpen} groupId={id!} member={memberToRate}
-          onRatingSubmitted={() => { setMemberToRate(null); refetch(); }}
+      {membersToRate.length > 0 && (
+        <RatingSheet open={ratingSheetOpen} onOpenChange={setRatingSheetOpen} groupId={id!} members={membersToRate}
+          onAllRated={() => { setMembersToRate([]); refetch(); }}
         />
       )}
       </div>
