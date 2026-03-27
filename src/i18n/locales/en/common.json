@@ -132,6 +132,7 @@
     "join_by_link": "Join by Link"
   },
   "menu": {
+    "my_plans": "My Plans",
     "my_expenses": "My Expenses",
     "referral": "Referral",
     "credits_balance": "Balance: {{count}} credits"
