@@ -144,6 +144,7 @@ const OptimizedDashboard = memo(() => {
     statsGrid: dashboardData ? {
       monthlyTotalExpenses: dashboardData.monthlyTotalExpenses,
       groupsCount: dashboardData.groupsCount,
+      activeGroupsCount: dashboardData.activeGroupsCount ?? 0,
       weeklyExpensesCount: dashboardData.weeklyExpensesCount,
       myPaid: dashboardData.myPaid,
       myOwed: dashboardData.myOwed

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 interface SimpleStatsGridProps {
   monthlyTotalExpenses: number;
   groupsCount: number;
+  activeGroupsCount: number;
   weeklyExpensesCount: number;
   myPaid: number;
   myOwed: number;
@@ -14,6 +15,7 @@ interface SimpleStatsGridProps {
 export const SimpleStatsGrid = ({ 
   monthlyTotalExpenses, 
   groupsCount, 
+  activeGroupsCount,
   weeklyExpensesCount,
   myPaid,
   myOwed
@@ -45,7 +47,7 @@ export const SimpleStatsGrid = ({
     {
       title: t('stats.groups'),
       value: groupsCount.toString(),
-      subtitle: t('stats.active'),
+      subtitle: `${activeGroupsCount} ${t('stats.active')}`,
       icon: Users,
       color: "text-accent",
       bgColor: "bg-accent/10",

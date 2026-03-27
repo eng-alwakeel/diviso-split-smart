@@ -168,6 +168,7 @@ const OptimizedDashboard = React.memo(() => {
     monthlyTotalExpenses,
     weeklyExpensesCount,
     groupsCount,
+    activeGroupsCount,
     loading,
     error,
     refetch
@@ -270,6 +271,7 @@ const OptimizedDashboard = React.memo(() => {
         <SimpleStatsGrid
           monthlyTotalExpenses={monthlyTotalExpenses}
           groupsCount={groupsCount}
+          activeGroupsCount={activeGroupsCount}
           weeklyExpensesCount={weeklyExpensesCount}
           myPaid={myPaid}
           myOwed={myOwed}

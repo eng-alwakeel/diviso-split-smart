@@ -28,6 +28,7 @@ interface DashboardData {
   monthlyTotalExpenses: number;
   weeklyExpensesCount: number;
   groupsCount: number;
+  activeGroupsCount: number;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -44,6 +45,7 @@ export const useDashboardData = (): DashboardData => {
     monthlyTotalExpenses: 0,
     weeklyExpensesCount: 0,
     groupsCount: 0,
+    activeGroupsCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,16 +73,18 @@ export const useDashboardData = (): DashboardData => {
         return;
       }
 
-      // Optimized parallel queries with minimal data selection
-      const [membershipResult] = await Promise.all([
-        supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', uid)
-          .limit(100) // Reasonable limit for groups
-      ]);
+      // Fetch groups with archived status
+      const membershipResult = await supabase
+        .from('group_members')
+        .select('group_id, groups!inner(archived_at)')
+        .eq('user_id', uid)
+        .limit(100);
 
-      const groupIds = (membershipResult.data ?? []).map((m: any) => m.group_id);
+      const allGroups = (membershipResult.data ?? []);
+      const groupIds = allGroups.map((m: any) => m.group_id);
+      const activeGroupIds = allGroups
+        .filter((m: any) => !m.groups?.archived_at)
+        .map((m: any) => m.group_id);
       
       if (!groupIds.length) {
         const emptyData = {
@@ -89,6 +93,7 @@ export const useDashboardData = (): DashboardData => {
           monthlyTotalExpenses: 0,
           weeklyExpensesCount: 0,
           groupsCount: 0,
+          activeGroupsCount: 0,
         };
         setData(emptyData);
         cache.set(cacheKey, { data: emptyData, timestamp: Date.now() });
@@ -100,7 +105,7 @@ export const useDashboardData = (): DashboardData => {
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
       const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [paidResult, owedResult, monthlyResult, weeklyResult] = await Promise.all([
+      const [paidResult, owedResult, monthlyResult, weeklyResult, settlementsOutResult, settlementsInResult] = await Promise.all([
         supabase
           .from('expenses')
           .select('amount')
@@ -125,21 +130,38 @@ export const useDashboardData = (): DashboardData => {
         supabase
           .from('expenses')
           .select('id')
-          .in('group_id', groupIds)
+          .in('group_id', activeGroupIds.length ? activeGroupIds : ['__none__'])
           .gte('spent_at', weekStart)
-          .limit(1000)
+          .limit(1000),
+
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('from_user_id', uid)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
+
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('to_user_id', uid)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
       ]);
 
       const totalPaid = (paidResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
       const totalOwed = (owedResult.data ?? []).reduce((sum, s) => sum + Number(s.share_amount || 0), 0);
       const monthlyTotal = (monthlyResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const settlementsOut = (settlementsOutResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
+      const settlementsIn = (settlementsInResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
 
       const dashboardResult = {
-        myPaid: totalPaid,
-        myOwed: totalOwed,
+        myPaid: totalPaid + settlementsOut,
+        myOwed: totalOwed + settlementsIn,
         monthlyTotalExpenses: monthlyTotal,
         weeklyExpensesCount: weeklyResult.data?.length || 0,
         groupsCount: groupIds.length,
+        activeGroupsCount: activeGroupIds.length,
       };
 
       setData(dashboardResult);
