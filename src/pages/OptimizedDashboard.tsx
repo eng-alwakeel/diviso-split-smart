@@ -271,6 +271,7 @@ const OptimizedDashboard = React.memo(() => {
         <SimpleStatsGrid
           monthlyTotalExpenses={monthlyTotalExpenses}
           groupsCount={groupsCount}
+          activeGroupsCount={activeGroupsCount}
           weeklyExpensesCount={weeklyExpensesCount}
           myPaid={myPaid}
           myOwed={myOwed}
