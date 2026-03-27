@@ -706,6 +706,7 @@ const GroupDetails = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* ═══════════ 8️⃣ SETTLEMENT CARD ═══════════ */}
         <Card className="border-border/50 bg-card">
