@@ -734,6 +734,7 @@ const GroupDetails = () => {
             </Button>
           </CardContent>
         </Card>
+        )}
 
         {/* ═══════════ 9️⃣ MEMBERS PREVIEW ═══════════ */}
         <div className="space-y-2">
