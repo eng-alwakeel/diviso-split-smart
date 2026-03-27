@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, DollarSign, Clock, Users } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Star, DollarSign, Clock, Users, CheckCircle2 } from 'lucide-react';
 import { useMemberRatings } from '@/hooks/useMemberRatings';
 
 interface MemberToRate {
@@ -25,8 +26,8 @@ interface RatingSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groupId: string;
-  member: MemberToRate;
-  onRatingSubmitted?: () => void;
+  members: MemberToRate[];
+  onAllRated?: () => void;
 }
 
 const StarRating = ({
@@ -76,20 +77,44 @@ export const RatingSheet = ({
   open,
   onOpenChange,
   groupId,
-  member,
-  onRatingSubmitted
+  members,
+  onAllRated
 }: RatingSheetProps) => {
   const { submitRating, submitting } = useMemberRatings(groupId);
   
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [allDone, setAllDone] = useState(false);
+  const [fading, setFading] = useState(false);
+
   const [financial, setFinancial] = useState(0);
   const [time, setTime] = useState(0);
   const [cooperation, setCooperation] = useState(0);
   const [comment, setComment] = useState('');
 
-  const displayName = member.display_name || member.name || 'العضو';
-  const initials = displayName.slice(0, 2).toUpperCase();
+  // Reset when sheet opens
+  useEffect(() => {
+    if (open) {
+      setCurrentIndex(0);
+      setAllDone(false);
+      setFading(false);
+      resetForm();
+    }
+  }, [open]);
 
+  const resetForm = () => {
+    setFinancial(0);
+    setTime(0);
+    setCooperation(0);
+    setComment('');
+  };
+
+  if (members.length === 0) return null;
+
+  const member = members[currentIndex] || members[0];
+  const displayName = member?.display_name || member?.name || 'العضو';
+  const initials = displayName.slice(0, 2).toUpperCase();
   const canSubmit = financial > 0 && time > 0 && cooperation > 0;
+  const progressPercent = members.length > 0 ? (currentIndex / members.length) * 100 : 0;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -102,105 +127,147 @@ export const RatingSheet = ({
     });
 
     if (success) {
-      // Reset form
-      setFinancial(0);
-      setTime(0);
-      setCooperation(0);
-      setComment('');
-      onOpenChange(false);
-      onRatingSubmitted?.();
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < members.length) {
+        // Fade out, switch member, fade in
+        setFading(true);
+        setTimeout(() => {
+          resetForm();
+          setCurrentIndex(nextIndex);
+          setFading(false);
+        }, 250);
+      } else {
+        // All done
+        setAllDone(true);
+        onAllRated?.();
+      }
     }
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <SheetHeader className="text-center pb-4">
-          <SheetTitle>تقييم العضو</SheetTitle>
-          <SheetDescription>
-            قيّم أداء هذا العضو في المجموعة
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="space-y-6 py-4">
-          {/* Member Info */}
-          <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl">
-            <Avatar className="w-12 h-12">
-              {member.avatar_url ? (
-                <AvatarImage src={member.avatar_url} alt={displayName} />
-              ) : (
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                  {initials}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div>
-              <p className="font-semibold">{displayName}</p>
-              <p className="text-sm text-muted-foreground">عضو في المجموعة</p>
+        {allDone ? (
+          // ✅ Completion screen
+          <div className="flex flex-col items-center justify-center py-12 gap-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-primary" />
             </div>
+            <h3 className="text-lg font-semibold">تم تقييم جميع الأعضاء ✅</h3>
+            <p className="text-sm text-muted-foreground text-center">
+              شكراً لك! تقييمك يساعد في تحسين تجربة المجموعة
+            </p>
+            <Button onClick={handleClose} variant="hero" className="w-full mt-4">
+              إغلاق
+            </Button>
           </div>
+        ) : (
+          <>
+            {/* Progress indicator */}
+            <div className="pb-3 space-y-2">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>عضو {currentIndex + 1} من {members.length}</span>
+                <span>متبقي {members.length - currentIndex}</span>
+              </div>
+              <Progress value={progressPercent} className="h-1.5" />
+            </div>
 
-          {/* Rating Criteria */}
-          <div className="space-y-6">
-            <StarRating
-              value={financial}
-              onChange={setFinancial}
-              label="الالتزام المالي"
-              icon={DollarSign}
-            />
-            
-            <StarRating
-              value={time}
-              onChange={setTime}
-              label="الالتزام بالوقت"
-              icon={Clock}
-            />
-            
-            <StarRating
-              value={cooperation}
-              onChange={setCooperation}
-              label="التعاون"
-              icon={Users}
-            />
-          </div>
+            <div
+              className={`transition-opacity duration-250 ${fading ? 'opacity-0' : 'opacity-100'}`}
+            >
+              <SheetHeader className="text-center pb-4">
+                <SheetTitle>تقييم العضو</SheetTitle>
+                <SheetDescription>
+                  قيّم أداء هذا العضو في المجموعة
+                </SheetDescription>
+              </SheetHeader>
 
-          {/* Optional Comment */}
-          <div className="space-y-2">
-            <Label className="text-sm text-muted-foreground">
-              تعليق (اختياري - لن يظهر للأعضاء)
-            </Label>
-            <Textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="أضف ملاحظاتك الخاصة..."
-              className="resize-none"
-              rows={3}
-            />
-          </div>
-        </div>
+              <div className="space-y-6 py-4">
+                {/* Member Info */}
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl">
+                  <Avatar className="w-12 h-12">
+                    {member.avatar_url ? (
+                      <AvatarImage src={member.avatar_url} alt={displayName} />
+                    ) : (
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {initials}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">{displayName}</p>
+                    <p className="text-sm text-muted-foreground">عضو في المجموعة</p>
+                  </div>
+                </div>
 
-        <SheetFooter className="flex-col gap-2 sm:flex-col pt-4">
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit || submitting}
-            className="w-full"
-            variant="hero"
-          >
-            {submitting ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              'إرسال التقييم'
-            )}
-          </Button>
-          <Button
-            onClick={() => onOpenChange(false)}
-            variant="ghost"
-            className="w-full"
-            disabled={submitting}
-          >
-            إلغاء
-          </Button>
-        </SheetFooter>
+                {/* Rating Criteria */}
+                <div className="space-y-6">
+                  <StarRating
+                    value={financial}
+                    onChange={setFinancial}
+                    label="الالتزام المالي"
+                    icon={DollarSign}
+                  />
+                  <StarRating
+                    value={time}
+                    onChange={setTime}
+                    label="الالتزام بالوقت"
+                    icon={Clock}
+                  />
+                  <StarRating
+                    value={cooperation}
+                    onChange={setCooperation}
+                    label="التعاون"
+                    icon={Users}
+                  />
+                </div>
+
+                {/* Optional Comment */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">
+                    تعليق (اختياري - لن يظهر للأعضاء)
+                  </Label>
+                  <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="أضف ملاحظاتك الخاصة..."
+                    className="resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <SheetFooter className="flex-col gap-2 sm:flex-col pt-4">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || submitting}
+                  className="w-full"
+                  variant="hero"
+                >
+                  {submitting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : currentIndex < members.length - 1 ? (
+                    'إرسال والتالي'
+                  ) : (
+                    'إرسال التقييم'
+                  )}
+                </Button>
+                <Button
+                  onClick={handleClose}
+                  variant="ghost"
+                  className="w-full"
+                  disabled={submitting}
+                >
+                  إلغاء
+                </Button>
+              </SheetFooter>
+            </div>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );
