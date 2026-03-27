@@ -56,6 +56,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useGroupSourcePlan } from "@/hooks/useGroupSourcePlan";
 import { GroupPlanSection } from "@/components/group/GroupPlanSection";
+import { SmartGroupSuggestions } from "@/components/recommendations/SmartGroupSuggestions";
+import { Progress } from "@/components/ui/progress";
 
 
 const GroupDetails = () => {
@@ -455,6 +457,27 @@ const GroupDetails = () => {
               <span className="text-sm font-semibold text-muted-foreground">متوازن ✓</span>
             )}
           </div>
+
+          {/* Budget bar (from plan) */}
+          {sourcePlan?.budgetValue && (() => {
+            const budgetUsed = Math.min((totals.approvedExpenses / sourcePlan.budgetValue) * 100, 100);
+            const isOverBudget = totals.approvedExpenses > sourcePlan.budgetValue;
+            const budgetRemaining = sourcePlan.budgetValue - totals.approvedExpenses;
+            return (
+              <div className="px-1 space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>الميزانية</span>
+                  <span className={cn("font-bold", isOverBudget ? "text-destructive" : "text-foreground")}>
+                    {totals.approvedExpenses.toLocaleString()} / {sourcePlan.budgetValue.toLocaleString()} {sourcePlan.budgetCurrency}
+                  </span>
+                </div>
+                <Progress value={budgetUsed} className={cn("h-1.5", isOverBudget && "[&>div]:bg-destructive")} />
+                {isOverBudget && (
+                  <p className="text-[10px] text-destructive font-semibold text-end">تجاوز الميزانية!</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ═══════════ 3️⃣ SMART ACTION BAR ═══════════ */}
@@ -513,8 +536,17 @@ const GroupDetails = () => {
           </div>
         )}
 
-        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {/* ═══════════ SMART GROUP SUGGESTIONS ═══════════ */}
         {sourcePlan && id && (
+          <SmartGroupSuggestions
+            groupId={id}
+            city={sourcePlan.destination || undefined}
+            destination={sourcePlan.destination || undefined}
+          />
+        )}
+
+        {/* ═══════════ PLAN SECTION (if from plan) ═══════════ */}
+        {sourcePlan && sourcePlan.days.length > 0 && id && (
           <GroupPlanSection
             planId={sourcePlan.planId}
             planName={sourcePlan.planName}
@@ -590,6 +622,7 @@ const GroupDetails = () => {
         )}
 
         {/* ═══════════ 7️⃣ EXPENSES PREVIEW ═══════════ */}
+        {!isGroupClosed && (
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-bold">المصاريف</h2>
@@ -673,8 +706,10 @@ const GroupDetails = () => {
             </div>
           )}
         </div>
+        )}
 
-        {/* ═══════════ 8️⃣ SETTLEMENT CARD ═══════════ */}
+        {/* ═══════════ 8️⃣ SETTLEMENT CARD (hide when all zero & no settlements) ═══════════ */}
+        {(Math.abs(myBalances.confirmed) > 0.01 || settlements.length > 0) && (
         <Card className="border-border/50 bg-card">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -699,6 +734,7 @@ const GroupDetails = () => {
             </Button>
           </CardContent>
         </Card>
+        )}
 
         {/* ═══════════ 9️⃣ MEMBERS PREVIEW ═══════════ */}
         <div className="space-y-2">
