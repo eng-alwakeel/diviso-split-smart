@@ -1,62 +1,61 @@
 
 
-# تحسين تجربة تقييم الأعضاء — Flow متتابع مع فلترة
+# تصحيح قيم الصفحة الرئيسية — احتساب التسويات + فصل المجموعات النشطة
 
-## التغييرات
+## المشكلة
+1. **التسويات مفقودة**: `useDashboardData` يحسب `myPaid` و `myOwed` من جداول `expenses` و `expense_splits` مباشرة **بدون احتساب التسويات**. لذلك حتى لو سويت تسوية، الرصيد يظل يعرض المبلغ القديم
+2. **عدد المجموعات**: يعرض كل المجموعات (5) بدون تمييز بين نشطة ومؤرشفة
 
-### 1. `src/components/group/RatingSheet.tsx` — تحويل لـ Flow متتابع
+## الحل
 
-**تغيير الـ Props** لقبول قائمة أعضاء بدل عضو واحد:
+### 1. `src/hooks/useDashboardData.ts` — احتساب التسويات في الأرصدة
+
+**إضافة استعلام التسويات** بجانب المصاريف:
 ```ts
-interface RatingSheetProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  groupId: string;
-  members: MemberToRate[];  // قائمة الأعضاء غير المقيّمين
-  onAllRated?: () => void;
-}
+// جلب التسويات المؤكدة (المدفوعة من المستخدم والمستلمة)
+settlementsOutResult = supabase
+  .from('settlements')
+  .select('amount')
+  .eq('from_user_id', uid)
+  .in('status', ['confirmed', 'pending'])
+
+settlementsInResult = supabase
+  .from('settlements')
+  .select('amount')
+  .eq('to_user_id', uid)
+  .in('status', ['confirmed', 'pending'])
 ```
 
-**إضافة State داخلي**:
-- `currentIndex` — فهرس العضو الحالي
-- `completedCount` — عدد المقيّمين
-- `allDone` — هل انتهى التقييم
-
-**Progress Indicator** أعلى الشيت:
+**تعديل حساب الرصيد**:
 ```
-عضو 1 من 4
-[========--------] شريط تقدم
+netBalance = (totalPaid + settlementsOut) - (totalOwed + settlementsIn)
+// أو بشكل أوضح:
+// myPaid = totalPaid + settlementsOut (ما دفعته فعلاً)
+// myOwed = totalOwed - settlementsOut (ما عليك بعد التسويات)
 ```
 
-**بعد الإرسال**:
-- إذا فيه أعضاء متبقين → fade/slide للعضو التالي (CSS transition على opacity + translateX)
-- إذا انتهوا → عرض شاشة "تم تقييم جميع الأعضاء ✅" مع زر إغلاق
+**فصل عدد المجموعات**: جلب المجموعات مع معلومة `archived_at` لحساب:
+- `groupsCount`: إجمالي المجموعات
+- `activeGroupsCount`: المجموعات النشطة فقط
 
-**منع إعادة التقييم**: الأعضاء المقيّمون لا يمررون أصلاً للمكون (الفلترة من الخارج)
+### 2. `src/components/dashboard/SimpleStatsGrid.tsx` — عرض المعلومات الصحيحة
 
-### 2. `src/components/group/PendingRatingsNotification.tsx` — تحسين النص
-
-تغيير النص من "X أعضاء لم تقيّمهم" إلى:
+**تحديث كارت المجموعات** لعرض عدد النشط من الإجمالي:
 ```
-"تم تقييم {rated} من {total}"
+المجموعات: 5
+subtitle: "0 نشطة"
 ```
-مع إضافة حالة فارغة: إذا `pendingCount === 0` وليس loading → عرض "تم تقييم جميع الأعضاء ✅" أو إخفاء
 
-تصدير `pendingIds` عبر callback حتى يستخدمها `GroupDetails` لتمرير الأعضاء المفلترين للـ `RatingSheet`
+**تحديث props** لاستقبال `activeGroupsCount`
 
-### 3. `src/pages/GroupDetails.tsx` — ربط الـ Flow
+### 3. `src/components/performance/OptimizedDashboard.tsx` — تمرير القيمة الجديدة
 
-- تغيير `onStartRating` ليجلب الأعضاء غير المقيّمين (`getPendingRatings`) ويمررهم كقائمة للـ `RatingSheet`
-- حذف `memberToRate` (عضو واحد) واستبداله بـ `membersToRate` (قائمة)
-- تحديث `RatingSheet` props لاستخدام القائمة الجديدة
-
-### 4. UX Animation
-- إضافة CSS transition في `RatingSheet`: عند الانتقال للعضو التالي، fade-out ثم fade-in للمحتوى باستخدام `transition-opacity duration-300`
+تمرير `activeGroupsCount` للـ `SimpleStatsGrid`
 
 ## الملفات المتأثرة
 | ملف | تغيير |
 |---|---|
-| `src/components/group/RatingSheet.tsx` | Flow متتابع + progress + شاشة إتمام |
-| `src/components/group/PendingRatingsNotification.tsx` | نص "تم تقييم X من Y" + empty state |
-| `src/pages/GroupDetails.tsx` | تمرير قائمة أعضاء مفلترة بدل عضو واحد |
+| `src/hooks/useDashboardData.ts` | إضافة استعلام التسويات + فصل المجموعات النشطة/المؤرشفة |
+| `src/components/dashboard/SimpleStatsGrid.tsx` | عرض "X نشطة" كـ subtitle + props جديد |
+| `src/components/performance/OptimizedDashboard.tsx` | تمرير activeGroupsCount |
 
