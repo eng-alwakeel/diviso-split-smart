@@ -49,16 +49,18 @@ export const useOptimizedDashboardData = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return null;
 
-      // Optimized queries with limits and proper date handling
-      const [membershipResult] = await Promise.all([
-        supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', userId)
-          .limit(100)
-      ]);
+      // Fetch groups with archived status
+      const membershipResult = await supabase
+        .from('group_members')
+        .select('group_id, groups!inner(archived_at)')
+        .eq('user_id', userId)
+        .limit(100);
 
-      const groupIds = (membershipResult.data ?? []).map(m => m.group_id);
+      const allGroups = membershipResult.data ?? [];
+      const groupIds = allGroups.map((m: any) => m.group_id);
+      const activeGroupIds = allGroups
+        .filter((m: any) => !m.groups?.archived_at)
+        .map((m: any) => m.group_id);
       
       if (!groupIds.length) {
         return {
@@ -67,13 +69,14 @@ export const useOptimizedDashboardData = (userId?: string) => {
           monthlyTotalExpenses: 0,
           weeklyExpensesCount: 0,
           groupsCount: 0,
+          activeGroupsCount: 0,
         };
       }
 
       const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
       const weekStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      const [paidResult, owedResult, monthlyResult, weeklyResult] = await Promise.all([
+      const [paidResult, owedResult, monthlyResult, weeklyResult, settlementsOutResult, settlementsInResult] = await Promise.all([
         supabase
           .from('expenses')
           .select('amount')
@@ -98,17 +101,39 @@ export const useOptimizedDashboardData = (userId?: string) => {
         supabase
           .from('expenses')
           .select('id')
-          .in('group_id', groupIds)
+          .in('group_id', activeGroupIds.length ? activeGroupIds : ['__none__'])
           .gte('spent_at', weekStart)
-          .limit(1000)
+          .limit(1000),
+
+        // Settlements paid by user (reduces what they owe)
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('from_user_id', userId)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
+
+        // Settlements received by user (reduces what others owe them)
+        supabase
+          .from('settlements')
+          .select('amount')
+          .eq('to_user_id', userId)
+          .in('status', ['confirmed', 'pending'])
+          .limit(1000),
       ]);
 
+      const totalPaid = (paidResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const totalOwed = (owedResult.data ?? []).reduce((sum, s) => sum + Number(s.share_amount || 0), 0);
+      const settlementsOut = (settlementsOutResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
+      const settlementsIn = (settlementsInResult.data ?? []).reduce((sum, s) => sum + Number(s.amount || 0), 0);
+
       return {
-        myPaid: (paidResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0),
-        myOwed: (owedResult.data ?? []).reduce((sum, s) => sum + Number(s.share_amount || 0), 0),
+        myPaid: totalPaid + settlementsOut,
+        myOwed: totalOwed + settlementsIn,
         monthlyTotalExpenses: (monthlyResult.data ?? []).reduce((sum, e) => sum + Number(e.amount || 0), 0),
         weeklyExpensesCount: weeklyResult.data?.length || 0,
         groupsCount: groupIds.length,
+        activeGroupsCount: activeGroupIds.length,
       };
     },
     enabled: !!userId,
