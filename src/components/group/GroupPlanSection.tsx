@@ -46,10 +46,6 @@ export function GroupPlanSection({
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
 
-  const budgetUsed = budgetValue ? Math.min((totalExpenses / budgetValue) * 100, 100) : 0;
-  const budgetRemaining = budgetValue ? budgetValue - totalExpenses : 0;
-  const isOverBudget = budgetValue ? totalExpenses > budgetValue : false;
-
   return (
     <>
       {/* Plan link banner */}
@@ -60,29 +56,6 @@ export function GroupPlanSection({
           عرض الخطة
         </Button>
       </div>
-
-      {/* Budget indicator */}
-      {budgetValue && (
-        <Card className="border-border/50">
-          <CardContent className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">الميزانية</span>
-              <span className={cn("font-bold", isOverBudget ? "text-destructive" : "text-foreground")}>
-                {totalExpenses.toLocaleString()} / {budgetValue.toLocaleString()} {budgetCurrency}
-              </span>
-            </div>
-            <Progress value={budgetUsed} className={cn("h-2", isOverBudget && "[&>div]:bg-destructive")} />
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-              <span>{budgetUsed.toFixed(0)}%</span>
-              {isOverBudget ? (
-                <span className="text-destructive font-semibold">تجاوز الميزانية!</span>
-              ) : (
-                <span>متبقي: {budgetRemaining.toLocaleString()} {budgetCurrency}</span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Schedule preview */}
       {days.length > 0 && (
