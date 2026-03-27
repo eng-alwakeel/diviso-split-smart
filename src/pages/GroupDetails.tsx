@@ -622,6 +622,7 @@ const GroupDetails = () => {
         )}
 
         {/* ═══════════ 7️⃣ EXPENSES PREVIEW ═══════════ */}
+        {!isGroupClosed && (
         <div className="space-y-2">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-bold">المصاريف</h2>
