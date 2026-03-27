@@ -294,11 +294,11 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
       <div className="flex gap-2">
         {isOpen && (
           <>
-            {/* Primary Vote Button */}
+            {/* Approve Button */}
             <Button
               onClick={vote}
-              disabled={isVoting}
-              variant={hasVoted ? 'default' : 'outline'}
+              disabled={isVoting || hasVoted}
+              variant={hasVoted ? 'default' : 'hero'}
               className={cn(
                 "flex-1",
                 hasVoted && "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -310,38 +310,26 @@ export function DiceDecisionMessage({ decisionId, groupId }: DiceDecisionMessage
                 <>
                   <ThumbsUp className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
                   {hasVoted 
-                    ? t('dice:chat.voted', 'صوّتت ✓') 
-                    : t('dice:chat.vote', 'صوّت')
+                    ? t('dice:chat.voted', 'موافق ✓') 
+                    : t('dice:chat.approve', 'موافق')
                   }
                 </>
               )}
             </Button>
 
-            {/* Secondary Reroll Button */}
-            {canReroll ? (
+            {/* Disapprove / Cancel Button */}
+            {!hasVoted && (
               <Button
                 onClick={reroll}
-                disabled={isRerolling}
-                variant="ghost"
-                className="flex-1 bg-muted/50 hover:bg-muted"
+                disabled={isRerolling || !canReroll}
+                variant="outline"
+                className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
               >
                 {isRerolling ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <>
-                    <RefreshCw className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
-                    {t('dice:result.reroll', 'إعادة')}
-                  </>
+                  t('dice:chat.disapprove', 'غير موافق')
                 )}
-              </Button>
-            ) : (
-              <Button
-                disabled
-                variant="ghost"
-                className="flex-1 bg-muted/30 text-muted-foreground cursor-not-allowed"
-              >
-                <RefreshCw className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
-                {t('dice:chat.reroll_done', 'تمت الإعادة')}
               </Button>
             )}
           </>
