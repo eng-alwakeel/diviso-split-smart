@@ -115,6 +115,11 @@ export async function buildUserDataProfile(userId: string): Promise<UserDataProf
   const has_in_progress_data = draft_groups_count > 0 || draft_plans_count > 0 || expenses_count > 0;
 
   return {
+    identity_type: 'registered' as const,
+    guest_session_id: null,
+    guest_temporary_groups_count: 0,
+    guest_temporary_expenses_count: 0,
+    guest_draft_plans_count: 0,
     owned_groups_count,
     owned_active_groups_count: owned_active,
     owned_archived_groups_count: owned_archived,

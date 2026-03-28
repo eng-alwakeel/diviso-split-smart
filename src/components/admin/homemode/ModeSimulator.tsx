@@ -10,6 +10,11 @@ import { resolveHomeMode } from "@/services/homeModeEngine/modeResolver";
 import type { UserDataProfile } from "@/services/homeModeEngine/types";
 
 const DEFAULT_PROFILE: UserDataProfile = {
+  identity_type: 'registered',
+  guest_session_id: null,
+  guest_temporary_groups_count: 0,
+  guest_temporary_expenses_count: 0,
+  guest_draft_plans_count: 0,
   owned_groups_count: 0,
   owned_active_groups_count: 0,
   owned_archived_groups_count: 0,
