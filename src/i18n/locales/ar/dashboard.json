@@ -317,5 +317,25 @@
     "invite_card_title": "لديك دعوة جديدة",
     "invite_card_accept": "عرض الدعوة",
     "invite_card_later": "لاحقاً"
+  },
+  "guest_modes": {
+    "welcome_guest": "مرحباً! ابدأ بدون حساب",
+    "guest_subtitle": "أنشئ مجموعة مؤقتة وأضف مصاريفك",
+    "create_temp_group": "أنشئ مجموعة مؤقتة",
+    "register_to_share": "سجّل لمشاركة مجموعتك",
+    "register_to_join": "سجّل للانضمام للمجموعة",
+    "register_to_add_members": "سجّل لإضافة أعضاء",
+    "register_to_save": "سجّل لحفظ بياناتك",
+    "auth_gate_title": "مطلوب إنشاء حساب",
+    "auth_gate_create_account": "إنشاء حساب",
+    "auth_gate_later": "لاحقاً",
+    "auth_reason_add_members": "سجّل حسابك لإضافة أعضاء وتحويل المجموعة لمجموعة مشتركة",
+    "auth_reason_invite_members": "سجّل حسابك لدعوة أعضاء للمجموعة",
+    "auth_reason_share_group": "سجّل حسابك لمشاركة مجموعتك مع الآخرين",
+    "auth_reason_join_group": "سجّل حسابك للانضمام لهذه المجموعة",
+    "auth_reason_accept_invite": "سجّل حسابك لقبول الدعوة والانضمام للمجموعة",
+    "auth_reason_permanent_sync": "سجّل حسابك لحفظ بياناتك بشكل دائم",
+    "auth_reason_collaborative_action": "سجّل حسابك للقيام بهذا الإجراء التعاوني",
+    "auth_reason_general": "سجّل حسابك للاستمرار"
   }
 }

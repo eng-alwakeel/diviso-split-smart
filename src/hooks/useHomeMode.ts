@@ -2,22 +2,32 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { buildUserDataProfile, resolveHomeMode } from '@/services/homeModeEngine';
+import { buildGuestDataProfile } from '@/services/homeModeEngine/guestProfileBuilder';
+import { isGuestSession } from '@/services/guestSession/guestSessionManager';
 import type { HomeModeResult } from '@/services/homeModeEngine';
 
 export function useHomeMode() {
-  const { data: userId } = useQuery({
-    queryKey: ['home-mode-uid'],
+  const { data: authState, isLoading: authLoading } = useQuery({
+    queryKey: ['home-mode-auth'],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
-      return data.session?.user?.id ?? null;
+      const userId = data.session?.user?.id ?? null;
+      return { userId, isGuest: !userId && isGuestSession() };
     },
     staleTime: 60 * 1000,
   });
 
-  const { data: profile, isLoading, refetch } = useQuery({
-    queryKey: ['home-mode-profile', userId],
-    queryFn: () => buildUserDataProfile(userId!),
-    enabled: !!userId,
+  const userId = authState?.userId ?? null;
+  const isGuest = authState?.isGuest ?? false;
+
+  const { data: profile, isLoading: profileLoading, refetch } = useQuery({
+    queryKey: ['home-mode-profile', userId, isGuest],
+    queryFn: () => {
+      if (userId) return buildUserDataProfile(userId);
+      if (isGuest) return buildGuestDataProfile();
+      return null;
+    },
+    enabled: !!userId || isGuest,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -33,7 +43,8 @@ export function useHomeMode() {
 
   return {
     result,
-    isLoading: !userId || isLoading,
+    isLoading: authLoading || profileLoading,
+    isGuest,
     refresh: refetch,
   };
 }

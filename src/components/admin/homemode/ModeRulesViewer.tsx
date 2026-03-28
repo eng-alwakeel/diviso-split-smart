@@ -19,6 +19,11 @@ export function ModeRulesViewer() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline" className="font-mono text-xs">#{idx + 1}</Badge>
                   <Badge variant="default" className="font-mono text-xs">{mode}</Badge>
+                  {rule.availableFor.map(id => (
+                    <Badge key={id} variant={id === 'guest' ? 'secondary' : 'outline'} className="font-mono text-xs">
+                      {id}
+                    </Badge>
+                  ))}
                 </div>
                 <p className="text-sm text-muted-foreground">{rule.descriptionAr}</p>
                 <div>
@@ -46,9 +51,14 @@ export function ModeRulesViewer() {
         <CardContent className="space-y-3">
           {Object.entries(OVERLAY_RULES).map(([key, rule]) => (
             <div key={key} className="border rounded-md p-3 space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={rule.active ? "secondary" : "outline"} className="font-mono text-xs">{key}</Badge>
                 {!rule.active && <Badge variant="outline" className="text-xs">غير مفعّل</Badge>}
+                {rule.availableFor.map(id => (
+                  <Badge key={id} variant={id === 'guest' ? 'secondary' : 'outline'} className="font-mono text-xs">
+                    {id}
+                  </Badge>
+                ))}
               </div>
               <p className="text-sm text-muted-foreground">{rule.descriptionAr}</p>
               <ul className="list-disc list-inside text-xs text-muted-foreground font-mono" dir="ltr">
@@ -58,6 +68,7 @@ export function ModeRulesViewer() {
               </ul>
             </div>
           ))}
+
         </CardContent>
       </Card>
     </div>

@@ -10,6 +10,11 @@ import { resolveHomeMode } from "@/services/homeModeEngine/modeResolver";
 import type { UserDataProfile } from "@/services/homeModeEngine/types";
 
 const DEFAULT_PROFILE: UserDataProfile = {
+  identity_type: 'registered',
+  guest_session_id: null,
+  guest_temporary_groups_count: 0,
+  guest_temporary_expenses_count: 0,
+  guest_draft_plans_count: 0,
   owned_groups_count: 0,
   owned_active_groups_count: 0,
   owned_archived_groups_count: 0,
@@ -35,7 +40,7 @@ const DEFAULT_PROFILE: UserDataProfile = {
 
 type Preset = { label: string; profile: Partial<UserDataProfile> };
 
-const PRESETS: Preset[] = [
+const REGISTERED_PRESETS: Preset[] = [
   { label: "مستخدم جديد", profile: {} },
   { label: "قيد التقدم", profile: { draft_groups_count: 1, has_in_progress_data: true, stale_days: 2 } },
   { label: "جاهز للمشاركة", profile: { draft_groups_with_expenses_count: 1, has_in_progress_data: true } },
@@ -45,7 +50,22 @@ const PRESETS: Preset[] = [
   { label: "مع دعوة", profile: { pending_invites_count: 1, joined_groups_count: 1, has_participant_experience: true } },
 ];
 
-const NUMBER_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
+const GUEST_PRESETS: Preset[] = [
+  { label: "ضيف جديد", profile: { identity_type: 'guest' } },
+  { label: "ضيف بمجموعة مؤقتة", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, has_in_progress_data: true } },
+  { label: "ضيف جاهز للمشاركة", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, guest_temporary_expenses_count: 3, has_in_progress_data: true } },
+  { label: "ضيف خامل", profile: { identity_type: 'guest', stale_days: 20, has_in_progress_data: true, guest_temporary_groups_count: 1 } },
+  { label: "ضيف مع دعوة", profile: { identity_type: 'guest', entered_via_invite_link: true } },
+];
+
+const GUEST_NUMBER_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
+  { key: 'guest_temporary_groups_count', label: 'مجموعات مؤقتة' },
+  { key: 'guest_temporary_expenses_count', label: 'مصاريف مؤقتة' },
+  { key: 'guest_draft_plans_count', label: 'خطط مسودة (ضيف)' },
+  { key: 'stale_days', label: 'أيام الخمول' },
+];
+
+const REGISTERED_NUMBER_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
   { key: 'owned_groups_count', label: 'مجموعات مملوكة' },
   { key: 'owned_active_groups_count', label: 'مملوكة نشطة' },
   { key: 'owned_archived_groups_count', label: 'مملوكة مؤرشفة' },
@@ -72,16 +92,27 @@ const BOOLEAN_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
 
 export function ModeSimulator() {
   const [profile, setProfile] = useState<UserDataProfile>({ ...DEFAULT_PROFILE });
+  const isGuest = profile.identity_type === 'guest';
 
   const result = useMemo(() => resolveHomeMode(profile), [profile]);
 
-  const setField = (key: keyof UserDataProfile, value: number | boolean) => {
+  const setField = (key: keyof UserDataProfile, value: number | boolean | string) => {
     setProfile(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleIdentity = (guest: boolean) => {
+    setProfile({ ...DEFAULT_PROFILE, identity_type: guest ? 'guest' : 'registered' });
   };
 
   const applyPreset = (preset: Preset) => {
     setProfile({ ...DEFAULT_PROFILE, ...preset.profile });
   };
+
+  const presets = isGuest ? GUEST_PRESETS : REGISTERED_PRESETS;
+  const numberFields = isGuest ? GUEST_NUMBER_FIELDS : REGISTERED_NUMBER_FIELDS;
+  const booleanFields = isGuest
+    ? BOOLEAN_FIELDS.filter(f => ['has_in_progress_data', 'entered_via_invite_link'].includes(f.key as string))
+    : BOOLEAN_FIELDS;
 
   return (
     <Card>
@@ -93,9 +124,37 @@ export function ModeSimulator() {
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Identity Toggle */}
+        <div className="flex items-center gap-3 p-2 border rounded-md bg-muted/30">
+          <Label className="text-xs font-medium">نوع الهوية:</Label>
+          <div className="flex gap-1.5">
+            <Button
+              variant={!isGuest ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => toggleIdentity(false)}
+            >
+              مسجل
+            </Button>
+            <Button
+              variant={isGuest ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => toggleIdentity(true)}
+            >
+              ضيف
+            </Button>
+          </div>
+          {isGuest && (
+            <Badge variant="outline" className="text-xs">
+              participant / creator_active محظور
+            </Badge>
+          )}
+        </div>
+
         {/* Presets */}
         <div className="flex flex-wrap gap-1.5">
-          {PRESETS.map(p => (
+          {presets.map(p => (
             <Button key={p.label} variant="outline" size="sm" className="text-xs h-7" onClick={() => applyPreset(p)}>
               {p.label}
             </Button>
@@ -104,7 +163,7 @@ export function ModeSimulator() {
 
         {/* Inputs */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {NUMBER_FIELDS.map(({ key, label }) => (
+          {numberFields.map(({ key, label }) => (
             <div key={key} className="space-y-1">
               <Label className="text-xs text-muted-foreground">{label}</Label>
               <Input
@@ -119,7 +178,7 @@ export function ModeSimulator() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {BOOLEAN_FIELDS.map(({ key, label }) => (
+          {booleanFields.map(({ key, label }) => (
             <div key={key} className="flex items-center gap-2">
               <Switch
                 checked={profile[key] as boolean}
@@ -138,6 +197,9 @@ export function ModeSimulator() {
             {result.active_overlays.map(o => (
               <Badge key={o} variant="secondary" className="font-mono text-xs">{o}</Badge>
             ))}
+            <Badge variant="outline" className="font-mono text-xs">
+              {isGuest ? 'guest' : 'registered'}
+            </Badge>
           </div>
           <div className="bg-muted/50 rounded-md p-3 text-xs font-mono leading-relaxed" dir="ltr">
             {result.resolution_reason}

@@ -22,6 +22,7 @@ const LazyDashboard = withLazyLoading(lazy(() => import("./pages/Dashboard")));
 const LazyAuth = withLazyLoading(lazy(() => import("./pages/Auth")));
 import EmailVerify from "./pages/EmailVerify";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { GuestRoute } from "./components/GuestRoute";
 import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import InviteRoute from "./pages/InviteRoute";
 import PhoneInviteRoute from "./pages/PhoneInviteRoute";
@@ -161,7 +162,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/split-dinner-bill" element={<LazySEOLandingPage />} />
             <Route path="/splitwise-alternative" element={<LazySEOLandingPage />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
-            <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></ProtectedRoute>} />
+            <Route path="/dashboard" element={<GuestRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></GuestRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/join" element={<ProtectedRoute><PageErrorBoundary><LazyJoinByLink /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/dice" element={<ProtectedRoute><PageErrorBoundary><LazyDiceDecisionPage /></PageErrorBoundary></ProtectedRoute>} />

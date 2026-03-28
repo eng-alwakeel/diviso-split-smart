@@ -26,6 +26,10 @@ export const ModeContentSection = memo(({ sectionType }: ModeContentSectionProps
       return <JoinedGroupsSection />;
     case 'stale_recovery':
       return <StaleRecoverySection />;
+    case 'guest_onboarding':
+      return <GuestOnboardingSection />;
+    case 'guest_share_prompt':
+      return <GuestSharePromptSection />;
     case 'managed_groups':
       // Handled by parent — renders existing dashboard components
       return null;
@@ -153,6 +157,47 @@ const StaleRecoverySection = memo(() => {
         <p className="text-sm text-muted-foreground">{t('home_modes.re_engagement_hint')}</p>
         <Button onClick={() => navigate('/my-groups')}>
           {t('home_modes.resume_cta')}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+});
+
+const GuestOnboardingSection = memo(() => {
+  const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
+
+  return (
+    <Card className="border border-border">
+      <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <Users className="w-6 h-6 text-primary" />
+        </div>
+        <p className="font-medium text-foreground">{t('guest_modes.welcome_guest')}</p>
+        <p className="text-sm text-muted-foreground">{t('guest_modes.guest_subtitle')}</p>
+        <Button onClick={() => navigate('/create-group')}>
+          <Users className="w-4 h-4 ltr:mr-2 rtl:ml-2" />
+          {t('guest_modes.create_temp_group')}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+});
+
+const GuestSharePromptSection = memo(() => {
+  const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
+
+  return (
+    <Card className="border border-border bg-primary/5">
+      <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <UserPlus className="w-6 h-6 text-primary" />
+        </div>
+        <p className="font-medium text-foreground">{t('guest_modes.register_to_share')}</p>
+        <p className="text-sm text-muted-foreground">{t('guest_modes.register_to_add_members')}</p>
+        <Button onClick={() => navigate('/auth')}>
+          {t('guest_modes.auth_gate_create_account')}
         </Button>
       </CardContent>
     </Card>

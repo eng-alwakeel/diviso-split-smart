@@ -1,8 +1,9 @@
 export { HOME_MODES, OVERLAYS, THRESHOLDS, MODE_PRIORITY } from './constants';
 export type { HomeMode, Overlay } from './constants';
-export type { UserDataProfile, HomeModeResult } from './types';
+export type { UserDataProfile, HomeModeResult, IdentityType } from './types';
 export { resolveHomeMode } from './modeResolver';
 export { buildUserDataProfile } from './dataProfileBuilder';
+export { buildGuestDataProfile } from './guestProfileBuilder';
 export { getHomeModeUIConfig, DEFAULT_UI_CONFIG } from './uiModeConfig';
 export type { HomeModeUIConfig, MainSectionType } from './uiModeConfig';
 export { MODE_RULES, OVERLAY_RULES } from './modeRulesConfig';
