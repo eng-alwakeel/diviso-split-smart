@@ -116,7 +116,7 @@ const Auth = () => {
     const phoneInviteToken = localStorage.getItem('phoneInviteToken');
 
     // Listen first, then get existing session
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setIsLoggedIn(!!session);
       if (session?.user) {
         // Track signup completion for email/Google users (SIGNED_IN event after signup)
@@ -134,6 +134,29 @@ const Auth = () => {
               method: isGoogleUser ? 'google' : isEmailUser ? 'email' : 'unknown',
               source: params.get('redirect') || 'direct',
             });
+
+            // === Guest data migration ===
+            const hadGuestData = hasGuestDataToMigrate();
+            const intent = getConversionIntent();
+
+            trackRegistrationCompleted(intent?.attempted_action || null, hadGuestData).catch(() => {});
+
+            if (hadGuestData) {
+              try {
+                const migrationResult = await migrateGuestData(session.user.id);
+                trackMigrationCompleted(migrationResult).catch(() => {});
+              } catch (e: any) {
+                trackMigrationFailed(e.message || 'Unknown error').catch(() => {});
+              }
+            }
+
+            // === Conversion intent redirect ===
+            if (intent) {
+              clearConversionIntent();
+              trackPostAuthRedirect(intent.post_auth_redirect, true).catch(() => {});
+              navigate(intent.post_auth_redirect, { replace: true });
+              return;
+            }
           }
         }
 
