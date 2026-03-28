@@ -1,18 +1,10 @@
 /**
  * UI Mode Configuration — Maps each home mode to UI content state
- * 
- * This is the central mapping layer between the Home Mode Engine output
- * and the dashboard UI. Each mode defines hero text, CTAs, section visibility,
- * and content section types.
- * 
- * ## Why participant_mode ≠ creator_active_mode:
- * - participant_mode: User joined groups but never created one. They see joined groups
- *   prominently and a CTA encouraging them to create their own group.
- * - creator_active_mode: User owns groups. They see full financial dashboard,
- *   owned groups, and management tools. Ownership is the core distinction.
+ * Supports both registered and guest identities.
  */
 
 import { HOME_MODES, type HomeMode } from './constants';
+import type { IdentityType } from './types';
 
 export type MainSectionType = 
   | 'onboarding' 
@@ -20,7 +12,9 @@ export type MainSectionType =
   | 'prepared_group' 
   | 'joined_groups' 
   | 'managed_groups' 
-  | 'stale_recovery';
+  | 'stale_recovery'
+  | 'guest_onboarding'
+  | 'guest_share_prompt';
 
 export interface HomeModeUIConfig {
   heroTitle: string;
@@ -103,9 +97,59 @@ const UI_CONFIGS: Record<HomeMode, HomeModeUIConfig> = {
   },
 };
 
+/** Guest-specific UI overrides — only for modes guests can use */
+const GUEST_UI_CONFIGS: Partial<Record<HomeMode, HomeModeUIConfig>> = {
+  [HOME_MODES.FIRST_ENTRY]: {
+    heroTitle: 'guest_modes.welcome_guest',
+    heroSubtitle: 'guest_modes.guest_subtitle',
+    primaryCTA: { label: 'guest_modes.create_temp_group', route: '/create-group', icon: 'Users' },
+    secondaryCTA: { label: 'home_modes.explore_cta', route: '/plans', icon: 'Map' },
+    showStatsGrid: false,
+    mainSectionType: 'guest_onboarding',
+    showQuickActions: false,
+    showSubscriptionCards: false,
+    showAds: false,
+  },
+  [HOME_MODES.IN_PROGRESS]: {
+    heroTitle: 'home_modes.in_progress_title',
+    heroSubtitle: 'home_modes.in_progress_subtitle',
+    primaryCTA: { label: 'home_modes.continue_cta', route: '/dashboard', icon: 'ArrowRight' },
+    showStatsGrid: false,
+    mainSectionType: 'continue_draft',
+    showQuickActions: false,
+    showSubscriptionCards: false,
+    showAds: false,
+  },
+  [HOME_MODES.SHARE_READY]: {
+    heroTitle: 'guest_modes.register_to_share',
+    heroSubtitle: 'guest_modes.guest_subtitle',
+    primaryCTA: { label: 'guest_modes.auth_gate_create_account', route: '/auth', icon: 'UserPlus' },
+    secondaryCTA: { label: 'home_modes.continue_cta', route: '/dashboard', icon: 'ArrowRight' },
+    showStatsGrid: false,
+    mainSectionType: 'guest_share_prompt',
+    showQuickActions: false,
+    showSubscriptionCards: false,
+    showAds: false,
+  },
+  [HOME_MODES.RE_ENGAGEMENT]: {
+    heroTitle: 'home_modes.re_engagement_title',
+    heroSubtitle: 'home_modes.re_engagement_subtitle',
+    primaryCTA: { label: 'home_modes.resume_cta', route: '/dashboard', icon: 'RotateCcw' },
+    showStatsGrid: false,
+    mainSectionType: 'stale_recovery',
+    showQuickActions: false,
+    showSubscriptionCards: false,
+    showAds: false,
+  },
+};
+
 /** Default config used as fallback when engine is loading or errored */
 export const DEFAULT_UI_CONFIG = UI_CONFIGS[HOME_MODES.CREATOR_ACTIVE];
 
-export function getHomeModeUIConfig(mode: string): HomeModeUIConfig {
+export function getHomeModeUIConfig(mode: string, identityType: IdentityType = 'registered'): HomeModeUIConfig {
+  if (identityType === 'guest') {
+    const guestConfig = GUEST_UI_CONFIGS[mode as HomeMode];
+    if (guestConfig) return guestConfig;
+  }
   return UI_CONFIGS[mode as HomeMode] ?? DEFAULT_UI_CONFIG;
 }

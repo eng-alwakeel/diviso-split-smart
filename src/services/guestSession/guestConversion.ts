@@ -23,7 +23,7 @@ export async function migrateGuestData(userId: string): Promise<{ groupsMigrated
         .insert({
           name: group.name,
           currency: group.currency,
-          created_by: userId,
+          owner_id: userId,
           status: 'draft',
         })
         .select('id')
@@ -67,11 +67,12 @@ export async function migrateGuestData(userId: string): Promise<{ groupsMigrated
       const { error } = await supabase
         .from('plans')
         .insert({
-          name: plan.name,
+          title: plan.name,
           destination: plan.destination || null,
           start_date: plan.start_date || null,
           end_date: plan.end_date || null,
-          created_by: userId,
+          owner_user_id: userId,
+          plan_type: 'trip',
           status: 'draft',
         });
 

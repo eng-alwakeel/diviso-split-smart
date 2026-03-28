@@ -1,4 +1,12 @@
+export type IdentityType = 'guest' | 'registered';
+
 export interface UserDataProfile {
+  // Identity
+  identity_type: IdentityType;
+  guest_session_id: string | null;
+  guest_temporary_groups_count: number;
+  guest_temporary_expenses_count: number;
+  guest_draft_plans_count: number;
   // Ownership & participation
   owned_groups_count: number;
   owned_active_groups_count: number;
