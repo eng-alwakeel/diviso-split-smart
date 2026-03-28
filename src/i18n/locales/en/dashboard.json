@@ -317,5 +317,25 @@
     "invite_card_title": "You have a new invite",
     "invite_card_accept": "View Invite",
     "invite_card_later": "Later"
+  },
+  "guest_modes": {
+    "welcome_guest": "Welcome! Start without an account",
+    "guest_subtitle": "Create a temporary group and add your expenses",
+    "create_temp_group": "Create Temporary Group",
+    "register_to_share": "Register to share your group",
+    "register_to_join": "Register to join the group",
+    "register_to_add_members": "Register to add members",
+    "register_to_save": "Register to save your data",
+    "auth_gate_title": "Account Required",
+    "auth_gate_create_account": "Create Account",
+    "auth_gate_later": "Later",
+    "auth_reason_add_members": "Create an account to add members and turn this into a shared group",
+    "auth_reason_invite_members": "Create an account to invite members to the group",
+    "auth_reason_share_group": "Create an account to share your group with others",
+    "auth_reason_join_group": "Create an account to join this group",
+    "auth_reason_accept_invite": "Create an account to accept the invite and join the group",
+    "auth_reason_permanent_sync": "Create an account to permanently save your data",
+    "auth_reason_collaborative_action": "Create an account to perform this collaborative action",
+    "auth_reason_general": "Create an account to continue"
   }
 }

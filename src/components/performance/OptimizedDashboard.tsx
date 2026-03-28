@@ -65,12 +65,13 @@ const OptimizedDashboard = memo(() => {
   }, []);
 
   // Home mode engine
-  const { result: homeModeResult, isLoading: homeModeLoading } = useHomeMode();
+  const { result: homeModeResult, isLoading: homeModeLoading, isGuest } = useHomeMode();
 
   // UI config from resolved mode (fallback to creator_active)
   const uiConfig = useMemo(() => {
     if (!homeModeResult) return DEFAULT_UI_CONFIG;
-    return getHomeModeUIConfig(homeModeResult.current_home_mode);
+    const identityType = homeModeResult.data_profile_snapshot.identity_type ?? 'registered';
+    return getHomeModeUIConfig(homeModeResult.current_home_mode, identityType);
   }, [homeModeResult]);
 
   const isCreatorActive = homeModeResult?.current_home_mode === HOME_MODES.CREATOR_ACTIVE;
