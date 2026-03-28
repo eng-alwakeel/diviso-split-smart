@@ -1,197 +1,151 @@
 
 
-# Phase 1: Core Home Mode Engine
+# Phase 2: Connect Home Page UI to Home Mode Engine
 
-## Overview
-Build a standalone resolver module that determines the correct home page mode for a registered user. No UI changes, no guest mode — pure logic layer.
+## Approach
+Adapt the existing `OptimizedDashboard` page by creating a UI config layer that maps each `current_home_mode` to content variations — hero text, CTA labels, section visibility, and order. One page, same shell, different content states.
 
 ## Architecture
 
 ```text
 src/services/homeModeEngine/
-  ├── constants.ts        ← Mode & overlay names, thresholds
-  ├── types.ts            ← UserDataProfile, HomeModeResult interfaces
-  ├── dataProfileBuilder.ts  ← Fetches data from Supabase, builds profile
-  ├── modeResolver.ts     ← Pure function: profile → mode + overlays + reason
-  ├── index.ts            ← Re-exports
-  └── __tests__/
-      └── modeResolver.test.ts  ← Inline test scenarios (not run, for docs)
+  └── uiModeConfig.ts        ← NEW: mode → UI config mapping
 
-src/hooks/useHomeMode.ts  ← React hook wrapping the engine
+src/components/dashboard/
+  ├── HomeModeHero.tsx        ← NEW: mode-aware hero/greeting section
+  ├── InvitePriorityCard.tsx  ← NEW: overlay card for pending invites
+  ├── ModeContentSection.tsx  ← NEW: renders main/secondary sections per mode
+  └── SimpleStatsGrid.tsx     ← EDIT: hide/show based on mode
+
+src/pages/OptimizedDashboard.tsx  ← EDIT: integrate useHomeMode + render by config
 ```
 
 ## File Details
 
-### 1. `constants.ts` — Mode & Overlay Config
+### 1. `src/services/homeModeEngine/uiModeConfig.ts` — Central UI Mapping
 
+A config object per mode defining:
 ```ts
-export const HOME_MODES = {
-  CREATOR_ACTIVE: 'creator_active_mode',
-  PARTICIPANT: 'participant_mode',
-  SHARE_READY: 'share_ready_mode',
-  RE_ENGAGEMENT: 're_engagement_mode',
-  IN_PROGRESS: 'in_progress_mode',
-  FIRST_ENTRY: 'first_entry_mode',
-} as const;
-
-export const OVERLAYS = {
-  INVITE_PRIORITY: 'invite_priority',
-  AUTH_REQUIRED_GATE: 'auth_required_gate', // reserved for guest mode
-} as const;
-
-export const THRESHOLDS = {
-  STALE_DAYS: 14, // days without activity for re-engagement
-} as const;
-
-// Priority order (index = priority, lower = higher)
-export const MODE_PRIORITY = [
-  HOME_MODES.CREATOR_ACTIVE,
-  HOME_MODES.PARTICIPANT,
-  HOME_MODES.SHARE_READY,
-  HOME_MODES.RE_ENGAGEMENT,
-  HOME_MODES.IN_PROGRESS,
-  HOME_MODES.FIRST_ENTRY,
-] as const;
-```
-
-### 2. `types.ts` — Data Profile & Result
-
-```ts
-export interface UserDataProfile {
-  // Ownership & participation
-  owned_groups_count: number;
-  owned_active_groups_count: number;
-  owned_archived_groups_count: number;
-  joined_groups_count: number;
-  joined_active_groups_count: number;
-  joined_archived_groups_count: number;
-  // Draft & progress
-  draft_groups_count: number;
-  draft_groups_with_expenses_count: number;
-  draft_plans_count: number;
-  has_in_progress_data: boolean;
-  // Financial & usage
-  expenses_count: number;
-  has_balance: boolean;
-  has_settlement_action: boolean;
-  activity_count: number;
-  last_activity_at: string | null;
-  stale_days: number;
-  // Invite context
-  pending_invites_count: number;
-  entered_via_invite_link: boolean;
-  invite_target_group_id: string | null;
-  // Experience flags (derived)
-  has_creator_experience: boolean;
-  has_participant_experience: boolean;
-}
-
-export interface HomeModeResult {
-  current_home_mode: string;
-  active_overlays: string[];
-  resolution_reason: string;
-  data_profile_snapshot: UserDataProfile;
+interface HomeModeUIConfig {
+  heroTitle: string;           // i18n key
+  heroSubtitle: string;        // i18n key
+  primaryCTA: { label: string; route: string; icon: string };
+  secondaryCTA?: { label: string; route: string; icon: string };
+  showStatsGrid: boolean;      // hide stats for first_entry (all zeros)
+  mainSectionType: 'onboarding' | 'continue_draft' | 'prepared_group' | 'joined_groups' | 'managed_groups' | 'stale_recovery';
+  secondarySectionType?: string;
+  showQuickActions: boolean;
 }
 ```
 
-### 3. `dataProfileBuilder.ts` — Supabase Queries
+Mode mappings:
+| Mode | heroTitle | primaryCTA | showStatsGrid | mainSection |
+|---|---|---|---|---|
+| first_entry | "لنبدأ رحلتك الأولى" | إنشاء مجموعة → /create-group | false | onboarding |
+| in_progress | "أكمل ما بدأته" | متابعة → /my-groups | true | continue_draft |
+| share_ready | "مجموعتك جاهزة" | إضافة أعضاء → group invite | true | prepared_group |
+| participant | "انضممت لمجموعات — أنشئ مجموعتك" | إنشاء مجموعة → /create-group | true | joined_groups |
+| creator_active | "مرحباً بك!" (current) | إنشاء مجموعة / إضافة مصروف | true | managed_groups |
+| re_engagement | "عُد من حيث توقفت" | استئناف → /my-groups | true | stale_recovery |
 
-Fetches all required data in parallel using `Promise.all`:
+### 2. `src/components/dashboard/HomeModeHero.tsx` — Mode-Aware Hero
 
-**Query 1 — Groups**: `group_members` joined with `groups` to get `owner_id`, `archived_at`, `status`. Split into:
-- Owned groups: `groups.owner_id === userId`
-- Joined groups: `groups.owner_id !== userId`
-- Active/archived by `archived_at`
-- Draft: `groups.status === 'draft'` (if exists, fallback to 0)
+Replaces the static welcome section. Receives `HomeModeUIConfig` and renders:
+- Title + subtitle from config
+- Primary CTA button (hero variant)
+- Optional secondary CTA button (outline variant)
+- For `first_entry_mode`: a 3-step getting-started mini block below the CTAs
+- For `creator_active_mode`: same as current (title + founding badge + help button)
+- Smooth transition: same container, different text content
 
-**Query 2 — Expenses**: `expenses` count where `created_by = userId`
+### 3. `src/components/dashboard/InvitePriorityCard.tsx` — Invite Overlay
 
-**Query 3 — Draft groups with expenses**: For draft group IDs, check if any have expenses
+Rendered when `active_overlays` includes `invite_priority`. Placed immediately after the hero section.
+- Fetches pending invites using existing `useNotifications` or a lightweight query
+- Shows invite card(s) with group name, inviter, and Accept/Later CTAs
+- Visually distinct: primary border, subtle background highlight
+- Coexists with any mode
 
-**Query 4 — Plans**: `plans` where `owner_user_id = userId` and `status = 'draft'`
+### 4. `src/components/dashboard/ModeContentSection.tsx` — Main Content by Mode
 
-**Query 5 — Settlements**: Check `settlements` for pending actions (`from_user_id` or `to_user_id`)
+A switch component that renders the appropriate content based on `mainSectionType`:
 
-**Query 6 — Balance**: Quick check via `expense_splits` if user has non-zero shares
+- **onboarding**: 3-step card (إنشاء مجموعة → إضافة مصاريف → دعوة أعضاء), no empty stats
+- **continue_draft**: Surface the most relevant draft group name + "Continue" CTA
+- **prepared_group**: Show the prepared group card + "Add Members" CTA
+- **joined_groups**: List of joined groups with "Create Your Own" encouragement
+- **managed_groups**: Current behavior — stats grid + quick actions + subscription cards (default/existing)
+- **stale_recovery**: Show last active group/expense info + "Resume" CTA
 
-**Query 7 — Activity**: `user_action_log` count + last `created_at`
+For modes that aren't `creator_active` (managed_groups), hide SubscriptionStatusCard, UsageLimitsCard, and ads to reduce noise. Keep them only in creator_active mode.
 
-**Query 8 — Pending invites**: `group_invites` where `invited_user_id = userId` and `status = 'pending'`
+### 5. `src/pages/OptimizedDashboard.tsx` — Integration
 
-**Invite link context**: Read `localStorage.getItem('joinToken')` and `localStorage.getItem('phoneInviteToken')`
+Changes:
+- Import and call `useHomeMode()`
+- Import `getHomeModeUIConfig()` from uiModeConfig
+- Replace static welcome section with `<HomeModeHero config={uiConfig} />`
+- Add `<InvitePriorityCard />` when invite_priority overlay is active
+- Conditionally render `SimpleStatsGrid` based on `config.showStatsGrid`
+- Replace quick actions + subscription/usage cards section with `<ModeContentSection type={config.mainSectionType} />`
+- Keep AppHeader, BottomNav, QuotaWarnings, AdminCard, and AppGuide unchanged
+- For `creator_active_mode`: render everything as-is (current behavior preserved)
+- Fallback: if `useHomeMode` is loading or null, default to `creator_active_mode` config
 
-**Derived fields**:
-- `stale_days` = days since `last_activity_at` (or 999 if null)
-- `has_creator_experience` = `owned_groups_count > 0`
-- `has_participant_experience` = `joined_groups_count > 0`
-- `has_in_progress_data` = `draft_groups_count > 0 || draft_plans_count > 0 || expenses_count > 0`
+### 6. `src/components/dashboard/SimpleStatsGrid.tsx` — Minor Edit
 
-### 4. `modeResolver.ts` — Pure Deterministic Resolver
+No structural changes. Just conditionally hidden via parent when `showStatsGrid = false`.
 
-A **pure function** (no side effects, no DB calls):
+### 7. Translation Keys — `src/i18n/locales/ar/dashboard.json` + `en/dashboard.json`
 
-```ts
-export function resolveHomeMode(profile: UserDataProfile): HomeModeResult
-```
-
-**Mode selection** (first match wins, follows priority order):
-
-1. **creator_active_mode**: `owned_groups_count > 0`
-   - Reason: "User owns {n} groups → creator_active_mode"
-
-2. **participant_mode**: `joined_groups_count > 0`
-   - Reason: "User joined {n} groups but owns none → participant_mode"
-
-3. **share_ready_mode**: `draft_groups_with_expenses_count > 0`
-   - Reason: "User has {n} draft groups with expenses → share_ready_mode"
-
-4. **re_engagement_mode**: `stale_days >= THRESHOLDS.STALE_DAYS && has_in_progress_data`
-   - Reason: "User inactive for {n} days with prior data → re_engagement_mode"
-
-5. **in_progress_mode**: `has_in_progress_data`
-   - Reason: "User has drafts/plans in progress → in_progress_mode"
-
-6. **first_entry_mode**: default fallback
-   - Reason: "No meaningful prior usage → first_entry_mode"
-
-**Overlay logic**:
-- `invite_priority`: `entered_via_invite_link || pending_invites_count > 0`
-- `auth_required_gate`: never activated (reserved, always excluded)
-
-### 5. `useHomeMode.ts` — React Hook
-
-```ts
-export function useHomeMode(): {
-  result: HomeModeResult | null;
-  isLoading: boolean;
-  refresh: () => void;
+Add new keys under `home_modes`:
+```json
+{
+  "home_modes": {
+    "first_entry_title": "لنبدأ رحلتك الأولى",
+    "first_entry_subtitle": "أنشئ مجموعتك الأولى وابدأ بتتبع المصاريف",
+    "in_progress_title": "أكمل ما بدأته",
+    "in_progress_subtitle": "لديك عمل غير مكتمل",
+    "share_ready_title": "مجموعتك جاهزة للخطوة التالية",
+    "share_ready_subtitle": "أضف أعضاء وابدأ بالتعاون",
+    "participant_title": "انضممت لمجموعات — أنشئ مجموعتك الخاصة",
+    "participant_subtitle": "حان الوقت لإدارة مصاريفك بنفسك",
+    "creator_active_title": "مرحباً بك!",
+    "creator_active_subtitle": "إدارة ذكية للمصاريف المشتركة",
+    "re_engagement_title": "عُد من حيث توقفت",
+    "re_engagement_subtitle": "لديك بيانات سابقة تنتظرك",
+    "onboarding_step1": "أنشئ مجموعة",
+    "onboarding_step2": "أضف مصاريف",
+    "onboarding_step3": "ادعُ الأعضاء",
+    "continue_cta": "متابعة",
+    "resume_cta": "استئناف",
+    "add_members_cta": "إضافة أعضاء",
+    "create_own_group_cta": "أنشئ مجموعتك",
+    "view_joined_groups": "عرض المجموعات",
+    "invite_card_title": "لديك دعوة جديدة",
+    "invite_card_accept": "قبول الدعوة",
+    "invite_card_later": "لاحقاً",
+    "all_rated": "تم تقييم جميع الأعضاء"
+  }
 }
 ```
 
-Uses `useQuery` to call `buildUserDataProfile(userId)`, then `useMemo` to run `resolveHomeMode(profile)`. Logs `resolution_reason` in dev mode.
+## Key Design Decisions
 
-### 6. Test Scenarios (inline documentation)
+1. **creator_active_mode = current dashboard**: No visible change for existing active creators. This is critical for stability.
+2. **participant_mode vs creator_active_mode**: Participant sees joined groups prominently + "Create Your Own" CTA. Creator sees owned groups + full financial dashboard. The distinction respects ownership.
+3. **first_entry hides stats**: Showing all-zero financial cards creates noise. Replace with onboarding guidance.
+4. **Invite overlay is additive**: It never replaces the mode content, just adds a card above it.
+5. **Fallback safety**: If home mode engine fails or is loading, default to creator_active behavior (current UI).
 
-```ts
-// Scenario 1: First entry — all zeros → first_entry_mode
-// Scenario 2: Created 1 group → creator_active_mode
-// Scenario 3: Joined 2 groups, owns 0 → participant_mode
-// Scenario 4: Draft group with expenses → share_ready_mode
-// Scenario 5: Draft group, no expenses → in_progress_mode
-// Scenario 6: Had activity 30 days ago, has drafts → re_engagement_mode
-// Scenario 7: Creator + pending invite → creator_active_mode + invite_priority
-// Scenario 8: joinToken in localStorage → adds invite_priority overlay
-```
-
-## Files to Create/Edit
+## Files Affected
 | File | Action |
 |---|---|
-| `src/services/homeModeEngine/constants.ts` | Create |
-| `src/services/homeModeEngine/types.ts` | Create |
-| `src/services/homeModeEngine/dataProfileBuilder.ts` | Create |
-| `src/services/homeModeEngine/modeResolver.ts` | Create |
-| `src/services/homeModeEngine/index.ts` | Create |
-| `src/hooks/useHomeMode.ts` | Create |
-
-No existing files modified. No DB migrations needed. No UI changes.
+| `src/services/homeModeEngine/uiModeConfig.ts` | Create — mode → UI config mapping |
+| `src/components/dashboard/HomeModeHero.tsx` | Create — mode-aware hero section |
+| `src/components/dashboard/InvitePriorityCard.tsx` | Create — invite overlay card |
+| `src/components/dashboard/ModeContentSection.tsx` | Create — main content by mode type |
+| `src/pages/OptimizedDashboard.tsx` | Edit — integrate useHomeMode + conditional rendering |
+| `src/i18n/locales/ar/dashboard.json` | Edit — add home_modes keys |
+| `src/i18n/locales/en/dashboard.json` | Edit — add home_modes keys |
 
