@@ -206,6 +206,22 @@ export function ModeSimulator() {
           <div className="bg-muted/50 rounded-md p-3 text-xs font-mono leading-relaxed" dir="ltr">
             {result.resolution_reason}
           </div>
+          {/* Conversion context for guest scenarios */}
+          {isGuest && (
+            <div className="bg-muted/30 rounded-md p-3 text-xs space-y-1 border border-dashed">
+              <span className="font-medium text-muted-foreground">سياق التحويل:</span>
+              <div className="font-mono" dir="ltr">
+                {result.active_overlays.includes('auth_required_gate')
+                  ? `auth_gate: active | redirect: /auth?mode=signup`
+                  : 'auth_gate: inactive'}
+              </div>
+              {profile.entered_via_invite_link && (
+                <div className="font-mono" dir="ltr">
+                  invite_target: {profile.invite_target_group_id || 'none'} | post_auth: /i/{'{code}'}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
