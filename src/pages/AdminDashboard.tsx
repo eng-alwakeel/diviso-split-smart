@@ -334,6 +334,12 @@ const AdminDashboardContent = () => {
                 <span className="hidden sm:inline text-xs lg:text-sm">الإدارة</span>
               </TabsTrigger>
             )}
+            {allowedTabs.some(t => t.id === "homemode") && (
+              <TabsTrigger value="homemode" className="flex items-center gap-1 py-2">
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">الأوضاع</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {allowedTabs.some(t => t.id === "executive") && (
@@ -392,6 +398,12 @@ const AdminDashboardContent = () => {
                   <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
                 )}
               </div>
+            </TabsContent>
+          )}
+
+          {allowedTabs.some(t => t.id === "homemode") && (
+            <TabsContent value="homemode">
+              <HomeModeDebugTab />
             </TabsContent>
           )}
         </Tabs>
