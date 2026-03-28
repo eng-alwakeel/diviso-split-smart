@@ -15,7 +15,7 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2, Mail } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2, Mail, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
@@ -26,6 +26,7 @@ import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSect
 import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
 import { useAdminTabs } from "@/hooks/useAdminTabs";
 import { AdminBroadcastEmail } from "@/components/admin/AdminBroadcastEmail";
+import { HomeModeDebugTab } from "@/components/admin/homemode/HomeModeDebugTab";
 
 export const AdminDashboard = () => {
   return (
@@ -278,7 +279,7 @@ const AdminDashboardContent = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(allowedTabs.length, 8)}, minmax(0, 1fr))` }}>
+          <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(allowedTabs.length, 10)}, minmax(0, 1fr))` }}>
             {allowedTabs.some(t => t.id === "executive") && (
               <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
                 <BarChart3 className="h-4 w-4" />
@@ -331,6 +332,12 @@ const AdminDashboardContent = () => {
               <TabsTrigger value="management" className="flex items-center gap-1 py-2">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline text-xs lg:text-sm">الإدارة</span>
+              </TabsTrigger>
+            )}
+            {allowedTabs.some(t => t.id === "homemode") && (
+              <TabsTrigger value="homemode" className="flex items-center gap-1 py-2">
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline text-xs lg:text-sm">الأوضاع</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -391,6 +398,12 @@ const AdminDashboardContent = () => {
                   <AdminManagementTables users={filteredUsers} groups={filteredGroups} />
                 )}
               </div>
+            </TabsContent>
+          )}
+
+          {allowedTabs.some(t => t.id === "homemode") && (
+            <TabsContent value="homemode">
+              <HomeModeDebugTab />
             </TabsContent>
           )}
         </Tabs>
