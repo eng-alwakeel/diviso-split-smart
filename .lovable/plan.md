@@ -1,105 +1,115 @@
 
 
-# Phase 5: Guest-to-Registered Conversion Optimization
+# Phase: 12 Bilingual SEO Landing Pages
 
 ## Current State
-- `useAuthGate` stores reason + redirect in localStorage but **never reads it back** after auth
-- `AuthRequiredGate` navigates to `/auth` but doesn't pass the reason or redirect context
-- `migrateGuestData()` exists but is **never called** anywhere — Auth.tsx doesn't trigger it
-- Auth.tsx handles `joinToken` and `phoneInviteToken` post-auth redirects but has no guest migration logic
-- No conversion event tracking exists
+- 7 English-only SEO pages exist at root routes (`/split-expenses`, `/splitwise-alternative`, etc.)
+- `SEOLandingPageData` interface is English-only — no Arabic fields
+- `SEOLandingPage` component renders English-only, LTR
+- `SEOLandingPageRoute` resolves pages by `pathname` match against `route` field
+- All routes are individually hardcoded in `App.tsx`
 
-## Plan
+## Architecture Approach
 
-### 1. Conversion Intent Model (`src/services/guestSession/conversionIntent.ts`) — Create
+**Extend the existing system** rather than creating a new one:
+- Add `lang` field to `SEOLandingPageData` (`'en' | 'ar'`)
+- Add Arabic-specific fields or make the existing interface language-aware
+- Use wildcard routes (`/en/*`, `/ar/*`) instead of 24 individual route entries
+- Update `SEOLandingPage` component to support RTL rendering when `lang === 'ar'`
 
-Store structured intent in localStorage when auth gate triggers:
+## Data Model Extension
+
+Add to `SEOLandingPageData`:
 ```ts
-interface ConversionIntent {
-  attempted_action: AuthGateReason;
-  attempted_target_id?: string;
-  post_auth_redirect: string;
-  created_at: string;
-}
+lang: 'en' | 'ar';
+dir: 'ltr' | 'rtl';
+hreflangPair?: string; // route of the alternate language version
 ```
-Functions: `setConversionIntent()`, `getConversionIntent()`, `clearConversionIntent()`
 
-### 2. Update `useAuthGate.ts` — Edit
+Each page entry is a standalone record (no nested ar/en). Arabic pages are separate entries with Arabic content in the same fields. Paired via `hreflangPair` for cross-linking and `<link rel="alternate" hreflang>`.
 
-When `requireAuth()` is called, also save a `ConversionIntent` via the new module. This replaces the ad-hoc `diviso_auth_redirect` localStorage usage with structured intent.
+## The 12 Page Pairs (22 total entries)
 
-### 3. Update `AuthRequiredGate.tsx` — Edit
+| # | English Route | Arabic Route | Has Arabic |
+|---|---|---|---|
+| 1 | `/en/split-expenses-with-friends` | `/ar/تقسيم-المصاريف-بين-الأصدقاء` | Yes |
+| 2 | `/en/group-travel-expense-tracker` | `/ar/تقسيم-تكاليف-الرحلات` | Yes |
+| 3 | `/en/split-bills-roommates` | `/ar/تقسيم-الفواتير-بين-السكن` | Yes |
+| 4 | `/en/shared-expense-tracker` | `/ar/إدارة-المصاريف-المشتركة` | Yes |
+| 5 | `/en/group-budget-planner` | `/ar/إنشاء-ميزانية-للمجموعة` | Yes |
+| 6 | `/en/how-to-split-bills` | `/ar/كيف-تقسم-المصاريف` | Yes |
+| 7 | `/en/how-to-manage-group-expenses` | `/ar/إدارة-المصاريف-الجماعية` | Yes |
+| 8 | `/en/settle-expenses-easily` | `/ar/تسوية-المصاريف-بسهولة` | Yes |
+| 9 | `/en/splitwise-alternative` | — | No |
+| 10 | `/en/best-expense-sharing-app` | — | No |
+| 11 | `/en/avoid-financial-conflicts-friends` | `/ar/تجنب-الخلافات-المالية-بين-الأصدقاء` | Yes |
+| 12 | `/en/split-trip-costs-best-way` | `/ar/أفضل-طريقة-لتقسيم-تكاليف-الرحلة` | Yes |
 
-- Pass `redirectAfterAuth` to `/auth` as a query param
-- Show invite-specific UI when reason is `join_group` or `accept_invite` (group name, inviter if available)
-- Add value proposition bullets (preserve progress, free account)
+## Content Strategy Per Page
 
-### 4. Update `Auth.tsx` — Edit (Critical)
+Each entry contains unique, intent-focused content:
+- **H1** targeting the primary keyword
+- **heroSubtitle** — benefit-driven, not generic
+- **bodyContent** — 3 paragraphs: problem, how Diviso helps, practical example
+- **features** — 6 relevant features per page
+- **useCases** — 4 scenario cards
+- **faqs** — 4-5 unique questions with FAQ JSON-LD
+- **ctaText/ctaSubtext** — conversion-focused, action-specific
+- **relatedPages** — cross-link to other SEO pages (both old root-level and new `/en/`, `/ar/` pages)
 
-After successful auth (`SIGNED_IN` event for new signups):
-1. Check `hasGuestDataToMigrate()` → call `migrateGuestData(userId)`
-2. Check `getConversionIntent()` → redirect to `post_auth_redirect` instead of generic `/dashboard`
-3. Clear intent after redirect
-4. Track conversion events
+Arabic pages: genuinely localized content, not machine translation. Natural Arabic wording, culturally relevant examples (e.g., "رحلة العمرة" instead of "bachelor party"), search-friendly terminology.
 
-Order: migration first → then redirect (so data is available at the target page).
+## Component Updates
 
-### 5. Conversion Analytics Events (`src/services/guestSession/conversionEvents.ts`) — Create
+### `SEOLandingPage.tsx`
+- Accept `lang` and `dir` from data
+- Set `dir="rtl"` on container when Arabic
+- Pass `lang` to `<SEO>` component
+- Add `hreflang` link tags when `hreflangPair` exists
+- Adjust header CTA text based on language ("Get Started Free" / "ابدأ مجاناً")
+- Social proof text localized
+- Footer links remain the same
 
-Lightweight event emitter using existing `trackAnalyticsEvent`:
-- `guest_gate_triggered` (reason, target)
-- `guest_registration_started` (reason)
-- `guest_registration_completed` (reason, had_guest_data)
-- `guest_migration_completed` (groups, expenses, plans migrated)
-- `guest_migration_failed` (error)
-- `guest_post_auth_redirect` (target, success)
-- `invite_conversion_completed` (group_id)
+### `SEOLandingPageRoute.tsx`
+- No change needed — already resolves by `pathname` match
 
-### 6. Improve `guestConversion.ts` — Edit
+## Routing
 
-- Return structured result with `status: 'success' | 'partial' | 'failed'` and error details
-- Add try/catch around the full flow with partial success tracking
-- Don't clear guest data if migration completely failed (recovery path)
-
-### 7. Admin Simulator Extension (`ModeSimulator.tsx`) — Edit
-
-Add preset scenarios:
-- "Guest tries add members" → shows gate trigger + redirect target
-- "Guest from invite link → registers" → shows full flow
-
-Add output section showing: conversion intent, expected post-auth redirect.
-
-### 8. Translation Keys — Edit `ar/dashboard.json` + `en/dashboard.json`
-
-Add gate-specific titles, subtitles, value props:
-```json
-"conversion": {
-  "gate_subtitle_add_members": "سجّل حسابك لإضافة أعضاء...",
-  "gate_value_free": "التسجيل مجاني",
-  "gate_value_preserve": "بياناتك محفوظة",
-  "gate_value_instant": "استمرار فوري",
-  "migration_success": "تم نقل بياناتك بنجاح",
-  "migration_partial": "تم نقل بعض البيانات"
-}
+Add two wildcard catch-all routes in `App.tsx`:
+```tsx
+<Route path="/en/*" element={<LazySEOLandingPage />} />
+<Route path="/ar/*" element={<LazySEOLandingPage />} />
 ```
+
+The existing `getSEOPageByRoute(pathname)` handles lookup — each page's `route` field matches the full path (e.g., `/en/split-expenses-with-friends`).
+
+## Internal Linking Strategy
+
+- New pages link to each other via `relatedPages`
+- New pages link to existing root-level SEO pages (`/split-expenses`, `/splitwise-alternative`)
+- Existing root-level pages get updated `relatedPages` to include relevant new pages
+- Pages link to `/faq` and `/blog` where relevant
+
+## Technical SEO
+
+- Canonical URLs set via `<SEO canonical=...>`
+- `hreflang` tags on paired pages (en↔ar)
+- FAQ JSON-LD schema on every page (existing)
+- `sitemap.xml` updated with all 22 new URLs
+- `robots.txt` already allows `/en/` and `/ar/` paths
 
 ## Files Summary
 
 | File | Action |
 |---|---|
-| `src/services/guestSession/conversionIntent.ts` | Create — structured intent storage |
-| `src/services/guestSession/conversionEvents.ts` | Create — analytics event helpers |
-| `src/services/guestSession/guestConversion.ts` | Edit — structured result, partial handling |
-| `src/hooks/useAuthGate.ts` | Edit — save ConversionIntent |
-| `src/components/dashboard/AuthRequiredGate.tsx` | Edit — richer gate UI, pass redirect |
-| `src/pages/Auth.tsx` | Edit — call migrateGuestData + read intent + redirect |
-| `src/components/admin/homemode/ModeSimulator.tsx` | Edit — conversion presets |
-| `src/i18n/locales/ar/dashboard.json` | Edit — conversion keys |
-| `src/i18n/locales/en/dashboard.json` | Edit — conversion keys |
+| `src/content/seo-pages/seoLandingPagesData.ts` | Edit — add `lang`, `dir`, `hreflangPair` to interface + 22 new page entries |
+| `src/components/seo/SEOLandingPage.tsx` | Edit — RTL support, localized strings, hreflang tags |
+| `src/App.tsx` | Edit — add `/en/*` and `/ar/*` wildcard routes |
+| `public/sitemap.xml` | Edit — add 22 new URLs with hreflang |
 
 ## Key Decisions
-1. **Migration before redirect** — guest data must exist in Supabase before the user lands on the target page
-2. **Don't clear data on failure** — if migration fails, keep localStorage so user can retry
-3. **Intent is ephemeral** — cleared after first successful use; prevents stale redirects
-4. **No new DB tables** — events go through existing `analytics_events` table via `trackAnalyticsEvent`
+1. **Flat data model** — Arabic pages are separate entries, not nested translations. Simpler lookup, no resolver complexity.
+2. **Wildcard routes** — 2 route entries instead of 22. Scales automatically.
+3. **Existing root pages preserved** — the 7 current pages at `/split-expenses` etc. remain untouched, just get updated `relatedPages`.
+4. **No new components** — reuse and extend `SEOLandingPage` with RTL awareness.
 
