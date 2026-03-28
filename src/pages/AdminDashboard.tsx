@@ -15,7 +15,7 @@ import { AdminFilters } from "@/components/admin/AdminFilters";
 import { AdminExport, ExportConfig } from "@/components/admin/AdminExport";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2, Mail } from "lucide-react";
+import { Settings, Shield, AlertTriangle, RefreshCw, BarChart3, Target, DollarSign, Coins, Users, Lock, Headphones, Tv2, Mail, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ExecutiveSnapshot } from "@/components/admin/ExecutiveSnapshot";
 import { FunnelAnalytics } from "@/components/admin/FunnelAnalytics";
@@ -26,6 +26,7 @@ import { RolesPermissionsSection } from "@/components/admin/RolesPermissionsSect
 import { KPITargetsManager } from "@/components/admin/KPITargetsManager";
 import { useAdminTabs } from "@/hooks/useAdminTabs";
 import { AdminBroadcastEmail } from "@/components/admin/AdminBroadcastEmail";
+import { HomeModeDebugTab } from "@/components/admin/homemode/HomeModeDebugTab";
 
 export const AdminDashboard = () => {
   return (

@@ -77,6 +77,13 @@ const ADMIN_TABS: TabConfig[] = [
     icon: "Users",
     requiredPermissions: ["users.view"] 
   },
+  { 
+    id: "homemode", 
+    labelEn: "Home Modes", 
+    labelAr: "أوضاع الرئيسية",
+    icon: "Home",
+    requiredPermissions: ["system.settings"] 
+  },
 ];
 
 export function useAdminTabs() {
