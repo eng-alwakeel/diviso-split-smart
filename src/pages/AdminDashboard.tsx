@@ -279,7 +279,7 @@ const AdminDashboardContent = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(allowedTabs.length, 8)}, minmax(0, 1fr))` }}>
+          <TabsList className={`grid w-full h-auto`} style={{ gridTemplateColumns: `repeat(${Math.min(allowedTabs.length, 10)}, minmax(0, 1fr))` }}>
             {allowedTabs.some(t => t.id === "executive") && (
               <TabsTrigger value="executive" className="flex items-center gap-1 py-2">
                 <BarChart3 className="h-4 w-4" />
