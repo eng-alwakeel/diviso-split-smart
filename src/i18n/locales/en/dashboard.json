@@ -336,6 +336,11 @@
     "auth_reason_accept_invite": "Create an account to accept the invite and join the group",
     "auth_reason_permanent_sync": "Create an account to permanently save your data",
     "auth_reason_collaborative_action": "Create an account to perform this collaborative action",
-    "auth_reason_general": "Create an account to continue"
+    "auth_reason_general": "Create an account to continue",
+    "gate_value_free": "Registration is free",
+    "gate_value_preserve": "Your temporary data will be migrated to your account",
+    "gate_value_instant": "Continue instantly from where you left off",
+    "migration_success": "Your data has been migrated successfully",
+    "migration_partial": "Some data was migrated — you can try again for the rest"
   }
 }

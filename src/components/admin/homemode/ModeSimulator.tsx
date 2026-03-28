@@ -56,6 +56,8 @@ const GUEST_PRESETS: Preset[] = [
   { label: "ضيف جاهز للمشاركة", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, guest_temporary_expenses_count: 3, has_in_progress_data: true } },
   { label: "ضيف خامل", profile: { identity_type: 'guest', stale_days: 20, has_in_progress_data: true, guest_temporary_groups_count: 1 } },
   { label: "ضيف مع دعوة", profile: { identity_type: 'guest', entered_via_invite_link: true } },
+  { label: "ضيف يحاول إضافة أعضاء", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, guest_temporary_expenses_count: 2, has_in_progress_data: true } },
+  { label: "ضيف من رابط دعوة → تسجيل", profile: { identity_type: 'guest', entered_via_invite_link: true, invite_target_group_id: 'group-123' } },
 ];
 
 const GUEST_NUMBER_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
