@@ -9,13 +9,15 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Shield, UserPlus, Users, Link2 } from "lucide-react";
+import { Shield, UserPlus, Users, Link2, CheckCircle2 } from "lucide-react";
 import type { AuthGateReason } from "@/hooks/useAuthGate";
+import { trackRegistrationStarted } from "@/services/guestSession/conversionEvents";
 
 interface AuthRequiredGateProps {
   open: boolean;
   reason: AuthGateReason;
   onDismiss: () => void;
+  redirectAfterAuth?: string | null;
 }
 
 const REASON_ICONS: Record<AuthGateReason, React.ComponentType<{ className?: string }>> = {
@@ -29,7 +31,7 @@ const REASON_ICONS: Record<AuthGateReason, React.ComponentType<{ className?: str
   general: Shield,
 };
 
-export const AuthRequiredGate = memo(({ open, reason, onDismiss }: AuthRequiredGateProps) => {
+export const AuthRequiredGate = memo(({ open, reason, onDismiss, redirectAfterAuth }: AuthRequiredGateProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation('dashboard');
 
@@ -39,8 +41,14 @@ export const AuthRequiredGate = memo(({ open, reason, onDismiss }: AuthRequiredG
   const reasonText = t(reasonKey, { defaultValue: t('guest_modes.auth_gate_title') });
 
   const handleCreateAccount = () => {
+    // Track that registration was started from this gate
+    trackRegistrationStarted(reason).catch(() => {});
+
     onDismiss();
-    navigate('/auth');
+
+    // Pass redirect as query param so Auth.tsx can use it
+    const redirect = redirectAfterAuth || '/dashboard';
+    navigate(`/auth?mode=signup&redirectTo=${encodeURIComponent(redirect)}`);
   };
 
   return (
@@ -57,7 +65,18 @@ export const AuthRequiredGate = memo(({ open, reason, onDismiss }: AuthRequiredG
             {reasonText}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-3 mt-4">
+
+        {/* Value proposition */}
+        <div className="space-y-2 my-2">
+          {['gate_value_free', 'gate_value_preserve', 'gate_value_instant'].map((key) => (
+            <div key={key} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>{t(`guest_modes.${key}`)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3 mt-2">
           <Button onClick={handleCreateAccount} className="w-full">
             {t('guest_modes.auth_gate_create_account')}
           </Button>

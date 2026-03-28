@@ -6,11 +6,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { getAllGuestData, clearGuestData } from './guestDataStore';
 import { clearGuestSession } from './guestSessionManager';
 
-export async function migrateGuestData(userId: string): Promise<{ groupsMigrated: number; expensesMigrated: number; plansMigrated: number }> {
+export interface MigrationResult {
+  status: 'success' | 'partial' | 'failed';
+  groupsMigrated: number;
+  expensesMigrated: number;
+  plansMigrated: number;
+  errors: string[];
+}
+
+export async function migrateGuestData(userId: string): Promise<MigrationResult> {
   const data = getAllGuestData();
-  let groupsMigrated = 0;
-  let expensesMigrated = 0;
-  let plansMigrated = 0;
+  const result: MigrationResult = {
+    status: 'success',
+    groupsMigrated: 0,
+    expensesMigrated: 0,
+    plansMigrated: 0,
+    errors: [],
+  };
 
   // Map old guest group IDs to new Supabase group IDs
   const groupIdMap = new Map<string, string>();
@@ -31,10 +43,12 @@ export async function migrateGuestData(userId: string): Promise<{ groupsMigrated
 
       if (!error && newGroup) {
         groupIdMap.set(group.id, newGroup.id);
-        groupsMigrated++;
+        result.groupsMigrated++;
+      } else if (error) {
+        result.errors.push(`Group "${group.name}": ${error.message}`);
       }
-    } catch (e) {
-      console.error('[GuestConversion] Failed to migrate group:', group.id, e);
+    } catch (e: any) {
+      result.errors.push(`Group "${group.name}": ${e.message || 'Unknown error'}`);
     }
   }
 
@@ -55,9 +69,13 @@ export async function migrateGuestData(userId: string): Promise<{ groupsMigrated
           payer_id: userId,
         });
 
-      if (!error) expensesMigrated++;
-    } catch (e) {
-      console.error('[GuestConversion] Failed to migrate expense:', expense.id, e);
+      if (!error) {
+        result.expensesMigrated++;
+      } else {
+        result.errors.push(`Expense "${expense.description}": ${error.message}`);
+      }
+    } catch (e: any) {
+      result.errors.push(`Expense "${expense.description}": ${e.message || 'Unknown error'}`);
     }
   }
 
@@ -76,21 +94,40 @@ export async function migrateGuestData(userId: string): Promise<{ groupsMigrated
           status: 'draft',
         });
 
-      if (!error) plansMigrated++;
-    } catch (e) {
-      console.error('[GuestConversion] Failed to migrate plan:', plan.id, e);
+      if (!error) {
+        result.plansMigrated++;
+      } else {
+        result.errors.push(`Plan "${plan.name}": ${error.message}`);
+      }
+    } catch (e: any) {
+      result.errors.push(`Plan "${plan.name}": ${e.message || 'Unknown error'}`);
     }
   }
 
-  // Clear guest data after successful migration
+  // Determine overall status
+  const totalItems = data.groups.length + data.expenses.length + data.plans.length;
+  const totalMigrated = result.groupsMigrated + result.expensesMigrated + result.plansMigrated;
+
+  if (totalMigrated === 0 && totalItems > 0) {
+    result.status = 'failed';
+    // Don't clear data on complete failure — allow retry
+    console.error('[GuestConversion] Migration failed:', result.errors);
+    return result;
+  }
+
+  if (result.errors.length > 0) {
+    result.status = 'partial';
+  }
+
+  // Clear guest data only on success or partial success
   clearGuestData();
   clearGuestSession();
 
   if (import.meta.env.DEV) {
-    console.log('[GuestConversion] Migration complete:', { groupsMigrated, expensesMigrated, plansMigrated });
+    console.log('[GuestConversion] Migration complete:', result);
   }
 
-  return { groupsMigrated, expensesMigrated, plansMigrated };
+  return result;
 }
 
 /**

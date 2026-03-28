@@ -336,6 +336,11 @@
     "auth_reason_accept_invite": "سجّل حسابك لقبول الدعوة والانضمام للمجموعة",
     "auth_reason_permanent_sync": "سجّل حسابك لحفظ بياناتك بشكل دائم",
     "auth_reason_collaborative_action": "سجّل حسابك للقيام بهذا الإجراء التعاوني",
-    "auth_reason_general": "سجّل حسابك للاستمرار"
+    "auth_reason_general": "سجّل حسابك للاستمرار",
+    "gate_value_free": "التسجيل مجاني",
+    "gate_value_preserve": "بياناتك المؤقتة ستُنقل لحسابك",
+    "gate_value_instant": "استمرار فوري من حيث توقفت",
+    "migration_success": "تم نقل بياناتك بنجاح",
+    "migration_partial": "تم نقل بعض البيانات — يمكنك المحاولة مرة أخرى"
   }
 }
