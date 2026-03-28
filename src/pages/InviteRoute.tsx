@@ -24,7 +24,10 @@ const InviteRoute = () => {
       // Ensure user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        // Guest interception: store invite token, redirect to auth
+        // Guest cannot directly join a shared group
         localStorage.setItem('joinToken', code);
+        localStorage.setItem('diviso_auth_redirect', `/i/${code}`);
         navigate('/auth?redirectTo=' + encodeURIComponent(`/i/${code}`));
         return;
       }
