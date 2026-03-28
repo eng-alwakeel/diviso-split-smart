@@ -161,6 +161,9 @@ const AppRoutes: React.FC = () => {
             <Route path="/group-expense-tracker" element={<LazySEOLandingPage />} />
             <Route path="/split-dinner-bill" element={<LazySEOLandingPage />} />
             <Route path="/splitwise-alternative" element={<LazySEOLandingPage />} />
+            {/* Bilingual SEO Landing Pages */}
+            <Route path="/en/*" element={<LazySEOLandingPage />} />
+            <Route path="/ar/*" element={<LazySEOLandingPage />} />
             <Route path="/offerwall" element={<LazyOfferwall />} />
             <Route path="/dashboard" element={<GuestRoute><PageErrorBoundary><LazyDashboard /></PageErrorBoundary></GuestRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><PageErrorBoundary><LazyOnboarding /></PageErrorBoundary></ProtectedRoute>} />

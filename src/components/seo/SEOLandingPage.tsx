@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BRAND_CONFIG } from '@/lib/brandConfig';
@@ -13,32 +13,70 @@ interface Props {
 const SEOLandingPage: React.FC<Props> = ({ data }) => {
   const navigate = useNavigate();
   const handleCTA = () => navigate('/auth?mode=signup');
+  const isArabic = data.lang === 'ar';
+  const dir = data.dir || 'ltr';
+
+  // Add hreflang tags
+  useEffect(() => {
+    if (!data.hreflangPair) return;
+
+    const links: HTMLLinkElement[] = [];
+
+    const createLink = (hreflang: string, href: string) => {
+      const link = document.createElement('link');
+      link.rel = 'alternate';
+      link.hreflang = hreflang;
+      link.href = href;
+      link.setAttribute('data-seo-hreflang', 'true');
+      document.head.appendChild(link);
+      links.push(link);
+    };
+
+    const baseUrl = BRAND_CONFIG.url;
+    createLink(isArabic ? 'ar' : 'en', `${baseUrl}${data.route}`);
+    createLink(isArabic ? 'en' : 'ar', `${baseUrl}${data.hreflangPair}`);
+    createLink('x-default', `${baseUrl}${isArabic ? data.hreflangPair : data.route}`);
+
+    return () => {
+      links.forEach(link => link.remove());
+    };
+  }, [data.route, data.hreflangPair, isArabic]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground" dir={dir}>
       <SEO
         title={data.seoTitle.replace(' | Diviso', '')}
         description={data.metaDescription}
         canonical={`${BRAND_CONFIG.url}${data.route}`}
         keywords={data.keywords}
         ogType="website"
-        lang="en"
+        lang={isArabic ? 'ar' : 'en'}
       />
 
-      {/* Minimal Header */}
+      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={BRAND_CONFIG.logo} alt="Diviso" className="h-8 w-auto" loading="eager" />
             <span className="font-bold text-lg text-foreground">Diviso</span>
           </Link>
-          <Button onClick={handleCTA} size="sm" className="bg-primary hover:bg-primary/90">
-            Get Started Free
-          </Button>
+          <div className="flex items-center gap-2">
+            {data.hreflangPair && (
+              <Link
+                to={data.hreflangPair}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+              >
+                {isArabic ? 'English' : 'العربية'}
+              </Link>
+            )}
+            <Button onClick={handleCTA} size="sm" className="bg-primary hover:bg-primary/90">
+              {isArabic ? 'ابدأ مجاناً' : 'Get Started Free'}
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-primary/5 via-background to-background">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground mb-6 leading-tight">
@@ -56,7 +94,7 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
           </Button>
           <p className="text-sm text-muted-foreground mt-4 flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 bg-primary rounded-full animate-pulse" />
-            +10,000 users trust Diviso
+            {isArabic ? '+١٠,٠٠٠ مستخدم يثقون بـ Diviso' : '+10,000 users trust Diviso'}
           </p>
         </div>
       </section>
@@ -76,7 +114,9 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
       <section className="py-16 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
-            Everything You Need to {data.h1.split('—')[0].trim()}
+            {isArabic
+              ? 'كل ما تحتاجه لـ' + data.h1.split('—')[0].trim()
+              : 'Everything You Need to ' + data.h1.split('—')[0].trim()}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {data.features.map((feature, i) => (
@@ -94,7 +134,7 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
-            Built for Real-Life Scenarios
+            {isArabic ? 'مصمم لسيناريوهات حقيقية' : 'Built for Real-Life Scenarios'}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {data.useCases.map((uc, i) => (
@@ -107,13 +147,15 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
         </div>
       </section>
 
-      {/* FAQ Section with JSON-LD */}
-      <FAQSection faqs={data.faqs} pageUrl={`${BRAND_CONFIG.url}${data.route}`} />
+      {/* FAQ */}
+      <FAQSection faqs={data.faqs} pageUrl={`${BRAND_CONFIG.url}${data.route}`} isArabic={isArabic} />
 
       {/* Internal Links */}
       <section className="py-12 px-4 bg-muted/20">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-foreground mb-6 text-center">Related Pages</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+            {isArabic ? 'صفحات ذات صلة' : 'Related Pages'}
+          </h2>
           <div className="flex flex-wrap justify-center gap-3">
             {data.relatedPages.map((link, i) => (
               <Link
@@ -142,7 +184,7 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
         <div className="max-w-xl mx-auto text-center">
           <img src={BRAND_CONFIG.logo} alt="Diviso Logo" className="h-10 w-auto mx-auto mb-6" loading="lazy" />
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-            Ready to simplify shared expenses?
+            {isArabic ? 'جاهز تبسّط المصاريف المشتركة؟' : 'Ready to simplify shared expenses?'}
           </h2>
           <Button
             onClick={handleCTA}
@@ -155,15 +197,15 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
         </div>
       </section>
 
-      {/* Simple Footer */}
+      {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} Diviso. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Diviso. {isArabic ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</span>
           <nav className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link>
-            <Link to="/faq" className="hover:text-foreground transition-colors">FAQ</Link>
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">{isArabic ? 'الخصوصية' : 'Privacy'}</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">{isArabic ? 'الشروط' : 'Terms'}</Link>
+            <Link to="/blog" className="hover:text-foreground transition-colors">{isArabic ? 'المدونة' : 'Blog'}</Link>
+            <Link to="/faq" className="hover:text-foreground transition-colors">{isArabic ? 'الأسئلة' : 'FAQ'}</Link>
           </nav>
         </div>
       </footer>
@@ -172,7 +214,7 @@ const SEOLandingPage: React.FC<Props> = ({ data }) => {
 };
 
 /* FAQ sub-component with accordion + JSON-LD */
-const FAQSection: React.FC<{ faqs: { question: string; answer: string }[]; pageUrl: string }> = ({ faqs, pageUrl }) => {
+const FAQSection: React.FC<{ faqs: { question: string; answer: string }[]; pageUrl: string; isArabic?: boolean }> = ({ faqs, pageUrl, isArabic }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqSchema = {
@@ -192,7 +234,7 @@ const FAQSection: React.FC<{ faqs: { question: string; answer: string }[]; pageU
     <section className="py-16 px-4 bg-muted/30">
       <div className="max-w-3xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12">
-          Frequently Asked Questions
+          {isArabic ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
         </h2>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
