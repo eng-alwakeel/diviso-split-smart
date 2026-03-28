@@ -18,6 +18,9 @@ import { SEO } from "@/components/SEO";
 
 // Auth page should not be indexed by search engines
 import { useTranslation } from "react-i18next";
+import { hasGuestDataToMigrate, migrateGuestData } from "@/services/guestSession/guestConversion";
+import { getConversionIntent, clearConversionIntent } from "@/services/guestSession/conversionIntent";
+import { trackRegistrationCompleted, trackMigrationCompleted, trackMigrationFailed, trackPostAuthRedirect } from "@/services/guestSession/conversionEvents";
 import { PasswordRequirements, isPasswordValid } from "@/components/auth/PasswordRequirements";
 import { SignupValueBanner } from "@/components/auth/SignupValueBanner";
 import { FoundingProgramBanner } from "@/components/auth/FoundingProgramBanner";
