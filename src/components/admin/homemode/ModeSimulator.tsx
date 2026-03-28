@@ -40,7 +40,7 @@ const DEFAULT_PROFILE: UserDataProfile = {
 
 type Preset = { label: string; profile: Partial<UserDataProfile> };
 
-const PRESETS: Preset[] = [
+const REGISTERED_PRESETS: Preset[] = [
   { label: "مستخدم جديد", profile: {} },
   { label: "قيد التقدم", profile: { draft_groups_count: 1, has_in_progress_data: true, stale_days: 2 } },
   { label: "جاهز للمشاركة", profile: { draft_groups_with_expenses_count: 1, has_in_progress_data: true } },
@@ -48,6 +48,14 @@ const PRESETS: Preset[] = [
   { label: "منشئ نشط", profile: { owned_groups_count: 3, owned_active_groups_count: 2, owned_archived_groups_count: 1, expenses_count: 15, has_creator_experience: true, has_balance: true } },
   { label: "إعادة تنشيط", profile: { stale_days: 20, has_in_progress_data: true, expenses_count: 5 } },
   { label: "مع دعوة", profile: { pending_invites_count: 1, joined_groups_count: 1, has_participant_experience: true } },
+];
+
+const GUEST_PRESETS: Preset[] = [
+  { label: "ضيف جديد", profile: { identity_type: 'guest' } },
+  { label: "ضيف بمجموعة مؤقتة", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, has_in_progress_data: true } },
+  { label: "ضيف جاهز للمشاركة", profile: { identity_type: 'guest', guest_temporary_groups_count: 1, guest_temporary_expenses_count: 3, has_in_progress_data: true } },
+  { label: "ضيف خامل", profile: { identity_type: 'guest', stale_days: 20, has_in_progress_data: true, guest_temporary_groups_count: 1 } },
+  { label: "ضيف مع دعوة", profile: { identity_type: 'guest', entered_via_invite_link: true } },
 ];
 
 const NUMBER_FIELDS: { key: keyof UserDataProfile; label: string }[] = [
