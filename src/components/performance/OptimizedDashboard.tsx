@@ -1,7 +1,7 @@
-import React, { memo, useMemo, useCallback, Suspense } from "react";
+import React, { memo, useMemo, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, RefreshCw, HelpCircle } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useNavigate } from "react-router-dom";
 import { BottomNav } from "@/components/BottomNav";
@@ -17,10 +17,16 @@ import { QuotaWarningBanner } from "@/components/quota/QuotaWarningBanner";
 import { QuotaUpgradeDialog } from "@/components/quota/QuotaUpgradeDialog";
 import { useQuotaHandler } from "@/hooks/useQuotaHandler";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { useHomeMode } from "@/hooks/useHomeMode";
+import { getHomeModeUIConfig, DEFAULT_UI_CONFIG } from "@/services/homeModeEngine/uiModeConfig";
+import { HOME_MODES, OVERLAYS } from "@/services/homeModeEngine/constants";
+import { HomeModeHero } from "@/components/dashboard/HomeModeHero";
+import { InvitePriorityCard } from "@/components/dashboard/InvitePriorityCard";
+import { ModeContentSection } from "@/components/dashboard/ModeContentSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
-// Lazy load heavy components with better error boundaries
+// Lazy load heavy components
 const LazySmartPromotionBanner = React.lazy(() => 
   import("@/components/promotions/SmartPromotionBanner").then(module => ({
     default: module.SmartPromotionBanner
@@ -39,29 +45,8 @@ const LazySmartAdSidebar = React.lazy(() =>
   }))
 );
 
-
-// Component fallbacks
 const ComponentFallback = memo(() => (
   <div className="h-16 bg-card rounded-lg animate-pulse" />
-));
-
-const SmallComponentFallback = memo(() => (
-  <div className="h-8 bg-card rounded animate-pulse" />
-));
-
-// Error boundary component
-const ErrorFallback = memo(({ error, resetError }: { error: Error; resetError: () => void }) => (
-  <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-    <p className="text-sm text-destructive">خطأ في تحميل المكون</p>
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={resetError}
-      className="mt-2"
-    >
-      إعادة المحاولة
-    </Button>
-  </div>
 ));
 
 const OptimizedDashboard = memo(() => {
@@ -69,7 +54,6 @@ const OptimizedDashboard = memo(() => {
   const [userId, setUserId] = useState<string>();
   const [showGuide, setShowGuide] = useState(false);
 
-  // Get user ID once
   useEffect(() => {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -80,22 +64,26 @@ const OptimizedDashboard = memo(() => {
     getUser();
   }, []);
 
-  // Optimized data fetching
+  // Home mode engine
+  const { result: homeModeResult, isLoading: homeModeLoading } = useHomeMode();
+
+  // UI config from resolved mode (fallback to creator_active)
+  const uiConfig = useMemo(() => {
+    if (!homeModeResult) return DEFAULT_UI_CONFIG;
+    return getHomeModeUIConfig(homeModeResult.current_home_mode);
+  }, [homeModeResult]);
+
+  const isCreatorActive = homeModeResult?.current_home_mode === HOME_MODES.CREATOR_ACTIVE;
+  const hasInviteOverlay = homeModeResult?.active_overlays?.includes(OVERLAYS.INVITE_PRIORITY) ?? false;
+
+  // Data fetching
   const { data: dashboardData, isLoading, error, refetch } = useOptimizedDashboardData(userId);
   const { data: subscriptionData } = useOptimizedSubscriptionData(userId);
   const { data: adminData } = useAdminAuth();
 
-  const {
-    checkQuotaWarning,
-    upgradeDialogOpen,
-    setUpgradeDialogOpen,
-    currentQuotaType,
-    isFreePlan
-  } = useQuotaHandler();
-
+  const { checkQuotaWarning, upgradeDialogOpen, setUpgradeDialogOpen, currentQuotaType, isFreePlan } = useQuotaHandler();
   const { limits } = useSubscriptionLimits();
 
-  // Memoized callbacks
   const callbacks = useMemo(() => ({
     handleShowGuide: () => setShowGuide(true),
     handleCloseGuide: () => setShowGuide(false),
@@ -103,34 +91,16 @@ const OptimizedDashboard = memo(() => {
     navigateToAdmin: () => navigate('/admin-dashboard'),
   }), [refetch, navigate]);
 
-  // Memoized quota calculations
   const quotaWarnings = useMemo(() => {
     if (!limits || !isFreePlan || !dashboardData) return [];
-    
-    const warnings = [
-      {
-        type: 'groups' as const,
-        usage: dashboardData.groupsCount,
-        limit: limits.groups
-      },
-      {
-        type: 'expenses' as const,
-        usage: dashboardData.weeklyExpensesCount,
-        limit: limits.expenses
-      }
-    ];
-
-    return warnings
-      .map(({ type, usage, limit }) => ({
-        type,
-        usage,
-        limit,
-        ...checkQuotaWarning(usage, limit, type)
-      }))
-      .filter(warning => warning.showWarning || warning.showCritical);
+    return [
+      { type: 'groups' as const, usage: dashboardData.groupsCount, limit: limits.groups },
+      { type: 'expenses' as const, usage: dashboardData.weeklyExpensesCount, limit: limits.expenses },
+    ]
+      .map(({ type, usage, limit }) => ({ type, usage, limit, ...checkQuotaWarning(usage, limit, type) }))
+      .filter(w => w.showWarning || w.showCritical);
   }, [limits, isFreePlan, dashboardData, checkQuotaWarning]);
 
-  // Memoized props for heavy components
   const componentProps = useMemo(() => ({
     quotaDialog: {
       open: upgradeDialogOpen,
@@ -149,13 +119,7 @@ const OptimizedDashboard = memo(() => {
       myPaid: dashboardData.myPaid,
       myOwed: dashboardData.myOwed
     } : null
-  }), [
-    upgradeDialogOpen, 
-    setUpgradeDialogOpen, 
-    currentQuotaType, 
-    dashboardData, 
-    limits
-  ]);
+  }), [upgradeDialogOpen, setUpgradeDialogOpen, currentQuotaType, dashboardData, limits]);
 
   // Loading state
   if (isLoading) {
@@ -225,53 +189,57 @@ const OptimizedDashboard = memo(() => {
           </div>
         )}
 
-        {/* Lazy loaded promotions */}
-        <Suspense fallback={<ComponentFallback />}>
-          <LazySmartPromotionBanner />
-        </Suspense>
+        {/* Lazy loaded promotions — only for creator_active */}
+        {uiConfig.showAds && (
+          <Suspense fallback={<ComponentFallback />}>
+            <LazySmartPromotionBanner />
+          </Suspense>
+        )}
 
-        {/* Welcome Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">مرحباً بك!</h1>
-            <p className="text-muted-foreground text-sm">إدارة ذكية للمصاريف المشتركة</p>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={callbacks.handleShowGuide}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <HelpCircle className="w-4 h-4 ml-2" />
-            المساعدة
-          </Button>
-        </div>
+        {/* Mode-Aware Hero Section */}
+        <HomeModeHero 
+          config={uiConfig} 
+          onShowGuide={callbacks.handleShowGuide}
+          isCreatorActive={isCreatorActive || !homeModeResult}
+        />
 
-        {/* Stats Grid */}
-        {componentProps.statsGrid && (
+        {/* Invite Priority Overlay */}
+        {hasInviteOverlay && <InvitePriorityCard userId={userId} />}
+
+        {/* Stats Grid — conditionally shown based on mode */}
+        {uiConfig.showStatsGrid && componentProps.statsGrid && (
           <SimpleStatsGrid {...componentProps.statsGrid} />
         )}
 
-        {/* Dashboard Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <SubscriptionStatusCard />
-          <UsageLimitsCard />
-          
-          {/* Lazy loaded ad sidebar */}
-          <Suspense fallback={<ComponentFallback />}>
-            <LazySmartAdSidebar />
-          </Suspense>
-        </div>
-        
-        {/* Lazy loaded ads */}
-        <Suspense fallback={<ComponentFallback />}>
-          <LazySmartAdManager
-            context={{ type: 'dashboard' }}
-            placement="dashboard_main"
-            className="mt-4"
-          />
-        </Suspense>
-        
+        {/* Mode-specific content section (non-creator modes) */}
+        {uiConfig.mainSectionType !== 'managed_groups' && (
+          <ModeContentSection sectionType={uiConfig.mainSectionType} />
+        )}
+
+        {/* Creator-active: existing dashboard cards */}
+        {uiConfig.mainSectionType === 'managed_groups' && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <SubscriptionStatusCard />
+              <UsageLimitsCard />
+              {uiConfig.showAds && (
+                <Suspense fallback={<ComponentFallback />}>
+                  <LazySmartAdSidebar />
+                </Suspense>
+              )}
+            </div>
+            
+            {uiConfig.showAds && (
+              <Suspense fallback={<ComponentFallback />}>
+                <LazySmartAdManager
+                  context={{ type: 'dashboard' }}
+                  placement="dashboard_main"
+                  className="mt-4"
+                />
+              </Suspense>
+            )}
+          </>
+        )}
 
         {/* Admin Dashboard Card */}
         {adminData?.isAdmin && (
@@ -281,18 +249,17 @@ const OptimizedDashboard = memo(() => {
           />
         )}
 
-        {/* Quick Actions */}
-        <div className="flex justify-center">
-          <div className="w-full max-w-md">
-            <SimpleQuickActions />
+        {/* Quick Actions — conditionally shown */}
+        {uiConfig.showQuickActions && (
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <SimpleQuickActions />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
-      {/* App Guide */}
       {showGuide && <AppGuide onClose={callbacks.handleCloseGuide} />}
-
-      {/* Quota Upgrade Dialog */}
       {limits && <QuotaUpgradeDialog {...componentProps.quotaDialog} />}
       
       <div className="h-24" />
