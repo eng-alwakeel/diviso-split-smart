@@ -1,20 +1,26 @@
 
 
-# Add Credit Balance as Clickable Menu Item
+# نقل رقم العميل المميز بجانب الاسم
 
-## What
-Make the credits line in the dropdown menu a clickable item that navigates to `/credit-store`, with a `Coins` icon for visual clarity.
+## التغيير المطلوب
+نقل رقم العميل المميز من قسم "نقاطي" ليكون بجانب اسم المستخدم في الهيدر
 
-## Change
+## التعديلات
 
 ### `src/components/AppHeader.tsx`
 
-Replace the static `<p>` credits text (lines 156-159) with a clickable `DropdownMenuItem` that navigates to `/credit-store`:
+1. **استيراد المكون**: إضافة `UserNumberBadge` من `@/components/ui/user-number-badge`
 
-- Add `Coins` to the existing lucide-react import
-- Replace the `<p className="text-xs...">` block with a `DropdownMenuItem` styled consistently with other menu items
-- Show the balance with a Coins icon, and the founding user number if applicable
-- Clicking it navigates to `/credit-store`
+2. **إضافة الشارة بجانب الاسم** (بعد السطر 148):
+   - إضافة `UserNumberBadge` بجانب اسم المستخدم في الهيدر
+   - استخدام حجم `sm` للشارة لتناسب المساحة
+   - ترتيب: الاسم ثم الشارة في نفس السطر
 
-The item will sit right below the user name/email section, before the separator — giving it prominence as a quick-access balance indicator.
+3. **إزالة من قسم النقاط** (السطر 170):
+   - حذف `<> · #{userNumber}</>` من سطر النقاط
+   - يبقى فقط: `{balance?.totalAvailable || 0} نقطة`
+
+## النتيجة
+- اسم المستخدم + رقم العميل المميز في نفس السطر (الهيدر)
+- قسم "نقاطي" يركز فقط على النقاط بدون الرقم
 
