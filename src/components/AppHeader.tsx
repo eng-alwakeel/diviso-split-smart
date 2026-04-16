@@ -7,7 +7,7 @@ import { useCurrentUserRoles } from "@/hooks/useCurrentUserRoles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign, Receipt, Gift, Map } from "lucide-react";
+import { Shield, Settings, LogOut, Globe, HeadphonesIcon, ChartBar, TrendingUp, Megaphone, Code, Crown, DollarSign, Receipt, Gift, Map, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { useToast } from "@/hooks/use-toast";
@@ -153,11 +153,17 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                         </p>
                       </div>
                     </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}
-                          {isFoundingUser && userNumber && <> · #{userNumber}</>}
-                        </p>
                   </div>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/credit-store')}
+                    className="cursor-pointer mx-2 mb-1 rounded-md focus:bg-[rgba(255,255,255,0.05)]"
+                  >
+                    <Coins className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-primary" />
+                    <span className="text-xs">
+                      {t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}
+                      {isFoundingUser && userNumber && <> · #{userNumber}</>}
+                    </span>
+                  </DropdownMenuItem>
 
                   <DropdownMenuSeparator className="bg-border/30" />
 
