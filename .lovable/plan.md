@@ -1,26 +1,20 @@
 
 
-# نقل رقم العميل المميز بجانب الاسم
+# Fix Header Direction (RTL Bell/Profile Swap)
 
-## التغيير المطلوب
-نقل رقم العميل المميز من قسم "نقاطي" ليكون بجانب اسم المستخدم في الهيدر
+## Problem
+In RTL (Arabic), CSS `justify-self-start` maps to the **right** side and `justify-self-end` maps to the **left** side. Currently the bell is in the first column (`start` = right in RTL) and profile in the last column (`end` = left in RTL). This puts the bell on the right and profile on the left — the opposite of what you want.
 
-## التعديلات
+## Fix
 
 ### `src/components/AppHeader.tsx`
+Swap the first and third columns:
+- **First column** (`justify-self-start`): Profile Avatar dropdown (appears right in RTL)
+- **Third column** (`justify-self-end`): Notification Bell (appears left in RTL)
 
-1. **استيراد المكون**: إضافة `UserNumberBadge` من `@/components/ui/user-number-badge`
+This way in Arabic RTL: profile is on the right, bell is on the left — matching the intended layout.
 
-2. **إضافة الشارة بجانب الاسم** (بعد السطر 148):
-   - إضافة `UserNumberBadge` بجانب اسم المستخدم في الهيدر
-   - استخدام حجم `sm` للشارة لتناسب المساحة
-   - ترتيب: الاسم ثم الشارة في نفس السطر
-
-3. **إزالة من قسم النقاط** (السطر 170):
-   - حذف `<> · #{userNumber}</>` من سطر النقاط
-   - يبقى فقط: `{balance?.totalAvailable || 0} نقطة`
-
-## النتيجة
-- اسم المستخدم + رقم العميل المميز في نفس السطر (الهيدر)
-- قسم "نقاطي" يركز فقط على النقاط بدون الرقم
+| File | Change |
+|---|---|
+| `src/components/AppHeader.tsx` | Swap bell and profile column positions |
 
