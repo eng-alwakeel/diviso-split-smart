@@ -1,35 +1,20 @@
 
 
-# Cleaner AppHeader: Logo Center, Bell Left, Profile Right
+# Add Credit Balance as Clickable Menu Item
 
-## Current State
-The header has 3 columns:
-- **Left**: Role badges + Profile avatar dropdown
-- **Center**: Logo
-- **Right**: Credit balance + Notification bell
+## What
+Make the credits line in the dropdown menu a clickable item that navigates to `/credit-store`, with a `Coins` icon for visual clarity.
 
-This is cluttered, especially on mobile with role badges taking space.
-
-## Target Layout
-Based on the screenshot reference, simplify to:
-- **Right (RTL start)**: Profile avatar dropdown only
-- **Center**: Logo
-- **Left (RTL end)**: Notification bell only
-
-## Changes
+## Change
 
 ### `src/components/AppHeader.tsx`
-1. **Left column** (justify-self-start): Move `NotificationBell` here — just the bell icon, clean
-2. **Center column**: Keep logo as-is
-3. **Right column** (justify-self-end): Move profile `Avatar` dropdown here — remove `RoleBadgesList` from the header bar (keep role items inside the dropdown menu)
-4. **Remove** `CreditBalance` from the top bar (it's already shown inside the dropdown menu as credits text)
-5. Keep the dropdown menu content unchanged — all menu items, roles, logout stay inside
 
-## Result
-A clean 3-column header: 🔔 | Logo | 👤 — matching the cleaner look the user wants.
+Replace the static `<p>` credits text (lines 156-159) with a clickable `DropdownMenuItem` that navigates to `/credit-store`:
 
-## Files
-| File | Action |
-|---|---|
-| `src/components/AppHeader.tsx` | Edit — rearrange columns |
+- Add `Coins` to the existing lucide-react import
+- Replace the `<p className="text-xs...">` block with a `DropdownMenuItem` styled consistently with other menu items
+- Show the balance with a Coins icon, and the founding user number if applicable
+- Clicking it navigates to `/credit-store`
+
+The item will sit right below the user name/email section, before the separator — giving it prominence as a quick-access balance indicator.
 
