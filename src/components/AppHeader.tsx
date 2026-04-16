@@ -16,7 +16,7 @@ import { Database } from "@/integrations/supabase/types";
 import { useQuery } from "@tanstack/react-query";
 import { useFoundingUser } from "@/hooks/useFoundingUser";
 import { useUsageCredits } from "@/hooks/useUsageCredits";
-// FoundingBadge integrated inline
+import { UserNumberBadge } from "@/components/ui/user-number-badge";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -145,9 +145,14 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                         )}
                       </Avatar>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-none truncate text-foreground">
-                          {userProfile?.name || t('user.default_name')}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold leading-none truncate text-foreground">
+                            {userProfile?.name || t('user.default_name')}
+                          </p>
+                          {isFoundingUser && userNumber && (
+                            <UserNumberBadge userNumber={userNumber} isFoundingUser={isFoundingUser} size="sm" showTooltip={false} />
+                          )}
+                        </div>
                         <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
                           {userProfile?.email}
                         </p>
@@ -167,7 +172,6 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       <span className="text-sm font-semibold text-primary">نقاطي</span>
                       <span className="text-xs text-muted-foreground">
                         {balance?.totalAvailable || 0} نقطة
-                        {isFoundingUser && userNumber && <> · #{userNumber}</>}
                       </span>
                     </div>
                   </DropdownMenuItem>
