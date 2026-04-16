@@ -154,15 +154,22 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                       </div>
                     </div>
                   </div>
+
+                  <DropdownMenuSeparator className="bg-border/30" />
+
+                  {/* Credits / Points */}
                   <DropdownMenuItem 
                     onClick={() => navigate('/credit-store')}
-                    className="cursor-pointer mx-2 mb-1 rounded-md focus:bg-[rgba(255,255,255,0.05)]"
+                    className="cursor-pointer h-12 focus:bg-primary/10"
                   >
                     <Coins className="ltr:mr-2 rtl:ml-2 h-4 w-4 text-primary" />
-                    <span className="text-xs">
-                      {t('menu.credits_balance', { count: balance?.totalAvailable || 0 })}
-                      {isFoundingUser && userNumber && <> · #{userNumber}</>}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-primary">نقاطي</span>
+                      <span className="text-xs text-muted-foreground">
+                        {balance?.totalAvailable || 0} نقطة
+                        {isFoundingUser && userNumber && <> · #{userNumber}</>}
+                      </span>
+                    </div>
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator className="bg-border/30" />
