@@ -101,21 +101,8 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
     <header className="bg-[hsl(var(--header-background))] border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-3 items-center">
-          {/* Left: Notification Bell */}
+          {/* First column (start = right in RTL): Profile Avatar */}
           <div className="justify-self-start flex items-center">
-            {!minimal && <NotificationBell />}
-          </div>
-
-          {/* Center: Logo */}
-          <div
-            className="justify-self-center flex items-center gap-3 cursor-pointer h-10"
-            onClick={() => navigate(minimal ? '/' : '/dashboard')}
-          >
-            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 sm:h-10 w-auto" width={128} height={32} style={{ aspectRatio: '128 / 32' }} />
-          </div>
-
-          {/* Right: Profile Avatar */}
-          <div className="justify-self-end flex items-center">
             {!minimal && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -131,7 +118,7 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 border-border/40" style={{ background: 'hsl(var(--background))', borderColor: 'hsl(var(--border) / 0.4)' }}>
+                <DropdownMenuContent align="start" className="w-64 border-border/40" style={{ background: 'hsl(var(--background))', borderColor: 'hsl(var(--border) / 0.4)' }}>
                   {/* User Header */}
                   <div className="px-3 py-3">
                     <div className="flex items-center gap-3">
@@ -277,6 +264,19 @@ export const AppHeader = ({ showNavigation = true, minimal = false }: AppHeaderP
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+          </div>
+
+          {/* Center: Logo */}
+          <div
+            className="justify-self-center flex items-center gap-3 cursor-pointer h-10"
+            onClick={() => navigate(minimal ? '/' : '/dashboard')}
+          >
+            <img src={appLogo} alt={t('header.logo_alt')} className="h-8 sm:h-10 w-auto" width={128} height={32} style={{ aspectRatio: '128 / 32' }} />
+          </div>
+
+          {/* Third column (end = left in RTL): Notification Bell */}
+          <div className="justify-self-end flex items-center">
+            {!minimal && <NotificationBell />}
           </div>
         </div>
       </div>
