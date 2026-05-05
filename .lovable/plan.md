@@ -1,20 +1,34 @@
+## Goal
+Create a public page that explains to users how to delete their account (required by Google Play policy), and link it from the footer in both Arabic and English.
 
+## Steps
 
-# Fix Header Direction (RTL Bell/Profile Swap)
+1. **Create page** `src/pages/DeleteAccount.tsx`
+   - Public route, accessible without auth.
+   - Bilingual via `useTranslation`.
+   - Sections:
+     - Intro: how account deletion works in Diviso.
+     - Method 1 (in-app): Settings → Account → Delete Account.
+     - Method 2 (by email): send request to support@diviso.app from registered email; response within 7 days.
+     - What gets deleted: profile, groups owned, expenses, payment methods, notifications, reputation.
+     - What's retained (and why): invoices/financial records retained per Saudi ZATCA/tax law for required period; anonymized analytics.
+     - Timeline: immediate logout, 30-day soft delete window, then permanent.
+     - Contact: support@diviso.app.
 
-## Problem
-In RTL (Arabic), CSS `justify-self-start` maps to the **right** side and `justify-self-end` maps to the **left** side. Currently the bell is in the first column (`start` = right in RTL) and profile in the last column (`end` = left in RTL). This puts the bell on the right and profile on the left — the opposite of what you want.
+2. **Add route** in `src/App.tsx`: `/delete-account` → `DeleteAccount` (lazy-loaded, public).
 
-## Fix
+3. **Translations**
+   - Add `footer.deleteAccount` key to `src/i18n/locales/ar/landing.json` ("حذف الحساب") and `src/i18n/locales/en/landing.json` ("Delete Account").
+   - Add new namespace `deleteAccount` (ar + en) with all section copy.
 
-### `src/components/AppHeader.tsx`
-Swap the first and third columns:
-- **First column** (`justify-self-start`): Profile Avatar dropdown (appears right in RTL)
-- **Third column** (`justify-self-end`): Notification Bell (appears left in RTL)
+4. **Footer link** in `src/components/Footer.tsx`
+   - Add `<Link to="/delete-account">` under "Useful Links" near privacy/terms, using `t('footer.deleteAccount')`.
 
-This way in Arabic RTL: profile is on the right, bell is on the left — matching the intended layout.
+5. **SEO**
+   - Page sets `<title>` and meta description via existing pattern (check PrivacyPolicy.tsx for reference).
+   - Add to `public/sitemap.xml`.
 
-| File | Change |
-|---|---|
-| `src/components/AppHeader.tsx` | Swap bell and profile column positions |
-
+## Notes
+- No backend changes; deletion mechanism already exists in Settings (per memory + account-management docs).
+- Style: match PrivacyPolicy/TermsConditions pages for consistency.
+- RTL handled automatically by existing i18n/dir setup.

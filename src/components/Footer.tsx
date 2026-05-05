@@ -73,6 +73,9 @@ export const Footer = () => {
               <Link to="/cookies" className="block hover:text-foreground transition-colors text-sm">
                 {t('footer.cookies')}
               </Link>
+              <Link to="/delete-account" className="block hover:text-foreground transition-colors text-sm">
+                {t('footer.deleteAccount')}
+              </Link>
             </div>
           </div>
 
