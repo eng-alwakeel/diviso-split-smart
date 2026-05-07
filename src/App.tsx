@@ -43,6 +43,7 @@ const LazySettings = withLazyLoading(lazy(() => import("./pages/Settings")));
 const LazyPricingProtected = withLazyLoading(lazy(() => import("./pages/PricingProtected")));
 const LazyNotifications = withLazyLoading(lazy(() => import("./pages/Notifications")));
 const LazyPricing = withLazyLoading(lazy(() => import("./pages/Pricing")));
+const LazyPricingChart = withLazyLoading(lazy(() => import("./pages/PricingChart")));
 const LazyReferralSignup = withLazyLoading(lazy(() => import("./pages/ReferralSignup")));
 const LazyPrivacyPolicy = withLazyLoading(lazy(() => import("./pages/PrivacyPolicy")));
 const LazyRefundPolicy = withLazyLoading(lazy(() => import("./pages/RefundPolicy")));
@@ -198,6 +199,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/credit-store" element={<ProtectedRoute><PageErrorBoundary><LazyCreditStore /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/payment-callback" element={<ProtectedRoute><PageErrorBoundary><LazyPaymentCallback /></PageErrorBoundary></ProtectedRoute>} />
             <Route path="/pricing" element={<LazyPricing />} />
+            <Route path="/pricing-chart" element={<LazyPricingChart />} />
             
             {/* Centralized redirects from lib/redirects.ts */}
             {Object.entries(REDIRECTS).map(([from, to]) => (
